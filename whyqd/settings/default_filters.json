@@ -1,0 +1,23 @@
+{
+	"filters": {
+		"field": "foreignKey",
+		"modifiers": [
+			{
+				"name": "LATEST",
+				"description": "Latest"
+			},
+			{
+				"name": "AFTER",
+				"description": "After"
+			},
+			{
+				"name": "BEFORE",
+				"description": "Before"
+			},
+			{
+				"name": "ALL",
+				"description": "All"
+			}
+		]
+	}
+}

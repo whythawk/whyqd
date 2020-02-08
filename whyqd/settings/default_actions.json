@@ -1,0 +1,70 @@
+{
+	"fields": [
+		{
+			"name": "NEW",
+			"type": "NEW",
+			"title": "New",
+			"description": "Create a new field and assign a set value."
+		},
+		{
+			"name": "ORDER",
+			"name": "ORDER",
+			"title": "Order",
+			"description": "Use sparse data from a list of fields to populate a new field. Order is important, each successive field in the list have priority over the ones before it (e.g. for columns A, B & C, values in C will have precedence over values in B and A)."
+		},
+		{
+			"name": "ORDER_NEW",
+			"type": "ORDER_NEW",
+			"title": "Order by newest",
+			"description": "Use sparse data from a list of fields to populate a new field order by most recent value. Field-pairs required, with the first containing the values, and the second the dates for comparison (e.g. A dA, B dB, C dC, values with the most recent associated date will have precedence over other values)."
+		},
+		{
+			"name": "ORDER_OLD",
+			"type": "ORDER_OLD",
+			"title": "Order by oldest",
+			"description": "Use sparse data from a list of fields to populate a new field order by the oldest value. Field-pairs required, with the first containing the values, and the second the dates for comparison (e.g. A dA, B dB, C dC, values with the oldest associated date will have precedence over other values)."
+		},
+		{
+			"name": "CALCULATE",
+			"type": "CALCULATE",
+			"title": "Calculate",
+			"description": "Derive a calculation from a list of fields. Each field must have a modifier, including the first (e.g. +A -B +C).",
+			"modifiers": {
+				"operands": [
+					{
+						"name": "ADD",
+						"title": "+"
+					},
+					{
+						"name": "SUB",
+						"title": "-"
+					}
+				]
+			}
+		},
+		{
+			"name": "CATEGORISE",
+			"type": "CATEGORISE",
+			"title": "Categorise",
+			"description": "Apply categories to a list of columns. Each field must have a modifier, including the first (e.g. +A -B +C). '-' modifier indicates presence/absence of values as true/false for a specific term. '+' modifier indicates that the unique terms in the field must be matched to the unique terms defined in the schema. This is a two-step process, first requiring listing the columns effected, then applying the terms.",
+			"modifiers": {
+				"classifiers": [
+					{
+						"name": "BOOL",
+						"title": "Values"
+					},
+					{
+						"name": "TERM",
+						"title": "Uniques"
+					}
+				]
+			}
+		},
+		{
+			"name": "JOIN",
+			"type": "JOIN",
+			"title": "Join",
+			"description": "Join values in different fields to create a new concatenated value. Each value will be converted to a string (e.g. A: 'Word 1' B: 'Word 2' => 'Word 1 Word 2')."
+		}
+	]
+}
