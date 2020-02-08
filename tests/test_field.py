@@ -41,6 +41,7 @@ class TestField:
 		assert f.constraints["filters"] == filters
 
 	def test_all(self):
+		# Test string field
 		settings = {
 			"constraints": {
 				"required": True,
@@ -65,6 +66,7 @@ class TestField:
 		settings["name"] = "test_name"
 		settings["type"] = "string"
 		assert f.settings == settings
+		# Test date field
 		settings = {
 			"constraints": {
 				"filters": {

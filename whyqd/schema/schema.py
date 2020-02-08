@@ -289,7 +289,7 @@ class Schema:
 		self.default_filters = _c.get_settings("filters")
 		if source:
 			kwargs = _c.load_json(source)
-		self.schema_settings = kwargs
+		self.schema_settings = deepcopy(kwargs)
 		self.build()
 
 	def __repr__(self):
@@ -346,6 +346,10 @@ class Schema:
 			# `name` required
 			e = "`name` not found in target schema"
 			raise KeyError(e)
+		for v in [name, title, description]:
+			if v and not isinstance(v, str):
+				e = "`{}` is not a valid string. Schema details must be strings."
+				raise TypeError(e)
 		self.schema_settings["name"] = "_".join(name.split(" ")).lower()
 		if title: self.schema_settings["title"] = title
 		if description: self.schema_settings["description"] = description
@@ -463,6 +467,7 @@ class Schema:
 			Parameters will be validated against the type requirements, so check carefully with
 			`default_field_settings`.
 		"""
+		kwargs = deepcopy(kwargs)
 		if "name" not in kwargs:
 			e = "No valid `name` provided for Field."
 			raise ValueError(e)
@@ -491,6 +496,7 @@ class Schema:
 		self.schema_settings["fields"][:] = [f for f in self.schema_settings["fields"]
 											 if f.name != field.name]
 		# update field
+		filters = deepcopy(filters)
 		modifiers = [f for f in self.default_filters["filters"]["modifiers"]
 					 if f["name"] in filters]
 		if modifiers:
@@ -518,6 +524,7 @@ class Schema:
 		-------
 		Field
 		"""
+		field = deepcopy(field)
 		if not isinstance(field, dict) or not all(key in field for key in self.required_field_terms):
 			e = "Field is not a valid dictionary"
 			raise ValueError(e)
