@@ -4,6 +4,7 @@ Target Fields
 
 Definitions and customisation for canonical destination fields forming the target schema.
 """
+from copy import deepcopy
 
 import whyqd.common as _c
 
@@ -16,6 +17,7 @@ class Field:
 		self.common_settings = _c.get_settings("schema")["common"]
 		self.default_settings = _c.get_field_settings(field_type)
 		self.default_constraints = self.default_settings["constraints"]["properties"]
+		self.default_filters = _c.get_settings("filters")["filters"]["modifiers"]
 		self.default_format = self.default_settings.get("format", {})
 		self._name = "_".join(name.split(" ")).lower()
 		self._type = field_type
@@ -24,6 +26,7 @@ class Field:
 			"type": self._type,
 			"constraints": {}
 		}
+		kwargs = deepcopy(kwargs)
 		if kwargs and kwargs.get("validate", True):
 			self.set_all(**kwargs)
 		if kwargs and not kwargs.get("validate", True):
@@ -89,7 +92,7 @@ class Field:
 		-------
 			dict: dict of field constraints
 		"""
-		return self.field_settings.get('constraints', {})
+		return deepcopy(self.field_settings.get('constraints', {}))
 
 	@property
 	def settings(self):
@@ -100,7 +103,7 @@ class Field:
 		-------
 			dict: settings
 		"""
-		return self.field_settings
+		return deepcopy(self.field_settings)
 
 	@property
 	def validates(self):
@@ -129,6 +132,7 @@ class Field:
 		if constraint not in self.default_constraints:
 			e = "`{}` not permitted in list of constraints".format(constraint)
 			raise KeyError(e)
+		value = deepcopy(value)
 		constraint_type = _c.get_field_type(value)
 		# Check for boolean constraints
 		if (constraint in ["unique", "required"] and constraint_type != "boolean"):
@@ -146,12 +150,14 @@ class Field:
 				raise ValueError(e)
 		if constraint == "category":
 			# Category constraints are very specific
-			if "terms" not in value:
-				e = "There are no terms defining this category constraint"
+			if not (isinstance(value, list) and
+					isinstance(value[0], dict) and
+					all(["name" in v for v in value])):
+				e = "Terms defining this category constraint must be presented as a list of dicts with keys `name` & (optional) `description`"
 				raise KeyError(e)
 			# Each term is an object with `name`/`description`, where`name` defined by a `type`
 			# Test if terms are of the required type
-			terms = [t["name"] for t in value["terms"]]
+			terms = [t["name"] for t in value]
 			required_type = self.default_constraints["category"]["terms"]["type"]
 			if not all([_c.get_field_type(t) == required_type for t in terms]):
 				e = "`{}` are not all of type `{}`".format(terms, required_type)
@@ -166,8 +172,9 @@ class Field:
 			if not value.get("modifiers"):
 				e = "`{}` has missing `modifiers` in `filters`".format(constraint)
 				raise KeyError(e)
-			if not isinstance(value.get("field", "foreignKey"), str):
-				e = "Filter field `{}` is not of type `string`".format(value["field"])
+			if "field" in value and not (isinstance(value["field"], str) or
+										 isinstance(value["field"], bool)):
+				e = "Filter field `{}` is not of type `string` or `True`".format(value["field"])
 				raise KeyError(e)
 			if value.get("field", "foreignKey") == "foreignKey":
 				value["field"] = True
@@ -181,6 +188,7 @@ class Field:
 		------
 			ValueError: if value is out of range of that permitted by this field
 		"""
+		value = deepcopy(value)
 		_type = _c.get_field_type(value)
 		if value != "" or _type != self.field_settings["type"]:
 			e = "`{}` not a permitted value type for `{}`".format(value, self.field_settings["type"])
@@ -195,6 +203,7 @@ class Field:
 		------
 			ValueError: if value is not permitted for this field
 		"""
+		value = deepcopy(value)
 		_type = _c.get_field_type(value)
 		if value not in self.default_format.get("category", ["default"]):
 			e = "`{}` not a permitted format".format(value)
@@ -209,6 +218,7 @@ class Field:
 		------
 			TypeError: if value is not a bool
 		"""
+		value = deepcopy(value)
 		if not isinstance(value, bool):
 			e = "`{}` is not boolean".format(value)
 			raise TypeError(e)
@@ -231,6 +241,7 @@ class Field:
 			ValueError: if `name` contains spaces
 			TypeError: if string terms are not strings
 		"""
+		kwargs = deepcopy(kwargs)
 		if "type" in kwargs:
 			e = "Warning: You are not permitted to change an existing Field type. Better to delete & start again."
 			print(e)
