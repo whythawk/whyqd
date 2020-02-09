@@ -38,12 +38,8 @@
 						"description": "When `true`, each value for the property `MUST` be unique."
 					},
 					"category": {
-						"type": "array",
 						"minItems": 1,
-						"uniqueItems": true,
-						"terms": {
-						  "type": "string"
-						}
+						"description": "A list of dictionary terms with `name` & (optional) `description`, and with minimum length `minItems`."
 					},
 					"minimum": {
 						"type": "integer",
@@ -78,12 +74,8 @@
 						"description": "When `true`, each value for the property `MUST` be unique."
 					},
 					"category": {
-						"type": "array",
 						"minItems": 1,
-						"uniqueItems": true,
-						"terms": {
-						  "type": "number"
-						}
+						"description": "A list of dictionary terms with `name` & (optional) `description`, and with minimum length `minItems`."
 					},
 					"minimum": {
 						"type": "number",
@@ -118,12 +110,8 @@
 						"description": "When `true`, each value for the property `MUST` be unique."
 					},
 					"category": {
-						"type": "array",
 						"minItems": 1,
-						"uniqueItems": true,
-						"terms": {
-						  "type": "integer"
-						}
+						"description": "A list of dictionary terms with `name` & (optional) `description`, and with minimum length `minItems`."
 					},
 					"minimum": {
 						"type": "integer",
@@ -157,12 +145,8 @@
 						"description": "Indicates whether a property must have a value for each instance."
 					},
 					"category": {
-						"type": "array",
 						"minItems": 2,
-						"uniqueItems": true,
-						"terms": {
-						  "type": "boolean"
-						}
+						"description": "A list of dictionary terms with `name` & (optional) `description`, and with minimum length `minItems`."
 					}
 				}
 			},
@@ -213,12 +197,13 @@
 						"description": "When `true`, each value for the property `MUST` be unique."
 					},
 					"category": {
-						"type": "array",
 						"minItems": 1,
-						"uniqueItems": true,
-						"terms": {
-						  "type": "integer"
-						}
+						"description": "A list of dictionary terms with `name` & (optional) `description`, and with minimum length `minItems`."
+					},
+					"valueType": {
+						"type": ["string", "number", "integer", "boolean", "date", "datetime", "year"],
+						"description": "Defines the `type` for contents of the array.",
+						"default": "string"
 					}
 				}
 			},

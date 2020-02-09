@@ -1,0 +1,92 @@
+{
+	"name": "test_schema",
+	"title": "Test Schema",
+	"description": "A test Schema",
+	"fields": [
+		{
+			"name": "la_code",
+			"title": "Local authority code",
+			"type": "string",
+			"description": "Standard code for local authority."
+		},
+		{
+			"name": "ba_ref",
+			"title": "Billing reference",
+			"type": "string",
+			"description": "Unique code for a specific hereditament. May be multiple rows for history."
+		},
+		{
+			"name": "prop_ba_rates",
+			"title": "Property billing rates",
+			"type": "number",
+			"description": "Actual rates paid by a specific ratepayer."
+		},
+		{
+			"name": "occupant_name",
+			"title": "Occupier name",
+			"type": "string",
+			"description": "Name of the ratepayer."
+		},
+		{
+			"name": "postcode",
+			"title": "Postcode",
+			"type": "string",
+			"description": "Full address or postcode of ratepayer."
+		},
+		{
+			"name": "occupation_state",
+			"title": "Occupation state",
+			"type": "boolean",
+			"description": "Occupation status, void or occupied."
+		},
+		{
+			"name": "occupation_state_date",
+			"title": "Date of occupation state",
+			"type": "date",
+			"description": "Date of the start of status in occupation_state."
+		},
+		{
+			"name": "occupation_state_reliefs",
+			"title": "Occupation state reliefs",
+			"type": "array",
+			"description": "Array of the categories of reliefs / exemptions applied.",
+			"constraints": {
+				"category": [
+					{
+						"name": "small_business"
+					},
+					{
+						"name": "rural"
+					},
+					{
+						"name": "charity"
+					},
+					{
+						"name": "enterprise_zone"
+					},
+					{
+						"name":  "vacancy"
+					},
+					{
+						"name": "hardship"
+					},
+					{
+						"name": "retail"
+					},
+					{
+						"name": "discretionary"
+					},
+					{
+						"name": "exempt"
+					},
+					{
+						"name": "transitional"
+					},
+					{
+						"name": "other"
+					}
+				]
+			}
+		}
+	]
+}

@@ -103,7 +103,10 @@ class Field:
 		-------
 			dict: settings
 		"""
-		return deepcopy(self.field_settings)
+		response = deepcopy(self.field_settings)
+		# Remove empty category fields if none used
+		if not response["constraints"]: del response["constraints"]
+		return response
 
 	@property
 	def validates(self):
@@ -158,15 +161,26 @@ class Field:
 			# Each term is an object with `name`/`description`, where`name` defined by a `type`
 			# Test if terms are of the required type
 			terms = [t["name"] for t in value]
-			required_type = self.default_constraints["category"]["terms"]["type"]
-			if not all([_c.get_field_type(t) == required_type for t in terms]):
-				e = "`{}` are not all of type `{}`".format(terms, required_type)
-				raise ValueError(e)
+			# Not sure what my intention is here. I mean, names are going to be strings, right?
+			# Maybe need to specify the types in the array somewhere?
+			# leaving it for now...
+			#required_type = self.default_constraints["category"]["terms"]["type"]
+			#if not all([_c.get_field_type(t) == required_type for t in terms]):
+			#	e = "`{}` are not all of type `{}`".format(terms, required_type)
+			#	raise ValueError(e)
 			# Test if terms are unique
-			if self.default_constraints[constraint].get("uniqueItems"):
-				if len(terms) < len(set(terms)):
-					e = "`{}` has fewer values than required by `{}`".format(value, constraint)
-					raise ValueError(e)
+			if len(terms) < len(set(terms)):
+				e = "Category list `{}` has duplicate terms".format(value)
+				raise ValueError(e)
+		if constraint == "valueType":
+			# This is to set the `type` for the contents of an array
+			if self._type != "array":
+				import warnings
+				e = "`valueType` will be ignored for fields which are not type `array`."
+				warnings.warn(e)
+			if value not in self.default_constraints["valueType"]["type"]:
+				e = "valueType `{}` not one of `{}`".format(value, self.default_constraints["valueType"]["type"])
+				raise ValueError(e)
 		if constraint == "filters":
 			# This is a user-defined constraint which can be applied to any date-related field type
 			if not value.get("modifiers"):
