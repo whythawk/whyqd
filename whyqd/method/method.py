@@ -27,6 +27,7 @@ STATUS_CODES = {
 	"READY_MERGE": "Ready to Merge",
 	"READY_STRUCTURE": "Ready to Structure",
 	"READY_CATEGORIES": "Ready to Categories",
+	"READY_FILTER": "Ready to Filter",
 	"READY_TRANSFORM": "Ready to Transform",
 	"READY_IMPORT": "Ready to Import",
 	"CREATE_ERROR": "Create Error",
@@ -66,12 +67,21 @@ class Method(Schema):
 		"""
 		Merge input data on a key column.
 
+		Paramaters
+		----------
+		overwrite_working: bool, permission to overwrite existing working data
+
 		TO_DO
 		-----
 		While `merge` validates column uniqueness prior to merge, if the column is not unique there
 		is nothing the user can do about it (without manually going and refixing the input data).
 		Some sort of uniqueness fix required (probably using the filters).
 		"""
+		if self._status in STATUS_CODES.keys() - ["READY_MERGE", "READY_STRUCTURE", "READY_CATEGORIES",
+												  "READY_FILTER", "READY_TRANSFORM", "PROCESS_COMPLETE",
+												  "MERGE_ERROR"]:
+			e = "Current status: `{}` - performing `merge` is not permitted.".format(self.status)
+			raise PermissionError(e)
 		self.validate_merge_data
 		if ("working_data" in self.schema_settings and
 			not self.schema_settings["working_data"].get("checksum")):
@@ -170,20 +180,11 @@ class Method(Schema):
 							in list;
 							MODIFIER: + before terms where column values are to be classified as unique;
 									  - before terms where column values are treated as boolean;
-
-		Args:
-			code:		Codes reference for the local authority source data;
-			cycle:		Cycle to be referenced for this data update;
-			fields:		As above...
-
-		Returns:
-			Method dictionary.
 		"""
-		method = get_method(**kwargs)
-		if not method and kwargs.get("methods"):
-			method["state"] = "STRUCTURE_ERROR"
-			save_method(**method)
-			return method
+		if self._status in STATUS_CODES.keys() - ["READY_STRUCTURE", "READY_CATEGORIES", "READY_FILTER",
+												  "READY_TRANSFORM", "PROCESS_COMPLETE", "STRUCTURE_ERROR"]:
+			e = "Current status: `{}` - performing `structure` is not permitted.".format(self.status)
+			raise PermissionError(e)
 		# Technically, raw_files 0 should contain the merge field in this source_file
 		set_dtypes = {}
 		if method["raw_files"][0]["data"].get("merge"):
@@ -341,6 +342,39 @@ class Method(Schema):
 		self.schema_settings["input_data"] = reordered_data
 		self._status = "READY_MERGE"
 
+	def deduplicate_columns(self, idx, fmt=None, ignoreFirst=True):
+		"""
+		Source: https://stackoverflow.com/a/55405151
+		Returns a new column list permitting deduplication of dataframes which may result from merge.
+
+		Parameters
+		----------
+		idx: df.columns (i.e. the indexed column list)
+		fmt: A string format that receives two arguments: name and a counter. By default: fmt='%s.%03d'
+		ignoreFirst: Disable/enable postfixing of first element.
+
+		Returns
+		-------
+		list of strings
+			Updated column names
+		"""
+		idx = pd.Series(idx)
+		duplicates = idx[idx.duplicated()].unique()
+		fmt = '%s_%03d' if fmt is None else fmt
+		for name in duplicates:
+			dups = idx==name
+			ret = [fmt%(name,i) if (i!=0 or not ignoreFirst) else name
+				   for i in range(dups.sum())]
+			idx.loc[dups] = ret
+		# Fix any fields with the same name as any of the target fields
+		for name in self.all_field_names:
+			dups = idx==name
+			ret = ["{}__dd".format(name) for i in range(dups.sum())]
+			idx.loc[dups] = ret
+		return pd.Index(idx)
+
+	# VALIDATE, BUILD AND SAVE
+
 	@property
 	def validate_input_data(self):
 		"""
@@ -378,37 +412,6 @@ class Method(Schema):
 			source = self.directory + data["file"]
 			_c.check_column_unique(source, data["key"])
 		return True
-
-	def deduplicate_columns(self, idx, fmt=None, ignoreFirst=True):
-		"""
-		Source: https://stackoverflow.com/a/55405151
-		Returns a new column list permitting deduplication of dataframes which may result from merge.
-
-		Parameters
-		----------
-		idx: df.columns (i.e. the indexed column list)
-		fmt: A string format that receives two arguments: name and a counter. By default: fmt='%s.%03d'
-		ignoreFirst: Disable/enable postfixing of first element.
-
-		Returns
-		-------
-		list of strings
-			Updated column names
-		"""
-		idx = pd.Series(idx)
-		duplicates = idx[idx.duplicated()].unique()
-		fmt = '%s_%03d' if fmt is None else fmt
-		for name in duplicates:
-			dups = idx==name
-			ret = [fmt%(name,i) if (i!=0 or not ignoreFirst) else name
-				   for i in range(dups.sum())]
-			idx.loc[dups] = ret
-		# Fix any fields with the same name as any of the target fields
-		for name in self.all_field_names:
-			dups = idx==name
-			ret = ["{}__dd".format(name) for i in range(dups.sum())]
-			idx.loc[dups] = ret
-		return pd.Index(idx)
 
 	def save_data(self, df, filetype="XLSX"):
 		"""

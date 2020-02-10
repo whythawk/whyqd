@@ -1,4 +1,4 @@
-# whyqd: data wrangling simplicity, complete audit transparency, and at speed
+# whyqd: simplicity, transparency, speed
 
 ## What is it?
 
@@ -40,7 +40,24 @@ could kill a project.
   - Assign categorical data identified during structuring;
   - Transform and filter input data to produce a final destination data file;
 
-## Relationship to Frictionless Data
+## Roadmap
+
+  - Method to filter by unique join keys prior to merging;
+  - Input data from remote sources via URI;
+  - Zip output and produce citation report;
+  - Validate zipped file;
+
+## Background
+
+**whyqd** was created to serve a continuous data wrangling process, including collaboration on more
+complex messy sources, ensuring the integrity of the source data, and producing a complete audit
+trail from data imported to our database, back to source. You can see the product of that at
+[Sqwyre.com](https://sqwyre.com).
+
+That said, the first ideas for how a more general approach would work was during extensive data
+wrangling workshops to national government open data initiatives. These projects often fail to
+deliver data publication when government data owners give up because they can't get their (messy)
+data to validate against FrictionlessData prior to official release approval.
 
 [Frictionlessdata.io](https://frictionlessdata.io/) is intended as a containerised validation schema
 for CSV files. **whyqd** uses their *table schema* as a starting-point, but our objectives
@@ -51,11 +68,11 @@ For starters, there is no guarantee that a restructured dataset emerging from a
 prior to automated data munging. There is also no expectation that the final destination for these
 data would be a CSV, since it is more likely you are going to import into a database.
 
-There are additional terms in the schema which are there to support data wrangling, and some of the
-less meaningful field names have been changed. That said, **whyqd** was started, in part, as a
-response to the frustration of open data projects failing to deliver data publication as government
-data owners gave up because they couldn't get their (messy) data to validate against FrictionlessData
-prior to official release approval.
+There are additional terms in the schema which are there to support data wrangling and data integrity,
+and some of the less meaningful field names have been changed.
+
+The 'backronym' for **whyqd** (`ˈwɪkɪd`) is *[Whythawk](https://whythawk.com) Quantitative Data*,
+and Whythawk is an open data science and open research technical consultancy.
 
 ## Licence
 [BSD 3](LICENSE)

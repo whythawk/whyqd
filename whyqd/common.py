@@ -44,6 +44,12 @@ def get_checksum(source):
 			checksum.update(chunk)
 	return checksum.hexdigest()
 
+def chunks(l, n):
+	"""Yield successive n-sized chunks from l."""
+	# https://stackoverflow.com/a/976918/295606
+	for i in range(0, len(l), n):
+		yield l[i:i + n]
+
 ###################################################################################################
 ### JSON, Schema and Action get and set
 ###################################################################################################
