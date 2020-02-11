@@ -1,47 +1,118 @@
 """
-Target Schema
--------------
+Actions
+-------
 
-Define and manage a structural metadata schema as the target for a wrangling process.
+Definitions and validation for actions anchoring tasks in methods.
 
-Dassie munges input-data into a target schema where automated scripts can perform further cleaning
-and validation. Data produced will conform to the schema but are in an interim state. The schema
-process is similar to FrictionlessData.io, but without its error-checking and validation components.
+Key functions are:
+
+  - Validate an action exists
+  - Specify any modifiers
+  - Validate task structure
 """
-
+from copy import deepcopy
 import whyqd.common as _c
-from whyqd.schema import Field
 
-class Action(Field):
+class Action:
 
-	def __init__(self, **kwargs):
-		# If this is initialising default Actions, then the name and type are actions. There will be
-		# no 'actions' field. Else they are the Field name and type from the Schema
-		_name = kwargs["name"]
-		del kwargs["name"]
-		_type = kwargs["type"]
-		del kwargs["type"]
-		if not kwargs.get("action", {}).get("type") and kwargs.get("validate", True):
+	def __init__(self, **action):
+		if not action.get("name") and action.get("validate", True):
 			e = "Missing type for Action initialisation"
 			TypeError(e)
-		super().__init__(_name, _type, **kwargs)
-		if not kwargs.get("action", {}):
-			self.action_type = self._type
-		else:
-			self.action_type = self.field_settings["actions"][0]["type"]
-		self.default_settings = _c.get_field_settings(field_type, "actions")
+		if action.get("validate", True):
+			valid = False
+			for valid_action in _c.get_settings("actions")["fields"]:
+				if valid_action["name"] == action["name"]:
+					action = valid_action
+					valid = True
+					break
+			if not valid:
+				e = "Action `{}` is not a valid term.".format(action["name"])
+				raise ValueError(e)
+		self.action_settings = deepcopy(action)
+		self.name = self.action_settings.get("name")
+		self.title = self.action_settings.get("title")
+		self.description = self.action_settings.get("description")
+		self.default_structure = {
+			"field": [f["type"] for f in _c.get_settings("schema")["field"]],
+			"modifier": self.modifier_names
+		}
 
-	def set_filters(self, working_data, filter, date_filter=None):
-		# Need to set a date for "AFTER" & "BEFORE"
-		pass
+	@property
+	def modifier_names(self):
+		if "modifiers" in self.action_settings:
+			return [modifier["name"] for modifier in self.action_settings["modifiers"]]
+		return []
 
-	def set_category(self, modifier, working_data):
-		# If modifier "-", set [True, False], if "+", get unique terms from that dataframe column
-		pass
+	def has_modifier(self, term):
+		for modifier in self.action_settings.get("modifiers", []):
+			if modifier["name"] == term:
+				return True
+		return False
 
-	def set_task(self, working_data, *action):
-		# Sets or updates a task, and sets any required categories
-		pass
+	def get_modifier(self, term):
+		for modifier in self.action_settings.get("modifiers", []):
+			if modifier["name"] == term:
+				return deepcopy(modifier)
+		return {}
+
+	def has_valid_structure(self, working_columns, *task):
+		"""
+		Traverses a list defined by `*task`, ensuring that the terms conform to that action's
+		default structural requirements. Nested tasks are permitted. Note that the responsibility
+		for digging in to the nested tasks lies with the calling function.
+
+		The format for defining a `task` is as follows::
+
+			[action, column_name, [action, column_name]]
+
+		e.g.::
+
+			["CATEGORISE", "+", ["ORDER", "column_1", "column_2"]]
+
+		A calling function would specify::
+
+			Action.has_valid_structure(working_columns, *task[1:])
+
+		Parameters
+		----------
+		working_columns: list
+			List of valid terms from the working data columns.
+		task: list
+			Each task list must conform to the requirements for that action. Nested actions defined
+			by nested lists.
+
+		Returns
+		-------
+		bool, True if valid
+		"""
+		if not task:
+			e = "A task must contain at least one `field`."
+			raise ValueError(e)
+		term_set = len(self.action_settings.get("structure", []))
+		for field in _c.chunks(task, term_set):
+			if len(field) != term_set:
+				return False
+			for i, term in enumerate(self.action_settings["structure"]):
+				if term == "field" and insinstance(field[i], list):
+					# The calling function needs to handle recursion through the list
+					continue
+				if term == "field" and field[i] not in working_columns:
+					return False
+				if field[i] not in self.default_structure[term]:
+					return False
+		return True
+
+	@property
+	def settings(self):
+		"""
+		Action settings
+
+		Returns
+		-------
+		dict: settings
+		"""
+		return deepcopy(self.action_settings)
 
 	def validate_task(self, working_columns, *task):
 		"""
@@ -64,14 +135,14 @@ class Action(Field):
 		# Superficial validation check
 		for field in task[1:]:
 			# Validate that the source column names are actually in the `working_columns`
-			if field["type"] == "field" and field["name"] not in working_columns:
+			if field["type"] in self.default_field_types and field["name"] not in working_columns:
 				e = "Method field `{}` of type `{}` in action `{}` has invalid column `{}`."
 				e = e.format(self._name, self._type, action["name"], field["name"])
 				raise ValueError(e)
 			# Recurse for any nested fields down the tree
 			if field["type"] == "nested":
 				try:
-					self.validate_method(working_columns, *field["action"])
+					self.validate_task(working_columns, *field["action"])
 				except KeyError:
 					e = "Method field `{}` of type `{}` in action `{}` has missing nested action."
 					e = e.format(self._name, self._type, action["name"])
@@ -94,13 +165,13 @@ class Action(Field):
 			if len(field) != term_set:
 				valid = False
 			if valid and action["name"] in ["ORDER_NEW", "ORDER_OLD"]:
-				if ((field[0]["type"] != "field" and field[0]["type"] != "nested") or
+				if ((field[0]["type"] not in self.default_field_types + ["nested"]) or
 					(field[1]["name"] != "+") or
-					(field[2]["type"] != "field" and field[2]["type"] != "nested")):
+					(field[2]["type"] not in self.default_field_types + ["nested"])):
 					valid = False
 			if valid and action["name"] in ["CALCULATE", "CATEGORISE"]:
 				if ((field[0]["type"] != "modifier") or
-					((field[1]["type"] != "field") and (field[1]["type"] != "nested"))):
+					(field[1]["type"] not in self.default_field_types + ["nested"])):
 					valid = False
 			if valid and action["name"] == "CATEGORISE":
 				if not field[1].get("constraints", {}).get("category"):

@@ -1,0 +1,138 @@
+{
+	"name": "test_method",
+	"title": "Test Method",
+	"description": "A test Method",
+	"fields": [
+		{
+			"name": "la_code",
+			"title": "Local authority code",
+			"type": "string",
+			"description": "Standard code for local authority."
+		},
+		{
+			"name": "ba_ref",
+			"title": "Billing reference",
+			"type": "string",
+			"description": "Unique code for a specific hereditament. May be multiple rows for history."
+		},
+		{
+			"name": "prop_ba_rates",
+			"title": "Property billing rates",
+			"type": "number",
+			"description": "Actual rates paid by a specific ratepayer."
+		},
+		{
+			"name": "occupant_name",
+			"title": "Occupier name",
+			"type": "string",
+			"description": "Name of the ratepayer."
+		},
+		{
+			"name": "postcode",
+			"title": "Postcode",
+			"type": "string",
+			"description": "Full address or postcode of ratepayer."
+		},
+		{
+			"name": "occupation_state",
+			"title": "Occupation state",
+			"type": "boolean",
+			"description": "Occupation status, void or occupied."
+		},
+		{
+			"name": "occupation_state_date",
+			"title": "Date of occupation state",
+			"type": "date",
+			"description": "Date of the start of status in occupation_state."
+		},
+		{
+			"name": "occupation_state_reliefs",
+			"title": "Occupation state reliefs",
+			"type": "array",
+			"description": "Array of the categories of reliefs / exemptions applied.",
+			"constraints": {
+				"category": [
+					{
+						"name": "small_business"
+					},
+					{
+						"name": "rural"
+					},
+					{
+						"name": "charity"
+					},
+					{
+						"name": "enterprise_zone"
+					},
+					{
+						"name":  "vacancy"
+					},
+					{
+						"name": "hardship"
+					},
+					{
+						"name": "retail"
+					},
+					{
+						"name": "discretionary"
+					},
+					{
+						"name": "exempt"
+					},
+					{
+						"name": "transitional"
+					},
+					{
+						"name": "other"
+					}
+				]
+			},
+			"task": [
+				{
+					"name": "CATEGORISE",
+					"type": "action",
+					"title": "Categorise",
+					"description": "Apply categories to a list of columns. Each field must have a modifier, including the first (e.g. +A -B +C). '-' modifier indicates presence/absence of values as true/false for a specific term. '+' modifier indicates that the unique terms in the field must be matched to the unique terms defined in the schema. This is a two-step process, first requiring listing the columns effected, then applying the terms.",
+					"modifiers": [
+						{
+							"name": "+",
+							"title": "Uniques",
+							"type": "modifier"
+						},
+						{
+							"name": "-",
+							"title": "Values",
+							"type": "modifier"
+						}
+					]
+				},
+				{
+					"name": "+",
+					"title": "Uniques",
+					"type": "modifier"
+				},
+				{
+					"name": "Exemption Code",
+					"type": "string",
+					"constraints": {
+						"category": {
+							"terms": [
+								"NONE",
+								"DEMINIMUS RATEABLE VALUE",
+								"INDUSTRIAL",
+								"LAND",
+								"SECTION 65 COMMUNICATION STATION",
+								"3 MONTHS",
+								"LISTED",
+								"CHARITY",
+								"ADMINISTRATION",
+								"LIQUIDATION",
+								"DECD"
+							]
+						}
+					}
+				}
+			]
+		}
+	]
+}

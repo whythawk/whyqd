@@ -256,7 +256,7 @@ class Field:
 			TypeError: if string terms are not strings
 		"""
 		kwargs = deepcopy(kwargs)
-		if "type" in kwargs:
+		if "type" in kwargs and kwargs["type"] != self._type:
 			e = "Warning: You are not permitted to change an existing Field type. Better to delete & start again."
 			print(e)
 		for key, value in kwargs.items():
@@ -270,9 +270,8 @@ class Field:
 				if not isinstance(value, str):
 					e = "`{}` is not a string".format(value)
 					raise TypeError(e)
-				if key == "name" and " " in value:
-					e = "Name `{}` not permitted to have space characters".format(value)
-					raise ValueError(e)
+				if key == "name"::
+					value = "_".join(value.split(" ")).lower()
 				self.field_settings[key] = value
 				continue
 			if key == "format":

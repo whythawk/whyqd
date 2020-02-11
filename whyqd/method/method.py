@@ -102,7 +102,7 @@ class Method(Schema):
 		if "working_data" in self.schema_settings:
 			del self.schema_settings["working_data"]
 		self.schema_settings["working_data"] = self.save_data(df)
-		df.to_excel(dir_source + f, index=False)
+		#df.to_excel(dir_source + f, index=False)
 
 		# Review for any existing actions
 		# self.validate_actions
@@ -373,6 +373,110 @@ class Method(Schema):
 			idx.loc[dups] = ret
 		return pd.Index(idx)
 
+	@property
+	def working_column_list(self):
+		if self.schema_settings.get("working_data"):
+			return [c["name"] for c in self.schema_settings["working_data"]["columns"]]
+		return []
+
+	def working_data_field(self, column):
+		if self.schema_settings.get("working_data"):
+			for field in self.schema_settings["working_data"]["columns"]:
+				if field["name"] == column:
+					return field
+		e = "Field `{}` is not in the working data.".format(column)
+		raise KeyError(e)
+
+	# SET, UPDATE AND BUILD TASKS (ACTION LISTS)
+
+	def set_task(self, *task_list):
+		"""
+		A recursive function which traverses a list defined by `*task`, ensuring that the first term
+		is an `action`, and that the subsequent terms conform to that action's requirements. Nested
+		tasks are permitted.
+
+		The format for defining a `task` is as follows::
+
+			[action, column_name, [action, column_name]]
+
+		e.g.::
+
+			["CATEGORISE", "+", ["ORDER", "column_1", "column_2"]]
+
+		This permits the creation of quite expressive wrangling tasks from simple building blocks.
+
+		Parameters
+		----------
+		task_list: list
+			Each task list must start with an `action`, with subsequent terms conforming to the
+			requirements for that action. Nested actions defined by nested lists.
+		"""
+		# Sets or updates a task, and sets any required categories
+		task = []
+		for i, term in enumerate(task_list):
+			if i == 0:
+				# Validate the rest of the task_list first
+				action = self.default_actions[term]
+				if not action.has_valid_structure(self.working_column_list, task_list[1:]):
+					e = "Task with action `{}` has invalid structure `{}`.".format(term, task_list)
+					raise ValueError(e)
+				task.append(action.settings)
+				continue
+			if isinstance(term, list):
+				# Deal with nested tasks
+				task.append(self.set_task(*term))
+				continue
+			if term in action.modifier_names:
+				task.append(action.get_modifier(term))
+			if term in self.working_column_list:
+				task.append(self.working_data_field(term))
+		return task
+
+	def set_task_for_field(self, field, *task_list):
+		self.set_task(*task_list)
+
+	@property
+	def default_action_types(self):
+		"""
+		Default list of actions available to define methods. Returns only a list
+		of types. Details for individual default actions can be returned with
+		`default_action_settings`.
+
+		Returns
+		-------
+		list
+		"""
+		return list(self.default_actions.keys())
+
+	def default_field_settings(self, action):
+		"""
+		Get the default settings available for a specific action type.
+
+		Parameters
+		----------
+		action: string
+			A specific term for an action type (as listed in `default_action_types`).
+
+		Returns
+		-------
+		dict, or empty dict if no such `action_type`
+		"""
+		if action in self.default_actions:
+			return deepcopy(self.default_action[action].settings)
+		return {}
+
+	def build_default_actions(self):
+		"""
+		Build the default actions for presentation to the user as options.
+
+		Returns
+		-------
+		dict of Actions
+		"""
+		default_actions = {action["name"]: Action(validate=False, **action)
+						   for action in _c.get_settings("actions")["fields"]}
+		return default_actions
+
 	# VALIDATE, BUILD AND SAVE
 
 	@property
@@ -413,44 +517,6 @@ class Method(Schema):
 			_c.check_column_unique(source, data["key"])
 		return True
 
-	def save_data(self, df, filetype="XLSX"):
-		"""
-		Generate a unique filename for a dataframe, save to the working directory, and return the
-		unique filename and data summary.
-
-		Parameters
-		----------
-		df: Pandas DataFrame
-		filetype: Save the dataframe as a particular type. Default is "CSV".
-
-		Returns
-		-------
-		dict
-			Keys include: id, filename, checksum, df header, columns
-		"""
-		if df.empty:
-			e = "Cannot save empty DataFrame."
-			raise ValueError(e)
-		if filetype not in ["XLSX", "CSV"]:
-			e = "`{}` not supported for saving DataFrame".format(filetype)
-			raise TypeError(e)
-		_id = str(uuid.uuid4())
-		filename = "".join([_id, ".", filetype])
-		source = self.directory + filename
-		if filetype == "CSV":
-			df.to_csv(source, index=False)
-		if filetype == "XLSX":
-			df.to_excel(source, index=False)
-		summary_data = _c.get_dataframe_summary(source)
-		data = {
-			"id": _id,
-			"checksum": _c.get_checksum(source),
-			"file": filename,
-			"dataframe": summary_data["df"],
-			"columns": summary_data["columns"]
-		}
-		return data
-
 	def build_action(self, **action):
 		"""
 		For a list of actions, defined as dictionaries, create and return Action objects.
@@ -488,47 +554,40 @@ class Method(Schema):
 		self.schema_settings["fields"] = [self.build_action(**action) for action in
 										  self.schema_settings["fields"]]
 
-	@property
-	def default_action_types(self):
+	def save_data(self, df, filetype="XLSX"):
 		"""
-		Default list of actions available to define methods. Returns only a list
-		of types. Details for individual default actions can be returned with
-		`default_action_settings`.
-
-		Returns
-		-------
-		list
-		"""
-		return [f.type for f in self.default_actions]
-
-	def default_field_settings(self, action_type):
-		"""
-		Get the default settings available for a specific action type.
+		Generate a unique filename for a dataframe, save to the working directory, and return the
+		unique filename and data summary.
 
 		Parameters
 		----------
-		action_type: string
-			A specific term for an action type (as listed in `default_action_types`).
+		df: Pandas DataFrame
+		filetype: Save the dataframe as a particular type. Default is "CSV".
 
 		Returns
 		-------
-		dict, or empty dict if no such `action_type`
+		dict
+			Keys include: id, filename, checksum, df header, columns
 		"""
-		for f in self.default_actions:
-			if f.type == action_type:
-				return deepcopy(f.settings)
-		return {}
-
-	def build_default_actions(self):
-		"""
-		Build the default actions for presentation to the user as options.
-
-		Returns
-		-------
-		list of Actions
-		"""
-		default_actions = _c.get_settings("actions")["fields"]
-		response = []
-		for action in default_actions:
-			response.append(Action(validate=False, **action))
-		return response
+		if df.empty:
+			e = "Cannot save empty DataFrame."
+			raise ValueError(e)
+		if filetype not in ["XLSX", "CSV"]:
+			e = "`{}` not supported for saving DataFrame".format(filetype)
+			raise TypeError(e)
+		_id = str(uuid.uuid4())
+		filename = "".join([_id, ".", filetype])
+		source = self.directory + filename
+		if filetype == "CSV":
+			df.to_csv(source, index=False)
+		if filetype == "XLSX":
+			df.to_excel(source, index=False)
+		summary_data = _c.get_dataframe_summary(source)
+		data = {
+			"id": _id,
+			"checksum": _c.get_checksum(source),
+			"file": filename,
+			"dataframe": summary_data["df"],
+			"columns": summary_data["columns"]
+		}
+		return data

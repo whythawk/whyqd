@@ -2,7 +2,7 @@
 
 ## What is it?
 
-**whyqd** provides an intuitive and rapid method for restructuring messy data to conform to a
+**whyqd** provides an intuitive and quick method for restructuring messy data to conform to a
 standardised metadata schema. It supports data managers and researchers looking to rapidly, and
 continuously, normalise any messy spreadsheets using a simple series of steps. Once complete, you
 can import wrangled data into more complex analytical systems or full-feature wrangling tools.
@@ -29,7 +29,8 @@ each independent dataset into a single schema.
 If all you want to do is test whether your source data are even useful, this time-consuming slog
 could kill a project.
 
-**whyqd** allows you to get to work without requiring you to achieve buy-in from anyone.
+**whyqd** allows you to get to work without requiring you to achieve buy-in from anyone. They can
+always edit the method themselves should they need to make changes.
 
 ## Wrangling process
 
@@ -71,8 +72,8 @@ data would be a CSV, since it is more likely you are going to import into a data
 There are additional terms in the schema which are there to support data wrangling and data integrity,
 and some of the less meaningful field names have been changed.
 
-The 'backronym' for **whyqd** (`ˈwɪkɪd`) is *[Whythawk](https://whythawk.com) Quantitative Data*,
-and Whythawk is an open data science and open research technical consultancy.
+The 'backronym' for **whyqd** /wɪkɪd/ is *Whythawk Quantitative Data*, [Whythawk](https://whythawk.com)
+is an open data science and open research technical consultancy.
 
 ## Licence
 [BSD 3](LICENSE)

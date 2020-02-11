@@ -115,10 +115,10 @@ def get_settings(choice):
 	source = PurePath.joinpath(get_path(), "settings", filename)
 	return load_json(source)
 
-def get_field_settings(field_type, setting_file="schema"):
+def get_field_settings(field_type, key="type", setting_file="schema"):
 	fields = get_settings(setting_file)["fields"]
 	for f in fields:
-		if f["type"] == field_type:
+		if f[key] == field_type:
 			return f
 	return {}
 

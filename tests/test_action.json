@@ -83,21 +83,22 @@
 			"name": "Exemption Code",
 			"type": "string",
 			"constraints": {
-				"category": [
-					"NONE",
-					"DEMINIMUS RATEABLE VALUE",
-					"INDUSTRIAL",
-					"LAND",
-					"SECTION 65 COMMUNICATION STATION",
-					"3 MONTHS",
-					"LISTED",
-					"CHARITY",
-					"ADMINISTRATION",
-					"LIQUIDATION",
-					"DECD"
-				]
-			},
-			"type": "field"
+				"category": {
+					"terms": [
+						"NONE",
+						"DEMINIMUS RATEABLE VALUE",
+						"INDUSTRIAL",
+						"LAND",
+						"SECTION 65 COMMUNICATION STATION",
+						"3 MONTHS",
+						"LISTED",
+						"CHARITY",
+						"ADMINISTRATION",
+						"LIQUIDATION",
+						"DECD"
+					]
+				}
+			}
 		}
 	]
 }
