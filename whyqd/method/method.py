@@ -231,7 +231,7 @@ class Method(Schema):
 		a dictionary of key:value pairs defining any metadata that may be used post-wrangling and
 		need to be maintained with the target data.
 		"""
-		return self.schema_settings.get("constructors")
+		return deepcopy(self.schema_settings.get("constructors"))
 
 	def set_constructors(self, constructors):
 		"""
@@ -249,7 +249,7 @@ class Method(Schema):
 		if not constructors or not isinstance(constructors, dict):
 			e = "Method constructor is not a valid dict."
 			raise TypeError(e)
-		self.schema_settings["constructors"] = constructors
+		self.schema_settings["constructors"] = deepcopy(constructors)
 
 	@property
 	def input_data(self):
@@ -387,15 +387,56 @@ class Method(Schema):
 		e = "Field `{}` is not in the working data.".format(column)
 		raise KeyError(e)
 
-	# SET, UPDATE AND BUILD TASKS (ACTION LISTS)
+	@property
+	def working_data(self):
+		if "working_data" in self.schema_settings:
+			source = self.directory + self.schema_settings["working_data"]["file"]
+			return _c.get_dataframe(source, dtype="string")
+		e = "No working data found."
+		raise ValueError(e)
 
-	def set_task(self, *task_list):
+	# SET, UPDATE AND BUILD STRUCTURES (ACTION LISTS)
+
+	def set_structure_categories(self, modifier, column):
 		"""
-		A recursive function which traverses a list defined by `*task`, ensuring that the first term
-		is an `action`, and that the subsequent terms conform to that action's requirements. Nested
-		tasks are permitted.
+		If a structure `action` is `CATEGORISE`, then specify the terms available for
+		categorisation. Each field must have a modifier, including the first (e.g. +A -B +C).
 
-		The format for defining a `task` is as follows::
+		The `modifier` is one of:
+
+			- `-`: presence/absence of column values as true/false for a specific term
+			- `+`:  unique terms in the field must be matched to the unique terms defined by the
+			`field` `constraints`
+
+		As with `set_structure`, the recursive step of managing nested structures is left to the
+		calling function.
+
+		Parameters
+		----------
+		modifier: str
+			One of `-` or `+`
+		column: str
+			Must be a valid column from `working_column_list`
+		"""
+		if column not in self.working_column_list:
+			return []
+		category_list = [True, False]
+		# Get the modifier: + for uniqueness, and - for boolean treatment
+		if modifier == "+":
+			category_list = list(self.working_data[column].dropna().unique())
+		structure_categories = {
+			"terms": category_list,
+			"column": column
+		}
+		return structure_categories
+
+	def set_structure(self, *structure_list):
+		"""
+		A recursive function which traverses a list defined by `*structure`, ensuring that the first
+		term is an `action`, and that the subsequent terms conform to that action's requirements.
+		Nested structures are permitted.
+
+		The format for defining a `structure` is as follows::
 
 			[action, column_name, [action, column_name]]
 
@@ -403,37 +444,42 @@ class Method(Schema):
 
 			["CATEGORISE", "+", ["ORDER", "column_1", "column_2"]]
 
-		This permits the creation of quite expressive wrangling tasks from simple building blocks.
+		This permits the creation of quite expressive wrangling structures from simple building
+		blocks.
 
 		Parameters
 		----------
-		task_list: list
-			Each task list must start with an `action`, with subsequent terms conforming to the
+		structure_list: list
+			Each structure list must start with an `action`, with subsequent terms conforming to the
 			requirements for that action. Nested actions defined by nested lists.
 		"""
-		# Sets or updates a task, and sets any required categories
-		task = []
-		for i, term in enumerate(task_list):
+		# Sets or updates a structure, and sets any required categories
+		structure = []
+		for i, term in enumerate(structure_list):
 			if i == 0:
-				# Validate the rest of the task_list first
+				# Validate the rest of the structure_list first
 				action = self.default_actions[term]
-				if not action.has_valid_structure(self.working_column_list, task_list[1:]):
-					e = "Task with action `{}` has invalid structure `{}`.".format(term, task_list)
+				if not action.has_valid_structure(self.working_column_list, structure_list[1:]):
+					e = "Task action `{}` has invalid structure `{}`.".format(term, structure_list)
 					raise ValueError(e)
-				task.append(action.settings)
+				if action.name == "CATEGORISE":
+					# do something to categorise this structure
+				structure.append(action.settings)
 				continue
 			if isinstance(term, list):
-				# Deal with nested tasks
-				task.append(self.set_task(*term))
+				# Deal with nested structures
+				structure.append(self.set_structure(*term))
 				continue
 			if term in action.modifier_names:
-				task.append(action.get_modifier(term))
+				structure.append(action.get_modifier(term))
+				continue
 			if term in self.working_column_list:
-				task.append(self.working_data_field(term))
-		return task
+				structure.append(self.working_data_field(term))
+				continue
+		return structure
 
-	def set_task_for_field(self, field, *task_list):
-		self.set_task(*task_list)
+	def set_structure_for_field(self, field, *structure_list):
+		self.set_structure(*structure_list)
 
 	@property
 	def default_action_types(self):

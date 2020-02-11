@@ -2,13 +2,13 @@
 Actions
 -------
 
-Definitions and validation for actions anchoring tasks in methods.
+Definitions and validation for actions anchoring structures in methods.
 
 Key functions are:
 
   - Validate an action exists
   - Specify any modifiers
-  - Validate task structure
+  - Validate action structure
 """
 from copy import deepcopy
 import whyqd.common as _c
@@ -56,13 +56,13 @@ class Action:
 				return deepcopy(modifier)
 		return {}
 
-	def has_valid_structure(self, working_columns, *task):
+	def has_valid_structure(self, working_columns, *structure):
 		"""
-		Traverses a list defined by `*task`, ensuring that the terms conform to that action's
-		default structural requirements. Nested tasks are permitted. Note that the responsibility
-		for digging in to the nested tasks lies with the calling function.
+		Traverses a list defined by `*structure`, ensuring that the terms conform to that action's
+		default structural requirements. Nested structures are permitted. Note that the
+		responsibility for digging in to the nested structures lies with the calling function.
 
-		The format for defining a `task` is as follows::
+		The format for defining a `structure` is as follows::
 
 			[action, column_name, [action, column_name]]
 
@@ -72,25 +72,25 @@ class Action:
 
 		A calling function would specify::
 
-			Action.has_valid_structure(working_columns, *task[1:])
+			Action.has_valid_structure(working_columns, *structure[1:])
 
 		Parameters
 		----------
 		working_columns: list
 			List of valid terms from the working data columns.
-		task: list
-			Each task list must conform to the requirements for that action. Nested actions defined
-			by nested lists.
+		structure: list
+			Each structure list must conform to the requirements for that action. Nested actions
+			defined by nested lists.
 
 		Returns
 		-------
 		bool, True if valid
 		"""
-		if not task:
-			e = "A task must contain at least one `field`."
+		if not structure:
+			e = "A structure must contain at least one `field`."
 			raise ValueError(e)
 		term_set = len(self.action_settings.get("structure", []))
-		for field in _c.chunks(task, term_set):
+		for field in _c.chunks(structure, term_set):
 			if len(field) != term_set:
 				return False
 			for i, term in enumerate(self.action_settings["structure"]):
@@ -114,7 +114,7 @@ class Action:
 		"""
 		return deepcopy(self.action_settings)
 
-	def validate_task(self, working_columns, *task):
+	def validate_structure(self, working_columns, *structure):
 		"""
 		A recursive function testing method structure and that field names are entities of the list
 		of `working_columns`. A method should have fields upon which actions are applied, but each
@@ -128,12 +128,12 @@ class Action:
 			Each dict an element of a `method`, and must start with an `action`
 		"""
 		# Analyse requirements for this field
-		if len(task) < 2 or task[0]["type"] != "action":
+		if len(structure) < 2 or structure[0]["type"] != "action":
 			e = "A method must start with an `action` and contain at least one `field`."
 			raise ValueError(e)
-		action = task[0]
+		action = structure[0]
 		# Superficial validation check
-		for field in task[1:]:
+		for field in structure[1:]:
 			# Validate that the source column names are actually in the `working_columns`
 			if field["type"] in self.default_field_types and field["name"] not in working_columns:
 				e = "Method field `{}` of type `{}` in action `{}` has invalid column `{}`."
@@ -142,7 +142,7 @@ class Action:
 			# Recurse for any nested fields down the tree
 			if field["type"] == "nested":
 				try:
-					self.validate_task(working_columns, *field["action"])
+					self.validate_structure(working_columns, *field["action"])
 				except KeyError:
 					e = "Method field `{}` of type `{}` in action `{}` has missing nested action."
 					e = e.format(self._name, self._type, action["name"])
@@ -161,7 +161,7 @@ class Action:
 			# Requires sets of 2 terms: + or -, field
 			term_set = 2
 		valid = True
-		for field in _c.chunks(task[1:], term_set):
+		for field in _c.chunks(structure[1:], term_set):
 			if len(field) != term_set:
 				valid = False
 			if valid and action["name"] in ["ORDER_NEW", "ORDER_OLD"]:
@@ -191,7 +191,7 @@ class Action:
 
 	def validates(self, working_columns):
 		"""
-		Test action `task` for structure (every action starts with an action `type`), and that
+		Test action `structure` for structure (every action starts with an action `type`), and that
 		columns, categories and filters (depending on what is supplied) are valid.
 
 		Parameters
@@ -207,9 +207,9 @@ class Action:
 		-------
 		Bool, True if valid
 		"""
-		if "task" not in self.settings:
+		if "structure" not in self.settings:
 			e = "Method field `{}` of type `{}` has no `methods`.".format(self._name, self._type)
 			raise ValueError(e)
-		self.validate_task(working_columns, self.settings["task"])
+		self.validate_structure(working_columns, self.settings["structure"])
 		# Need to validate the filters
 		return super().validates
