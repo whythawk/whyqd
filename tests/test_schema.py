@@ -3,7 +3,7 @@ from pathlib import Path
 import whyqd as _w
 import whyqd.common as _c
 
-filename = "/test_schema.json"
+filename = "/data/test_schema.json"
 source = str(Path(__file__).resolve().parent) + filename
 data = _c.load_json(source)
 

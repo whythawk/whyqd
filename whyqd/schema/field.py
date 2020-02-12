@@ -270,7 +270,7 @@ class Field:
 				if not isinstance(value, str):
 					e = "`{}` is not a string".format(value)
 					raise TypeError(e)
-				if key == "name"::
+				if key == "name":
 					value = "_".join(value.split(" ")).lower()
 				self.field_settings[key] = value
 				continue

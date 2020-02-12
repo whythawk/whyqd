@@ -17,9 +17,11 @@ requirements. **whyqd** requires the basics of
 import os, uuid
 from copy import deepcopy
 import pandas as pd
+from tabulate import tabulate
 
 import whyqd.common as _c
 from whyqd.schema import Schema
+from whyqd.method import Action
 
 STATUS_CODES = {
 	"WAITING": "Waiting ...",
@@ -38,6 +40,23 @@ STATUS_CODES = {
 	"IMPORT_ERROR": "Import Error",
 	"PROCESS_COMPLETE": "Process Complete"
 }
+NEXT_STEPS = {
+	"WAITING": "add input data",
+	"PROCESSING": "wait until processing complete",
+	"READY_MERGE": "merge",
+	"READY_STRUCTURE": "restructure",
+	"READY_CATEGORIES": "category",
+	"READY_FILTER": "filter",
+	"READY_TRANSFORM": "transform",
+	"READY_IMPORT": "add input data",
+	"CREATE_ERROR": "fix input data error",
+	"MERGE_ERROR": "fix merge error",
+	"STRUCTURE_ERROR": "fix structure error",
+	"CATEGORISE_ERROR": "fix category errror",
+	"TRANSFORMATION_ERROR": "fix transform error",
+	"IMPORT_ERROR": "fix input data error",
+	"PROCESS_COMPLETE": "process is complete"
+}
 
 class Method(Schema):
 	"""
@@ -51,25 +70,28 @@ class Method(Schema):
 	"""
 	def __init__(self, source=None, **kwargs):
 		self._status = "WAITING"
-		if "directory" in kwargs:
-			self.set_directory(kwargs["directory"])
-			del kwargs["directory"]
-		if "constructors" in kwargs:
-			self.set_constructors(kwargs["constructors"])
-			del kwargs["constructors"]
-		if "input_data" in kwargs:
-			self.add_input_data(kwargs["input_data"])
-			del kwargs["input_data"]
+		# Clear kwargs of things we need to process prior to initialising
+		self.directory = kwargs.pop("directory", None)
+		constructors = kwargs.pop("constructors", None)
+		input_data = kwargs.pop("input_data", None)
 		super().__init__(source=source, **kwargs)
+		# Initialise after Schema initialisation
 		self.default_actions = self.build_default_actions()
+		if constructors: self.set_constructors(constructors)
+		if input_data: self.add_input_data(input_data)
 
-	def merge(self, overwrite_working=False):
+	def merge(self, order_and_key=None, overwrite_working=False):
 		"""
 		Merge input data on a key column.
 
 		Paramaters
 		----------
-		overwrite_working: bool, permission to overwrite existing working data
+		order_and_key: list
+			List of dictionaries specifying `input_data` order and key for merge. Can also use
+			`order_and_key_input_data` directly. Each dict in the list has
+			`{id: input_data id, key: column_name for merge}`
+		overwrite_working: bool
+			Permission to overwrite existing working data
 
 		TO_DO
 		-----
@@ -77,6 +99,8 @@ class Method(Schema):
 		is nothing the user can do about it (without manually going and refixing the input data).
 		Some sort of uniqueness fix required (probably using the filters).
 		"""
+		if order_and_key and isinstance(order_and_key, list):
+			self.order_and_key_input_data(*order_and_key)
 		if self._status in STATUS_CODES.keys() - ["READY_MERGE", "READY_STRUCTURE", "READY_CATEGORIES",
 												  "READY_FILTER", "READY_TRANSFORM", "PROCESS_COMPLETE",
 												  "MERGE_ERROR"]:
@@ -87,11 +111,15 @@ class Method(Schema):
 			not self.schema_settings["working_data"].get("checksum")):
 			e = "Permission required to overwrite `working_data`. Set `overwrite_working` to `True`."
 			raise PermissionError(e)
+		# Pandas 1.0 says `dtype = "string"` is possible, but it isn't currently working
+		# defaulting to `dtype = object` ...
+		# Note, this is done to avoid any random column processing
 		df = _c.get_dataframe(self.directory + self.schema_settings["input_data"][0]["file"],
-							  dtype = "string")
+							  dtype = object)
 		df_key = self.schema_settings["input_data"][0]["key"]
 		for data in self.schema_settings["input_data"][1:]:
-			dfm = _c.get_dataframe(self.directory + data["file"], dtype = "string")
+			# defaulting to `dtype = object` ...
+			dfm = _c.get_dataframe(self.directory + data["file"], dtype = object)
 			dfm_key = data["key"]
 			df = pd.merge(df, dfm, how="outer",
 						  left_on=df_key, right_on=dfm_key,
@@ -102,7 +130,6 @@ class Method(Schema):
 		if "working_data" in self.schema_settings:
 			del self.schema_settings["working_data"]
 		self.schema_settings["working_data"] = self.save_data(df)
-		#df.to_excel(dir_source + f, index=False)
 
 		# Review for any existing actions
 		# self.validate_actions
@@ -285,7 +312,7 @@ class Method(Schema):
 		Parameters
 		----------
 		order_and_key: list of dicts
-			Each dict in the list has {_id: input_data _id, key: column_name for merge}
+			Each dict in the list has {id: input_data id, key: column_name for merge}
 
 		Raises
 		------
@@ -293,11 +320,11 @@ class Method(Schema):
 		"""
 		self.validate_input_data
 		reordered_data = []
-		for ok in order_and_key:
-			for data in self.schema_settings["input_data"]:
+		for oak in order_and_key:
+			for data in self.input_data:
 				columns = [c["name"] for c in data["columns"]]
-				if ok["id"] == data["id"] and ok["key"] in columns:
-					data["key"] = ok["key"]
+				if oak["id"] == data["id"] and oak["key"] in columns:
+					data["key"] = oak["key"]
 					reordered_data.append(data)
 		if len(reordered_data) != len(self.schema_settings["input_data"]):
 			e = "List mismatch. Input-data different from list submitted for ordering."
@@ -354,7 +381,7 @@ class Method(Schema):
 	def working_data(self):
 		if "working_data" in self.schema_settings:
 			source = self.directory + self.schema_settings["working_data"]["file"]
-			return _c.get_dataframe(source, dtype="string")
+			return _c.get_dataframe(source, dtype=object)
 		e = "No working data found."
 		raise ValueError(e)
 
@@ -447,8 +474,6 @@ class Method(Schema):
 				if not action.has_valid_structure(self.working_column_list, structure_list[1:]):
 					e = "Task action `{}` has invalid structure `{}`.".format(term, structure_list)
 					raise ValueError(e)
-				if action.name == "CATEGORISE":
-					# do something to categorise this structure
 				structure.append(action.settings)
 				continue
 			if isinstance(term, list):
@@ -476,7 +501,7 @@ class Method(Schema):
 		"""
 		return list(self.default_actions.keys())
 
-	def default_field_settings(self, action):
+	def default_action_settings(self, action):
 		"""
 		Get the default settings available for a specific action type.
 
@@ -574,15 +599,16 @@ class Method(Schema):
 		"""
 		Build and validate the Method. Note, this subclasses the Schema base-class.
 		"""
-		if "directory" not in self.schema_settings:
+		super().build()
+		if not self.directory:
 			e = "Action is not a valid dictionary"
 			raise ValueError(e)
-		self.set_directory(self.schema_settings["directory"])
+		self.set_directory(self.directory)
 		self._status = self.schema_settings.get("status", self._status)
-		self.schema_settings["fields"] = [self.build_action(**action) for action in
-										  self.schema_settings["fields"]]
+		#self.schema_settings["fields"] = [self.build_action(**action) for action in
+		#								  self.schema_settings["fields"]]
 
-	def save_data(self, df, filetype="XLSX"):
+	def save_data(self, df, filetype="xlsx"):
 		"""
 		Generate a unique filename for a dataframe, save to the working directory, and return the
 		unique filename and data summary.
@@ -600,15 +626,15 @@ class Method(Schema):
 		if df.empty:
 			e = "Cannot save empty DataFrame."
 			raise ValueError(e)
-		if filetype not in ["XLSX", "CSV"]:
+		if filetype not in ["xlsx", "csv"]:
 			e = "`{}` not supported for saving DataFrame".format(filetype)
 			raise TypeError(e)
 		_id = str(uuid.uuid4())
 		filename = "".join([_id, ".", filetype])
 		source = self.directory + filename
-		if filetype == "CSV":
+		if filetype == "csv":
 			df.to_csv(source, index=False)
-		if filetype == "XLSX":
+		if filetype == "xlsx":
 			df.to_excel(source, index=False)
 		summary_data = _c.get_dataframe_summary(source)
 		data = {
@@ -619,3 +645,137 @@ class Method(Schema):
 			"columns": summary_data["columns"]
 		}
 		return data
+
+	def save(self, directory=None, filename=None, overwrite=False, created_by=None):
+		if not directory: directory = self.directory
+		self.schema_settings["status"] = self._status
+		super().save(directory=directory, filename=filename,
+					 overwrite=overwrite, created_by=created_by)
+
+	def help(self, option=None):
+		"""
+		Get generic help, or help on a specific method.
+
+		Paramater
+		---------
+		option: str
+			Any of None, 'status', 'merge', 'structure', 'category', 'filter', 'transform', 'error'.
+
+		Returns
+		-------
+		Help
+		"""
+		response = ""
+		if not option or option not in ["status", "merge", "structure", "category",
+										  "filter", "transform", "error"]:
+			response = HELP_RESPONSE["default"].format(self.status)
+		elif option != "status":
+			response = HELP_RESPONSE[option]
+			if option == "merge":
+				for data in self.input_data:
+					_id = data["id"]
+					_df = pd.DataFrame(data["dataframe"])
+					_df = tabulate(_df, headers="keys", tablefmt="fancy_grid")
+					response += HELP_RESPONSE["data"].format(_id, _df)
+			if option == "structure":
+				response = response.format(self.all_field_names,
+										   self.default_action_types,
+										   self.working_column_list)
+				if "working_data" in self.schema_settings:
+					_id = self.schema_settings["working_data"]["id"]
+					_df = pd.DataFrame(self.schema_settings["working_data"]["dataframe"])
+					_df = tabulate(_df, headers="keys", tablefmt="fancy_grid")
+					response += HELP_RESPONSE["data"].format(_id, _df)
+		# `status` request
+		response += HELP_RESPONSE["status"].format(self.status)
+		return response
+
+HELP_RESPONSE = {
+	"default": """
+**whyqd** provides data wrangling simplicity, complete audit transparency, and at speed.
+
+To get help, type:
+
+	>>> method.help(option)
+
+Where `option` can be any of:
+
+	status
+	merge
+	structure
+	category
+	filter
+	transform
+	error
+
+`status` will return the current method status, and your mostly likely next steps. The other options
+will return methodology, and output of that option's result (if appropriate). The `error` will
+present an error trace and attempt to guide you to fix the process problem.""",
+	"merge": """
+`merge` will join, in order from right to left, your input data on a common column.
+
+To add input data, where `input_data` is a filename, or list of filenames:
+
+	>>> method.add_input_data(input_data)
+
+To remove input data, where `id` is the unique id for that input data:
+
+	>>> method.remove_input_data(id)
+
+Prepare an `order_and_key` list, where each dict in the list has:
+
+	{id: input_data id, key: column_name for merge}
+
+Run the merge by calling (and, optionally - if you need to overwrite an existing merge - setting
+`overwrite_working=True`):
+
+	>>> method.merge(order_and_key, overwrite_working=True)
+
+To view your existing `input_data`:
+
+	>>> method.input_data
+""",
+	"structure": """
+`structure` is the core of the wrangling process and is the process where you define the actions
+which must be performed to restructure your working data.
+
+Create a list of methods of the form:
+
+	{{
+		"schema_field1": ["action", "column_name1", ["action", "column_name2"]],
+		"schema_field2": ["action", "column_name1", "modifier", ["action", "column_name2"]],
+	}}
+
+The format for defining a `structure` is as follows::
+
+	[action, column_name, [action, column_name]]
+
+e.g.::
+
+	["CATEGORISE", "+", ["ORDER", "column_1", "column_2"]]
+
+This permits the creation of quite expressive wrangling structures from simple building
+blocks.
+
+The schema for this method consists of the following terms:
+
+{}
+
+The actions:
+
+{}
+
+The columns from your working data:
+
+{}
+""",
+	"data": """
+
+Data id: {}
+
+{}
+""",
+	"status": """
+
+Current method status: `{}`"""
+}

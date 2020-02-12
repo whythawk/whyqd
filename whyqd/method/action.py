@@ -34,7 +34,7 @@ class Action:
 		self.title = self.action_settings.get("title")
 		self.description = self.action_settings.get("description")
 		self.default_structure = {
-			"field": [f["type"] for f in _c.get_settings("schema")["field"]],
+			"field": [f["type"] for f in _c.get_settings("schema")["fields"]],
 			"modifier": self.modifier_names
 		}
 

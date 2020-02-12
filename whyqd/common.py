@@ -98,7 +98,7 @@ def save_json(data, source, overwrite=False):
 		e = "`{}` already exists. Set `overwrite` to `True`.".format(source)
 		raise FileExistsError(e)
 	with open(source, "w") as f:
-		json.dump(data, f)
+		json.dump(data, f, indent=4, sort_keys=True, default=str)
 	return True
 
 JSON_SETTING_FILES = {
@@ -149,7 +149,7 @@ def get_dataframe(source,
 	Parameters
 	----------
 	source: Source filename;
-	filetype: (Optional) must be in ['CSV', 'XLS', 'XLSX']
+	filetype: (Optional) must be in ['csv', 'xls', 'xlsx']
 	kwargs: additional keyword-arguments for Pandas;
 
 	Returns
@@ -159,18 +159,20 @@ def get_dataframe(source,
 	check_source(source)
 	# If the dtypes have not been set, then ensure that any provided foreign_key remains untouched
 	# i.e. no forcing of text to numbers
+	# Pandas 1.0 says `dtype = "string"` is possible, but it isn't currently working
+	# defaulting to `dtype = object` ...
 	if foreign_key and "dtype" not in kwargs:
 		kwargs["dtype"] = {
-			foreign_key: "string"
+			foreign_key: object
 		}
 	# Get file delimiter
-	if filetype and filetype.upper() in ["CSV", "XLS", "XLSX"]:
-		filetype = filetype.upper()
+	if filetype and filetype.lower() in ["csv", "xls", "xlsx"]:
+		filetype = filetype.lower()
 	else:
-		filetype = source.split(".")[-1].upper()
-	if filetype == "XLSX" or filetype == "XLS":
+		filetype = source.split(".")[-1].lower()
+	if filetype in ["xlsx", "xls"]:
 		df = pd.read_excel(source, **kwargs)
-	elif filetype == "CSV":
+	elif filetype == "csv":
 		kwargs["encoding"] = kwargs.get("encoding", "ISO-8859-1")
 		kwargs["iterator"] = True
 		kwargs["chunk_size"] = kwargs.get("chunk_size", 100000)
@@ -246,6 +248,8 @@ def check_column_unique(source, key):
 	"""
 	df = get_dataframe(source, key)
 	if len(df[key]) != len(df[key].unique()):
+		import warnings
 		e = "'{}' contains non-unique rows in column `{}`".format(source, key)
-		raise ValueError(e)
+		#raise ValueError(e)
+		warnings.warn(e)
 	return True

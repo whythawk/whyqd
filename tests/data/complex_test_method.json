@@ -1,0 +1,455 @@
+{
+    "created": "2020-02-12",
+    "description": "A test Schema",
+    "directory": "/mnt/c/Users/Turukawa/Documents/GitHub/whyqd/tests/data/",
+    "fields": [
+        {
+            "description": "Standard code for local authority.",
+            "name": "la_code",
+            "title": "Local authority code",
+            "type": "string"
+        },
+        {
+            "description": "Unique code for a specific hereditament. May be multiple rows for history.",
+            "name": "ba_ref",
+            "title": "Billing reference",
+            "type": "string"
+        },
+        {
+            "description": "Actual rates paid by a specific ratepayer.",
+            "name": "prop_ba_rates",
+            "title": "Property billing rates",
+            "type": "number"
+        },
+        {
+            "description": "Name of the ratepayer.",
+            "name": "occupant_name",
+            "title": "Occupier name",
+            "type": "string"
+        },
+        {
+            "description": "Full address or postcode of ratepayer.",
+            "name": "postcode",
+            "title": "Postcode",
+            "type": "string"
+        },
+        {
+            "description": "Occupation status, void or occupied.",
+            "name": "occupation_state",
+            "title": "Occupation state",
+            "type": "boolean"
+        },
+        {
+            "description": "Date of the start of status in occupation_state.",
+            "name": "occupation_state_date",
+            "title": "Date of occupation state",
+            "type": "date"
+        },
+        {
+            "constraints": {
+                "category": [
+                    {
+                        "name": "small_business"
+                    },
+                    {
+                        "name": "rural"
+                    },
+                    {
+                        "name": "charity"
+                    },
+                    {
+                        "name": "enterprise_zone"
+                    },
+                    {
+                        "name": "vacancy"
+                    },
+                    {
+                        "name": "hardship"
+                    },
+                    {
+                        "name": "retail"
+                    },
+                    {
+                        "name": "discretionary"
+                    },
+                    {
+                        "name": "exempt"
+                    },
+                    {
+                        "name": "transitional"
+                    },
+                    {
+                        "name": "other"
+                    }
+                ]
+            },
+            "description": "Array of the categories of reliefs / exemptions applied.",
+            "name": "occupation_state_reliefs",
+            "title": "Occupation state reliefs",
+            "type": "array"
+        }
+    ],
+    "input_data": [
+        {
+            "checksum": "b180bd9fe8c3b1025f433e0b3377fb9a738523b9c33eac5d62ed83c51883e1f64a3895edf0fc9e96a85a4130df3392177dff262963338971114aa4f5d1b0a70e",
+            "columns": [
+                {
+                    "name": "Property Reference Number",
+                    "type": "number"
+                },
+                {
+                    "name": "Primary Liable party name",
+                    "type": "string"
+                },
+                {
+                    "name": "Full Property Address",
+                    "type": "string"
+                },
+                {
+                    "name": "Current Relief Type",
+                    "type": "string"
+                },
+                {
+                    "name": "Account Start date",
+                    "type": "date"
+                },
+                {
+                    "name": "Current Relief Award Start Date",
+                    "type": "date"
+                },
+                {
+                    "name": "Current Rateable Value",
+                    "type": "number"
+                }
+            ],
+            "dataframe": {
+                "Account Start date": {
+                    "0": "2003-05-14 00:00:00",
+                    "1": "2003-07-28 00:00:00",
+                    "2": "2003-07-08 00:00:00"
+                },
+                "Current Rateable Value": {
+                    "0": 8600,
+                    "1": 9900,
+                    "2": 6400
+                },
+                "Current Relief Award Start Date": {
+                    "0": "2019-04-01 00:00:00",
+                    "1": "2005-04-01 00:00:00",
+                    "2": "2005-04-01 00:00:00"
+                },
+                "Current Relief Type": {
+                    "0": "Retail Discount",
+                    "1": "Small Business Relief England",
+                    "2": "Small Business Relief England"
+                },
+                "Full Property Address": {
+                    "0": "Ground Floor, 25, Albert Road, Southsea, Hants, PO5 2SE",
+                    "1": "Ground Floor, 102, London Road, Portsmouth, PO2 0LZ",
+                    "2": "33, Festing Road, Southsea, Hants, PO4 0NG"
+                },
+                "Primary Liable party name": {
+                    "0": "Personal details not supplied",
+                    "1": "Personal details not supplied",
+                    "2": "Personal details not supplied"
+                },
+                "Property Reference Number": {
+                    "0": 177500080710,
+                    "1": 177504942310,
+                    "2": 177502823510
+                }
+            },
+            "file": "0e2b666f-a199-448e-bd97-45c8a19661d2.XLSX",
+            "id": "0e2b666f-a199-448e-bd97-45c8a19661d2",
+            "key": "Property Reference Number",
+            "original": "raw_E06000044_014_0.XLSX"
+        },
+        {
+            "checksum": "98e23e4eac6782873492181d6e4f3fcf308f1bb0fc47dc582c3fdf031c020a651d9f06f6510b21405c3f63b8d576a93a27bd2f3cc5b053d8d9022c884b57d3a3",
+            "columns": [
+                {
+                    "name": "Property Reference Number",
+                    "type": "number"
+                },
+                {
+                    "name": "Full Property Address",
+                    "type": "string"
+                },
+                {
+                    "name": "Current Property Exemption Code",
+                    "type": "string"
+                },
+                {
+                    "name": "Current Prop Exemption Start Date",
+                    "type": "date"
+                },
+                {
+                    "name": "Primary Liable party name",
+                    "type": "string"
+                },
+                {
+                    "name": "Current Rateable Value",
+                    "type": "number"
+                }
+            ],
+            "dataframe": {
+                "Current Prop Exemption Start Date": {
+                    "0": "2019-11-08 00:00:00",
+                    "1": "2019-09-23 00:00:00",
+                    "2": "2019-09-13 00:00:00"
+                },
+                "Current Property Exemption Code": {
+                    "0": "LOW RV",
+                    "1": "INDUSTRIAL",
+                    "2": "EPRI"
+                },
+                "Current Rateable Value": {
+                    "0": 700,
+                    "1": 11000,
+                    "2": 26500
+                },
+                "Full Property Address": {
+                    "0": "Advertising Right, 29 Albert Road, Portsmouth, PO5 2SE",
+                    "1": "24, Ordnance Court, Ackworth Road, Portsmouth, PO3 5RZ",
+                    "2": "Unit 12, Admiral Park, Airport Service Road, Portsmouth, PO3 5RQ"
+                },
+                "Primary Liable party name": {
+                    "0": "Personal details not supplied",
+                    "1": "Personal details not supplied",
+                    "2": "Legal & General Property Partners (Industrial Fund) Ltd"
+                },
+                "Property Reference Number": {
+                    "0": 177512281010,
+                    "1": 177590107810,
+                    "2": 177500058410
+                }
+            },
+            "file": "cba7e0f7-8b85-4f21-adde-c1b6d2dfda2c.XLSX",
+            "id": "cba7e0f7-8b85-4f21-adde-c1b6d2dfda2c",
+            "key": "Property Reference Number",
+            "original": "raw_E06000044_014_1.XLSX"
+        },
+        {
+            "checksum": "9fd3d0df6cc1e0e58ab481ca9d46b68150b3b8d0c97148a00417af16025ba066e29a35994d0e4526edb1deda4c10b703df8f0dbcc23421dd6c0c0fd1a4c6b01c",
+            "columns": [
+                {
+                    "name": "Property ref no",
+                    "type": "number"
+                },
+                {
+                    "name": "Full Property Address",
+                    "type": "string"
+                },
+                {
+                    "name": "Primary Liable party name",
+                    "type": "string"
+                },
+                {
+                    "name": "Account Start date",
+                    "type": "date"
+                },
+                {
+                    "name": "Current Rateable Value",
+                    "type": "number"
+                }
+            ],
+            "dataframe": {
+                "Account Start date": {
+                    "0": "2003-11-10 00:00:00",
+                    "1": "2003-11-08 00:00:00",
+                    "2": "1994-12-25 00:00:00"
+                },
+                "Current Rateable Value": {
+                    "0": 37000,
+                    "1": 594000,
+                    "2": 13250
+                },
+                "Full Property Address": {
+                    "0": "Unit 7b, The Pompey Centre, Dickinson Road, Southsea, Hants, PO4 8SH",
+                    "1": "Express By Holiday Inn, The Plaza, Gunwharf Quays, Portsmouth, PO1 3FD",
+                    "2": "Unit 2cd, Shawcross Industrial Estate, Ackworth Road, Portsmouth, PO3 5JP"
+                },
+                "Primary Liable party name": {
+                    "0": "City Electrical Factors  Ltd",
+                    "1": "Kew Green Hotels (Portsmouth Lrg1) Limited",
+                    "2": "Personal details not supplied"
+                },
+                "Property ref no": {
+                    "0": 177200066910,
+                    "1": 177209823010,
+                    "2": 177500013310
+                }
+            },
+            "file": "5a97889f-273f-4904-b697-83d37e45032b.XLSX",
+            "id": "5a97889f-273f-4904-b697-83d37e45032b",
+            "key": "Property ref no",
+            "original": "raw_E06000044_014_2.XLSX"
+        }
+    ],
+    "name": "complex_test_method",
+    "status": "READY_STRUCTURE",
+    "title": "Test Schema",
+    "updated": "2020-02-12",
+    "working_data": {
+        "checksum": "8db50dc2fd0d97a4e57395b2830adc6182cfadb7c22e958e982d92f6b34601069c9ec4300e3750d66a7c33ff338dfb8480fb84f6940e53b7c6c0988d1cfa0316",
+        "columns": [
+            {
+                "name": "Property Reference Number",
+                "type": "number"
+            },
+            {
+                "name": "Primary Liable party name_x",
+                "type": "string"
+            },
+            {
+                "name": "Full Property Address_x",
+                "type": "string"
+            },
+            {
+                "name": "Current Relief Type",
+                "type": "string"
+            },
+            {
+                "name": "Account Start date_x",
+                "type": "date"
+            },
+            {
+                "name": "Current Relief Award Start Date",
+                "type": "date"
+            },
+            {
+                "name": "Current Rateable Value_x",
+                "type": "number"
+            },
+            {
+                "name": "Full Property Address_y",
+                "type": "number"
+            },
+            {
+                "name": "Current Property Exemption Code",
+                "type": "number"
+            },
+            {
+                "name": "Current Prop Exemption Start Date",
+                "type": "number"
+            },
+            {
+                "name": "Primary Liable party name_y",
+                "type": "number"
+            },
+            {
+                "name": "Current Rateable Value_y",
+                "type": "number"
+            },
+            {
+                "name": "Property ref no",
+                "type": "number"
+            },
+            {
+                "name": "Full Property Address",
+                "type": "number"
+            },
+            {
+                "name": "Primary Liable party name",
+                "type": "number"
+            },
+            {
+                "name": "Account Start date_y",
+                "type": "number"
+            },
+            {
+                "name": "Current Rateable Value",
+                "type": "number"
+            }
+        ],
+        "dataframe": {
+            "Account Start date_x": {
+                "0": "2003-05-14 00:00:00",
+                "1": "2003-07-28 00:00:00",
+                "2": "2003-07-08 00:00:00"
+            },
+            "Account Start date_y": {
+                "0": NaN,
+                "1": NaN,
+                "2": NaN
+            },
+            "Current Prop Exemption Start Date": {
+                "0": NaN,
+                "1": NaN,
+                "2": NaN
+            },
+            "Current Property Exemption Code": {
+                "0": NaN,
+                "1": NaN,
+                "2": NaN
+            },
+            "Current Rateable Value": {
+                "0": NaN,
+                "1": NaN,
+                "2": NaN
+            },
+            "Current Rateable Value_x": {
+                "0": 8600,
+                "1": 9900,
+                "2": 6400
+            },
+            "Current Rateable Value_y": {
+                "0": NaN,
+                "1": NaN,
+                "2": NaN
+            },
+            "Current Relief Award Start Date": {
+                "0": "2019-04-01 00:00:00",
+                "1": "2005-04-01 00:00:00",
+                "2": "2005-04-01 00:00:00"
+            },
+            "Current Relief Type": {
+                "0": "Retail Discount",
+                "1": "Small Business Relief England",
+                "2": "Small Business Relief England"
+            },
+            "Full Property Address": {
+                "0": NaN,
+                "1": NaN,
+                "2": NaN
+            },
+            "Full Property Address_x": {
+                "0": "Ground Floor, 25, Albert Road, Southsea, Hants, PO5 2SE",
+                "1": "Ground Floor, 102, London Road, Portsmouth, PO2 0LZ",
+                "2": "33, Festing Road, Southsea, Hants, PO4 0NG"
+            },
+            "Full Property Address_y": {
+                "0": NaN,
+                "1": NaN,
+                "2": NaN
+            },
+            "Primary Liable party name": {
+                "0": NaN,
+                "1": NaN,
+                "2": NaN
+            },
+            "Primary Liable party name_x": {
+                "0": "Personal details not supplied",
+                "1": "Personal details not supplied",
+                "2": "Personal details not supplied"
+            },
+            "Primary Liable party name_y": {
+                "0": NaN,
+                "1": NaN,
+                "2": NaN
+            },
+            "Property Reference Number": {
+                "0": 177500080710,
+                "1": 177504942310,
+                "2": 177502823510
+            },
+            "Property ref no": {
+                "0": NaN,
+                "1": NaN,
+                "2": NaN
+            }
+        },
+        "file": "695528c5-ef40-49a2-8654-e2d1b198310c.xlsx",
+        "id": "695528c5-ef40-49a2-8654-e2d1b198310c"
+    }
+}
