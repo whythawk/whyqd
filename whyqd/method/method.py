@@ -109,56 +109,29 @@ class Method(Schema):
 
 		self._status = "READY_STRUCTURE"
 
-	def structure(self, **kwargs):
+	def set_structure(self, **kwargs):
 		"""
-		Receive a list of methods of the form (note, abbreviated to only the critical keys):
+		Receive a list of methods of the form::
 
-		[ {
-			"data": {
-						"name": "destination_schema",
-						"type": "array",
-						"constraints": {
-							"required": True / False
-						}
-			"fields": [
-				{
-					"data": {
-					  "name": NEW / RENAME / ORDER / ORDER_NEW / ORDER_OLD / CALCULATE / JOIN / CATEGORISE
-					},
-					"type": "action"
-				},
-				{
-					"data": {
-					  "name": + / -,
-					},
-					"type": "modifier"
-				},
-				{
-					"data": {
-						"name": "Primary Liable Party Contact Add_x",
-						"type": "string"
-					},
-					"type": "source"
-				},
-				{
-					"data": {
-						"name": "nested_8e6t7y",
-					},
-					"type": "nested",
-					"fields": [
-						{
-							"data": {
-								"name": NEW / RENAME / ORDER / ORDER_NEW / ORDER_OLD / CALCULATE / JOIN / CATEGORISE,
-							  },
-							"type": "action"
-						},
-			etc...
+			{
+				"schema_field1": ["action", "column_name1", ["action", "column_name2"]],
+				"schema_field2": ["action", "column_name1", "modifier", ["action", "column_name2"]],
+			}
 
-		Except for the root destination_schema, every field must start with an action to describe what
-		to do with the following terms. If category data required, then process that, otherwise simply
-		validate the method based on what the user says.
+		The format for defining a `structure` is as follows::
 
-		There are several "actions" which can be performed, and some require action modifiers:
+			[action, column_name, [action, column_name]]
+
+		e.g.::
+
+			["CATEGORISE", "+", ["ORDER", "column_1", "column_2"]]
+
+		This permits the creation of quite expressive wrangling structures from simple building
+		blocks.
+
+		Every task structure must start with an action to describe what to do with the following
+		terms. There are several "actions" which can be performed, and some require action
+		modifiers:
 
 			NEW:			Add in a new column, and populate it according to the value in the "new"
 							constraint;
@@ -178,40 +151,30 @@ class Method(Schema):
 			CATEGORISE:		Only if of "type" = "string"; look for associated constraint, "categorise"
 							where True = keep a list of categories, False = set True if terms found
 							in list;
-							MODIFIER: + before terms where column values are to be classified as unique;
-									  - before terms where column values are treated as boolean;
+
+			MODIFIER: + before terms where column values are to be classified as unique;
+					  - before terms where column values are treated as boolean;
 		"""
 		if self._status in STATUS_CODES.keys() - ["READY_STRUCTURE", "READY_CATEGORIES", "READY_FILTER",
 												  "READY_TRANSFORM", "PROCESS_COMPLETE", "STRUCTURE_ERROR"]:
 			e = "Current status: `{}` - performing `structure` is not permitted.".format(self.status)
 			raise PermissionError(e)
-		# Technically, raw_files 0 should contain the merge field in this source_file
-		set_dtypes = {}
-		if method["raw_files"][0]["data"].get("merge"):
-			set_dtypes[method["raw_files"][0]["data"]["merge"]["value"]] = object
-		df = pd.read_excel(method["source_file"].get("directory", dir_source) +
-						   method["source_file"]["file"],
-						   dtype=set_dtypes)
-		# The fields arrive as a list, with methods for each destination_schema. Loop and update
-		method["fields"] = kwargs.get("methods")
-		fields = []
-		fields_valid = True
-		for field in kwargs.get("methods"):
-			# Test if the destination_schema has method fields ... if not, is it required?
-			if not field.get("fields") and field["data"]["constraints"]["required"]:
-				fields_valid = False
-				break
-			field["fields"] = get_fields_structure(df, *field["fields"])
-			fields.append(field)
-			if not field.get("fields") and not field["data"]["constraints"]["required"]: continue
-			if not field.get("fields"): fields_valid = False
-		if not fields_valid:
-			method["state"] = "STRUCTURE_ERROR"
-		else:
-			method["fields"] = fields
-			method["state"] = "REVIEW_CATEGORISE"
-		save_method(**method)
-		return method
+		for field_name in kwargs:
+			if field_name not in self.all_field_names:
+				e = "Term `{}` not a valid field for this schema.".format(field_name)
+				raise ValueError(e)
+			schema_field = self.field(field_name)
+			schema_field["structure"] = self.set_field_structure(*kwargs[field_name])
+			# Set unique field structure categories
+			schema_field["category"] = []
+			for term in set(self.flatten_category_fields(kwargs[field_name])):
+				term = term.split("::")
+				modifier = term[0]
+				# Just in case
+				column = "::".join(term[1:])
+				schema_field["category"].append(self.set_field_structure_categories(modifier, column))
+		# Validation would not add in the new values
+		self.set_field(validate=False, **schema_field)
 
 	# SUPPORT FUNCTIONS
 
@@ -397,7 +360,29 @@ class Method(Schema):
 
 	# SET, UPDATE AND BUILD STRUCTURES (ACTION LISTS)
 
-	def set_structure_categories(self, modifier, column):
+	def flatten_category_fields(self, structure, modifier=None):
+		response = []
+		for sublist in structure:
+			if isinstance(sublist, list):
+				response.extend(get_category_fields(sublist))
+		if structure[0] == "CATEGORISE":
+			for strut in chunks(structure[1:]):
+				if len(strut) < 2:
+					continue
+				if strut[0] in ["+", "-"]:
+					if isinstance(strut[1], list):
+						response.extend(get_category_fields(strut[1], modifier=strut[0]))
+					if isinstance(strut[1], str):
+						response.append(strut[0] + "::" + strut[1])
+		if structure[0] != "CATEGORISE" and modifier is not None:
+			for strut in structure[1:]:
+				if isinstance(strut, str):
+					response.append(modifier + "::" + strut)
+				if isinstance(strut, list):
+					response.extend(get_category_fields(strut, modifier=modifier))
+		return response
+
+	def set_field_structure_categories(self, modifier, column):
 		"""
 		If a structure `action` is `CATEGORISE`, then specify the terms available for
 		categorisation. Each field must have a modifier, including the first (e.g. +A -B +C).
@@ -430,7 +415,7 @@ class Method(Schema):
 		}
 		return structure_categories
 
-	def set_structure(self, *structure_list):
+	def set_field_structure(self, *structure_list):
 		"""
 		A recursive function which traverses a list defined by `*structure`, ensuring that the first
 		term is an `action`, and that the subsequent terms conform to that action's requirements.
@@ -468,7 +453,7 @@ class Method(Schema):
 				continue
 			if isinstance(term, list):
 				# Deal with nested structures
-				structure.append(self.set_structure(*term))
+				structure.append(self.set_field_structure(*term))
 				continue
 			if term in action.modifier_names:
 				structure.append(action.get_modifier(term))
@@ -477,9 +462,6 @@ class Method(Schema):
 				structure.append(self.working_data_field(term))
 				continue
 		return structure
-
-	def set_structure_for_field(self, field, *structure_list):
-		self.set_structure(*structure_list)
 
 	@property
 	def default_action_types(self):

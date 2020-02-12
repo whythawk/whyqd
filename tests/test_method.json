@@ -87,7 +87,7 @@
 					}
 				]
 			},
-			"task": [
+			"structure": [
 				{
 					"name": "CATEGORISE",
 					"type": "action",
