@@ -38,11 +38,16 @@ def delete_file(source):
 	Path(source).unlink(missing_ok=True)
 
 def get_checksum(source):
-	checksum = hashlib.blake2b()
-	with open(source, "rb") as f:
-		for chunk in iter(lambda: f.read(4096), b""):
-			checksum.update(chunk)
-	return checksum.hexdigest()
+	# https://stackoverflow.com/a/47800021
+	#checksum = hashlib.blake2b()
+	#with open(source, "rb") as f:
+	#	for chunk in iter(lambda: f.read(4096), b""):
+	#		checksum.update(chunk)
+	#return checksum.hexdigest()
+	df = get_dataframe(source)
+	df_checksum = pd.util.hash_pandas_object(df, index=True).values
+	checksum = hashlib.blake2b
+	return checksum(df_checksum).hexdigest()
 
 def chunks(l, n):
 	"""Yield successive n-sized chunks from l."""

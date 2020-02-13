@@ -15,6 +15,7 @@ If you are working with tabular data, you're probably familiar with basic machin
 requirements. **whyqd** requires the basics of
 """
 import os, uuid
+from shutil import copyfile
 from copy import deepcopy
 import pandas as pd
 from tabulate import tabulate
@@ -72,6 +73,8 @@ class Method(Schema):
 		self._status = "WAITING"
 		# Clear kwargs of things we need to process prior to initialising
 		self.directory = kwargs.pop("directory", None)
+		if not self.directory.endswith("/"):
+			self.directory += "/"
 		constructors = kwargs.pop("constructors", None)
 		input_data = kwargs.pop("input_data", None)
 		super().__init__(source=source, **kwargs)
@@ -193,15 +196,17 @@ class Method(Schema):
 			schema_field = self.field(field_name)
 			schema_field["structure"] = self.set_field_structure(*kwargs[field_name])
 			# Set unique field structure categories
-			schema_field["category"] = []
+			has_category = []
+			schema_field.pop("category", [])
 			for term in set(self.flatten_category_fields(kwargs[field_name])):
 				term = term.split("::")
 				modifier = term[0]
 				# Just in case
 				column = "::".join(term[1:])
-				schema_field["category"].append(self.set_field_structure_categories(modifier, column))
-		# Validation would not add in the new values
-		self.set_field(validate=False, **schema_field)
+				has_category.append(self.set_field_structure_categories(modifier, column))
+			if has_category: schema_field["category"] = has_category
+			# Validation would not add in the new values
+			self.set_field(validate=False, **schema_field)
 
 	# SUPPORT FUNCTIONS
 
@@ -252,6 +257,7 @@ class Method(Schema):
 		Parameters
 		----------
 		input_data: str or list of str
+			Each input data can be a filename, or a file_source (where filename is remote)
 
 		Raises
 		------
@@ -268,7 +274,12 @@ class Method(Schema):
 			raise TypeError(e)
 		self.schema_settings["input_data"] = self.schema_settings.get("input_data", [])
 		for filename in input_data:
+			# Check if the filename is remote
+			file_source = "/".join(filename.split("/")[:-1])
+			filename = filename.split("/")[-1]
 			source = self.directory + filename
+			if file_source:
+				copyfile(file_source + "/" + filename, source)
 			_id = str(uuid.uuid4())
 			summary_data = _c.get_dataframe_summary(source)
 			data = {
@@ -378,25 +389,30 @@ class Method(Schema):
 		raise KeyError(e)
 
 	@property
-	def working_data(self):
+	def working_dataframe(self):
 		if "working_data" in self.schema_settings:
 			source = self.directory + self.schema_settings["working_data"]["file"]
 			return _c.get_dataframe(source, dtype=object)
 		e = "No working data found."
 		raise ValueError(e)
 
+	@property
+	def working_data(self):
+		return deepcopy(self.schema_settings.get("working_data", {}))
+
 	# SET, UPDATE AND BUILD STRUCTURES (ACTION LISTS)
 
 	def flatten_category_fields(self, structure, modifier=None):
+		modifier_list = ["+", "-"]
 		response = []
 		for sublist in structure:
 			if isinstance(sublist, list):
 				response.extend(get_category_fields(sublist))
 		if structure[0] == "CATEGORISE":
-			for strut in chunks(structure[1:]):
-				if len(strut) < 2:
+			for strut in _c.chunks(structure[1:], len(modifier_list)):
+				if len(strut) < len(modifier_list):
 					continue
-				if strut[0] in ["+", "-"]:
+				if strut[0] in modifier_list:
 					if isinstance(strut[1], list):
 						response.extend(get_category_fields(strut[1], modifier=strut[0]))
 					if isinstance(strut[1], str):
@@ -435,7 +451,7 @@ class Method(Schema):
 		category_list = [True, False]
 		# Get the modifier: + for uniqueness, and - for boolean treatment
 		if modifier == "+":
-			category_list = list(self.working_data[column].dropna().unique())
+			category_list = list(self.working_dataframe[column].dropna().unique())
 		structure_categories = {
 			"terms": category_list,
 			"column": column
@@ -479,6 +495,14 @@ class Method(Schema):
 			if isinstance(term, list):
 				# Deal with nested structures
 				structure.append(self.set_field_structure(*term))
+				continue
+			if action.name == "NEW":
+				# Special case for "NEW" action
+				new_term = {
+					"value": term,
+					"type": _c.get_field_type(term)
+				}
+				structure.append(new_term)
 				continue
 			if term in action.modifier_names:
 				structure.append(action.get_modifier(term))
