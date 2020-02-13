@@ -29,34 +29,15 @@ STATUS_CODES = {
 	"PROCESSING": "Processing ...",
 	"READY_MERGE": "Ready to Merge",
 	"READY_STRUCTURE": "Ready to Structure",
-	"READY_CATEGORIES": "Ready to Categories",
+	"READY_CATEGORY": "Ready to Categorise",
 	"READY_FILTER": "Ready to Filter",
 	"READY_TRANSFORM": "Ready to Transform",
-	"READY_IMPORT": "Ready to Import",
 	"CREATE_ERROR": "Create Error",
 	"MERGE_ERROR": "Merge Error",
 	"STRUCTURE_ERROR": "Structure Error",
-	"CATEGORISE_ERROR": "Categorise Error",
+	"CATEGORY_ERROR": "Categorisation Error",
 	"TRANSFORMATION_ERROR": "Transform Error",
-	"IMPORT_ERROR": "Import Error",
 	"PROCESS_COMPLETE": "Process Complete"
-}
-NEXT_STEPS = {
-	"WAITING": "add input data",
-	"PROCESSING": "wait until processing complete",
-	"READY_MERGE": "merge",
-	"READY_STRUCTURE": "restructure",
-	"READY_CATEGORIES": "category",
-	"READY_FILTER": "filter",
-	"READY_TRANSFORM": "transform",
-	"READY_IMPORT": "add input data",
-	"CREATE_ERROR": "fix input data error",
-	"MERGE_ERROR": "fix merge error",
-	"STRUCTURE_ERROR": "fix structure error",
-	"CATEGORISE_ERROR": "fix category errror",
-	"TRANSFORMATION_ERROR": "fix transform error",
-	"IMPORT_ERROR": "fix input data error",
-	"PROCESS_COMPLETE": "process is complete"
 }
 
 class Method(Schema):
@@ -196,10 +177,15 @@ class Method(Schema):
 							in list;
 							MODIFIER: + before terms where column values to be classified as unique;
 									  - before terms where column values are treated as boolean;
+
+		Paramaters
+		----------
+		kwargs: dict
+			Where key is schema target field and value is list defining the structure action
 		"""
 		if self._status in STATUS_CODES.keys() - ["READY_STRUCTURE", "READY_CATEGORIES", "READY_FILTER",
 												  "READY_TRANSFORM", "PROCESS_COMPLETE", "STRUCTURE_ERROR"]:
-			e = "Current status: `{}` - performing `structure` is not permitted.".format(self.status)
+			e = "Current status: `{}` - performing `set_structure` not permitted.".format(self.status)
 			raise PermissionError(e)
 		self.validate_merge
 		for field_name in kwargs:
@@ -220,6 +206,52 @@ class Method(Schema):
 			if has_category: schema_field["category"] = has_category
 			# Validation would not add in the new values
 			self.set_field(validate=False, **schema_field)
+		self._status = "READY_CATEGORIES"
+		if not has_category: self._status = "READY_FILTER"
+
+	def set_category(self, **kwargs):
+		"""
+		Receive a list of categories of the form::
+
+			{
+				"schema_field1": {
+					"category_1": ["term1", "term2", "term3"],
+					"category_2": ["term4", "term5", "term6"]
+				}
+			}
+
+		The format for defining a `category` term as follows::
+
+			`term_name::column_name`
+		"""
+		if self._status in STATUS_CODES.keys() - ["READY_CATEGORIES", "READY_FILTER",
+												  "READY_TRANSFORM", "PROCESS_COMPLETE", "CATEGORY_ERROR"]:
+			e = "Current status: `{}` - performing `set_category` not permitted.".format(self.status)
+			raise PermissionError(e)
+		self.validate_structure
+		method["categories"] = kwargs["methods"]
+		for field_name in kwargs:
+			if field_name not in self.all_field_names:
+				e = "Term `{}` not a valid field for this schema.".format(field_name)
+				raise ValueError(e)
+			field_category = self.field(field_name).get("category")
+			if not field_category:
+				e = "Field `{}` has no available categorical data.".format(field_name)
+				raise ValueError(e)
+			uniques = []
+			for field in kwargs["methods"][schema]["fields"].keys():
+				for term in kwargs["methods"][schema]["fields"][field]["fields"]:
+					if "{}|{}".format(term["data"]["source"],term["data"]["name"]) in uniques:
+						error_state = True
+						break
+					else:
+						uniques.append("{}|{}".format(term["data"]["source"],term["data"]["name"]))
+		# If it survives, append it to the method
+		method["state"] = "REVIEW_TRANSFORM"
+		if error_state:
+			method["state"] = "CATEGORISE_ERROR"
+		save_method(**method)
+		return method
 
 	#########################################################################################
 	# SUPPORT FUNCTIONS
