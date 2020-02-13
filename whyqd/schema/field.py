@@ -27,11 +27,11 @@ class Field:
 			"constraints": {}
 		}
 		kwargs = deepcopy(kwargs)
-		if kwargs and kwargs.get("validate", True):
-			self.set_all(**kwargs)
-		if kwargs and not kwargs.get("validate", True):
-			del kwargs["validate"]
-			self.field_settings = {**self.field_settings, **kwargs}
+		if kwargs:
+			if kwargs.pop("validate", True):
+				self.set_all(**kwargs)
+			else:
+				self.field_settings = {**self.field_settings, **kwargs}
 
 	def __repr__(self):
 		"""

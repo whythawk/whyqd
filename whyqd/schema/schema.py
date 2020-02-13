@@ -570,6 +570,10 @@ class Schema:
 		"""
 		Schema validates with all fields unique and required terms.
 
+		Raises
+		------
+		ValueError on field failure.
+
 		Returns
 		-------
 		bool: True for validates

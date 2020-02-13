@@ -139,6 +139,19 @@ class Method(Schema):
 
 		self._status = "READY_STRUCTURE"
 
+	def structure(self, name):
+		"""
+		Return a 'markdown' version of the formal structure for a specific `name` field.
+
+		Returns
+		-------
+		list of (nested) strings in structure format
+		"""
+		markdown = self.field(name).get("structure")
+		if markdown:
+			return self.build_structure_markdown(markdown)
+		return []
+
 	def set_structure(self, **kwargs):
 		"""
 		Receive a list of methods of the form::
@@ -181,20 +194,20 @@ class Method(Schema):
 			CATEGORISE:		Only if of "type" = "string"; look for associated constraint, "categorise"
 							where True = keep a list of categories, False = set True if terms found
 							in list;
-
-			MODIFIER: + before terms where column values are to be classified as unique;
-					  - before terms where column values are treated as boolean;
+							MODIFIER: + before terms where column values to be classified as unique;
+									  - before terms where column values are treated as boolean;
 		"""
 		if self._status in STATUS_CODES.keys() - ["READY_STRUCTURE", "READY_CATEGORIES", "READY_FILTER",
 												  "READY_TRANSFORM", "PROCESS_COMPLETE", "STRUCTURE_ERROR"]:
 			e = "Current status: `{}` - performing `structure` is not permitted.".format(self.status)
 			raise PermissionError(e)
+		self.validate_merge
 		for field_name in kwargs:
 			if field_name not in self.all_field_names:
 				e = "Term `{}` not a valid field for this schema.".format(field_name)
 				raise ValueError(e)
 			schema_field = self.field(field_name)
-			schema_field["structure"] = self.set_field_structure(*kwargs[field_name])
+			schema_field["structure"] = self.set_field_structure(kwargs[field_name])
 			# Set unique field structure categories
 			has_category = []
 			schema_field.pop("category", [])
@@ -208,7 +221,9 @@ class Method(Schema):
 			# Validation would not add in the new values
 			self.set_field(validate=False, **schema_field)
 
+	#########################################################################################
 	# SUPPORT FUNCTIONS
+	#########################################################################################
 
 	@property
 	def status(self):
@@ -245,6 +260,10 @@ class Method(Schema):
 			e = "Method constructor is not a valid dict."
 			raise TypeError(e)
 		self.schema_settings["constructors"] = deepcopy(constructors)
+
+	#########################################################################################
+	# CREATE & MODIFY INPUT DATA
+	#########################################################################################
 
 	@property
 	def input_data(self):
@@ -315,6 +334,10 @@ class Method(Schema):
 		if self.schema_settings.get("input_data", []):
 			self.schema_settings["input_data"] = [data for data in self.schema_settings["input_data"]
 												  if data["id"] != _id]
+
+	#########################################################################################
+	# MERGE HELPERS
+	#########################################################################################
 
 	def order_and_key_input_data(self, *order_and_key):
 		"""
@@ -400,7 +423,9 @@ class Method(Schema):
 	def working_data(self):
 		return deepcopy(self.schema_settings.get("working_data", {}))
 
-	# SET, UPDATE AND BUILD STRUCTURES (ACTION LISTS)
+	#########################################################################################
+	# STRUCTURE HELPERS
+	#########################################################################################
 
 	def flatten_category_fields(self, structure, modifier=None):
 		modifier_list = ["+", "-"]
@@ -458,7 +483,7 @@ class Method(Schema):
 		}
 		return structure_categories
 
-	def set_field_structure(self, *structure_list):
+	def set_field_structure(self, structure_list):
 		"""
 		A recursive function which traverses a list defined by `*structure`, ensuring that the first
 		term is an `action`, and that the subsequent terms conform to that action's requirements.
@@ -494,7 +519,7 @@ class Method(Schema):
 				continue
 			if isinstance(term, list):
 				# Deal with nested structures
-				structure.append(self.set_field_structure(*term))
+				structure.append(self.set_field_structure(term))
 				continue
 			if action.name == "NEW":
 				# Special case for "NEW" action
@@ -554,7 +579,29 @@ class Method(Schema):
 						   for action in _c.get_settings("actions")["fields"]}
 		return default_actions
 
+	def build_structure_markdown(self, structure):
+		"""
+		Recursive function that iteratively builds a markdown version of a formal field structure.
+
+		Returns
+		-------
+		list
+		"""
+		markdown = []
+		for strut in structure:
+			if isinstance(strut, list):
+				markdown.append(self.build_structure_markdown(strut))
+				continue
+			if strut.get("name"):
+				markdown.append(strut["name"])
+				continue
+			if strut.get("value"):
+				markdown.append(strut["value"])
+		return markdown
+
+	#########################################################################################
 	# VALIDATE, BUILD AND SAVE
+	#########################################################################################
 
 	@property
 	def validate_input_data(self):
@@ -594,6 +641,88 @@ class Method(Schema):
 			_c.check_column_unique(source, data["key"])
 		return True
 
+	@property
+	def validate_merge(self):
+		"""
+		Validate merge output.
+
+		Raises
+		------
+		ValueError on checksum failure.
+
+		Returns
+		-------
+		bool: True for validates
+		"""
+		self.validate_merge_data
+		df = _c.get_dataframe(self.directory + self.schema_settings["input_data"][0]["file"],
+							  dtype = object)
+		df_key = self.schema_settings["input_data"][0]["key"]
+		for data in self.schema_settings["input_data"][1:]:
+			dfm = _c.get_dataframe(self.directory + data["file"], dtype = object)
+			dfm_key = data["key"]
+			df = pd.merge(df, dfm, how="outer",
+						  left_on=df_key, right_on=dfm_key,
+						  indicator=False)
+		# Deduplicate any columns after merge (and deduplicate the deduplicate in case of artifacts)
+		df.columns = self.deduplicate_columns(self.deduplicate_columns(df.columns))
+		# Save temporary file ... has to save & load for checksum validation
+		_id = str(uuid.uuid4())
+		filetype = self.schema_settings["working_data"]["file"].split(".")[-1]
+		filename = "".join([_id, ".", filetype])
+		source = self.directory + filename
+		if filetype == "csv":
+			df.to_csv(source, index=False)
+		if filetype == "xlsx":
+			df.to_excel(source, index=False)
+		checksum = _c.get_checksum(source)
+		_c.delete_file(source)
+		if (self.schema_settings["working_data"]["checksum"] != checksum):
+			e = "Merge validation checksum failure {} != {}".format(
+				self.schema_settings["working_data"]["checksum"],
+				checksum)
+			raise ValueError(e)
+		return True
+
+	@property
+	def validate_structure(self):
+		"""
+		Method validates structure formats.
+
+		Raises
+		------
+		ValueError on structure failure.
+
+		Returns
+		-------
+		bool: True for validates
+		"""
+		self.validates # First check the fields
+		for field_name in self.all_field_names:
+			# Test structure
+			structure = self.field(field_name).get("structure")
+			if not structure:
+				e = "Structure: {}".format(field_name)
+				raise ValueError(e)
+			test_structure = self.build_structure_markdown(structure)
+			if structure != self.set_field_structure(test_structure):
+				e = "Structure for Field `{}` is not valid".format(field_name)
+				raise ValueError(e)
+			# Test structure categories
+			category = self.field(field_name).get("category")
+			if category:
+				test_category = []
+				for term in set(self.flatten_category_fields(test_structure)):
+					term = term.split("::")
+					modifier = term[0]
+					# Just in case
+					column = "::".join(term[1:])
+					test_category.append(self.set_field_structure_categories(modifier, column))
+				if category != test_category:
+					e = "Category for Field `{}` is not valid".format(field_name)
+					raise ValueError(e)
+		return True
+
 	def build_action(self, **action):
 		"""
 		For a list of actions, defined as dictionaries, create and return Action objects.
@@ -621,16 +750,15 @@ class Method(Schema):
 
 	def build(self):
 		"""
-		Build and validate the Method. Note, this subclasses the Schema base-class.
+		Build and validate the Method. Note, this replaces the Schema base-class.
 		"""
-		super().build()
+		self.schema_settings["fields"] = [self.build_field(validate=False, **field) for field in
+										  self.schema_settings.get("fields", [])]
 		if not self.directory:
 			e = "Action is not a valid dictionary"
 			raise ValueError(e)
 		self.set_directory(self.directory)
 		self._status = self.schema_settings.get("status", self._status)
-		#self.schema_settings["fields"] = [self.build_action(**action) for action in
-		#								  self.schema_settings["fields"]]
 
 	def save_data(self, df, filetype="xlsx"):
 		"""
@@ -675,6 +803,10 @@ class Method(Schema):
 		self.schema_settings["status"] = self._status
 		super().save(directory=directory, filename=filename,
 					 overwrite=overwrite, created_by=created_by)
+
+	#########################################################################################
+	# HELP
+	#########################################################################################
 
 	def help(self, option=None):
 		"""

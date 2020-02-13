@@ -98,10 +98,9 @@ class Action:
 				if term == "field" and isinstance(field[i], list):
 					# The calling function needs to handle recursion through the list
 					continue
-				if term == "field" and self.name == "NEW":
+				if term == "value" and not _c.get_field_type(field[i]):
 					# Special case for NEW actions where the field can be anything
-					# TODO: some sort of validation here ... test for type, maybe a dict?
-					continue
+					return False
 				if term == "field" and field[i] not in working_columns:
 					return False
 				if term == "modifier" and field[i] not in self.default_structure[term]:

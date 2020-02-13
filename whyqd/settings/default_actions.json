@@ -5,7 +5,7 @@
 			"type": "action",
 			"title": "New",
 			"description": "Create a new field and assign a set value.",
-			"structure": ["field"]
+			"structure": ["value"]
 		},
 		{
 			"name": "ORDER",

@@ -6,13 +6,14 @@ import whyqd.common as _c
 
 method_name = "/data/test_method.json"
 schema_name = "/data/test_schema.json"
-METHOD_SOURCE = str(Path(__file__).resolve().parent) + method_name
-SCHEMA_SOURCE = str(Path(__file__).resolve().parent) + schema_name
+DIRECTORY = str(Path(__file__).resolve().parent)
+METHOD_SOURCE = DIRECTORY + method_name
+SCHEMA_SOURCE = DIRECTORY + schema_name
 METHOD = _c.load_json(METHOD_SOURCE)
 SCHEMA = _c.load_json(SCHEMA_SOURCE)
-INPUT_DATA = ["/mnt/c/Users/Turukawa/Documents/GitHub/whyqd/tests/data/raw_E06000044_014_0.XLSX",
-			  "/mnt/c/Users/Turukawa/Documents/GitHub/whyqd/tests/data/raw_E06000044_014_1.XLSX",
-			  "/mnt/c/Users/Turukawa/Documents/GitHub/whyqd/tests/data/raw_E06000044_014_2.XLSX"]
+INPUT_DATA = [DIRECTORY + "/data/raw_E06000044_014_0.XLSX",
+			  DIRECTORY + "/data/raw_E06000044_014_1.XLSX",
+			  DIRECTORY + "/data/raw_E06000044_014_2.XLSX"]
 
 class TestMethod:
 
@@ -52,6 +53,7 @@ class TestMethod:
 		test_source = DIRECTORY + "test_method.json"
 		method = _w.Method(test_source, directory=DIRECTORY)
 		assert METHOD["working_data"]["checksum"] == method.working_data["checksum"]
+		assert method.validate_merge
 
 	def test_structure(self, tmp_path):
 		DIRECTORY = str(tmp_path) + "/"
@@ -94,3 +96,6 @@ class TestMethod:
 		}
 		method.set_structure(**structure)
 		method.save(overwrite=True)
+		test_source = DIRECTORY + "test_method.json"
+		method = _w.Method(test_source, directory=DIRECTORY)
+		method.validate_structure

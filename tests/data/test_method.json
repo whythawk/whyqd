@@ -11,7 +11,7 @@
                     "description": "Create a new field and assign a set value.",
                     "name": "NEW",
                     "structure": [
-                        "field"
+                        "value"
                     ],
                     "title": "New",
                     "type": "action"
