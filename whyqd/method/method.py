@@ -19,6 +19,7 @@ from shutil import copyfile
 from copy import deepcopy
 import pandas as pd
 from tabulate import tabulate
+from operator import itemgetter
 
 import whyqd.common as _c
 from whyqd.schema import Schema
@@ -85,7 +86,7 @@ class Method(Schema):
 		"""
 		if order_and_key and isinstance(order_and_key, list):
 			self.order_and_key_input_data(*order_and_key)
-		if self._status in STATUS_CODES.keys() - ["READY_MERGE", "READY_STRUCTURE", "READY_CATEGORIES",
+		if self._status in STATUS_CODES.keys() - ["READY_MERGE", "READY_STRUCTURE", "READY_CATEGORY",
 												  "READY_FILTER", "READY_TRANSFORM", "PROCESS_COMPLETE",
 												  "MERGE_ERROR"]:
 			e = "Current status: `{}` - performing `merge` is not permitted.".format(self.status)
@@ -183,7 +184,7 @@ class Method(Schema):
 		kwargs: dict
 			Where key is schema target field and value is list defining the structure action
 		"""
-		if self._status in STATUS_CODES.keys() - ["READY_STRUCTURE", "READY_CATEGORIES", "READY_FILTER",
+		if self._status in STATUS_CODES.keys() - ["READY_STRUCTURE", "READY_CATEGORY", "READY_FILTER",
 												  "READY_TRANSFORM", "PROCESS_COMPLETE", "STRUCTURE_ERROR"]:
 			e = "Current status: `{}` - performing `set_structure` not permitted.".format(self.status)
 			raise PermissionError(e)
@@ -224,7 +225,7 @@ class Method(Schema):
 				schema_field["constraints"]["category_input"] = has_category
 			# Validation would not add in the new values
 			self.set_field(validate=False, **schema_field)
-		self._status = "READY_CATEGORIES"
+		self._status = "READY_CATEGORY"
 		if not category_check: self._status = "READY_FILTER"
 
 	def category(self, name):
@@ -294,7 +295,7 @@ class Method(Schema):
 
 			`term_name::column_name`
 		"""
-		if self._status in STATUS_CODES.keys() - ["READY_CATEGORIES", "READY_FILTER",
+		if self._status in STATUS_CODES.keys() - ["READY_CATEGORY", "READY_FILTER",
 												  "READY_TRANSFORM", "PROCESS_COMPLETE", "CATEGORY_ERROR"]:
 			e = "Current status: `{}` - performing `set_category` not permitted.".format(self.status)
 			raise PermissionError(e)
@@ -309,23 +310,32 @@ class Method(Schema):
 			if not field_category:
 				e = "Field `{}` has no available categorical data.".format(field_name)
 				raise ValueError(e)
-			field_category = schema_field.get("constraints", {}).get("category", [])
-			cat_diff = set(kwargs[field_name].keys()) - set([c["name"] for c in field_category])
+			if schema_field["type"] == "boolean":
+				cat_diff = set(kwargs[field_name].keys()) - set(["true", "false"])
+			else:
+				field_category = schema_field.get("constraints", {}).get("category", [])
+				cat_diff = set(kwargs[field_name].keys()) - set([c["name"] for c in field_category])
 			if cat_diff:
-				e = "Field `{}` has invalid categories `{}`.".format(cat_diff)
+				e = "Field `{}` has invalid categories `{}`.".format(field_name, cat_diff)
 				raise ValueError(e)
 			# Get assigned category_inputs
 			assigned = []
 			for name in kwargs[field_name]:
+				c_name = name
+				if schema_field["type"] == "boolean":
+					if c_name == "true":
+						c_name = True
+					else:
+						c_name = False
 				category_term = {
-					"name": name,
+					"name": c_name,
 					"category_input": []
 				}
 				input_terms = {}
-				for term in category_input[name]:
+				for term in kwargs[field_name][name]:
 					term = term.split("::")
 					column = term[-1]
-					term = "::".join(term[1:])
+					term = "::".join(term[:-1])
 					if not input_terms.get(column):
 						input_terms[column] = []
 					if term not in input_terms[column]:
@@ -341,11 +351,12 @@ class Method(Schema):
 				# append to category
 				assigned.append(category_term)
 			# Get unassigned category_inputs
-			unnassigned = []
+			unassigned = []
 			for terms in schema_field["constraints"]["category_input"]:
 				all_terms = terms["terms"]
 				all_assigned_terms = []
 				for assigned_term in assigned:
+					assigned_input_terms = []
 					for assigned_input in assigned_term["category_input"]:
 						if assigned_input["column"] == terms["column"]:
 							assigned_input_terms = assigned_input["terms"]
@@ -374,7 +385,7 @@ class Method(Schema):
 			# Set the category
 			schema_field["category"] = {
 				"assigned": assigned,
-				"unassigned": unnassigned
+				"unassigned": unassigned
 			}
 			# Update the field
 			self.set_field(validate=False, **schema_field)
@@ -910,9 +921,69 @@ class Method(Schema):
 					# Just in case
 					column = "::".join(term[1:])
 					test_category.append(self.set_field_structure_categories(modifier, column))
-				if category != test_category:
+				if (sorted(category, key=itemgetter("column")) !=
+					sorted(test_category, key=itemgetter("column"))):
+					# Equality test on list of dicts requires them to be in the same order
 					e = "Category for Field `{}` is not valid".format(field_name)
 					raise ValueError(e)
+		return True
+
+	@property
+	def validate_category(self):
+		"""
+		Method validates category terms.
+
+		Raises
+		------
+		ValueError on category failure.
+
+		Returns
+		-------
+		bool: True for validates
+		"""
+		for field_name in self.all_field_names:
+			schema_field = self.field(field_name)
+			if schema_field.get("category"):
+				# Test if the category and category_input constraints are valid
+				# assigned is of the form: category: [term::column]
+				# constraints of the form: category -> name | category_input -> column | terms
+				category = self.category(field_name).get("assigned")
+				if schema_field["type"] == "boolean":
+					category_constraints = ["true", "false"]
+				else:
+					category_constraints = [c["name"] for c in
+											schema_field["constraints"].get("category", {})]
+				diff = set(category.keys()) - set(category_constraints)
+				if diff:
+					e = "Category for Field `{}` has invalid constraints `{}`"
+					raise ValueError(e.format(field_name, diff))
+				category_input = {}
+				for terms in category.values():
+					for term in terms:
+						term = term.split("::")
+						if not category_input.get(term[-1]):
+							category_input[term[-1]] = []
+						category_input[term[-1]].append("::".join(term[:-1]))
+				category_input_columns = [c["column"] for c in
+										  schema_field["constraints"].get("category_input", {})]
+				diff = set(category_input.keys()) - set(category_input_columns)
+				if diff:
+					e = "Category for Field `{}` has invalid data columns `{}`"
+					raise ValueError(e.format(field_name, diff))
+				category_input_terms = [c["terms"] for c in
+										schema_field["constraints"].get("category_input", {})]
+				category_input_terms = [item for sublist in category_input_terms
+										for item in sublist]
+				category_terms = [item for sublist in category_input.values()
+								  for item in sublist]
+				diff = set(category_terms) - set(category_input_terms)
+				if diff:
+					e = "Category for Field `{}` has invalid input category terms `{}`"
+					raise ValueError(e.format(field_name, diff))
+				diff = len(category_terms) - len(set(category_terms))
+				if diff:
+					e = "Category for Field `{}` has duplicate input category terms"
+					raise ValueError(e.format(field_name))
 		return True
 
 	def build_action(self, **action):
@@ -1034,6 +1105,12 @@ class Method(Schema):
 					_df = pd.DataFrame(self.schema_settings["working_data"]["dataframe"])
 					_df = tabulate(_df, headers="keys", tablefmt="fancy_grid")
 					response += HELP_RESPONSE["data"].format(_id, _df)
+			if option == "category":
+				category_fields = []
+				for field_name in self.all_field_names:
+					if self.field(field_name).get("constraints", {}).get("category"):
+						category_fields.append(field_name)
+				response = response.format(category_fields)
 		# `status` request
 		response += HELP_RESPONSE["status"].format(self.status)
 		return response
@@ -1116,6 +1193,30 @@ The actions:
 The columns from your working data:
 
 {}
+""",
+	"category": """
+Provide a list of categories of the form::
+
+	{{
+		"schema_field1": {{
+			"category_1": ["term1", "term2", "term3"],
+			"category_2": ["term4", "term5", "term6"]
+		}}
+	}}
+
+The format for defining a `category` term as follows::
+
+	`term_name::column_name`
+
+Get a list of available terms, and the categories for assignment, by calling::
+
+	>>> method.category(field_name)
+
+Once your data are prepared as above::
+
+	>>> method.set_category(**category)
+
+Field names requiring categorisation are: {}
 """,
 	"data": """
 

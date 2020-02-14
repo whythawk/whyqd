@@ -137,101 +137,6 @@
             "type": "string"
         },
         {
-            "constraints": {
-                "category": [
-                    {
-                        "name": true
-                    },
-                    {
-                        "name": false
-                    }
-                ],
-                "category_input": [
-                    {
-                        "column": "Current Property Exemption Code",
-                        "terms": [
-                            "EPRN",
-                            "EPRI",
-                            "VOID",
-                            "C",
-                            "EPCH",
-                            "LOW RV",
-                            "INDUSTRIAL",
-                            "ANCIENT",
-                            "LISTED",
-                            "LIQUIDATE",
-                            "LAND",
-                            "ADMIN",
-                            "LA ACTION",
-                            "DECEASED",
-                            "PROHIBITED",
-                            "BANKRUPT"
-                        ]
-                    },
-                    {
-                        "column": "Current Relief Type",
-                        "terms": [
-                            "Retail Discount",
-                            "Small Business Relief England",
-                            "Mandatory",
-                            "Empty Property Rate Non-Industrial",
-                            "Empty Property Rate Industrial",
-                            "Supporting Small Business Relief",
-                            "Sports Club (Registered CASC)",
-                            "Sbre Extension For 12 Months",
-                            "Empty Property Rate Charitable"
-                        ]
-                    }
-                ]
-            },
-            "description": "Occupation status, void or occupied.",
-            "name": "occupation_state",
-            "structure": [
-                {
-                    "description": "Apply categories to a list of columns. Each field must have a modifier, including the first (e.g. +A -B +C). '-' modifier indicates presence/absence of values as true/false for a specific term. '+' modifier indicates that the unique terms in the field must be matched to the unique terms defined in the schema. This is a two-step process, first requiring listing the columns effected, then applying the terms.",
-                    "modifiers": [
-                        {
-                            "name": "+",
-                            "title": "Uniques",
-                            "type": "modifier"
-                        },
-                        {
-                            "name": "-",
-                            "title": "Values",
-                            "type": "modifier"
-                        }
-                    ],
-                    "name": "CATEGORISE",
-                    "structure": [
-                        "modifier",
-                        "field"
-                    ],
-                    "title": "Categorise",
-                    "type": "action"
-                },
-                {
-                    "name": "+",
-                    "title": "Uniques",
-                    "type": "modifier"
-                },
-                {
-                    "name": "Current Property Exemption Code",
-                    "type": "number"
-                },
-                {
-                    "name": "+",
-                    "title": "Uniques",
-                    "type": "modifier"
-                },
-                {
-                    "name": "Current Relief Type",
-                    "type": "string"
-                }
-            ],
-            "title": "Occupation state",
-            "type": "boolean"
-        },
-        {
             "description": "Date of the start of status in occupation_state.",
             "name": "occupation_state_date",
             "structure": [
@@ -310,6 +215,111 @@
             "type": "date"
         },
         {
+            "category": {
+                "assigned": [
+                    {
+                        "category_input": [
+                            {
+                                "column": "Current Relief Type",
+                                "terms": [
+                                    "Small Business Relief England",
+                                    "Sbre Extension For 12 Months",
+                                    "Supporting Small Business Relief"
+                                ]
+                            }
+                        ],
+                        "name": "small_business"
+                    },
+                    {
+                        "category_input": [
+                            {
+                                "column": "Current Property Exemption Code",
+                                "terms": [
+                                    "INDUSTRIAL"
+                                ]
+                            }
+                        ],
+                        "name": "enterprise_zone"
+                    },
+                    {
+                        "category_input": [
+                            {
+                                "column": "Current Property Exemption Code",
+                                "terms": [
+                                    "EPRN",
+                                    "EPRI",
+                                    "VOID",
+                                    "EPCH",
+                                    "LIQUIDATE",
+                                    "DECEASED",
+                                    "PROHIBITED",
+                                    "BANKRUPT"
+                                ]
+                            },
+                            {
+                                "column": "Current Relief Type",
+                                "terms": [
+                                    "Empty Property Rate Non-Industrial",
+                                    "Empty Property Rate Industrial",
+                                    "Empty Property Rate Charitable"
+                                ]
+                            }
+                        ],
+                        "name": "vacancy"
+                    },
+                    {
+                        "category_input": [
+                            {
+                                "column": "Current Relief Type",
+                                "terms": [
+                                    "Retail Discount"
+                                ]
+                            }
+                        ],
+                        "name": "retail"
+                    },
+                    {
+                        "category_input": [
+                            {
+                                "column": "Current Property Exemption Code",
+                                "terms": [
+                                    "C",
+                                    "LOW RV",
+                                    "LAND"
+                                ]
+                            }
+                        ],
+                        "name": "exempt"
+                    },
+                    {
+                        "category_input": [
+                            {
+                                "column": "Current Relief Type",
+                                "terms": [
+                                    "Sports Club (Registered CASC)",
+                                    "Mandatory"
+                                ]
+                            }
+                        ],
+                        "name": "other"
+                    }
+                ],
+                "unassigned": [
+                    {
+                        "column": "Current Property Exemption Code",
+                        "terms": [
+                            "ANCIENT",
+                            "LISTED",
+                            "LA ACTION",
+                            "ADMIN"
+                        ]
+                    },
+                    {
+                        "column": "Current Relief Type",
+                        "terms": []
+                    }
+                ]
+            },
             "constraints": {
                 "category": [
                     {
@@ -430,6 +440,157 @@
             ],
             "title": "Occupation state reliefs",
             "type": "array"
+        },
+        {
+            "category": {
+                "assigned": [
+                    {
+                        "category_input": [
+                            {
+                                "column": "Current Property Exemption Code",
+                                "terms": [
+                                    "EPRN",
+                                    "EPRI",
+                                    "VOID",
+                                    "EPCH",
+                                    "LIQUIDATE",
+                                    "DECEASED",
+                                    "PROHIBITED",
+                                    "BANKRUPT"
+                                ]
+                            },
+                            {
+                                "column": "Current Relief Type",
+                                "terms": [
+                                    "Empty Property Rate Non-Industrial",
+                                    "Empty Property Rate Industrial",
+                                    "Empty Property Rate Charitable"
+                                ]
+                            }
+                        ],
+                        "name": false
+                    }
+                ],
+                "unassigned": [
+                    {
+                        "column": "Current Property Exemption Code",
+                        "terms": [
+                            "ANCIENT",
+                            "INDUSTRIAL",
+                            "ADMIN",
+                            "LISTED",
+                            "C",
+                            "LA ACTION",
+                            "LOW RV",
+                            "LAND"
+                        ]
+                    },
+                    {
+                        "column": "Current Relief Type",
+                        "terms": [
+                            "Sbre Extension For 12 Months",
+                            "Sports Club (Registered CASC)",
+                            "Supporting Small Business Relief",
+                            "Small Business Relief England",
+                            "Mandatory",
+                            "Retail Discount"
+                        ]
+                    }
+                ]
+            },
+            "constraints": {
+                "category": [
+                    {
+                        "name": true
+                    },
+                    {
+                        "name": false
+                    }
+                ],
+                "category_input": [
+                    {
+                        "column": "Current Property Exemption Code",
+                        "terms": [
+                            "EPRN",
+                            "EPRI",
+                            "VOID",
+                            "C",
+                            "EPCH",
+                            "LOW RV",
+                            "INDUSTRIAL",
+                            "ANCIENT",
+                            "LISTED",
+                            "LIQUIDATE",
+                            "LAND",
+                            "ADMIN",
+                            "LA ACTION",
+                            "DECEASED",
+                            "PROHIBITED",
+                            "BANKRUPT"
+                        ]
+                    },
+                    {
+                        "column": "Current Relief Type",
+                        "terms": [
+                            "Retail Discount",
+                            "Small Business Relief England",
+                            "Mandatory",
+                            "Empty Property Rate Non-Industrial",
+                            "Empty Property Rate Industrial",
+                            "Supporting Small Business Relief",
+                            "Sports Club (Registered CASC)",
+                            "Sbre Extension For 12 Months",
+                            "Empty Property Rate Charitable"
+                        ]
+                    }
+                ]
+            },
+            "description": "Occupation status, void or occupied.",
+            "name": "occupation_state",
+            "structure": [
+                {
+                    "description": "Apply categories to a list of columns. Each field must have a modifier, including the first (e.g. +A -B +C). '-' modifier indicates presence/absence of values as true/false for a specific term. '+' modifier indicates that the unique terms in the field must be matched to the unique terms defined in the schema. This is a two-step process, first requiring listing the columns effected, then applying the terms.",
+                    "modifiers": [
+                        {
+                            "name": "+",
+                            "title": "Uniques",
+                            "type": "modifier"
+                        },
+                        {
+                            "name": "-",
+                            "title": "Values",
+                            "type": "modifier"
+                        }
+                    ],
+                    "name": "CATEGORISE",
+                    "structure": [
+                        "modifier",
+                        "field"
+                    ],
+                    "title": "Categorise",
+                    "type": "action"
+                },
+                {
+                    "name": "+",
+                    "title": "Uniques",
+                    "type": "modifier"
+                },
+                {
+                    "name": "Current Property Exemption Code",
+                    "type": "number"
+                },
+                {
+                    "name": "+",
+                    "title": "Uniques",
+                    "type": "modifier"
+                },
+                {
+                    "name": "Current Relief Type",
+                    "type": "string"
+                }
+            ],
+            "title": "Occupation state",
+            "type": "boolean"
         }
     ],
     "input_data": [
@@ -630,7 +791,7 @@
         }
     ],
     "name": "test_method",
-    "status": "READY_CATEGORIES",
+    "status": "READY_FILTER",
     "title": "Test Schema",
     "updated": "2020-02-14",
     "working_data": {
