@@ -188,6 +188,7 @@ class Method(Schema):
 			e = "Current status: `{}` - performing `set_structure` not permitted.".format(self.status)
 			raise PermissionError(e)
 		self.validate_merge
+		category_check = False
 		for field_name in kwargs:
 			if field_name not in self.all_field_names:
 				e = "Term `{}` not a valid field for this schema.".format(field_name)
@@ -196,18 +197,35 @@ class Method(Schema):
 			schema_field["structure"] = self.set_field_structure(kwargs[field_name])
 			# Set unique field structure categories
 			has_category = []
-			schema_field.pop("category", [])
 			for term in set(self.flatten_category_fields(kwargs[field_name])):
 				term = term.split("::")
 				modifier = term[0]
 				# Just in case
 				column = "::".join(term[1:])
 				has_category.append(self.set_field_structure_categories(modifier, column))
-			if has_category: schema_field["category"] = has_category
+			if has_category:
+				category_check = True
+				if (not schema_field.get("constraints", {}).get("category") and
+					schema_field["type"] == "boolean"):
+					if not schema_field.get("constraints"):
+						schema_field["constraints"] = {}
+					# Boolean fields have an implied constraint
+					schema_field["constraints"]["category"] = [
+						{
+							"name": True
+						},
+						{
+							"name": False
+						}
+					]
+				if not schema_field.get("constraints", {}).get("category"):
+					e = "Field `{}` has no `category` constraints. Please `set_field_category`."
+					raise ValueError(e.format(field_name))
+				schema_field["constraints"]["category_input"] = has_category
 			# Validation would not add in the new values
 			self.set_field(validate=False, **schema_field)
 		self._status = "READY_CATEGORIES"
-		if not has_category: self._status = "READY_FILTER"
+		if not category_check: self._status = "READY_FILTER"
 
 	def set_category(self, **kwargs):
 		"""
@@ -229,12 +247,12 @@ class Method(Schema):
 			e = "Current status: `{}` - performing `set_category` not permitted.".format(self.status)
 			raise PermissionError(e)
 		self.validate_structure
-		method["categories"] = kwargs["methods"]
 		for field_name in kwargs:
 			if field_name not in self.all_field_names:
 				e = "Term `{}` not a valid field for this schema.".format(field_name)
 				raise ValueError(e)
-			field_category = self.field(field_name).get("category")
+			schema_field = self.field(field_name)
+			field_category = schema_field.get("constraints", {}).get("category_input")
 			if not field_category:
 				e = "Field `{}` has no available categorical data.".format(field_name)
 				raise ValueError(e)
@@ -741,8 +759,10 @@ class Method(Schema):
 				e = "Structure for Field `{}` is not valid".format(field_name)
 				raise ValueError(e)
 			# Test structure categories
-			category = self.field(field_name).get("category")
-			if category:
+			category = self.field(field_name).get("constraints", {}).get("category_input")
+			if category and self.field(field_name).get("constraints", {}).get("category"):
+				# Needs to have both a set of terms derived from the columns, and a
+				# defined set of terms to be categorised as...
 				test_category = []
 				for term in set(self.flatten_category_fields(test_structure)):
 					term = term.split("::")

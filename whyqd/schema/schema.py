@@ -454,7 +454,8 @@ class Schema:
 		for field in self.schema_settings.get("fields", []):
 			if field.name == name:
 				return deepcopy(field.settings)
-		return {}
+		e = "`{}` not found in Schema fields.".format(name)
+		raise ValueError(e)
 
 	def set_field(self, **kwargs):
 		"""
@@ -477,6 +478,78 @@ class Schema:
 		field = self.build_field(**kwargs)
 		self.schema_settings["fields"].append(field)
 
+	def set_field_constraints(self, name, **constraints):
+		"""
+		Set the constraint parameters for a specific field to define this schema, called by a unique
+		`name` already in the schema.
+
+		The structure of the constraints is defined as follows::
+
+			{
+				"key": "value",
+				"key": "value"
+			}
+
+		`category` is a special constraint that can be defined as e.g.::
+
+			{
+				"category": ["term1", "term2"]
+			}
+
+		All that is required is a list, and the function will take care of the formal structure.
+		`filters` are managed in the Method part of the process (since this are defined in respect
+		to the data being structured).
+
+		Parameters
+		----------
+		name: string
+			Specific name for a field already in the Schema
+		constraints: dict
+			A set of key:value pairs defining constraints as described in `default_field_settings`.
+		"""
+		field = self.field(name)
+		valid_constraints = self.default_field_settings(field["type"]).get("constraints", {}).keys()
+		if not valid_constraints:
+			e = "Field `{}` has no permitted constraints.".format(name)
+			raise ValueError(e)
+		for constraint in constraints:
+			if constraint not in valid_constraints:
+				e = "Constraint `{}` is not permitted in field `{}`.".format(constraint, name)
+				raise KeyError(e)
+		category = constraints.pop("category", None)
+		if not field.get("constraints"):
+			field["constraints"] = {}
+		if constraints:
+			field["constraints"] = {**field["constraints"], **constraints}
+			self.set_field(**field)
+		if category: self.set_field_category(name, *category["category"])
+
+	def set_field_category(self, name, *categories, overwrite=True):
+		"""
+		Set the category constraint parameters for a specific field. `categories` is defined as e.g.::
+
+			["term1", "term2"]
+
+		All that is required is a list, and the function will take care of the formal structure.
+
+		Parameters
+		----------
+		name: string
+			Specific name for a field already in the Schema
+		categories: list
+			A list of string terms defining target categories.
+		overwrite: bool
+			If field has existing category constraints, then overwrite with this new list.
+		"""
+		field = self.field(name)
+		if not overwrite:
+			original = [c["name"] for c in field.get("constraints", {}).get("category", [])]
+			categories.extend(original)
+			categories = set(categories)
+		category = [{"name": c} for c in categories]
+		field["constraints"]["category"] = category
+		self.set_field(**field)
+
 	def set_field_filters(self, name, *filters):
 		"""
 		Set the filter parameters for a specific field to define this schema, called by a unique
@@ -490,9 +563,6 @@ class Schema:
 			A list of filter names as described in `default_filter_names`.
 		"""
 		field = self.field(name)
-		if not field:
-			e = "`{}` not found in Schema fields.".format(name)
-			raise ValueError(e)
 		self.schema_settings["fields"][:] = [f for f in self.schema_settings["fields"]
 											 if f.name != field.name]
 		# update field

@@ -1,7 +1,7 @@
 {
     "created": "2020-02-13",
     "description": "A test Schema",
-    "directory": "/mnt/c/Users/Turukawa/Documents/GitHub/whyqd/tests/data/",
+    "directory": "/mnt/c/Users/turuk/Documents/GitHub/whyqd/tests/data/",
     "fields": [
         {
             "description": "Standard code for local authority.",
@@ -137,43 +137,53 @@
             "type": "string"
         },
         {
-            "category": [
-                {
-                    "column": "Current Relief Type",
-                    "terms": [
-                        "Retail Discount",
-                        "Small Business Relief England",
-                        "Mandatory",
-                        "Empty Property Rate Non-Industrial",
-                        "Empty Property Rate Industrial",
-                        "Supporting Small Business Relief",
-                        "Sports Club (Registered CASC)",
-                        "Sbre Extension For 12 Months",
-                        "Empty Property Rate Charitable"
-                    ]
-                },
-                {
-                    "column": "Current Property Exemption Code",
-                    "terms": [
-                        "EPRN",
-                        "EPRI",
-                        "VOID",
-                        "C",
-                        "EPCH",
-                        "LOW RV",
-                        "INDUSTRIAL",
-                        "ANCIENT",
-                        "LISTED",
-                        "LIQUIDATE",
-                        "LAND",
-                        "ADMIN",
-                        "LA ACTION",
-                        "DECEASED",
-                        "PROHIBITED",
-                        "BANKRUPT"
-                    ]
-                }
-            ],
+            "constraints": {
+                "category": [
+                    {
+                        "name": true
+                    },
+                    {
+                        "name": false
+                    }
+                ],
+                "category_input": [
+                    {
+                        "column": "Current Property Exemption Code",
+                        "terms": [
+                            "EPRN",
+                            "EPRI",
+                            "VOID",
+                            "C",
+                            "EPCH",
+                            "LOW RV",
+                            "INDUSTRIAL",
+                            "ANCIENT",
+                            "LISTED",
+                            "LIQUIDATE",
+                            "LAND",
+                            "ADMIN",
+                            "LA ACTION",
+                            "DECEASED",
+                            "PROHIBITED",
+                            "BANKRUPT"
+                        ]
+                    },
+                    {
+                        "column": "Current Relief Type",
+                        "terms": [
+                            "Retail Discount",
+                            "Small Business Relief England",
+                            "Mandatory",
+                            "Empty Property Rate Non-Industrial",
+                            "Empty Property Rate Industrial",
+                            "Supporting Small Business Relief",
+                            "Sports Club (Registered CASC)",
+                            "Sbre Extension For 12 Months",
+                            "Empty Property Rate Charitable"
+                        ]
+                    }
+                ]
+            },
             "description": "Occupation status, void or occupied.",
             "name": "occupation_state",
             "structure": [
@@ -300,43 +310,6 @@
             "type": "date"
         },
         {
-            "category": [
-                {
-                    "column": "Current Relief Type",
-                    "terms": [
-                        "Retail Discount",
-                        "Small Business Relief England",
-                        "Mandatory",
-                        "Empty Property Rate Non-Industrial",
-                        "Empty Property Rate Industrial",
-                        "Supporting Small Business Relief",
-                        "Sports Club (Registered CASC)",
-                        "Sbre Extension For 12 Months",
-                        "Empty Property Rate Charitable"
-                    ]
-                },
-                {
-                    "column": "Current Property Exemption Code",
-                    "terms": [
-                        "EPRN",
-                        "EPRI",
-                        "VOID",
-                        "C",
-                        "EPCH",
-                        "LOW RV",
-                        "INDUSTRIAL",
-                        "ANCIENT",
-                        "LISTED",
-                        "LIQUIDATE",
-                        "LAND",
-                        "ADMIN",
-                        "LA ACTION",
-                        "DECEASED",
-                        "PROHIBITED",
-                        "BANKRUPT"
-                    ]
-                }
-            ],
             "constraints": {
                 "category": [
                     {
@@ -371,6 +344,43 @@
                     },
                     {
                         "name": "other"
+                    }
+                ],
+                "category_input": [
+                    {
+                        "column": "Current Property Exemption Code",
+                        "terms": [
+                            "EPRN",
+                            "EPRI",
+                            "VOID",
+                            "C",
+                            "EPCH",
+                            "LOW RV",
+                            "INDUSTRIAL",
+                            "ANCIENT",
+                            "LISTED",
+                            "LIQUIDATE",
+                            "LAND",
+                            "ADMIN",
+                            "LA ACTION",
+                            "DECEASED",
+                            "PROHIBITED",
+                            "BANKRUPT"
+                        ]
+                    },
+                    {
+                        "column": "Current Relief Type",
+                        "terms": [
+                            "Retail Discount",
+                            "Small Business Relief England",
+                            "Mandatory",
+                            "Empty Property Rate Non-Industrial",
+                            "Empty Property Rate Industrial",
+                            "Supporting Small Business Relief",
+                            "Sports Club (Registered CASC)",
+                            "Sbre Extension For 12 Months",
+                            "Empty Property Rate Charitable"
+                        ]
                     }
                 ]
             },
@@ -620,9 +630,9 @@
         }
     ],
     "name": "test_method",
-    "status": "READY_STRUCTURE",
+    "status": "READY_CATEGORIES",
     "title": "Test Schema",
-    "updated": "2020-02-13",
+    "updated": "2020-02-14",
     "working_data": {
         "checksum": "afb8b2b8e2c59f57a32f5341dc1ea1877f036407b9a891ca00709372c7f6542c0b3c2edd02661f96e61f20cc77e8bf06689e9c7028179af7d8f6c60460e75f0c",
         "columns": [
