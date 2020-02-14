@@ -227,6 +227,58 @@ class Method(Schema):
 		self._status = "READY_CATEGORIES"
 		if not category_check: self._status = "READY_FILTER"
 
+	def category(self, name):
+		"""
+		Return a 'markdown' version of assigned and unassigned category inputs for a named field
+		of the form::
+
+			{
+				"categories": ["category_1", "category_2"]
+				"assigned": {
+					"category_1": ["term1", "term2", "term3"],
+					"category_2": ["term4", "term5", "term6"]
+				},
+				"unassigned": ["term1", "term2", "term3"]
+			}
+
+		The format for defining a `category` term as follows::
+
+			`term_name::column_name`
+
+		Returns
+		-------
+		list of (nested) strings in structure format
+		"""
+		schema_field = self.field(name)
+		assigned = {}
+		unassigned = []
+		if schema_field.get("category"):
+			for marked in schema_field["category"].get("assigned", []):
+				if schema_field["type"] == "boolean":
+					if marked["name"]: u = "true"
+					else: u = "false"
+				else:
+					u = marked["name"]
+				assigned[u] = self.build_category_markdown(marked["category_input"])
+			unassigned = self.build_category_markdown(schema_field["category"].get("unassigned", []))
+		if (not schema_field.get("constraints", {}).get("category", []) or
+			not schema_field.get("constraints", {}).get("category_input")):
+			e = "Field `{}` has no available categorical data.".format(field_name)
+			raise ValueError(e)
+		if not schema_field.get("category"):
+			unassigned = self.build_category_markdown(schema_field["constraints"]["category_input"])
+		# Deals with boolean `True`/`False` case...
+		if schema_field["type"] == "boolean":
+			categories = ["true", "false"]
+		else:
+			categories = [c["name"] for c in schema_field["constraints"]["category"]]
+		response = {
+			"categories": categories,
+			"assigned": assigned,
+			"unassigned": unassigned
+		}
+		return response
+
 	def set_category(self, **kwargs):
 		"""
 		Receive a list of categories of the form::
@@ -253,23 +305,80 @@ class Method(Schema):
 				raise ValueError(e)
 			schema_field = self.field(field_name)
 			field_category = schema_field.get("constraints", {}).get("category_input")
+			# Validation checks
 			if not field_category:
 				e = "Field `{}` has no available categorical data.".format(field_name)
 				raise ValueError(e)
-			uniques = []
-			for field in kwargs["methods"][schema]["fields"].keys():
-				for term in kwargs["methods"][schema]["fields"][field]["fields"]:
-					if "{}|{}".format(term["data"]["source"],term["data"]["name"]) in uniques:
-						error_state = True
-						break
-					else:
-						uniques.append("{}|{}".format(term["data"]["source"],term["data"]["name"]))
-		# If it survives, append it to the method
-		method["state"] = "REVIEW_TRANSFORM"
-		if error_state:
-			method["state"] = "CATEGORISE_ERROR"
-		save_method(**method)
-		return method
+			field_category = schema_field.get("constraints", {}).get("category", [])
+			cat_diff = set(kwargs[field_name].keys()) - set([c["name"] for c in field_category])
+			if cat_diff:
+				e = "Field `{}` has invalid categories `{}`.".format(cat_diff)
+				raise ValueError(e)
+			# Get assigned category_inputs
+			assigned = []
+			for name in kwargs[field_name]:
+				category_term = {
+					"name": name,
+					"category_input": []
+				}
+				input_terms = {}
+				for term in category_input[name]:
+					term = term.split("::")
+					column = term[-1]
+					term = "::".join(term[1:])
+					if not input_terms.get(column):
+						input_terms[column] = []
+					if term not in input_terms[column]:
+						input_terms[column].append(term)
+				# process input_terms
+				for column in input_terms:
+					category_term["category_input"].append(
+						{
+							"column": column,
+							"terms": input_terms[column]
+						}
+					)
+				# append to category
+				assigned.append(category_term)
+			# Get unassigned category_inputs
+			unnassigned = []
+			for terms in schema_field["constraints"]["category_input"]:
+				all_terms = terms["terms"]
+				all_assigned_terms = []
+				for assigned_term in assigned:
+					for assigned_input in assigned_term["category_input"]:
+						if assigned_input["column"] == terms["column"]:
+							assigned_input_terms = assigned_input["terms"]
+							break
+					# validate
+					if set(assigned_input_terms) - set(all_terms):
+						e = "Field `{}` has invalid input category terms `{}`."
+						raise ValueError(e.format(field_name,
+												  set(assigned_input_terms) - set(all_terms)))
+					# extend
+					all_assigned_terms.extend(assigned_input_terms)
+				# validate if duplicates
+				if len(all_assigned_terms) > len(set(all_assigned_terms)):
+					e = "Field `{}` has duplicate input category terms `{}`."
+					# https://stackoverflow.com/a/9835819
+					seen = set()
+					dupes = [x for x in all_assigned_terms if x not in seen and not seen.add(x)]
+					raise ValueError(e.format(field_name, dupes))
+				unassigned_terms = list(set(all_terms) - set(all_assigned_terms))
+				unassigned.append(
+						{
+							"column": terms["column"],
+							"terms": unassigned_terms
+						}
+					)
+			# Set the category
+			schema_field["category"] = {
+				"assigned": assigned,
+				"unassigned": unnassigned
+			}
+			# Update the field
+			self.set_field(validate=False, **schema_field)
+		self._status = "READY_FILTER"
 
 	#########################################################################################
 	# SUPPORT FUNCTIONS
@@ -647,6 +756,37 @@ class Method(Schema):
 				continue
 			if strut.get("value"):
 				markdown.append(strut["value"])
+		return markdown
+
+	#########################################################################################
+	# CATEGORY HELPERS
+	#########################################################################################
+
+	def build_category_markdown(self, category_input):
+		"""
+		Converts category_terms dict into a markdown format::
+
+			["term1", "term2", "term3"]
+
+		Where the format for defining a `category` term as follows::
+
+			`term_name::column_name`
+
+		From::
+
+			{
+				"column": "column_name",
+				"terms": [
+					"term_1",
+					"term_2",
+					"term_3"
+				]
+			}
+		"""
+		markdown = []
+		for column in category_input:
+			for term in column["terms"]:
+				markdown.append("{}::{}".format(term, column["column"]))
 		return markdown
 
 	#########################################################################################
