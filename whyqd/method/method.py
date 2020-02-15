@@ -1,18 +1,221 @@
 """
-Target Schema
--------------
+Method
+======
 
-Define and manage a structural metadata schema as the target for a wrangling process.
+Once you have created your `Schema` it can be imported and used to develop a wrangling `method`, a
+complete, structured JSON file which describes all aspects of the wrangling process. There is no
+'magic'. Only what is defined in the method will be executed during transformation.
 
-**whyqd** munges input-data into a target schema where automated scripts can perform further cleaning
-and validation. Data produced will conform to the schema but are in an interim state. The schema
-process is similar to FrictionlessData.io, but without its error-checking and validation components.
+A method file can be shared, along with your input data, and anyone can import **whyqd** and
+validate your method to verify that your output data is the product of these inputs::
 
-Input data structure
---------------------
+	>>> import whyqd as _w
+	>>> method = _w.Method(source, directory=DIRECTORY, input_data=INPUT_DATA)
 
-If you are working with tabular data, you're probably familiar with basic machine-readability
-requirements. **whyqd** requires the basics of
+`source` is the full path to the schema you wish to use, and `DIRECTORY` will be your working
+directory for saved data, imports, working data and output.
+
+`INPUT_DATA` is a list of filenames or file sources. This is optional at this stage, and you can
+add and edit your sources later. File sources can include URI's.
+
+Help
+----
+
+To get help, type::
+
+	>>> method.help(option)
+
+Where `option` can be any of:
+
+	status
+	merge
+	structure
+	category
+	filter
+
+`status` will return the current method status, and your mostly likely next steps. The other options
+will return methodology, and output of that option's result (if appropriate).
+
+These are the steps to create a complete method:
+
+Merge
+-----
+`merge` will join, in order from right to left, your input data on a common column. You can modify
+your input data at any time. Note, however, that this will reset your status and require
+revalidation of all subsequent steps.
+
+To add input data, where `input_data` is a filename / source, or list of filenames / sources::
+
+	>>> method.add_input_data(input_data)
+
+To remove input data, where `id` is the unique id for that input data:
+
+	>>> method.remove_input_data(id)
+
+To display a nicely-formatted output for review::
+
+	# Permits horizontal scroll-bar in Jupyter Notebook
+	>>> from IPython.core.display import HTML
+	>>> display(HTML("<style>pre { white-space: pre !important; }</style>"))
+
+	>>> print(method.pretty_print_input_data())
+
+	Data id: c8944fed-4e8c-4cbd-807d-53fcc96b7018
+
+	====  ====================  ========================  =================================  =============================  =======================================================  =============================  ===========================
+	  ..  Account Start date      Current Rateable Value  Current Relief Award Start Date    Current Relief Type            Full Property Address                                    Primary Liable party name        Property Reference Number
+	====  ====================  ========================  =================================  =============================  =======================================================  =============================  ===========================
+	   0  2003-05-14 00:00:00                       8600  2019-04-01 00:00:00                Retail Discount                Ground Floor, 25, Albert Road, Southsea, Hants, PO5 2SE  Personal details not supplied                 177500080710
+	   1  2003-07-28 00:00:00                       9900  2005-04-01 00:00:00                Small Business Relief England  Ground Floor, 102, London Road, Portsmouth, PO2 0LZ      Personal details not supplied                 177504942310
+	   2  2003-07-08 00:00:00                       6400  2005-04-01 00:00:00                Small Business Relief England  33, Festing Road, Southsea, Hants, PO4 0NG               Personal details not supplied                 177502823510
+	====  ====================  ========================  =================================  =============================  =======================================================  =============================  ===========================
+
+	Data id: a9ad7716-f777-4752-8627-dd6206bede65
+
+	====  ===================================  =================================  ========================  ================================================================  =======================================================  ===========================
+	  ..  Current Prop Exemption Start Date    Current Property Exemption Code      Current Rateable Value  Full Property Address                                             Primary Liable party name                                  Property Reference Number
+	====  ===================================  =================================  ========================  ================================================================  =======================================================  ===========================
+	   0  2019-11-08 00:00:00                  LOW RV                                                  700  Advertising Right, 29 Albert Road, Portsmouth, PO5 2SE            Personal details not supplied                                           177512281010
+	   1  2019-09-23 00:00:00                  INDUSTRIAL                                            11000  24, Ordnance Court, Ackworth Road, Portsmouth, PO3 5RZ            Personal details not supplied                                           177590107810
+	   2  2019-09-13 00:00:00                  EPRI                                                  26500  Unit 12, Admiral Park, Airport Service Road, Portsmouth, PO3 5RQ  Legal & General Property Partners (Industrial Fund) Ltd                 177500058410
+	====  ===================================  =================================  ========================  ================================================================  =======================================================  ===========================
+
+	Data id: 1e5a165d-5e83-4eec-9781-d450a1d3f5f1
+
+	====  ====================  ========================  =========================================================================  ==========================================  =================
+	  ..  Account Start date      Current Rateable Value  Full Property Address                                                      Primary Liable party name                     Property ref no
+	====  ====================  ========================  =========================================================================  ==========================================  =================
+	   0  2003-11-10 00:00:00                      37000  Unit 7b, The Pompey Centre, Dickinson Road, Southsea, Hants, PO4 8SH       City Electrical Factors  Ltd                     177200066910
+	   1  2003-11-08 00:00:00                     594000  Express By Holiday Inn, The Plaza, Gunwharf Quays, Portsmouth, PO1 3FD     Kew Green Hotels (Portsmouth Lrg1) Limited       177209823010
+	   2  1994-12-25 00:00:00                      13250  Unit 2cd, Shawcross Industrial Estate, Ackworth Road, Portsmouth, PO3 5JP  Personal details not supplied                    177500013310
+	====  ====================  ========================  =========================================================================  ==========================================  =================
+
+Once you're satisfied with your `input_data`, prepare an `order_and_key` list to define the merge
+order, and a unique key for merging. Each input data file needs to be defined in a list as a dict::
+
+	{id: input_data id, key: column_name for merge}
+
+Run the merge by calling (and, optionally - if you need to overwrite an existing merge - setting
+`overwrite_working=True`):
+
+	>>> method.merge(order_and_key, overwrite_working=True)
+
+To view your existing `input_data` as a JSON output (or the `pretty_print_input_data` as above)::
+
+	>>> method.input_data
+
+Structure
+---------
+`structure` is the core of the wrangling process and is the step where you define the actions
+which must be performed to restructure your working data.
+
+Create a list of methods of the form:
+
+	{{
+		"schema_field1": ["action", "column_name1", ["action", "column_name2"]],
+		"schema_field2": ["action", "column_name1", "modifier", ["action", "column_name2"]],
+	}}
+
+The format for defining a `structure` is as follows, and - yes - this does permit you to create
+nested wrangling tasks::
+
+	[action, column_name, [action, column_name]]
+
+e.g.::
+
+	["CATEGORISE", "+", ["ORDER", "column_1", "column_2"]]
+
+This permits the creation of quite expressive wrangling structures from simple building blocks.
+
+Every task structure must start with an action to describe what to do with the following terms.
+There are several "actions" which can be performed, and some require action modifiers:
+
+	NEW:			Add in a new column, and populate it according to the value in the "new"
+					constraint;
+	RENAME:			If only 1 item in list of source fields, then rename that field;
+	ORDER:			If > 1 item in list of source fields, pick the value from the column,
+					replacing each value with one from the next in the order of the provided
+					fields;
+	ORDER_NEW:		As in ORDER, but replacing each value with one associated with a
+					newer "dateorder" constraint;
+					MODIFIER: + between terms for source and source_date;
+	ORDER_OLD:		As in ORDER, but replacing each value with one associated with an
+					older "dateorder" constraint;
+					MODIFIER: + between terms for source and source_date;
+	CALCULATE:		Only if of "type" = "float64" (or which can be forced to float64);
+					MODIFIER: + or - before each term to define whether add or subtract;
+	JOIN:			Only if of "type" = "object", join text with " ".join();
+	CATEGORISE:		Only if of "type" = "string"; look for associated constraint, "categorise"
+					where True = keep a list of categories, False = set True if terms found
+					in list;
+					MODIFIER: + before terms where column values to be classified as unique;
+							  - before terms where column values are treated as boolean;
+
+Category
+--------
+
+Provide a list of categories of the form::
+
+	{{
+		"schema_field1": {{
+			"category_1": ["term1", "term2", "term3"],
+			"category_2": ["term4", "term5", "term6"]
+		}}
+	}}
+
+The format for defining a `category` term as follows::
+
+	`term_name::column_name`
+
+Get a list of available terms, and the categories for assignment, by calling::
+
+	>>> method.category(field_name)
+
+Once your data are prepared as above::
+
+	>>> method.set_category(**category)
+
+Filter
+------
+Set date filters on any date-type fields. **whyqd** offers only rudimentary post-
+wrangling functionality. Filters are there to, for example, facilitate importing data
+outside the bounds of a previous import.
+
+This is also an optional step. By default, if no filters are present, the transformed output
+will include `ALL` data. Parameters for filtering:
+
+	`field_name`: Name of field on which filters to be set
+	`filter_name`: Name of filter type from the list of valid filter names
+	`filter_date`: A date in the format specified by the field type
+	`foreign_field`: Name of field to which filter will be applied. Defaults to `field_name`
+
+There are four filter_names:
+
+	`ALL`: default, import all data
+	`LATEST`: only the latest date
+	`BEFORE`: before a specified date
+	`AFTER`: after a specified date
+
+`BEFORE` and `AFTER` take an optional `foreign_field` term for filtering on that column. e.g::
+
+	>>> method.set_filter("occupation_state_date", "AFTER", "2019-09-01", "ba_ref")
+
+Filters references in column `ba_ref` by dates in column `occupation_state_date` after `2019-09-01`.
+
+Validation
+----------
+Each step can be validated and, once all steps validate, you can move to transformation of your data::
+
+	>>> method.validate_input_data
+	>>> method.validate_merge_data
+	>>> method.validate_merge
+	>>> method.validate_structure
+	>>> method.validate_category
+	>>> method.validate_filter
+
+Or, to run all the above and complete the method (setting status to 'Ready to Transform')::
+
+	>>> method.validate
 """
 import os, uuid
 from shutil import copyfile
@@ -162,7 +365,7 @@ class Method(Schema):
 			NEW:			Add in a new column, and populate it according to the value in the "new"
 							constraint;
 			RENAME:			If only 1 item in list of source fields, then rename that field;
-			ORDER:			If > 1 1 item in list of source fields, pick the value from the column,
+			ORDER:			If > 1 item in list of source fields, pick the value from the column,
 							replacing each value with one from the next in the order of the provided
 							fields;
 			ORDER_NEW:		As in ORDER, but replacing each value with one associated with a
@@ -531,6 +734,16 @@ class Method(Schema):
 	@property
 	def input_data(self):
 		return deepcopy(self.schema_settings.get("input_data", []))
+
+	def pretty_print_input_data(self, format="rst"):
+		# https://github.com/astanin/python-tabulate#table-format
+		response = ""
+		for data in self.input_data:
+			_id = data["id"]
+			_df = pd.DataFrame(data["dataframe"])
+			_df = tabulate(_df, headers="keys", tablefmt=format)
+			response += HELP_RESPONSE["data"].format(_id, _df)
+		return response
 
 	def add_input_data(self, input_data):
 		"""
@@ -1115,6 +1328,24 @@ class Method(Schema):
 									 schema_field["filter"]["modifiers"]["date"])
 		return True
 
+	@property
+	def validate(self):
+		"""
+		Method validates all steps. Sets `READY_TRANSFORM` if all pass.
+
+		Returns
+		-------
+		bool: True for validates
+		"""
+		self.validate_input_data
+		self.validate_merge_data
+		self.validate_merge
+		self.validate_structure
+		self.validate_category
+		self.validate_filter
+		self._status = "READY_TRANSFORM"
+		return True
+
 	def build_action(self, **action):
 		"""
 		For a list of actions, defined as dictionaries, create and return Action objects.
@@ -1240,6 +1471,12 @@ class Method(Schema):
 					if self.field(field_name).get("constraints", {}).get("category"):
 						category_fields.append(field_name)
 				response = response.format(category_fields)
+			if option == "filter":
+				filter_fields = []
+				for field_name in self.all_field_names:
+					if self.field(field_name)["type"] in self.valid_filter_field_types:
+						filter_fields.append(field_name)
+				response = response.format(filter_fields)
 		# `status` request
 		response += HELP_RESPONSE["status"].format(self.status)
 		return response
@@ -1346,6 +1583,40 @@ Once your data are prepared as above::
 	>>> method.set_category(**category)
 
 Field names requiring categorisation are: {}
+""",
+	"filter": """
+Set date filters on any date-type fields. **whyqd** offers only rudimentary post-
+wrangling functionality. Filters are there to, for example, facilitate importing data
+outside the bounds of a previous import.
+
+This is also an optional step. By default, if no filters are present, the transformed output
+will include `ALL` data.
+
+Parameters
+----------
+field_name: str
+	Name of field on which filters to be set
+filter_name: str
+	Name of filter type from the list of valid filter names
+filter_date: str (optional)
+	A date in the format specified by the field type
+foreign_field: str (optional)
+	Name of field to which filter will be applied. Defaults to `field_name`
+
+There are four filter_names:
+
+	ALL: default, import all data
+	LATEST: only the latest date
+	BEFORE: before a specified date
+	AFTER: after a specified date
+
+BEFORE and AFTER take an optional `foreign_field` term for filtering on that column. e.g.
+
+	>>> method.set_filter("occupation_state_date", "AFTER", "2019-09-01", "ba_ref")
+
+Filters references in column `ba_ref` by dates in column `occupation_state_date` after `2019-09-01`.
+
+Field names which can be filtered are: {}
 """,
 	"data": """
 
