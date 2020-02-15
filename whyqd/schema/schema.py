@@ -1,4 +1,6 @@
 """
+.. module:: schema
+
 Target Schema
 =============
 
