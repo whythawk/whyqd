@@ -64,6 +64,7 @@ class Method(Schema):
 		self.default_actions = self.build_default_actions()
 		if constructors: self.set_constructors(constructors)
 		if input_data: self.add_input_data(input_data)
+		self.valid_filter_field_types = ["date", "year", "datetime"]
 
 	def merge(self, order_and_key=None, overwrite_working=False):
 		"""
@@ -389,7 +390,99 @@ class Method(Schema):
 			}
 			# Update the field
 			self.set_field(validate=False, **schema_field)
-		self._status = "READY_FILTER"
+		self._status = "READY_TRANSFORM"
+
+	def filter(self, name):
+		"""
+		Return the filter settings for a named field. If there are no filter settings, return None.
+
+		Raises
+		------
+		TypeError if setting a filter on this field type is not permitted.
+
+		Returns
+		-------
+		dict of filter settings, or None
+		"""
+		schema_field = self.field(field_name)
+		# Validate the filter
+		if schema_field["type"] not in self.valid_filter_field_types:
+			e = "Filters cannot be set on field of type `{}`.".format(schema_field["type"])
+			raise TypeError(e)
+		return schema_field.get("filter", None)
+
+	def set_filter(self, field_name, filter_name, filter_date=None, foreign_field=None):
+		"""
+		Sets the filter settings for a named field after validating all parameters.
+
+		NOTE: filters can only be set on date-type fields. **whyqd** offers only rudimentary post-
+		wrangling functionality. Filters are there to, for example, facilitate importing data
+		outside the bounds of a previous import.
+
+		This is also an optional step. By default, if no filters are present, the transformed output
+		will include `ALL` data.
+
+		Parameters
+		----------
+		field_name: str
+			Name of field on which filters to be set
+		filter_name: str
+			Name of filter type from the list of valid filter names
+		filter_date: str (optional)
+			A date in the format specified by the field type
+		foreign_field: str (optional)
+			Name of field to which filter will be applied. Defaults to `field_name`
+
+		Raises
+		------
+		TypeError if setting a filter on this field type is not permitted.
+		ValueError for any validation failures.
+		"""
+		if self._status in STATUS_CODES.keys() - ["READY_FILTER", "READY_TRANSFORM",
+												  "PROCESS_COMPLETE", "FILTER_ERROR"]:
+			e = "Current status: `{}` - performing `set_filter` not permitted.".format(self.status)
+			raise PermissionError(e)
+		self.validate_category
+		schema_field = self.field(field_name)
+		# Validate the filter
+		if schema_field["type"] not in self.valid_filter_field_types:
+			e = "Filters cannot be set on field of type `{}`.".format(schema_field["type"])
+			raise TypeError(e)
+		filter_settings = {}
+		for fset in self.default_filters["filter"]["modifiers"]:
+			if fset["name"] == filter_name:
+				filter_settings = fset
+				break
+		if not filter_settings:
+			e = "Filter: `{}` is not a valid filter-type.".format(filter_name)
+			raise TypeError(e)
+		if filter_settings["date"]:
+			if not filter_date:
+				e = "Filter: `{}` requires a `{}` for filtering.".format(filter_name,
+																		 schema_field["type"])
+				raise ValueError(e)
+			_c.check_date_format(schema_field["type"], filter_date)
+		else:
+			# Make sure
+			filter_date = False
+		# Validate the foreign field
+		if foreign_field:
+			if foreign_field not in self.all_field_names:
+				e = "Filter foreign field `{}` is not a valid field.".format(foreign_field)
+				raise ValueError(e)
+		else:
+			foreign_field = schema_field["name"]
+		# Set the filter
+		schema_field["filter"] = {
+			"field": foreign_field,
+			"modifiers": {
+				"name": filter_settings["name"],
+				"date": filter_date
+			}
+		}
+		# Update the field
+		self.set_field(validate=False, **schema_field)
+		self._status = "READY_TRANSFORM"
 
 	#########################################################################################
 	# SUPPORT FUNCTIONS
@@ -984,6 +1077,42 @@ class Method(Schema):
 				if diff:
 					e = "Category for Field `{}` has duplicate input category terms"
 					raise ValueError(e.format(field_name))
+		return True
+
+	@property
+	def validate_filter(self):
+		"""
+		Method validates filter terms.
+
+		Raises
+		------
+		ValueError on filter failure.
+
+		Returns
+		-------
+		bool: True for validates
+		"""
+		for field_name in self.all_field_names:
+			schema_field = self.field(field_name)
+			if not schema_field.get("filter"):
+				continue
+			# Filter permitted
+			if schema_field["type"] not in self.valid_filter_field_types:
+				e = "Filter of field `{}` is not permitted.".format(schema_field["name"])
+				raise PermissionError(e)
+			# Foreign key valid
+			if schema_field["filter"]["field"] not in self.all_field_names:
+				e = "Filter foreign key `{}` not a valid field for this schema"
+				raise ValueError(e.format(schema_field["filter"]["field"]))
+			# Filter type valid
+			default_filters = [f["name"] for f in self.default_filters["filter"]["modifiers"]]
+			if schema_field["filter"]["modifiers"]["name"] not in default_filters:
+				e = "Filter: `{}` is not a valid filter-type."
+				raise TypeError(e.format(schema_field["filter"]["modifiers"]["name"]))
+			# Filter date valid
+			if schema_field["filter"]["modifiers"]["date"]:
+				_c.check_date_format(schema_field["type"],
+									 schema_field["filter"]["modifiers"]["date"])
 		return True
 
 	def build_action(self, **action):

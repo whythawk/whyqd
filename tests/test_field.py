@@ -36,9 +36,9 @@ class TestField:
 		filters = {
 			"modifiers": ["LATEST", "AFTER"]
 		}
-		f.set_constraint("filters", filters)
+		f.set_constraint("filter", filters)
 		filters["field"] = True
-		assert f.constraints["filters"] == filters
+		assert f.constraints["filter"] == filters
 
 	def test_all(self):
 		# Test string field
@@ -69,7 +69,7 @@ class TestField:
 		# Test date field
 		settings = {
 			"constraints": {
-				"filters": {
+				"filter": {
 					"field": True,
 					"modifiers": ["LATEST", "AFTER"]
 				}

@@ -17,7 +17,7 @@ class Field:
 		self.common_settings = _c.get_settings("schema")["common"]
 		self.default_settings = _c.get_field_settings(field_type)
 		self.default_constraints = self.default_settings["constraints"]["properties"]
-		self.default_filters = _c.get_settings("filters")["filters"]["modifiers"]
+		self.default_filters = _c.get_settings("filter")["filter"]["modifiers"]
 		self.default_format = self.default_settings.get("format", {})
 		self._name = "_".join(name.split(" ")).lower()
 		self._type = field_type
@@ -181,10 +181,10 @@ class Field:
 			if value not in self.default_constraints["valueType"]["type"]:
 				e = "valueType `{}` not one of `{}`".format(value, self.default_constraints["valueType"]["type"])
 				raise ValueError(e)
-		if constraint == "filters":
+		if constraint == "filter":
 			# This is a user-defined constraint which can be applied to any date-related field type
 			if not value.get("modifiers"):
-				e = "`{}` has missing `modifiers` in `filters`".format(constraint)
+				e = "`{}` has missing `modifiers` in `filter`".format(constraint)
 				raise KeyError(e)
 			if "field" in value and not (isinstance(value["field"], str) or
 										 isinstance(value["field"], bool)):

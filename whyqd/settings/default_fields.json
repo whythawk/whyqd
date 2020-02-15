@@ -229,7 +229,7 @@
 						"type": "boolean",
 						"description": "When `true`, each value for the property `MUST` be unique."
 					},
-					"filters": {
+					"filter": {
 						"field": "foreignKey",
 						"description": "A set of user-defined filters for filtering a named field, or the `foreignKey`, by date-limited data"
 					}
@@ -257,7 +257,7 @@
 						"type": "boolean",
 						"description": "When `true`, each value for the property `MUST` be unique."
 					},
-					"filters": {
+					"filter": {
 						"field": "foreignKey",
 						"description": "A set of user-defined filters for filtering a named field, or the `foreignKey`, by date-limited data"
 					}
@@ -285,7 +285,7 @@
 						"type": "boolean",
 						"description": "When `true`, each value for the property `MUST` be unique."
 					},
-					"filters": {
+					"filter": {
 						"field": "foreignKey",
 						"description": "A set of user-defined filters for filtering a named field, or the `foreignKey`, by date-limited data"
 					}

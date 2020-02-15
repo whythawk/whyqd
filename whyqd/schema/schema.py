@@ -237,9 +237,9 @@ Ordinarily, `category` terms must be unique.
 
 Review the `default_field_settings(type)` for that field's specific category constraints.
 
-Field constraints: filters
+Field constraints: filter
 --------------------------
-`Filters` are a constraint that filter  a named field, or the `foreignKey`, by date-limited data.
+`Filters` are a constraint that filter a named field, or the `foreignKey`, by date-limited data.
 
 Define these as part of your schema definition for a valid field::
 
@@ -249,7 +249,7 @@ Define these as part of your schema definition for a valid field::
 		{
 			"name": "Field name, e.g. 'column_name'",
 			"type": "Valid data type, e.g. 'date', 'datetime'",
-			"filters": {
+			"filter": {
 				"field": "foreignKey",
 				"modifiers": ["LATEST", "AFTER"]
 			}
@@ -286,7 +286,7 @@ class Schema:
 		self.required_field_terms = ["name", "type"]
 		# Get default fields
 		self.default_fields = self.build_default_fields()
-		self.default_filters = _c.get_settings("filters")
+		self.default_filters = _c.get_settings("filter")
 		if source:
 			kwargs = _c.load_json(source)
 		self.schema_settings = deepcopy(kwargs)
@@ -365,7 +365,7 @@ class Schema:
 		-------
 		list
 		"""
-		return [f["name"] for f in self.default_filters["filters"]["modifiers"]]
+		return [f["name"] for f in self.default_filters["filter"]["modifiers"]]
 
 	def default_filter_settings(self, filter_name):
 		"""
@@ -380,7 +380,7 @@ class Schema:
 		-------
 		dict, or empty dict if no such `filter_name`
 		"""
-		for filter in self.default_filters["filters"]["modifiers"]:
+		for filter in self.default_filters["filter"]["modifiers"]:
 			if filter["name"] == filter_name:
 				return deepcopy(filter)
 		return {}
@@ -497,7 +497,7 @@ class Schema:
 			}
 
 		All that is required is a list, and the function will take care of the formal structure.
-		`filters` are managed in the Method part of the process (since this are defined in respect
+		`filter` are managed in the Method part of the process (since this are defined in respect
 		to the data being structured).
 
 		Parameters
@@ -571,10 +571,10 @@ class Schema:
 					 if f["name"] in filters]
 		if modifiers:
 			filters = {
-				"field": self.default_filters["filters"]["field"],
+				"field": self.default_filters["filter"]["field"],
 				"modifiers": modifiers
 			}
-			field["constraints"]["properties"]["filters"] = filters
+			field["constraints"]["properties"]["filter"] = filters
 			field = self.build_field(**field)
 			self.schema_settings["fields"].append(field)
 

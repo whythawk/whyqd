@@ -58,6 +58,34 @@ def chunks(l, n):
 	for i in range(0, len(l), n):
 		yield l[i:i + n]
 
+DATE_FORMATS = {
+	"date": {
+		"fmt": ["%Y-%m-%d"],
+		"txt": ["YYYY-MM-DD"]
+	},
+	"datetime": {
+		"fmt": ["%Y-%m-%d %H:%M:%S", "%Y-%m-%d %H:%M:%S %Z%z"],
+		"txt": ["YYYY-MM-DD hh:mm:ss","YYYY-MM-DD hh:mm:ss UTC+0000"]
+	},
+	"year": {
+		"fmt": ["%Y"],
+		"txt": ["YYYY"]
+	}
+}
+
+def check_date_format(date_type, date_value):
+	# https://stackoverflow.com/a/37045601
+	# https://www.saltycrane.com/blog/2009/05/converting-time-zones-datetime-objects-python/
+	for i, fmt in enumerate(DATE_FORMATS[date_type]["fmt"]):
+		try:
+			if date_value == datetime.strptime(date_value, fmt).strftime(fmt):
+				return True
+		except ValueError:
+			continue
+	txt = DATE_FORMATS[date_type]["txt"]
+	e = "Incorrect date format, should be: `{}`".format(txt)
+	raise ValueError(e)
+
 ###################################################################################################
 ### JSON, Schema and Action get and set
 ###################################################################################################
@@ -111,7 +139,7 @@ def save_json(data, source, overwrite=False):
 
 JSON_SETTING_FILES = {
 	"schema": "default_fields.json",
-	"filters": "default_filters.json",
+	"filter": "default_filters.json",
 	"actions": "default_actions.json"
 }
 

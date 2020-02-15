@@ -1,22 +1,26 @@
 {
-	"filters": {
+	"filter": {
 		"field": "foreignKey",
 		"modifiers": [
 			{
 				"name": "LATEST",
-				"description": "Latest"
+				"description": "Latest",
+				"date": false
 			},
 			{
 				"name": "AFTER",
-				"description": "After"
+				"description": "After",
+				"date": true
 			},
 			{
 				"name": "BEFORE",
-				"description": "Before"
+				"description": "Before",
+				"date": true
 			},
 			{
 				"name": "ALL",
-				"description": "All"
+				"description": "All",
+				"date": false
 			}
 		]
 	}
