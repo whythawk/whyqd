@@ -285,7 +285,8 @@ def check_column_unique(source, key):
 	df = get_dataframe(source, key)
 	if len(df[key]) != len(df[key].unique()):
 		import warnings
-		e = "'{}' contains non-unique rows in column `{}`".format(source, key)
+		filename = source.split("/")[-1] # Obfuscate the path
+		e = "'{}' contains non-unique rows in column `{}`".format(filename, key)
 		#raise ValueError(e)
 		warnings.warn(e)
 	return True
