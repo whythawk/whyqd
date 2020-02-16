@@ -1,0 +1,310 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Action &mdash; whyqd 0.1.0 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Method" href="method_api.html" />
+    <link rel="prev" title="Schema" href="schema_api.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> whyqd
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Getting started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Requirements, installation &amp; importing</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Creating and managing Schemas</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="schema.html">Schema</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Wrangling with Methods</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="method.html">Method</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Class API</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="field_api.html">Field</a></li>
+<li class="toctree-l1"><a class="reference internal" href="schema_api.html">Schema</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Action</a></li>
+<li class="toctree-l1"><a class="reference internal" href="method_api.html">Method</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">whyqd</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>Action</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/action_api.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="action">
+<h1>Action<a class="headerlink" href="#action" title="Permalink to this headline">¶</a></h1>
+<p>The <cite>Action</cite> class defines the restructuring actions performed in a <a class="reference internal" href="method.html"><span class="doc">Method</span></a>.</p>
+<dl class="class">
+<dt id="method.Action">
+<em class="property">class </em><code class="sig-prename descclassname">method.</code><code class="sig-name descname">Action</code><span class="sig-paren">(</span><em class="sig-param">**action</em><span class="sig-paren">)</span><a class="headerlink" href="#method.Action" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="method">
+<dt id="method.Action.has_valid_structure">
+<code class="sig-name descname">has_valid_structure</code><span class="sig-paren">(</span><em class="sig-param">working_columns</em>, <em class="sig-param">structure</em><span class="sig-paren">)</span><a class="headerlink" href="#method.Action.has_valid_structure" title="Permalink to this definition">¶</a></dt>
+<dd><p>Traverses a list defined by <cite>*structure</cite>, ensuring that the terms conform to that action’s
+default structural requirements. Nested structures are permitted. Note that the
+responsibility for digging in to the nested structures lies with the calling function.</p>
+<p>The format for defining a <cite>structure</cite> is as follows:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">[</span><span class="n">action</span><span class="p">,</span> <span class="n">column_name</span><span class="p">,</span> <span class="p">[</span><span class="n">action</span><span class="p">,</span> <span class="n">column_name</span><span class="p">]]</span>
+</pre></div>
+</div>
+<p>e.g.:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">[</span><span class="s2">&quot;CATEGORISE&quot;</span><span class="p">,</span> <span class="s2">&quot;+&quot;</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;ORDER&quot;</span><span class="p">,</span> <span class="s2">&quot;column_1&quot;</span><span class="p">,</span> <span class="s2">&quot;column_2&quot;</span><span class="p">]]</span>
+</pre></div>
+</div>
+<p>A calling function would specify:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Action</span><span class="o">.</span><span class="n">has_valid_structure</span><span class="p">(</span><span class="n">working_columns</span><span class="p">,</span> <span class="o">*</span><span class="n">structure</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>working_columns</strong> (<em>list</em>) – List of valid terms from the working data columns.</p></li>
+<li><p><strong>structure</strong> (<em>list</em>) – Each structure list must conform to the requirements for that action. Nested actions
+defined by nested lists.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>bool, True if valid</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="method.Action.settings">
+<em class="property">property </em><code class="sig-name descname">settings</code><a class="headerlink" href="#method.Action.settings" title="Permalink to this definition">¶</a></dt>
+<dd><p>Action settings</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p><strong>dict</strong></p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>settings</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="method.Action.validate_structure">
+<code class="sig-name descname">validate_structure</code><span class="sig-paren">(</span><em class="sig-param">working_columns</em>, <em class="sig-param">*structure</em><span class="sig-paren">)</span><a class="headerlink" href="#method.Action.validate_structure" title="Permalink to this definition">¶</a></dt>
+<dd><p>A recursive function testing method structure and that field names are entities of the list
+of <cite>working_columns</cite>. A method should have fields upon which actions are applied, but each
+field may have sub-fields requiring their own actions.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>working_columns</strong> (<em>list</em>) – Permitted column names from <cite>working_data</cite></p></li>
+<li><p><strong>method</strong> (<em>list of dicts</em>) – Each dict an element of a <cite>method</cite>, and must start with an <cite>action</cite></p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="method.Action.validates">
+<code class="sig-name descname">validates</code><span class="sig-paren">(</span><em class="sig-param">working_columns</em><span class="sig-paren">)</span><a class="headerlink" href="#method.Action.validates" title="Permalink to this definition">¶</a></dt>
+<dd><p>Test action <cite>structure</cite> for structure (every action starts with an action <cite>type</cite>), and that
+columns, categories and filters (depending on what is supplied) are valid.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>working_columns</strong> (<em>list</em>) – Permitted column names from <cite>working_data</cite></p>
+</dd>
+<dt class="field-even">Raises</dt>
+<dd class="field-even"><p><strong>ValueError if working data not provided</strong><strong>, </strong><strong>if names not permitted</strong><strong>, or </strong><strong>if action not valid</strong> – </p>
+</dd>
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p></p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>Bool, True if valid</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="method_api.html" class="btn btn-neutral float-right" title="Method" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="schema_api.html" class="btn btn-neutral float-left" title="Schema" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2020, Gavin Chait
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

@@ -1,0 +1,563 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Schema &mdash; whyqd 0.1.0 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Action" href="action_api.html" />
+    <link rel="prev" title="Field" href="field_api.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> whyqd
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Getting started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Requirements, installation &amp; importing</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Creating and managing Schemas</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="schema.html">Schema</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Wrangling with Methods</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="method.html">Method</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Class API</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="field_api.html">Field</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Schema</a></li>
+<li class="toctree-l1"><a class="reference internal" href="action_api.html">Action</a></li>
+<li class="toctree-l1"><a class="reference internal" href="method_api.html">Method</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">whyqd</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>Schema</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/schema_api.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="schema">
+<h1>Schema<a class="headerlink" href="#schema" title="Permalink to this headline">¶</a></h1>
+<p>The <cite>Schema</cite> class defines a set of target fields for a data wranglng <a class="reference internal" href="method.html"><span class="doc">Method</span></a>.</p>
+<dl class="class">
+<dt id="schema.Schema">
+<em class="property">class </em><code class="sig-prename descclassname">schema.</code><code class="sig-name descname">Schema</code><span class="sig-paren">(</span><em class="sig-param">source=None</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#schema.Schema" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create and manage a target schema for a wrangling process.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>source</strong> (<em>path to a json file containing a saved schema</em><em>, </em><em>default is None</em>) – </p></li>
+<li><p><strong>kwargs</strong> (<em>a schema defined as a dictionary</em><em>, or </em><em>default blank dictionary</em>) – </p></li>
+</ul>
+</dd>
+</dl>
+<dl class="method">
+<dt id="schema.Schema.details">
+<em class="property">property </em><code class="sig-name descname">details</code><a class="headerlink" href="#schema.Schema.details" title="Permalink to this definition">¶</a></dt>
+<dd><p>Schema name, title and description.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> (<em>string</em>) – Term used for filename and referencing. Will be lower-cased and spaces replaced with <cite>_</cite></p></li>
+<li><p><strong>title</strong> (<em>string</em>) – Human-readable term used as name.</p></li>
+<li><p><strong>description</strong> (<em>string</em>) – Detailed description for the schema. Reference its objective and use-case.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="schema.Schema.set_details">
+<code class="sig-name descname">set_details</code><span class="sig-paren">(</span><em class="sig-param">name=None</em>, <em class="sig-param">title=None</em>, <em class="sig-param">description=None</em><span class="sig-paren">)</span><a class="headerlink" href="#schema.Schema.set_details" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set schema name, title and description. Can also be used to update existing information.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> (<em>string</em>) – Term used for filename and referencing. Will be lower-cased and spaces replaced with <cite>_</cite></p></li>
+<li><p><strong>title</strong> (<em>string</em>) – Human-readable term used as name.</p></li>
+<li><p><strong>description</strong> (<em>string</em>) – Detailed description for the schema. Reference its objective and use-case.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Raises</dt>
+<dd class="field-even"><p><strong>KeyError</strong> – if missing name:</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="schema.Schema.default_filter_names">
+<em class="property">property </em><code class="sig-name descname">default_filter_names</code><a class="headerlink" href="#schema.Schema.default_filter_names" title="Permalink to this definition">¶</a></dt>
+<dd><p>Default list of filter names available as field constraints for the schema. Returns only a
+list of types. Details for individual filters can be returned with
+<cite>default_filter_settings</cite>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p></p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="schema.Schema.default_filter_settings">
+<code class="sig-name descname">default_filter_settings</code><span class="sig-paren">(</span><em class="sig-param">filter_name</em><span class="sig-paren">)</span><a class="headerlink" href="#schema.Schema.default_filter_settings" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the default settings available for a specific filter.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>filter_name</strong> (<em>string</em>) – A specific name for a filter type (as listed in <cite>default_filter_names</cite>).</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>dict, or empty dict if no such <cite>filter_name</cite></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="schema.Schema.default_field_types">
+<em class="property">property </em><code class="sig-name descname">default_field_types</code><a class="headerlink" href="#schema.Schema.default_field_types" title="Permalink to this definition">¶</a></dt>
+<dd><p>Default list of field names available to define fields for the schema. Returns only a list
+of types. Details for individual default fields can be returned with
+<cite>default_field_settings</cite>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p></p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="schema.Schema.default_field_settings">
+<code class="sig-name descname">default_field_settings</code><span class="sig-paren">(</span><em class="sig-param">field_type</em><span class="sig-paren">)</span><a class="headerlink" href="#schema.Schema.default_field_settings" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the default settings available for a specific field type.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>field_type</strong> (<em>string</em>) – A specific term for a field type (as listed in <cite>default_field_types</cite>).</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>dict, or empty dict if no such <cite>field_type</cite></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="schema.Schema.all_fields">
+<em class="property">property </em><code class="sig-name descname">all_fields</code><a class="headerlink" href="#schema.Schema.all_fields" title="Permalink to this definition">¶</a></dt>
+<dd><p><cite>type</cite>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p></p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>dict, or empty dict if no fields</p>
+</dd>
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>Get dictionary of fields, where key</p>
+</dd>
+<dt class="field-even">Type</dt>
+<dd class="field-even"><p><cite>field_name</cite> and value</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="schema.Schema.all_field_names">
+<em class="property">property </em><code class="sig-name descname">all_field_names</code><a class="headerlink" href="#schema.Schema.all_field_names" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get list of field names,.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p></p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="schema.Schema.field">
+<code class="sig-name descname">field</code><span class="sig-paren">(</span><em class="sig-param">name</em><span class="sig-paren">)</span><a class="headerlink" href="#schema.Schema.field" title="Permalink to this definition">¶</a></dt>
+<dd><p>A specific field from the list of fields defining this schema, called by a unique <cite>name</cite>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>name</strong> (<em>string</em>) – Field names must be unique, so a valid <cite>name</cite> in the field list will have no collisions.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>dict, or empty dict if no such <cite>name</cite></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="schema.Schema.set_field">
+<code class="sig-name descname">set_field</code><span class="sig-paren">(</span><em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#schema.Schema.set_field" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the parameters for a specific field to define this schema, called by a unique <cite>name</cite>.
+If the <cite>name</cite> is already in the schema, then this will update that field.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>kwargs</strong> (<em>dict</em>) – Parameters will be validated against the type requirements, so check carefully with
+<cite>default_field_settings</cite>.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="schema.Schema.set_field_constraints">
+<code class="sig-name descname">set_field_constraints</code><span class="sig-paren">(</span><em class="sig-param">name</em>, <em class="sig-param">**constraints</em><span class="sig-paren">)</span><a class="headerlink" href="#schema.Schema.set_field_constraints" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the constraint parameters for a specific field to define this schema, called by a unique
+<cite>name</cite> already in the schema.</p>
+<p>The structure of the constraints is defined as follows:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+        <span class="s2">&quot;key&quot;</span><span class="p">:</span> <span class="s2">&quot;value&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;key&quot;</span><span class="p">:</span> <span class="s2">&quot;value&quot;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p><cite>category</cite> is a special constraint that can be defined as e.g.:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+        <span class="s2">&quot;category&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;term1&quot;</span><span class="p">,</span> <span class="s2">&quot;term2&quot;</span><span class="p">]</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>All that is required is a list, and the function will take care of the formal structure.
+<cite>filter</cite> are managed in the Method part of the process (since this are defined in respect
+to the data being structured).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> (<em>string</em>) – Specific name for a field already in the Schema</p></li>
+<li><p><strong>constraints</strong> (<em>dict</em>) – A set of key:value pairs defining constraints as described in <cite>default_field_settings</cite>.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="schema.Schema.set_field_category">
+<code class="sig-name descname">set_field_category</code><span class="sig-paren">(</span><em class="sig-param">name</em>, <em class="sig-param">*categories</em>, <em class="sig-param">overwrite=True</em><span class="sig-paren">)</span><a class="headerlink" href="#schema.Schema.set_field_category" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the category constraint parameters for a specific field. <cite>categories</cite> is defined as e.g.:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">[</span><span class="s2">&quot;term1&quot;</span><span class="p">,</span> <span class="s2">&quot;term2&quot;</span><span class="p">]</span>
+</pre></div>
+</div>
+<p>All that is required is a list, and the function will take care of the formal structure.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> (<em>string</em>) – Specific name for a field already in the Schema</p></li>
+<li><p><strong>categories</strong> (<em>list</em>) – A list of string terms defining target categories.</p></li>
+<li><p><strong>overwrite</strong> (<em>bool</em>) – If field has existing category constraints, then overwrite with this new list.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="schema.Schema.set_field_filters">
+<code class="sig-name descname">set_field_filters</code><span class="sig-paren">(</span><em class="sig-param">name</em>, <em class="sig-param">*filters</em><span class="sig-paren">)</span><a class="headerlink" href="#schema.Schema.set_field_filters" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the filter parameters for a specific field to define this schema, called by a unique
+<cite>name</cite> already in the schema.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> (<em>string</em>) – Specific name for a field already in the Schema</p></li>
+<li><p><strong>filters</strong> (<em>list of strings</em>) – A list of filter names as described in <cite>default_filter_names</cite>.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="schema.Schema.build_field">
+<code class="sig-name descname">build_field</code><span class="sig-paren">(</span><em class="sig-param">**field</em><span class="sig-paren">)</span><a class="headerlink" href="#schema.Schema.build_field" title="Permalink to this definition">¶</a></dt>
+<dd><p>For a list of fields, defined as dictionaries, create and return Field objects.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>field</strong> (<em>dictionary of Field parameters</em>) – </p>
+</dd>
+<dt class="field-even">Raises</dt>
+<dd class="field-even"><p><strong>ValueError</strong> – if field fails validation:</p>
+</dd>
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p></p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><a class="reference internal" href="field_api.html#schema.Field" title="schema.Field">Field</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="schema.Schema.build">
+<code class="sig-name descname">build</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#schema.Schema.build" title="Permalink to this definition">¶</a></dt>
+<dd><p>Build and validate the Schema.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="schema.Schema.build_default_fields">
+<code class="sig-name descname">build_default_fields</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#schema.Schema.build_default_fields" title="Permalink to this definition">¶</a></dt>
+<dd><p>Build the default fields for presentation to the user as options.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p></p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>list of Fields</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="schema.Schema.validates">
+<em class="property">property </em><code class="sig-name descname">validates</code><a class="headerlink" href="#schema.Schema.validates" title="Permalink to this definition">¶</a></dt>
+<dd><p>Schema validates with all fields unique and required terms.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Raises</dt>
+<dd class="field-odd"><p><strong>ValueError on field failure.</strong> – </p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>bool</strong></p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>True for validates</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="schema.Schema.settings">
+<em class="property">property </em><code class="sig-name descname">settings</code><a class="headerlink" href="#schema.Schema.settings" title="Permalink to this definition">¶</a></dt>
+<dd><p>Schema settings returned as a dictionary.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p><strong>dict</strong></p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>settings</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="schema.Schema.save">
+<code class="sig-name descname">save</code><span class="sig-paren">(</span><em class="sig-param">directory</em>, <em class="sig-param">filename=None</em>, <em class="sig-param">overwrite=False</em>, <em class="sig-param">created_by=None</em><span class="sig-paren">)</span><a class="headerlink" href="#schema.Schema.save" title="Permalink to this definition">¶</a></dt>
+<dd><p>Schema settings returned as a dictionary.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>directory</strong> (<em>the destination directory</em>) – </p></li>
+<li><p><strong>filename</strong> (<em>default to schema name</em>) – </p></li>
+<li><p><strong>overwrite</strong> (<em>bool</em><em>, </em><em>True if overwrite existing file</em>) – </p></li>
+<li><p><strong>created_by</strong> (<em>string</em><em>, or </em><em>None</em><em>, </em><em>to define the schema creator/updater</em>) – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Raises</dt>
+<dd class="field-even"><p><strong>ValueError if no filename</strong> – </p>
+</dd>
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p></p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>bool True if saved</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="action_api.html" class="btn btn-neutral float-right" title="Action" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="field_api.html" class="btn btn-neutral float-left" title="Field" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2020, Gavin Chait
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

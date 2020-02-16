@@ -1,0 +1,845 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Method &mdash; whyqd 0.1.0 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="Action" href="action_api.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> whyqd
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Getting started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Requirements, installation &amp; importing</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Creating and managing Schemas</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="schema.html">Schema</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Wrangling with Methods</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="method.html">Method</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Class API</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="field_api.html">Field</a></li>
+<li class="toctree-l1"><a class="reference internal" href="schema_api.html">Schema</a></li>
+<li class="toctree-l1"><a class="reference internal" href="action_api.html">Action</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Method</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">whyqd</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>Method</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/method_api.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="method">
+<h1>Method<a class="headerlink" href="#method" title="Permalink to this headline">¶</a></h1>
+<p>The <cite>Method</cite> class defines a wrangling process to restructure input data into a format defined by a <a class="reference internal" href="schema.html"><span class="doc">Schema</span></a>.</p>
+<dl class="class">
+<dt id="method.Method">
+<em class="property">class </em><code class="sig-prename descclassname">method.</code><code class="sig-name descname">Method</code><span class="sig-paren">(</span><em class="sig-param">source=None</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#method.Method" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create and manage a method to perform a wrangling process.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>source</strong> (<em>path to a json file containing a saved schema</em><em>, </em><em>default is None</em>) – </p></li>
+<li><p><strong>directory</strong> (<em>working path for creating methods</em><em>, </em><em>interim data files and final output</em>) – </p></li>
+<li><p><strong>kwargs</strong> (<em>a schema defined as a dictionary</em><em>, or </em><em>default blank dictionary</em>) – </p></li>
+</ul>
+</dd>
+</dl>
+<dl class="method">
+<dt id="method.Method.merge">
+<code class="sig-name descname">merge</code><span class="sig-paren">(</span><em class="sig-param">order_and_key=None</em>, <em class="sig-param">overwrite_working=False</em><span class="sig-paren">)</span><a class="headerlink" href="#method.Method.merge" title="Permalink to this definition">¶</a></dt>
+<dd><p>Merge input data on a key column.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>order_and_key</strong> (<em>list</em>) – List of dictionaries specifying <cite>input_data</cite> order and key for merge. Can also use
+<cite>order_and_key_input_data</cite> directly. Each dict in the list has
+<cite>{id: input_data id, key: column_name for merge}</cite></p></li>
+<li><p><strong>overwrite_working</strong> (<em>bool</em>) – Permission to overwrite existing working data</p></li>
+<li><p><strong>TO_DO</strong> – </p></li>
+<li><p><strong>-----</strong> – </p></li>
+<li><p><strong>merge validates column uniqueness prior to merge</strong><strong>, </strong><strong>if the column is not unique there</strong> (<em>While</em>) – </p></li>
+<li><p><strong>nothing the user can do about it</strong><strong> (</strong><strong>without manually going and refixing the input data</strong><strong>)</strong><strong></strong> (<em>is</em>) – </p></li>
+<li><p><strong>sort of uniqueness fix required</strong><strong> (</strong><strong>probably using the filters</strong><strong>)</strong><strong></strong> (<em>Some</em>) – </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="method.Method.structure">
+<code class="sig-name descname">structure</code><span class="sig-paren">(</span><em class="sig-param">name</em><span class="sig-paren">)</span><a class="headerlink" href="#method.Method.structure" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a ‘markdown’ version of the formal structure for a specific <cite>name</cite> field.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>(nested) strings in structure format</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="method.Method.set_structure">
+<code class="sig-name descname">set_structure</code><span class="sig-paren">(</span><em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#method.Method.set_structure" title="Permalink to this definition">¶</a></dt>
+<dd><p>Receive a list of methods of the form:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+        <span class="s2">&quot;schema_field1&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;action&quot;</span><span class="p">,</span> <span class="s2">&quot;column_name1&quot;</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;action&quot;</span><span class="p">,</span> <span class="s2">&quot;column_name2&quot;</span><span class="p">]],</span>
+        <span class="s2">&quot;schema_field2&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;action&quot;</span><span class="p">,</span> <span class="s2">&quot;column_name1&quot;</span><span class="p">,</span> <span class="s2">&quot;modifier&quot;</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;action&quot;</span><span class="p">,</span> <span class="s2">&quot;column_name2&quot;</span><span class="p">]],</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>The format for defining a <cite>structure</cite> is as follows:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">[</span><span class="n">action</span><span class="p">,</span> <span class="n">column_name</span><span class="p">,</span> <span class="p">[</span><span class="n">action</span><span class="p">,</span> <span class="n">column_name</span><span class="p">]]</span>
+</pre></div>
+</div>
+<p>e.g.:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">[</span><span class="s2">&quot;CATEGORISE&quot;</span><span class="p">,</span> <span class="s2">&quot;+&quot;</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;ORDER&quot;</span><span class="p">,</span> <span class="s2">&quot;column_1&quot;</span><span class="p">,</span> <span class="s2">&quot;column_2&quot;</span><span class="p">]]</span>
+</pre></div>
+</div>
+<p>This permits the creation of quite expressive wrangling structures from simple building
+blocks.</p>
+<p>Every task structure must start with an action to describe what to do with the following
+terms. There are several “actions” which can be performed, and some require action
+modifiers:</p>
+<blockquote>
+<div><ul>
+<li><p>NEW: Add in a new column, and populate it according to the value in the “new” constraint</p></li>
+<li><p>RENAME: If only 1 item in list of source fields, then rename that field</p></li>
+<li><p>ORDER: If &gt; 1 item in list of source fields, pick the value from the column, replacing each value with one from the next in the order of the provided fields</p></li>
+<li><p>ORDER_NEW: As in ORDER, but replacing each value with one associated with a newer “dateorder” constraint</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>MODIFIER: <cite>+</cite> between terms for source and source_date</p></li>
+</ul>
+</div></blockquote>
+</li>
+<li><p>ORDER_OLD: As in ORDER, but replacing each value with one associated with an older “dateorder” constraint</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>MODIFIER: <cite>+</cite> between terms for source and source_date</p></li>
+</ul>
+</div></blockquote>
+</li>
+<li><p>CALCULATE: Only if of “type” = “float64” (or which can be forced to float64)</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>MODIFIER: <cite>+</cite> or <cite>-</cite> before each term to define whether add or subtract</p></li>
+</ul>
+</div></blockquote>
+</li>
+<li><p>JOIN: Only if of “type” = “object”, join text with ” “.join()</p></li>
+<li><p>CATEGORISE: Only if of “type” = “string”; look for associated constraint, “categorise” where <cite>True</cite> = keep a list of categories, <cite>False</cite> = set True if terms found in list</p>
+<blockquote>
+<div><ul>
+<li><p>MODIFIER:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><cite>+</cite> before terms where column values to be classified as unique</p></li>
+<li><p><cite>-</cite> before terms where column values are treated as boolean</p></li>
+</ul>
+</div></blockquote>
+</li>
+</ul>
+</div></blockquote>
+</li>
+</ul>
+</div></blockquote>
+<dl class="simple">
+<dt>kwargs: dict</dt><dd><p>Where key is schema target field and value is list defining the structure action</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="method.Method.category">
+<code class="sig-name descname">category</code><span class="sig-paren">(</span><em class="sig-param">name</em><span class="sig-paren">)</span><a class="headerlink" href="#method.Method.category" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a ‘markdown’ version of assigned and unassigned category inputs for a named field
+of the form:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+        <span class="s2">&quot;categories&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;category_1&quot;</span><span class="p">,</span> <span class="s2">&quot;category_2&quot;</span><span class="p">]</span>
+        <span class="s2">&quot;assigned&quot;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">&quot;category_1&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;term1&quot;</span><span class="p">,</span> <span class="s2">&quot;term2&quot;</span><span class="p">,</span> <span class="s2">&quot;term3&quot;</span><span class="p">],</span>
+                <span class="s2">&quot;category_2&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;term4&quot;</span><span class="p">,</span> <span class="s2">&quot;term5&quot;</span><span class="p">,</span> <span class="s2">&quot;term6&quot;</span><span class="p">]</span>
+        <span class="p">},</span>
+        <span class="s2">&quot;unassigned&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;term1&quot;</span><span class="p">,</span> <span class="s2">&quot;term2&quot;</span><span class="p">,</span> <span class="s2">&quot;term3&quot;</span><span class="p">]</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>The format for defining a <cite>category</cite> term as follows:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>`term_name::column_name`
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p></p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>list of (nested) strings in structure format</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="method.Method.set_category">
+<code class="sig-name descname">set_category</code><span class="sig-paren">(</span><em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#method.Method.set_category" title="Permalink to this definition">¶</a></dt>
+<dd><p>Receive a list of categories of the form:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+        <span class="s2">&quot;schema_field1&quot;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">&quot;category_1&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;term1&quot;</span><span class="p">,</span> <span class="s2">&quot;term2&quot;</span><span class="p">,</span> <span class="s2">&quot;term3&quot;</span><span class="p">],</span>
+                <span class="s2">&quot;category_2&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;term4&quot;</span><span class="p">,</span> <span class="s2">&quot;term5&quot;</span><span class="p">,</span> <span class="s2">&quot;term6&quot;</span><span class="p">]</span>
+        <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>The format for defining a <cite>category</cite> term as follows:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>`term_name::column_name`
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="method.Method.filter">
+<code class="sig-name descname">filter</code><span class="sig-paren">(</span><em class="sig-param">name</em><span class="sig-paren">)</span><a class="headerlink" href="#method.Method.filter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the filter settings for a named field. If there are no filter settings, return None.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Raises</dt>
+<dd class="field-odd"><p><strong>TypeError if setting a filter on this field type is not permitted.</strong> – </p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>dict of filter settings, or None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="method.Method.set_filter">
+<code class="sig-name descname">set_filter</code><span class="sig-paren">(</span><em class="sig-param">field_name</em>, <em class="sig-param">filter_name</em>, <em class="sig-param">filter_date=None</em>, <em class="sig-param">foreign_field=None</em><span class="sig-paren">)</span><a class="headerlink" href="#method.Method.set_filter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets the filter settings for a named field after validating all parameters.</p>
+<p>NOTE: filters can only be set on date-type fields. <strong>whyqd</strong> offers only rudimentary post-
+wrangling functionality. Filters are there to, for example, facilitate importing data
+outside the bounds of a previous import.</p>
+<p>This is also an optional step. By default, if no filters are present, the transformed output
+will include <cite>ALL</cite> data.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>field_name</strong> (<em>str</em>) – Name of field on which filters to be set</p></li>
+<li><p><strong>filter_name</strong> (<em>str</em>) – Name of filter type from the list of valid filter names</p></li>
+<li><p><strong>filter_date</strong> (<em>str</em><em> (</em><em>optional</em><em>)</em>) – A date in the format specified by the field type</p></li>
+<li><p><strong>foreign_field</strong> (<em>str</em><em> (</em><em>optional</em><em>)</em>) – Name of field to which filter will be applied. Defaults to <cite>field_name</cite></p></li>
+</ul>
+</dd>
+<dt class="field-even">Raises</dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>TypeError if setting a filter on this field type is not permitted.</strong> – </p></li>
+<li><p><strong>ValueError for any validation failures.</strong> – </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="method.Method.constructors">
+<em class="property">property </em><code class="sig-name descname">constructors</code><a class="headerlink" href="#method.Method.constructors" title="Permalink to this definition">¶</a></dt>
+<dd><p>Constructors are additional metadata to be included with the <cite>method</cite>. Ordinarily, this is
+a dictionary of key:value pairs defining any metadata that may be used post-wrangling and
+need to be maintained with the target data.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="method.Method.set_constructors">
+<code class="sig-name descname">set_constructors</code><span class="sig-paren">(</span><em class="sig-param">constructors</em><span class="sig-paren">)</span><a class="headerlink" href="#method.Method.set_constructors" title="Permalink to this definition">¶</a></dt>
+<dd><p>Define additional metadata to be included with the <cite>method</cite>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>constructors</strong> (<em>dict</em>) – A set of key:value pairs. These will not be validated, or used during transformation.</p>
+</dd>
+<dt class="field-even">Raises</dt>
+<dd class="field-even"><p><strong>TypeError if not a dict.</strong> – </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="method.Method.add_input_data">
+<code class="sig-name descname">add_input_data</code><span class="sig-paren">(</span><em class="sig-param">input_data</em><span class="sig-paren">)</span><a class="headerlink" href="#method.Method.add_input_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Provide a list of strings, each the filename of input data for wrangling.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>input_data</strong> (<em>str</em><em> or </em><em>list of str</em>) – Each input data can be a filename, or a file_source (where filename is remote)</p>
+</dd>
+<dt class="field-even">Raises</dt>
+<dd class="field-even"><p><strong>TypeError if not a list of str.</strong> – </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="method.Method.remove_input_data">
+<code class="sig-name descname">remove_input_data</code><span class="sig-paren">(</span><em class="sig-param">_id</em>, <em class="sig-param">reset_status=False</em><span class="sig-paren">)</span><a class="headerlink" href="#method.Method.remove_input_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Remove an input data source defined by a source _id. If data have already been merged,
+reset data processing, or raise an error.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>_id</strong> (<em>str</em>) – Unique id for an input data source. View all input data from <cite>input_data</cite></p>
+</dd>
+<dt class="field-even">Raises</dt>
+<dd class="field-even"><p><strong>TypeError if not a list of str.</strong> – </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="method.Method.order_and_key_input_data">
+<code class="sig-name descname">order_and_key_input_data</code><span class="sig-paren">(</span><em class="sig-param">*order_and_key</em><span class="sig-paren">)</span><a class="headerlink" href="#method.Method.order_and_key_input_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reorder a list of input_data prior to merging, and add in the merge keys.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>order_and_key</strong> (<em>list of dicts</em>) – Each dict in the list has {id: input_data id, key: column_name for merge}</p>
+</dd>
+<dt class="field-even">Raises</dt>
+<dd class="field-even"><p><strong>ValueError not all input_data are assigned an order and key.</strong> – </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="method.Method.deduplicate_columns">
+<code class="sig-name descname">deduplicate_columns</code><span class="sig-paren">(</span><em class="sig-param">idx</em>, <em class="sig-param">fmt=None</em>, <em class="sig-param">ignoreFirst=True</em><span class="sig-paren">)</span><a class="headerlink" href="#method.Method.deduplicate_columns" title="Permalink to this definition">¶</a></dt>
+<dd><p>Source: <a class="reference external" href="https://stackoverflow.com/a/55405151">https://stackoverflow.com/a/55405151</a>
+Returns a new column list permitting deduplication of dataframes which may result from merge.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>idx</strong> (<em>df.columns</em><em> (</em><em>i.e. the indexed column list</em><em>)</em>) – </p></li>
+<li><p><strong>fmt</strong> (<em>A string format that receives two arguments: name and a counter. By default: fmt='%s.%03d'</em>) – </p></li>
+<li><p><strong>ignoreFirst</strong> (<em>Disable/enable postfixing of first element.</em>) – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Updated column names</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>list of strings</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="method.Method.set_field_structure_categories">
+<code class="sig-name descname">set_field_structure_categories</code><span class="sig-paren">(</span><em class="sig-param">modifier</em>, <em class="sig-param">column</em><span class="sig-paren">)</span><a class="headerlink" href="#method.Method.set_field_structure_categories" title="Permalink to this definition">¶</a></dt>
+<dd><p>If a structure <cite>action</cite> is <cite>CATEGORISE</cite>, then specify the terms available for
+categorisation. Each field must have a modifier, including the first (e.g. +A -B +C).</p>
+<p>The <cite>modifier</cite> is one of:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><cite>-</cite>: presence/absence of column values as true/false for a specific term</p></li>
+<li><p><cite>+</cite>:  unique terms in the field must be matched to the unique terms defined by the</p></li>
+</ul>
+<p><cite>field</cite> <cite>constraints</cite></p>
+</div></blockquote>
+<p>As with <cite>set_structure</cite>, the recursive step of managing nested structures is left to the
+calling function.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>modifier</strong> (<em>str</em>) – One of <cite>-</cite> or <cite>+</cite></p></li>
+<li><p><strong>column</strong> (<em>str</em>) – Must be a valid column from <cite>working_column_list</cite></p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="method.Method.set_field_structure">
+<code class="sig-name descname">set_field_structure</code><span class="sig-paren">(</span><em class="sig-param">structure_list</em><span class="sig-paren">)</span><a class="headerlink" href="#method.Method.set_field_structure" title="Permalink to this definition">¶</a></dt>
+<dd><p>A recursive function which traverses a list defined by <cite>*structure</cite>, ensuring that the first
+term is an <cite>action</cite>, and that the subsequent terms conform to that action’s requirements.
+Nested structures are permitted.</p>
+<p>The format for defining a <cite>structure</cite> is as follows:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">[</span><span class="n">action</span><span class="p">,</span> <span class="n">column_name</span><span class="p">,</span> <span class="p">[</span><span class="n">action</span><span class="p">,</span> <span class="n">column_name</span><span class="p">]]</span>
+</pre></div>
+</div>
+<p>e.g.:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">[</span><span class="s2">&quot;CATEGORISE&quot;</span><span class="p">,</span> <span class="s2">&quot;+&quot;</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;ORDER&quot;</span><span class="p">,</span> <span class="s2">&quot;column_1&quot;</span><span class="p">,</span> <span class="s2">&quot;column_2&quot;</span><span class="p">]]</span>
+</pre></div>
+</div>
+<p>This permits the creation of quite expressive wrangling structures from simple building
+blocks.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>structure_list</strong> (<em>list</em>) – Each structure list must start with an <cite>action</cite>, with subsequent terms conforming to the
+requirements for that action. Nested actions defined by nested lists.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="method.Method.default_action_types">
+<em class="property">property </em><code class="sig-name descname">default_action_types</code><a class="headerlink" href="#method.Method.default_action_types" title="Permalink to this definition">¶</a></dt>
+<dd><p>Default list of actions available to define methods. Returns only a list
+of types. Details for individual default actions can be returned with
+<cite>default_action_settings</cite>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p></p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="method.Method.default_action_settings">
+<code class="sig-name descname">default_action_settings</code><span class="sig-paren">(</span><em class="sig-param">action</em><span class="sig-paren">)</span><a class="headerlink" href="#method.Method.default_action_settings" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the default settings available for a specific action type.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>action</strong> (<em>string</em>) – A specific term for an action type (as listed in <cite>default_action_types</cite>).</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>dict, or empty dict if no such <cite>action_type</cite></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="method.Method.build_default_actions">
+<code class="sig-name descname">build_default_actions</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#method.Method.build_default_actions" title="Permalink to this definition">¶</a></dt>
+<dd><p>Build the default actions for presentation to the user as options.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p></p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>dict of Actions</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="method.Method.build_structure_markdown">
+<code class="sig-name descname">build_structure_markdown</code><span class="sig-paren">(</span><em class="sig-param">structure</em><span class="sig-paren">)</span><a class="headerlink" href="#method.Method.build_structure_markdown" title="Permalink to this definition">¶</a></dt>
+<dd><p>Recursive function that iteratively builds a markdown version of a formal field structure.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p></p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="method.Method.build_category_markdown">
+<code class="sig-name descname">build_category_markdown</code><span class="sig-paren">(</span><em class="sig-param">category_input</em><span class="sig-paren">)</span><a class="headerlink" href="#method.Method.build_category_markdown" title="Permalink to this definition">¶</a></dt>
+<dd><p>Converts category_terms dict into a markdown format:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">[</span><span class="s2">&quot;term1&quot;</span><span class="p">,</span> <span class="s2">&quot;term2&quot;</span><span class="p">,</span> <span class="s2">&quot;term3&quot;</span><span class="p">]</span>
+</pre></div>
+</div>
+<p>Where the format for defining a <cite>category</cite> term as follows:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>`term_name::column_name`
+</pre></div>
+</div>
+<p>From:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+        <span class="s2">&quot;column&quot;</span><span class="p">:</span> <span class="s2">&quot;column_name&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;terms&quot;</span><span class="p">:</span> <span class="p">[</span>
+                <span class="s2">&quot;term_1&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;term_2&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;term_3&quot;</span>
+        <span class="p">]</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="method.Method.validate_input_data">
+<em class="property">property </em><code class="sig-name descname">validate_input_data</code><a class="headerlink" href="#method.Method.validate_input_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Test input data for checksum errors.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Raises</dt>
+<dd class="field-odd"><p><strong>ValueError on checksum failure.</strong> – </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="method.Method.validate_merge_data">
+<em class="property">property </em><code class="sig-name descname">validate_merge_data</code><a class="headerlink" href="#method.Method.validate_merge_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Test input data ready to merge; that it has a merge key, and that the data in that column
+are unique.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Raises</dt>
+<dd class="field-odd"><p><strong>ValueError on uniqueness failure.</strong> – </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="method.Method.validate_merge">
+<em class="property">property </em><code class="sig-name descname">validate_merge</code><a class="headerlink" href="#method.Method.validate_merge" title="Permalink to this definition">¶</a></dt>
+<dd><p>Validate merge output.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Raises</dt>
+<dd class="field-odd"><p><strong>ValueError on checksum failure.</strong> – </p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>bool</strong></p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>True for validates</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="method.Method.validate_structure">
+<em class="property">property </em><code class="sig-name descname">validate_structure</code><a class="headerlink" href="#method.Method.validate_structure" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method validates structure formats.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Raises</dt>
+<dd class="field-odd"><p><strong>ValueError on structure failure.</strong> – </p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>bool</strong></p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>True for validates</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="method.Method.validate_category">
+<em class="property">property </em><code class="sig-name descname">validate_category</code><a class="headerlink" href="#method.Method.validate_category" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method validates category terms.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Raises</dt>
+<dd class="field-odd"><p><strong>ValueError on category failure.</strong> – </p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>bool</strong></p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>True for validates</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="method.Method.validate_filter">
+<em class="property">property </em><code class="sig-name descname">validate_filter</code><a class="headerlink" href="#method.Method.validate_filter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method validates filter terms.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Raises</dt>
+<dd class="field-odd"><p><strong>ValueError on filter failure.</strong> – </p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>bool</strong></p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>True for validates</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="method.Method.validate">
+<em class="property">property </em><code class="sig-name descname">validate</code><a class="headerlink" href="#method.Method.validate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method validates all steps. Sets <cite>READY_TRANSFORM</cite> if all pass.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p><strong>bool</strong></p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>True for validates</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="method.Method.build_action">
+<code class="sig-name descname">build_action</code><span class="sig-paren">(</span><em class="sig-param">**action</em><span class="sig-paren">)</span><a class="headerlink" href="#method.Method.build_action" title="Permalink to this definition">¶</a></dt>
+<dd><p>For a list of actions, defined as dictionaries, create and return Action objects.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>field</strong> (<em>dictionary of Action parameters</em>) – </p>
+</dd>
+<dt class="field-even">Raises</dt>
+<dd class="field-even"><p><strong>ValueError</strong> – if action fails validation:</p>
+</dd>
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p></p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><a class="reference internal" href="action_api.html#method.Action" title="method.Action">Action</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="method.Method.build">
+<code class="sig-name descname">build</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#method.Method.build" title="Permalink to this definition">¶</a></dt>
+<dd><p>Build and validate the Method. Note, this replaces the Schema base-class.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="method.Method.save_data">
+<code class="sig-name descname">save_data</code><span class="sig-paren">(</span><em class="sig-param">df</em>, <em class="sig-param">filetype='xlsx'</em><span class="sig-paren">)</span><a class="headerlink" href="#method.Method.save_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate a unique filename for a dataframe, save to the working directory, and return the
+unique filename and data summary.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>df</strong> (<em>Pandas DataFrame</em>) – </p></li>
+<li><p><strong>filetype</strong> (<em>Save the dataframe as a particular type. Default is &quot;CSV&quot;.</em>) – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Keys include: id, filename, checksum, df header, columns</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="method.Method.save">
+<code class="sig-name descname">save</code><span class="sig-paren">(</span><em class="sig-param">directory=None</em>, <em class="sig-param">filename=None</em>, <em class="sig-param">overwrite=False</em>, <em class="sig-param">created_by=None</em><span class="sig-paren">)</span><a class="headerlink" href="#method.Method.save" title="Permalink to this definition">¶</a></dt>
+<dd><p>Schema settings returned as a dictionary.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>directory</strong> (<em>the destination directory</em>) – </p></li>
+<li><p><strong>filename</strong> (<em>default to schema name</em>) – </p></li>
+<li><p><strong>overwrite</strong> (<em>bool</em><em>, </em><em>True if overwrite existing file</em>) – </p></li>
+<li><p><strong>created_by</strong> (<em>string</em><em>, or </em><em>None</em><em>, </em><em>to define the schema creator/updater</em>) – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Raises</dt>
+<dd class="field-even"><p><strong>ValueError if no filename</strong> – </p>
+</dd>
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p></p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>bool True if saved</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="method.Method.help">
+<code class="sig-name descname">help</code><span class="sig-paren">(</span><em class="sig-param">option=None</em><span class="sig-paren">)</span><a class="headerlink" href="#method.Method.help" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get generic help, or help on a specific method.</p>
+<dl class="simple">
+<dt>option: str</dt><dd><p>Any of None, ‘status’, ‘merge’, ‘structure’, ‘category’, ‘filter’, ‘transform’, ‘error’.</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p></p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>Help</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+      
+        <a href="action_api.html" class="btn btn-neutral float-left" title="Action" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2020, Gavin Chait
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

@@ -35,7 +35,8 @@
   <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="prev" title="&lt;no title&gt;" href="installation.html" /> 
+    <link rel="next" title="Field" href="field_api.html" />
+    <link rel="prev" title="Schema" href="schema.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -79,7 +80,15 @@
               
             
             
-              <p class="caption"><span class="caption-text">Wrangling with Methods</span></p>
+              <p class="caption"><span class="caption-text">Getting started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Requirements, installation &amp; importing</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Creating and managing Schemas</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="schema.html">Schema</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Wrangling with Methods</span></p>
 <ul class="current">
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Method</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#help">Help</a></li>
@@ -90,6 +99,13 @@
 <li class="toctree-l2"><a class="reference internal" href="#validation">Validation</a></li>
 </ul>
 </li>
+</ul>
+<p class="caption"><span class="caption-text">Class API</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="field_api.html">Field</a></li>
+<li class="toctree-l1"><a class="reference internal" href="schema_api.html">Schema</a></li>
+<li class="toctree-l1"><a class="reference internal" href="action_api.html">Action</a></li>
+<li class="toctree-l1"><a class="reference internal" href="method_api.html">Method</a></li>
 </ul>
 
             
@@ -247,9 +263,9 @@ order, and a unique key for merging. Each input data file needs to be defined in
 </div>
 <p>Run the merge by calling (and, optionally - if you need to overwrite an existing merge - setting
 <cite>overwrite_working=True</cite>):</p>
-<blockquote>
-<div><p>method.merge(order_and_key, overwrite_working=True)</p>
-</div></blockquote>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">method</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">order_and_key</span><span class="p">,</span> <span class="n">overwrite_working</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
 <p>To view your existing <cite>input_data</cite> as a JSON output (or the <cite>pretty_print_input_data</cite> as above):</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">method</span><span class="o">.</span><span class="n">input_data</span>
 </pre></div>
@@ -393,163 +409,6 @@ will include <cite>ALL</cite> data. Parameters for filtering:</p>
 </div>
 </div>
 </div>
-<dl class="class">
-<dt id="method.Method">
-<em class="property">class </em><code class="sig-prename descclassname">method.</code><code class="sig-name descname">Method</code><span class="sig-paren">(</span><em class="sig-param">source=None</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#method.Method" title="Permalink to this definition">¶</a></dt>
-<dd><p>Create and manage a method to perform a wrangling process.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>source</strong> (<em>path to a json file containing a saved schema</em><em>, </em><em>default is None</em>) – </p></li>
-<li><p><strong>directory</strong> (<em>working path for creating methods</em><em>, </em><em>interim data files and final output</em>) – </p></li>
-<li><p><strong>kwargs</strong> (<em>a schema defined as a dictionary</em><em>, or </em><em>default blank dictionary</em>) – </p></li>
-</ul>
-</dd>
-</dl>
-<dl class="method">
-<dt id="method.Method.merge">
-<code class="sig-name descname">merge</code><span class="sig-paren">(</span><em class="sig-param">order_and_key=None</em>, <em class="sig-param">overwrite_working=False</em><span class="sig-paren">)</span><a class="headerlink" href="#method.Method.merge" title="Permalink to this definition">¶</a></dt>
-<dd><p>Merge input data on a key column.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>order_and_key</strong> (<em>list</em>) – List of dictionaries specifying <cite>input_data</cite> order and key for merge. Can also use
-<cite>order_and_key_input_data</cite> directly. Each dict in the list has
-<cite>{id: input_data id, key: column_name for merge}</cite></p></li>
-<li><p><strong>overwrite_working</strong> (<em>bool</em>) – Permission to overwrite existing working data</p></li>
-<li><p><strong>TO_DO</strong> – </p></li>
-<li><p><strong>-----</strong> – </p></li>
-<li><p><strong>merge validates column uniqueness prior to merge</strong><strong>, </strong><strong>if the column is not unique there</strong> (<em>While</em>) – </p></li>
-<li><p><strong>nothing the user can do about it</strong><strong> (</strong><strong>without manually going and refixing the input data</strong><strong>)</strong><strong></strong> (<em>is</em>) – </p></li>
-<li><p><strong>sort of uniqueness fix required</strong><strong> (</strong><strong>probably using the filters</strong><strong>)</strong><strong></strong> (<em>Some</em>) – </p></li>
-</ul>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="method">
-<dt id="method.Method.structure">
-<code class="sig-name descname">structure</code><span class="sig-paren">(</span><em class="sig-param">name</em><span class="sig-paren">)</span><a class="headerlink" href="#method.Method.structure" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return a ‘markdown’ version of the formal structure for a specific <cite>name</cite> field.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p></p>
-</dd>
-<dt class="field-even">Return type</dt>
-<dd class="field-even"><p>list of (nested) strings in structure format</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="method">
-<dt id="method.Method.set_structure">
-<code class="sig-name descname">set_structure</code><span class="sig-paren">(</span><em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#method.Method.set_structure" title="Permalink to this definition">¶</a></dt>
-<dd><p>Receive a list of methods of the form:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
-        <span class="s2">&quot;schema_field1&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;action&quot;</span><span class="p">,</span> <span class="s2">&quot;column_name1&quot;</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;action&quot;</span><span class="p">,</span> <span class="s2">&quot;column_name2&quot;</span><span class="p">]],</span>
-        <span class="s2">&quot;schema_field2&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;action&quot;</span><span class="p">,</span> <span class="s2">&quot;column_name1&quot;</span><span class="p">,</span> <span class="s2">&quot;modifier&quot;</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;action&quot;</span><span class="p">,</span> <span class="s2">&quot;column_name2&quot;</span><span class="p">]],</span>
-<span class="p">}</span>
-</pre></div>
-</div>
-<p>The format for defining a <cite>structure</cite> is as follows:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">[</span><span class="n">action</span><span class="p">,</span> <span class="n">column_name</span><span class="p">,</span> <span class="p">[</span><span class="n">action</span><span class="p">,</span> <span class="n">column_name</span><span class="p">]]</span>
-</pre></div>
-</div>
-<p>e.g.:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">[</span><span class="s2">&quot;CATEGORISE&quot;</span><span class="p">,</span> <span class="s2">&quot;+&quot;</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;ORDER&quot;</span><span class="p">,</span> <span class="s2">&quot;column_1&quot;</span><span class="p">,</span> <span class="s2">&quot;column_2&quot;</span><span class="p">]]</span>
-</pre></div>
-</div>
-<p>This permits the creation of quite expressive wrangling structures from simple building
-blocks.</p>
-<p>Every task structure must start with an action to describe what to do with the following
-terms. There are several “actions” which can be performed, and some require action
-modifiers:</p>
-<blockquote>
-<div><dl class="simple">
-<dt>NEW:                    Add in a new column, and populate it according to the value in the “new”</dt><dd><p>constraint;</p>
-</dd>
-</dl>
-<p>RENAME:                 If only 1 item in list of source fields, then rename that field;
-ORDER:                  If &gt; 1 item in list of source fields, pick the value from the column,</p>
-<blockquote>
-<div><p>replacing each value with one from the next in the order of the provided
-fields;</p>
-</div></blockquote>
-<dl class="simple">
-<dt>ORDER_NEW:              As in ORDER, but replacing each value with one associated with a</dt><dd><p>newer “dateorder” constraint;
-MODIFIER: + between terms for source and source_date;</p>
-</dd>
-<dt>ORDER_OLD:              As in ORDER, but replacing each value with one associated with an</dt><dd><p>older “dateorder” constraint;
-MODIFIER: + between terms for source and source_date;</p>
-</dd>
-<dt>CALCULATE:              Only if of “type” = “float64” (or which can be forced to float64);</dt><dd><p>MODIFIER: + or - before each term to define whether add or subtract;</p>
-</dd>
-</dl>
-<p>JOIN:                   Only if of “type” = “object”, join text with ” “.join();
-CATEGORISE:             Only if of “type” = “string”; look for associated constraint, “categorise”</p>
-<blockquote>
-<div><p>where True = keep a list of categories, False = set True if terms found
-in list;
-MODIFIER: + before terms where column values to be classified as unique;</p>
-<blockquote>
-<div><ul class="simple">
-<li><p>before terms where column values are treated as boolean;</p></li>
-</ul>
-</div></blockquote>
-</div></blockquote>
-</div></blockquote>
-<dl class="simple">
-<dt>kwargs: dict</dt><dd><p>Where key is schema target field and value is list defining the structure action</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="method">
-<dt id="method.Method.filter">
-<code class="sig-name descname">filter</code><span class="sig-paren">(</span><em class="sig-param">name</em><span class="sig-paren">)</span><a class="headerlink" href="#method.Method.filter" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return the filter settings for a named field. If there are no filter settings, return None.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Raises</dt>
-<dd class="field-odd"><p><strong>TypeError if setting a filter on this field type is not permitted.</strong> – </p>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p></p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>dict of filter settings, or None</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="method">
-<dt id="method.Method.set_filter">
-<code class="sig-name descname">set_filter</code><span class="sig-paren">(</span><em class="sig-param">field_name</em>, <em class="sig-param">filter_name</em>, <em class="sig-param">filter_date=None</em>, <em class="sig-param">foreign_field=None</em><span class="sig-paren">)</span><a class="headerlink" href="#method.Method.set_filter" title="Permalink to this definition">¶</a></dt>
-<dd><p>Sets the filter settings for a named field after validating all parameters.</p>
-<p>NOTE: filters can only be set on date-type fields. <strong>whyqd</strong> offers only rudimentary post-
-wrangling functionality. Filters are there to, for example, facilitate importing data
-outside the bounds of a previous import.</p>
-<p>This is also an optional step. By default, if no filters are present, the transformed output
-will include <cite>ALL</cite> data.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>field_name</strong> (<em>str</em>) – Name of field on which filters to be set</p></li>
-<li><p><strong>filter_name</strong> (<em>str</em>) – Name of filter type from the list of valid filter names</p></li>
-<li><p><strong>filter_date</strong> (<em>str</em><em> (</em><em>optional</em><em>)</em>) – A date in the format specified by the field type</p></li>
-<li><p><strong>foreign_field</strong> (<em>str</em><em> (</em><em>optional</em><em>)</em>) – Name of field to which filter will be applied. Defaults to <cite>field_name</cite></p></li>
-</ul>
-</dd>
-<dt class="field-even">Raises</dt>
-<dd class="field-even"><ul class="simple">
-<li><p><strong>TypeError if setting a filter on this field type is not permitted.</strong> – </p></li>
-<li><p><strong>ValueError for any validation failures.</strong> – </p></li>
-</ul>
-</dd>
-</dl>
-</dd></dl>
-
-</dd></dl>
-
 
 
            </div>
@@ -559,8 +418,10 @@ will include <cite>ALL</cite> data.</p>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
+        <a href="field_api.html" class="btn btn-neutral float-right" title="Field" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
-        <a href="installation.html" class="btn btn-neutral float-left" title="&lt;no title&gt;" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+        <a href="schema.html" class="btn btn-neutral float-left" title="Schema" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   

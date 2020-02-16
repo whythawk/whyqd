@@ -103,7 +103,7 @@ order, and a unique key for merging. Each input data file needs to be defined in
 	{id: input_data id, key: column_name for merge}
 
 Run the merge by calling (and, optionally - if you need to overwrite an existing merge - setting
-`overwrite_working=True`):
+`overwrite_working=True`)::
 
 	method.merge(order_and_key, overwrite_working=True)
 
@@ -345,7 +345,8 @@ class Method(Schema):
 
 		Returns
 		-------
-		list of (nested) strings in structure format
+		list
+			(nested) strings in structure format
 		"""
 		markdown = self.field(name).get("structure")
 		if markdown:
@@ -376,26 +377,33 @@ class Method(Schema):
 		terms. There are several "actions" which can be performed, and some require action
 		modifiers:
 
-			NEW:			Add in a new column, and populate it according to the value in the "new"
-							constraint;
-			RENAME:			If only 1 item in list of source fields, then rename that field;
-			ORDER:			If > 1 item in list of source fields, pick the value from the column,
-							replacing each value with one from the next in the order of the provided
-							fields;
-			ORDER_NEW:		As in ORDER, but replacing each value with one associated with a
-							newer "dateorder" constraint;
-							MODIFIER: + between terms for source and source_date;
-			ORDER_OLD:		As in ORDER, but replacing each value with one associated with an
-							older "dateorder" constraint;
-							MODIFIER: + between terms for source and source_date;
-			CALCULATE:		Only if of "type" = "float64" (or which can be forced to float64);
-							MODIFIER: + or - before each term to define whether add or subtract;
-			JOIN:			Only if of "type" = "object", join text with " ".join();
-			CATEGORISE:		Only if of "type" = "string"; look for associated constraint, "categorise"
-							where True = keep a list of categories, False = set True if terms found
-							in list;
-							MODIFIER: + before terms where column values to be classified as unique;
-									  - before terms where column values are treated as boolean;
+			* NEW: Add in a new column, and populate it according to the value in the "new" constraint
+
+			* RENAME: If only 1 item in list of source fields, then rename that field
+
+			* ORDER: If > 1 item in list of source fields, pick the value from the column, replacing each value with one from the next in the order of the provided fields
+
+			* ORDER_NEW: As in ORDER, but replacing each value with one associated with a newer "dateorder" constraint
+
+				* MODIFIER: `+` between terms for source and source_date
+
+			* ORDER_OLD: As in ORDER, but replacing each value with one associated with an older "dateorder" constraint
+
+				* MODIFIER: `+` between terms for source and source_date
+
+			* CALCULATE: Only if of "type" = "float64" (or which can be forced to float64)
+
+				* MODIFIER: `+` or `-` before each term to define whether add or subtract
+
+			* JOIN: Only if of "type" = "object", join text with " ".join()
+
+			* CATEGORISE: Only if of "type" = "string"; look for associated constraint, "categorise" where `True` = keep a list of categories, `False` = set True if terms found in list
+
+				* MODIFIER:
+
+					* `+` before terms where column values to be classified as unique
+
+					* `-` before terms where column values are treated as boolean
 
 		Paramaters
 		----------

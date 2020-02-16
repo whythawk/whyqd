@@ -27,7 +27,6 @@ import **whyqd** and validate your method to verify that your output data is the
 inputs.
 
 .. toctree::
-   :maxdepth: 2
    :caption: Getting started
 
    installation
@@ -38,9 +37,16 @@ inputs.
 
    schema
 
-
 .. toctree::
    :maxdepth: 2
    :caption: Wrangling with Methods
 
    method
+
+.. toctree::
+   :caption: Class API
+
+   field_api
+   schema_api
+   action_api
+   method_api
