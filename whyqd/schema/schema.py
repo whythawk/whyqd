@@ -549,6 +549,8 @@ class Schema:
 			categories.extend(original)
 			categories = set(categories)
 		category = [{"name": c} for c in categories]
+		if not field.get("constraints"):
+			field["constraints"] = {}
 		field["constraints"]["category"] = category
 		self.set_field(**field)
 

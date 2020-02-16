@@ -1,0 +1,413 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Full worked tutorial &mdash; whyqd 0.1.0 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Schema" href="schema.html" />
+    <link rel="prev" title="Requirements, installation &amp; importing" href="installation.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> whyqd
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Getting started</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Requirements, installation &amp; importing</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Full worked tutorial</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#creating-a-schema">Creating a Schema</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption"><span class="caption-text">Creating and managing Schemas</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="schema.html">Schema</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Wrangling with Methods</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="method.html">Method</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Reference API</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="field_api.html">Field</a></li>
+<li class="toctree-l1"><a class="reference internal" href="schema_api.html">Schema</a></li>
+<li class="toctree-l1"><a class="reference internal" href="action_api.html">Action</a></li>
+<li class="toctree-l1"><a class="reference internal" href="method_api.html">Method</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">whyqd</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>Full worked tutorial</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/tutorial.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="full-worked-tutorial">
+<h1>Full worked tutorial<a class="headerlink" href="#full-worked-tutorial" title="Permalink to this headline">¶</a></h1>
+<p><strong>whyqd</strong> was developed to solve a daily, grinding need in our <a class="reference external" href="https://sqwyre.com">Sqwyre.com</a>
+project. Every quarter, we import about 300 very messy spreadsheets from local authorities across
+the UK. These need to be restructured to conform to a single schema, including redefining
+whatever weird terms they use to describe categorical data, and only then can we begin the automated
+process of cleaning and validating the data.</p>
+<p><strong>Sqwyre</strong> is an online market intelligence service helping you assess opportunities and risks for
+every commercial property in England and Wales. Our data wrangling process requires that we import
+data, including the business name, address and occupation status of every commercial ratepayer, in
+whatever format it is released, and align it to a single schema before bulk-uploading it into our
+database. It’s a mostly free service, so you can see it in action at <a class="reference external" href="https://sqwyre.com">Sqwyre.com</a>.</p>
+<p>When we started, this was a purely manual process but, gradually, we developed what has become
+<strong>whyqd</strong>. The process, at a high level, is as follows:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>Create, update or import a data schema which defines the destination data structure</p></li>
+<li><p>Create a new method and associate it with your schema and input data source/s</p></li>
+<li><p>Assign a foreign key column and (if required) merge input data sources</p></li>
+<li><p>Structure input data fields to conform to the requriements for each schema field</p></li>
+<li><p>Assign categorical data identified during structuring</p></li>
+<li><p>Filter and transform input data to produce a final destination data file</p></li>
+</ul>
+</div></blockquote>
+<p>You are more likely to create your schema at the beginning of a project, and then spend most of your
+time using that schema as the base for creating new methods for each new data source. If you’re really
+lucky, your data source won’t change their own methods from release-to-release and you can reuse your
+own methods. In our experience that is like searching for unicorns.</p>
+<p>The example in our worked tutorial is derived directly from our workflow at Sqwyre.com and is from a
+dataset released by <a class="reference external" href="https://www.portsmouth.gov.uk/ext/business/running-a-business/business-rates-foi-requests">Portsmouth City Council</a>.
+The data in this tutorial are from January 2020, but follow along with the current download.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This tutorial does assume familiarity with Python and Pandas, and a little experience with JSON.</p>
+</div>
+<div class="section" id="creating-a-schema">
+<h2>Creating a Schema<a class="headerlink" href="#creating-a-schema" title="Permalink to this headline">¶</a></h2>
+<p>Review the <a class="reference internal" href="schema.html"><span class="doc">Schema</span></a> documentation for more details. We’ll start by importing <strong>whyqd</strong>
+and defining a new schema:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">whyqd</span> <span class="k">as</span> <span class="nn">_w</span>
+<span class="n">schema</span> <span class="o">=</span> <span class="n">_w</span><span class="o">.</span><span class="n">Schema</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>The objective of your schema is not only to define a structure for your data, but also provide
+reference and contextual information for anyone using it. In a research context, definitions are
+critical to avoid ambiguity, ensure replication, and build trust.</p>
+<p>The minimum requirement for a schema is that it have a <cite>name</cite>, but we’re going to give it a <cite>title</cite>
+and <cite>description</cite> as well, because more information is better. We’re not barbarians:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">details</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;rates_data_schema&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;title&quot;</span><span class="p">:</span> <span class="s2">&quot;UK Ratepayer data schema&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;Structural metadata target for imported messy data from the 348 local authorities in England &amp; Wales.&quot;</span>
+<span class="p">}</span>
+<span class="n">schema</span><span class="o">.</span><span class="n">set_details</span><span class="p">(</span><span class="o">**</span><span class="n">details</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>We can also save our schema to a specified <cite>directory</cite>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">directory</span> <span class="o">=</span> <span class="s2">&quot;/path/to/directory&quot;</span>
+<span class="c1"># you can also specify an optional filename</span>
+<span class="c1"># if you leave it out, the filename will default to the schema name</span>
+<span class="n">filename</span> <span class="o">=</span> <span class="s2">&quot;2020_rates_data_schema&quot;</span>
+<span class="c1"># if the file already exists, you&#39;ll need to specify `overwrite=True` otherwise you&#39;ll get</span>
+<span class="c1"># an error</span>
+<span class="n">schema</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">directory</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="n">filename</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>We’ll now start to create each of our schema <cite>fields</cite>.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>You can think of a schema <cite>field</cite> as a <cite>column</cite> in a table, or a <cite>field</cite> in a database. Fields have a <cite>type</cite>, such as integer or text.</p>
+</div>
+<p>Each field, unsurprisingly, has a <cite>name</cite>, <cite>title</cite> and <cite>description</cite>, of which only the <cite>name</cite> is required.
+Fields also have a <cite>type</cite>. This describes the data expected and limits the actions which can be performed
+during the wrangling process.</p>
+<p>We want our destination data to conform to the following structure:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">=========</span>  <span class="o">============</span>  <span class="o">=============</span>  <span class="o">========</span>  <span class="o">================</span>  <span class="o">=====================</span>  <span class="o">=============</span>  <span class="o">========================</span>
+  <span class="n">la_code</span>        <span class="n">ba_ref</span>  <span class="n">occupant_name</span>  <span class="n">postcode</span>  <span class="n">occupation_state</span>  <span class="n">occupation_state_date</span>  <span class="n">prop_ba_rates</span>  <span class="n">occupation_state_reliefs</span>
+<span class="o">=========</span>  <span class="o">============</span>  <span class="o">=============</span>  <span class="o">========</span>  <span class="o">================</span>  <span class="o">=====================</span>  <span class="o">=============</span>  <span class="o">========================</span>
+<span class="n">E06000044</span>  <span class="mi">177500080710</span>  <span class="n">A</span> <span class="n">company</span>       <span class="n">PO5</span> <span class="mi">2</span><span class="n">SE</span>              <span class="kc">True</span>             <span class="mi">2019</span><span class="o">-</span><span class="mi">04</span><span class="o">-</span><span class="mi">01</span>          <span class="mi">98530</span>  <span class="p">[</span><span class="n">small_business</span><span class="p">,</span> <span class="n">retail</span><span class="p">]</span>
+<span class="o">=========</span>  <span class="o">============</span>  <span class="o">=============</span>  <span class="o">========</span>  <span class="o">================</span>  <span class="o">=====================</span>  <span class="o">=============</span>  <span class="o">========================</span>
+</pre></div>
+</div>
+<p>Each of these fields is a different <cite>type</cite> of data:</p>
+<ul class="simple">
+<li><p><cite>string</cite>: any text-based string.</p></li>
+<li><p><cite>number</cite>: any number-based value, including integers and floats.</p></li>
+<li><p><cite>integer</cite>: any integer-based value.</p></li>
+<li><p><cite>boolean</cite>: a boolean [<cite>true</cite>, <cite>false</cite>] value. Can set category constraints to fix term used.</p></li>
+<li><p><cite>object</cite>: any valid JSON data.</p></li>
+<li><p><cite>array</cite>: any valid array-based data.</p></li>
+<li><p><cite>date</cite>: any date without a time. Must be in ISO8601 format, <cite>YYYY-MM-DD</cite>.</p></li>
+<li><p><cite>datetime</cite>: any date with a time. Must be in ISO8601 format, with UTC time specified (optionally) as <cite>YYYY-MM-DD hh:mm:ss Zz</cite>.</p></li>
+<li><p><cite>year</cite>: any year, formatted as <cite>YYYY</cite>.</p></li>
+</ul>
+<p>In addition, these data can be <cite>constrained</cite>:</p>
+<ul class="simple">
+<li><p><cite>required</cite>: boolean, indicates whether this field is compulsory (but blank values in the input column are permitted and will be set to the <cite>missing</cite> default)</p></li>
+<li><p><cite>unique</cite>: boolean, if <cite>true</cite> then all values for that input column must be unique</p></li>
+<li><p><cite>minimum</cite>: <cite>integer</cite> / <cite>number</cite>, as appropriate defining min number of characters in a string, or the min values of numbers or integers</p></li>
+<li><p><cite>maximum</cite>: <cite>integer</cite> / <cite>number</cite>, as appropriate defining max number of characters in a string, or the max values of numbers or integers</p></li>
+<li><p><cite>category</cite>: the set of unique category terms permitted in this field</p></li>
+<li><p><cite>filter</cite>: limit a named field by date-limited data</p></li>
+</ul>
+<p>We’ll go through most of these in the tutorial. Note that some of these are only there to support
+post-wrangling (such as <cite>minimum</cite> or <cite>maximum</cite>). <cite>required</cite> means that a method won’t be validated
+if that field has no data.</p>
+<p>We’ll build a single dictionary and then iterate over the list to add each field:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">fields</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="p">{</span>
+                <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;la_code&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;title&quot;</span><span class="p">:</span> <span class="s2">&quot;Local authority code&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;string&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;Standard code for local authority.&quot;</span>
+        <span class="p">},</span>
+        <span class="p">{</span>
+                <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;ba_ref&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;title&quot;</span><span class="p">:</span> <span class="s2">&quot;Billing reference&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;string&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;Unique code for a specific hereditament. May be multiple rows for history.&quot;</span>
+        <span class="p">},</span>
+        <span class="p">{</span>
+                <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;prop_ba_rates&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;title&quot;</span><span class="p">:</span> <span class="s2">&quot;Property billing rates&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;number&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;Actual rates paid by a specific ratepayer.&quot;</span>
+        <span class="p">},</span>
+        <span class="p">{</span>
+                <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;occupant_name&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;title&quot;</span><span class="p">:</span> <span class="s2">&quot;Occupier name&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;string&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;Name of the ratepayer.&quot;</span>
+        <span class="p">},</span>
+        <span class="p">{</span>
+                <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;postcode&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;title&quot;</span><span class="p">:</span> <span class="s2">&quot;Postcode&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;string&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;Full address or postcode of ratepayer.&quot;</span>
+        <span class="p">},</span>
+        <span class="p">{</span>
+                <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;occupation_state&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;title&quot;</span><span class="p">:</span> <span class="s2">&quot;Occupation state&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;boolean&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;Occupation status, void or occupied.&quot;</span>
+        <span class="p">},</span>
+        <span class="p">{</span>
+                <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;occupation_state_date&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;title&quot;</span><span class="p">:</span> <span class="s2">&quot;Date of occupation state&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;date&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;Date of the start of status in occupation_state.&quot;</span>
+        <span class="p">},</span>
+        <span class="p">{</span>
+                <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;occupation_state_reliefs&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;title&quot;</span><span class="p">:</span> <span class="s2">&quot;Occupation state reliefs&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;array&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;Array of the categories of reliefs / exemptions applied.&quot;</span>
+        <span class="p">}</span>
+<span class="p">]</span>
+<span class="k">for</span> <span class="n">field</span> <span class="ow">in</span> <span class="n">fields</span><span class="p">:</span>
+        <span class="n">schema</span><span class="o">.</span><span class="n">set_field</span><span class="p">(</span><span class="o">**</span><span class="n">field</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>From here on we can access any <cite>field</cite> by calling it by <cite>name</cite> and then edit it as required:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">schema</span><span class="o">.</span><span class="n">field</span><span class="p">(</span><span class="s2">&quot;occupation_state_reliefs&quot;</span><span class="p">)</span>
+
+<span class="p">{</span><span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;occupation_state_reliefs&#39;</span><span class="p">,</span>
+ <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;array&#39;</span><span class="p">,</span>
+ <span class="s1">&#39;title&#39;</span><span class="p">:</span> <span class="s1">&#39;Occupation state reliefs&#39;</span><span class="p">,</span>
+ <span class="s1">&#39;description&#39;</span><span class="p">:</span> <span class="s1">&#39;Array of the categories of reliefs / exemptions applied.&#39;</span><span class="p">}</span>
+</pre></div>
+</div>
+<p>Let’s add a list of <cite>category</cite> terms as a constraint for <cite>occupation_state_reliefs</cite>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">categories</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;small_business&quot;</span><span class="p">,</span> <span class="s2">&quot;rural&quot;</span><span class="p">,</span> <span class="s2">&quot;charity&quot;</span><span class="p">,</span> <span class="s2">&quot;enterprise_zone&quot;</span><span class="p">,</span> <span class="s2">&quot;vacancy&quot;</span><span class="p">,</span> <span class="s2">&quot;hardship&quot;</span><span class="p">,</span> <span class="s2">&quot;retail&quot;</span><span class="p">,</span> <span class="s2">&quot;discretionary&quot;</span><span class="p">,</span> <span class="s2">&quot;exempt&quot;</span><span class="p">,</span> <span class="s2">&quot;transitional&quot;</span><span class="p">,</span> <span class="s2">&quot;other&quot;</span><span class="p">]</span>
+<span class="n">schema</span><span class="o">.</span><span class="n">set_field_category</span><span class="p">(</span><span class="s2">&quot;occupation_state_reliefs&quot;</span><span class="p">,</span> <span class="o">*</span><span class="n">categories</span><span class="p">)</span>
+<span class="n">schema</span><span class="o">.</span><span class="n">field</span><span class="p">(</span><span class="s2">&quot;occupation_state_reliefs&quot;</span><span class="p">)</span>
+
+<span class="p">{</span><span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;occupation_state_reliefs&#39;</span><span class="p">,</span>
+ <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;array&#39;</span><span class="p">,</span>
+ <span class="s1">&#39;constraints&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;category&#39;</span><span class="p">:</span> <span class="p">[{</span><span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;small_business&#39;</span><span class="p">},</span>
+   <span class="p">{</span><span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;rural&#39;</span><span class="p">},</span>
+   <span class="p">{</span><span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;charity&#39;</span><span class="p">},</span>
+   <span class="p">{</span><span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;enterprise_zone&#39;</span><span class="p">},</span>
+   <span class="p">{</span><span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;vacancy&#39;</span><span class="p">},</span>
+   <span class="p">{</span><span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;hardship&#39;</span><span class="p">},</span>
+   <span class="p">{</span><span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;retail&#39;</span><span class="p">},</span>
+   <span class="p">{</span><span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;discretionary&#39;</span><span class="p">},</span>
+   <span class="p">{</span><span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;exempt&#39;</span><span class="p">},</span>
+   <span class="p">{</span><span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;transitional&#39;</span><span class="p">},</span>
+   <span class="p">{</span><span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;other&#39;</span><span class="p">}]},</span>
+ <span class="s1">&#39;title&#39;</span><span class="p">:</span> <span class="s1">&#39;Occupation state reliefs&#39;</span><span class="p">,</span>
+ <span class="s1">&#39;description&#39;</span><span class="p">:</span> <span class="s1">&#39;Array of the categories of reliefs / exemptions applied.&#39;</span><span class="p">}</span>
+</pre></div>
+</div>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="schema.html" class="btn btn-neutral float-right" title="Schema" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="installation.html" class="btn btn-neutral float-left" title="Requirements, installation &amp; importing" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2020, Gavin Chait
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

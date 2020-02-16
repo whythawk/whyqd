@@ -26,10 +26,23 @@ Once complete, a method file can be shared, along with your input data, and anyo
 import **whyqd** and validate your method to verify that your output data is the product of these
 inputs.
 
+How does it work?
+-----------------
+
+There is a full worked :doc:`tutorial` to help you on your way, but the core process is as follows:
+
+  - Create, update or import a data schema which defines the destination data structure
+  - Create a new method and associate it with your schema and input data source/s
+  - Assign a foreign key column and (if required) merge input data sources
+  - Structure input data fields to conform to the requriements for each schema field
+  - Assign categorical data identified during structuring
+  - Transform and filter input data to produce a final destination data file
+
 .. toctree::
    :caption: Getting started
 
    installation
+   tutorial
 
 .. toctree::
    :maxdepth: 2
@@ -44,7 +57,13 @@ inputs.
    method
 
 .. toctree::
-   :caption: Class API
+   :caption: What next?
+
+   roadmap
+   contributing
+
+.. toctree::
+   :caption: Reference API
 
    field_api
    schema_api

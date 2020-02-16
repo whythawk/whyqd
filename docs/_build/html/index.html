@@ -82,6 +82,7 @@
               <p class="caption"><span class="caption-text">Getting started</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="installation.html">Requirements, installation &amp; importing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial.html">Full worked tutorial</a></li>
 </ul>
 <p class="caption"><span class="caption-text">Creating and managing Schemas</span></p>
 <ul>
@@ -91,7 +92,7 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="method.html">Method</a></li>
 </ul>
-<p class="caption"><span class="caption-text">Class API</span></p>
+<p class="caption"><span class="caption-text">Reference API</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="field_api.html">Field</a></li>
 <li class="toctree-l1"><a class="reference internal" href="schema_api.html">Schema</a></li>
@@ -180,12 +181,30 @@ approach, validate your methodology, or even use your methods to import data in 
 <p>Once complete, a method file can be shared, along with your input data, and anyone can
 import <strong>whyqd</strong> and validate your method to verify that your output data is the product of these
 inputs.</p>
+</div>
+<div class="section" id="how-does-it-work">
+<h2>How does it work?<a class="headerlink" href="#how-does-it-work" title="Permalink to this headline">¶</a></h2>
+<p>There is a full worked <a class="reference internal" href="tutorial.html"><span class="doc">Full worked tutorial</span></a> to help you on your way, but the core process is as follows:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>Create, update or import a data schema which defines the destination data structure</p></li>
+<li><p>Create a new method and associate it with your schema and input data source/s</p></li>
+<li><p>Assign a foreign key column and (if required) merge input data sources</p></li>
+<li><p>Structure input data fields to conform to the requriements for each schema field</p></li>
+<li><p>Assign categorical data identified during structuring</p></li>
+<li><p>Transform and filter input data to produce a final destination data file</p></li>
+</ul>
+</div></blockquote>
 <div class="toctree-wrapper compound">
 <p class="caption"><span class="caption-text">Getting started</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="installation.html">Requirements, installation &amp; importing</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="installation.html#requirements">Requirements</a></li>
 <li class="toctree-l2"><a class="reference internal" href="installation.html#installing">Installing</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial.html">Full worked tutorial</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="tutorial.html#creating-a-schema">Creating a Schema</a></li>
 </ul>
 </li>
 </ul>
@@ -195,21 +214,8 @@ inputs.</p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="schema.html">Schema</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="schema.html#minimum-valid-requirements">Minimum valid requirements</a></li>
-<li class="toctree-l2"><a class="reference internal" href="schema.html#schema-descriptors">Schema descriptors</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="schema.html#name"><cite>name</cite></a></li>
-<li class="toctree-l3"><a class="reference internal" href="schema.html#title"><cite>title</cite></a></li>
-<li class="toctree-l3"><a class="reference internal" href="schema.html#description"><cite>description</cite></a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="schema.html#field-descriptors">Field descriptors</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="schema.html#id1"><cite>name</cite></a></li>
-<li class="toctree-l3"><a class="reference internal" href="schema.html#id2"><cite>title</cite></a></li>
-<li class="toctree-l3"><a class="reference internal" href="schema.html#id3"><cite>description</cite></a></li>
-<li class="toctree-l3"><a class="reference internal" href="schema.html#foreignkey"><cite>foreignKey</cite></a></li>
-<li class="toctree-l3"><a class="reference internal" href="schema.html#type-and-format"><cite>type</cite> and <cite>format</cite></a></li>
-<li class="toctree-l3"><a class="reference internal" href="schema.html#missing"><cite>missing</cite></a></li>
-</ul>
-</li>
+<li class="toctree-l2"><a class="reference internal" href="schema.html#schema-descriptors">Schema descriptors</a></li>
+<li class="toctree-l2"><a class="reference internal" href="schema.html#field-descriptors">Field descriptors</a></li>
 <li class="toctree-l2"><a class="reference internal" href="schema.html#field-constraints">Field constraints</a></li>
 <li class="toctree-l2"><a class="reference internal" href="schema.html#field-constraints-category">Field constraints: category</a></li>
 <li class="toctree-l2"><a class="reference internal" href="schema.html#field-constraints-filter">Field constraints: filter</a></li>
@@ -232,7 +238,9 @@ inputs.</p>
 </ul>
 </div>
 <div class="toctree-wrapper compound">
-<p class="caption"><span class="caption-text">Class API</span></p>
+</div>
+<div class="toctree-wrapper compound">
+<p class="caption"><span class="caption-text">Reference API</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="field_api.html">Field</a></li>
 <li class="toctree-l1"><a class="reference internal" href="schema_api.html">Schema</a></li>
