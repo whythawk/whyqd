@@ -1,4 +1,9 @@
 """
+.. module:: method
+   :synopsis: Create and manage a wrangling method based on a predefined schema.
+
+.. moduleauthor:: Gavin Chait <github.com/turukawa>
+
 Method
 ======
 
@@ -9,8 +14,8 @@ complete, structured JSON file which describes all aspects of the wrangling proc
 A method file can be shared, along with your input data, and anyone can import **whyqd** and
 validate your method to verify that your output data is the product of these inputs::
 
-	>>> import whyqd as _w
-	>>> method = _w.Method(source, directory=DIRECTORY, input_data=INPUT_DATA)
+	import whyqd as _w
+	method = _w.Method(source, directory=DIRECTORY, input_data=INPUT_DATA)
 
 `source` is the full path to the schema you wish to use, and `DIRECTORY` will be your working
 directory for saved data, imports, working data and output.
@@ -23,15 +28,17 @@ Help
 
 To get help, type::
 
-	>>> method.help(option)
+	method.help()
+	# or
+	method.help(option)
 
-Where `option` can be any of:
+Where `option` can be any of::
 
-	status
-	merge
-	structure
-	category
-	filter
+	"status"
+	"merge"
+	"structure"
+	"category"
+	"filter"
 
 `status` will return the current method status, and your mostly likely next steps. The other options
 will return methodology, and output of that option's result (if appropriate).
@@ -46,19 +53,19 @@ revalidation of all subsequent steps.
 
 To add input data, where `input_data` is a filename / source, or list of filenames / sources::
 
-	>>> method.add_input_data(input_data)
+	method.add_input_data(input_data)
 
 To remove input data, where `id` is the unique id for that input data:
 
-	>>> method.remove_input_data(id)
+	method.remove_input_data(id)
 
 To display a nicely-formatted output for review::
 
 	# Permits horizontal scroll-bar in Jupyter Notebook
-	>>> from IPython.core.display import HTML
-	>>> display(HTML("<style>pre { white-space: pre !important; }</style>"))
+	from IPython.core.display import HTML
+	display(HTML("<style>pre { white-space: pre !important; }</style>"))
 
-	>>> print(method.pretty_print_input_data())
+	print(method.pretty_print_input_data())
 
 	Data id: c8944fed-4e8c-4cbd-807d-53fcc96b7018
 
@@ -98,23 +105,23 @@ order, and a unique key for merging. Each input data file needs to be defined in
 Run the merge by calling (and, optionally - if you need to overwrite an existing merge - setting
 `overwrite_working=True`):
 
-	>>> method.merge(order_and_key, overwrite_working=True)
+	method.merge(order_and_key, overwrite_working=True)
 
 To view your existing `input_data` as a JSON output (or the `pretty_print_input_data` as above)::
 
-	>>> method.input_data
+	method.input_data
 
 Structure
 ---------
 `structure` is the core of the wrangling process and is the step where you define the actions
 which must be performed to restructure your working data.
 
-Create a list of methods of the form:
+Create a list of methods of the form::
 
-	{{
+	{
 		"schema_field1": ["action", "column_name1", ["action", "column_name2"]],
 		"schema_field2": ["action", "column_name1", "modifier", ["action", "column_name2"]],
-	}}
+	}
 
 The format for defining a `structure` is as follows, and - yes - this does permit you to create
 nested wrangling tasks::
@@ -130,50 +137,57 @@ This permits the creation of quite expressive wrangling structures from simple b
 Every task structure must start with an action to describe what to do with the following terms.
 There are several "actions" which can be performed, and some require action modifiers:
 
-	NEW:			Add in a new column, and populate it according to the value in the "new"
-					constraint;
-	RENAME:			If only 1 item in list of source fields, then rename that field;
-	ORDER:			If > 1 item in list of source fields, pick the value from the column,
-					replacing each value with one from the next in the order of the provided
-					fields;
-	ORDER_NEW:		As in ORDER, but replacing each value with one associated with a
-					newer "dateorder" constraint;
-					MODIFIER: + between terms for source and source_date;
-	ORDER_OLD:		As in ORDER, but replacing each value with one associated with an
-					older "dateorder" constraint;
-					MODIFIER: + between terms for source and source_date;
-	CALCULATE:		Only if of "type" = "float64" (or which can be forced to float64);
-					MODIFIER: + or - before each term to define whether add or subtract;
-	JOIN:			Only if of "type" = "object", join text with " ".join();
-	CATEGORISE:		Only if of "type" = "string"; look for associated constraint, "categorise"
-					where True = keep a list of categories, False = set True if terms found
-					in list;
-					MODIFIER: + before terms where column values to be classified as unique;
-							  - before terms where column values are treated as boolean;
+	* NEW: Add in a new column, and populate it according to the value in the "new" constraint
+
+	* RENAME: If only 1 item in list of source fields, then rename that field
+
+	* ORDER: If > 1 item in list of source fields, pick the value from the column, replacing each value with one from the next in the order of the provided fields
+
+	* ORDER_NEW: As in ORDER, but replacing each value with one associated with a newer "dateorder" constraint
+
+		* MODIFIER: `+` between terms for source and source_date
+
+	* ORDER_OLD: As in ORDER, but replacing each value with one associated with an older "dateorder" constraint
+
+		* MODIFIER: `+` between terms for source and source_date
+
+	* CALCULATE: Only if of "type" = "float64" (or which can be forced to float64)
+
+		* MODIFIER: `+` or `-` before each term to define whether add or subtract
+
+	* JOIN: Only if of "type" = "object", join text with " ".join()
+
+	* CATEGORISE: Only if of "type" = "string"; look for associated constraint, "categorise" where `True` = keep a list of categories, `False` = set True if terms found in list
+
+		* MODIFIER:
+
+			* `+` before terms where column values to be classified as unique
+
+			* `-` before terms where column values are treated as boolean
 
 Category
 --------
 
 Provide a list of categories of the form::
 
-	{{
-		"schema_field1": {{
+	{
+		"schema_field1": {
 			"category_1": ["term1", "term2", "term3"],
 			"category_2": ["term4", "term5", "term6"]
-		}}
-	}}
+		}
+	}
 
 The format for defining a `category` term as follows::
 
-	`term_name::column_name`
+	term_name::column_name
 
 Get a list of available terms, and the categories for assignment, by calling::
 
-	>>> method.category(field_name)
+	method.category(field_name)
 
 Once your data are prepared as above::
 
-	>>> method.set_category(**category)
+	method.set_category(**category)
 
 Filter
 ------
@@ -184,21 +198,21 @@ outside the bounds of a previous import.
 This is also an optional step. By default, if no filters are present, the transformed output
 will include `ALL` data. Parameters for filtering:
 
-	`field_name`: Name of field on which filters to be set
-	`filter_name`: Name of filter type from the list of valid filter names
-	`filter_date`: A date in the format specified by the field type
-	`foreign_field`: Name of field to which filter will be applied. Defaults to `field_name`
+	* `field_name`: Name of field on which filters to be set
+	* `filter_name`: Name of filter type from the list of valid filter names
+	* `filter_date`: A date in the format specified by the field type
+	* `foreign_field`: Name of field to which filter will be applied. Defaults to `field_name`
 
 There are four filter_names:
 
-	`ALL`: default, import all data
-	`LATEST`: only the latest date
-	`BEFORE`: before a specified date
-	`AFTER`: after a specified date
+	* `ALL`: default, import all data
+	* `LATEST`: only the latest date
+	* `BEFORE`: before a specified date
+	* `AFTER`: after a specified date
 
 `BEFORE` and `AFTER` take an optional `foreign_field` term for filtering on that column. e.g::
 
-	>>> method.set_filter("occupation_state_date", "AFTER", "2019-09-01", "ba_ref")
+	method.set_filter("occupation_state_date", "AFTER", "2019-09-01", "ba_ref")
 
 Filters references in column `ba_ref` by dates in column `occupation_state_date` after `2019-09-01`.
 
@@ -206,16 +220,16 @@ Validation
 ----------
 Each step can be validated and, once all steps validate, you can move to transformation of your data::
 
-	>>> method.validate_input_data
-	>>> method.validate_merge_data
-	>>> method.validate_merge
-	>>> method.validate_structure
-	>>> method.validate_category
-	>>> method.validate_filter
+	method.validate_input_data
+	method.validate_merge_data
+	method.validate_merge
+	method.validate_structure
+	method.validate_category
+	method.validate_filter
 
 Or, to run all the above and complete the method (setting status to 'Ready to Transform')::
 
-	>>> method.validate
+	method.validate
 """
 import os, uuid
 from shutil import copyfile
@@ -273,7 +287,7 @@ class Method(Schema):
 		"""
 		Merge input data on a key column.
 
-		Paramaters
+		Parameters
 		----------
 		order_and_key: list
 			List of dictionaries specifying `input_data` order and key for merge. Can also use

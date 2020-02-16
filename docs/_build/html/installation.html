@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Search &mdash; whyqd 0.1.0 documentation</title>
+  <title>Requirements, installation &amp; importing &mdash; whyqd 0.1.0 documentation</title>
   
 
   
@@ -25,7 +25,6 @@
         <script src="_static/underscore.js"></script>
         <script src="_static/doctools.js"></script>
         <script src="_static/language_data.js"></script>
-        <script src="_static/searchtools.js"></script>
     
     <script type="text/javascript" src="_static/js/theme.js"></script>
 
@@ -35,7 +34,9 @@
   <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
   <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="genindex.html" />
-    <link rel="search" title="Search" href="#" /> 
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Schema" href="schema.html" />
+    <link rel="prev" title="whyqd: simplicity, transparency, speed" href="index.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -62,7 +63,7 @@
 
           
 <div role="search">
-  <form id="rtd-search-form" class="wy-form" action="#" method="get">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
@@ -80,8 +81,12 @@
             
             
               <p class="caption"><span class="caption-text">Getting started</span></p>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="installation.html">Requirements, installation &amp; importing</a></li>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Requirements, installation &amp; importing</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#requirements">Requirements</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#installing">Installing</a></li>
+</ul>
+</li>
 </ul>
 <p class="caption"><span class="caption-text">Creating and managing Schemas</span></p>
 <ul>
@@ -135,12 +140,14 @@
     
       <li><a href="index.html">Docs</a> &raquo;</li>
         
-      <li>Search</li>
+      <li>Requirements, installation &amp; importing</li>
     
     
       <li class="wy-breadcrumbs-aside">
         
             
+            <a href="_sources/installation.rst.txt" rel="nofollow"> View page source</a>
+          
         
       </li>
     
@@ -152,24 +159,53 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <noscript>
-  <div id="fallback" class="admonition warning">
-    <p class="last">
-      Please activate JavaScript to enable the search
-      functionality.
-    </p>
-  </div>
-  </noscript>
+  <div class="section" id="requirements-installation-importing">
+<h1>Requirements, installation &amp; importing<a class="headerlink" href="#requirements-installation-importing" title="Permalink to this headline">¶</a></h1>
+<p><strong>whyqd</strong> can be integrated into an existing data importer, or you could use it as part of your
+data analysis and exploration in Jupyter Notebooks. Tables can be printed as reStructuredText or
+as Pandas dataframes.</p>
+<div class="section" id="requirements">
+<h2>Requirements<a class="headerlink" href="#requirements" title="Permalink to this headline">¶</a></h2>
+<p><strong>whyqd</strong> has a relatively short list of requirements (excl. dependencies):</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>Python 3.7+</p></li>
+<li><p>Pandas 1.0+</p></li>
+<li><p>Tabulate 0.8+ (for pretty-printing tables)</p></li>
+</ul>
+</div></blockquote>
+<p>It could run on lower versions, but this hasn’t been tested. If you want to work with Jupyter, then
+either install Jupyter only, or Anaconda.</p>
+</div>
+<div class="section" id="installing">
+<h2>Installing<a class="headerlink" href="#installing" title="Permalink to this headline">¶</a></h2>
+<p>Install with <cite>pip</cite>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="n">whyqd</span>
+</pre></div>
+</div>
+<p>Then import:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">whyqd</span>
+</pre></div>
+</div>
+<p>Your next steps are to build a target <a class="reference internal" href="schema.html"><span class="doc">Schema</span></a> to describe the data structure, and then import
+that into a <a class="reference internal" href="method.html"><span class="doc">Method</span></a>.</p>
+</div>
+</div>
 
-  
-  <div id="search-results">
-  
-  </div>
 
            </div>
            
           </div>
           <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="schema.html" class="btn btn-neutral float-right" title="Schema" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="index.html" class="btn btn-neutral float-left" title="whyqd: simplicity, transparency, speed" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
   
 
   <hr/>
@@ -202,14 +238,7 @@
   
   
     
-  
-  <script type="text/javascript">
-    jQuery(function() { Search.loadIndex("searchindex.js"); });
-  </script>
-  
-  <script type="text/javascript" id="searchindexloader"></script>
    
-
 
 </body>
 </html>

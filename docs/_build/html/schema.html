@@ -1,0 +1,757 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Schema &mdash; whyqd 0.1.0 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Method" href="method.html" />
+    <link rel="prev" title="Requirements, installation &amp; importing" href="installation.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> whyqd
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Getting started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Requirements, installation &amp; importing</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Creating and managing Schemas</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Schema</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#minimum-valid-requirements">Minimum valid requirements</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#schema-descriptors">Schema descriptors</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#name"><cite>name</cite></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#title"><cite>title</cite></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#description"><cite>description</cite></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#field-descriptors">Field descriptors</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id1"><cite>name</cite></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id2"><cite>title</cite></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id3"><cite>description</cite></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#foreignkey"><cite>foreignKey</cite></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#type-and-format"><cite>type</cite> and <cite>format</cite></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#missing"><cite>missing</cite></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#field-constraints">Field constraints</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#field-constraints-category">Field constraints: category</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#field-constraints-filter">Field constraints: filter</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption"><span class="caption-text">Wrangling with Methods</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="method.html">Method</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">whyqd</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>Schema</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/schema.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <span class="target" id="module-whyqd.schema.schema"></span><span class="target" id="module-schema"></span><div class="section" id="schema">
+<h1>Schema<a class="headerlink" href="#schema" title="Permalink to this headline">¶</a></h1>
+<p>Creating a <cite>schema</cite> is the first part of the wrangling process. Your schema defines the structural
+metadata target for your wrangling process. This is not the format your input data arrive in, but
+it is what you require it to look like when you’re done.</p>
+<p>Your schema sets the requirements, constraints and sensible defaults available for creating each
+<cite>method</cite> that will describe the process for wrangling input data into the fields defined by the
+schema. It can be reused to create multiple <cite>methods</cite>. Once complete, automated scripts can perform
+further cleaning and validation.</p>
+<p>In simple terms, the columns in an input CSV or Excel-file will be restructured into new columns
+defined by the fields in your schema. These target fields are likely to be those in your database,
+or in your analytical software. Until your input data conform to this structure, you can’t do your
+real work.</p>
+<div class="section" id="minimum-valid-requirements">
+<h2>Minimum valid requirements<a class="headerlink" href="#minimum-valid-requirements" title="Permalink to this headline">¶</a></h2>
+<p>A minimum valid schema requires a <cite>name</cite> to identify the schema, and a single, minimally-valid
+<cite>field</cite> containing a <cite>name</cite> and <cite>type</cite>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+  <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;A simple name&quot;</span><span class="p">,</span>
+  <span class="s2">&quot;fields&quot;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="p">{</span>
+                <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;Field name, e.g. &#39;column_name&#39;&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;Valid data type, e.g. &#39;string&#39;, &#39;number&#39;&quot;</span>
+        <span class="p">}</span>
+  <span class="p">]</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>Everything else is optional, unless specifically required by that field-type.</p>
+</div>
+<div class="section" id="schema-descriptors">
+<h2>Schema descriptors<a class="headerlink" href="#schema-descriptors" title="Permalink to this headline">¶</a></h2>
+<p>Schema terms include:</p>
+<div class="section" id="name">
+<h3><cite>name</cite><a class="headerlink" href="#name" title="Permalink to this headline">¶</a></h3>
+<p>This is a required term. Spaces will be replaced with <cite>_</cite> and the string will be lowercased.</p>
+</div>
+<div class="section" id="title">
+<h3><cite>title</cite><a class="headerlink" href="#title" title="Permalink to this headline">¶</a></h3>
+<p>A human-readable version of the schema name.</p>
+</div>
+<div class="section" id="description">
+<h3><cite>description</cite><a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h3>
+<p>A complete description of the schema. Depending on how complex your work becomes, try and be as
+helpful as possible to ‘future-you’. You’ll thank yourself later.</p>
+</div>
+</div>
+<div class="section" id="field-descriptors">
+<h2>Field descriptors<a class="headerlink" href="#field-descriptors" title="Permalink to this headline">¶</a></h2>
+<p>Fields, similarly, contain <cite>name</cite>, <cite>title</cite> and <cite>description</cite>, as well as <cite>type</cite> as compulsory. To
+see the available field types:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">sc</span> <span class="o">=</span> <span class="n">_d</span><span class="o">.</span><span class="n">Schema</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">sc</span><span class="o">.</span><span class="n">default_field_types</span>
+<span class="go">[&#39;string&#39;,</span>
+<span class="go">&#39;number&#39;,</span>
+<span class="go">&#39;integer&#39;,</span>
+<span class="go">&#39;boolean&#39;,</span>
+<span class="go">&#39;object&#39;,</span>
+<span class="go">&#39;array&#39;,</span>
+<span class="go">&#39;date&#39;,</span>
+<span class="go">&#39;datetime&#39;,</span>
+<span class="go">&#39;year&#39;]</span>
+</pre></div>
+</div>
+<p>To see further parameter options for each default type:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">sc</span><span class="o">.</span><span class="n">default_field_settings</span><span class="p">(</span><span class="s1">&#39;string&#39;</span><span class="p">)</span>
+<span class="go">{</span>
+<span class="go">        &#39;required&#39;: [&#39;name&#39;, &#39;type&#39;],</span>
+<span class="go">        &#39;name&#39;: &#39;field_name&#39;,</span>
+<span class="go">        &#39;title&#39;: &#39;A human-readable version of the field name&#39;,</span>
+<span class="go">        &#39;description&#39;: &#39;Any text-based string.&#39;,</span>
+<span class="go">        &#39;type&#39;: &#39;string&#39;,</span>
+<span class="go">        &#39;format&#39;: {</span>
+<span class="go">                &#39;description&#39;: &#39;The format keyword options for `string` are `default`, `email`, `uri`, `binary`, and `uuid`.&#39;,</span>
+<span class="go">                &#39;category&#39;: [&#39;default&#39;, &#39;email&#39;, &#39;uri&#39;, &#39;binary&#39;, &#39;uuid&#39;],</span>
+<span class="go">                &#39;default&#39;: &#39;default&#39;</span>
+<span class="go">                },</span>
+<span class="go">        &#39;foreignKey&#39;: {</span>
+<span class="go">                &#39;type&#39;: &#39;boolean&#39;,</span>
+<span class="go">                &#39;description&#39;: &#39;Set `foreignKey` `true` if the field is to be treated as an immutable value.&#39;</span>
+<span class="go">                },</span>
+<span class="go">        &#39;constraints&#39;: {</span>
+<span class="go">                &#39;description&#39;: &#39;The following constraints are supported.&#39;,</span>
+<span class="go">                &#39;properties&#39;: {</span>
+<span class="go">                        &#39;required&#39;: {</span>
+<span class="go">                                &#39;type&#39;: &#39;boolean&#39;,</span>
+<span class="go">                                &#39;description&#39;: &#39;Indicates whether a property must have a value for each instance.&#39;</span>
+<span class="go">                        },</span>
+<span class="go">                        &#39;unique&#39;: {</span>
+<span class="go">                                &#39;type&#39;: &#39;boolean&#39;,</span>
+<span class="go">                                &#39;description&#39;: &#39;When `true`, each value for the property `MUST` be unique.&#39;</span>
+<span class="go">                        },</span>
+<span class="go">                &#39;category&#39;: {</span>
+<span class="go">                        &#39;type&#39;: &#39;array&#39;,</span>
+<span class="go">                        &#39;minItems&#39;: 1,</span>
+<span class="go">                        &#39;uniqueItems&#39;: True,</span>
+<span class="go">                        &#39;terms&#39;: {</span>
+<span class="go">                                &#39;type&#39;: &#39;string&#39;</span>
+<span class="go">                                }</span>
+<span class="go">                        },</span>
+<span class="go">                &#39;minimum&#39;: {</span>
+<span class="go">                        &#39;type&#39;: &#39;integer&#39;,</span>
+<span class="go">                        &#39;description&#39;: &#39;An integer that specifies the minimum length of a value.&#39;</span>
+<span class="go">                        },</span>
+<span class="go">                &#39;maximum&#39;: {</span>
+<span class="go">                        &#39;type&#39;: &#39;integer&#39;,</span>
+<span class="go">                        &#39;description&#39;: &#39;An integer that specifies the maximum length of a value.&#39;</span>
+<span class="go">                        }</span>
+<span class="go">                }</span>
+<span class="go">        },</span>
+<span class="go">&#39;missing&#39;: {</span>
+<span class="go">        &#39;description&#39;: &#39;Default to be used for missing values.&#39;,</span>
+<span class="go">        &#39;default&#39;: &#39;&#39;</span>
+<span class="go">        }</span>
+<span class="go">}</span>
+</pre></div>
+</div>
+<div class="section" id="id1">
+<h3><cite>name</cite><a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h3>
+<p>This is a required term and is equivalent to a column header. Spaces will be replaced with <cite>_</cite> and
+the string will be lowercased.</p>
+</div>
+<div class="section" id="id2">
+<h3><cite>title</cite><a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h3>
+<p>A human-readable version of the field name.</p>
+</div>
+<div class="section" id="id3">
+<h3><cite>description</cite><a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h3>
+<p>A complete description of the field. As for the schema, try and be as helpful as possible to
+future-you.</p>
+</div>
+<div class="section" id="foreignkey">
+<h3><cite>foreignKey</cite><a class="headerlink" href="#foreignkey" title="Permalink to this headline">¶</a></h3>
+<p>This is a boolean term, only required if you need this field to be treated as a foreign-key or
+identifier for your destination data:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="s2">&quot;foreignKey&quot;</span><span class="p">:</span> <span class="kc">True</span>
+</pre></div>
+</div>
+<p>Data in this field will not be tested for uniqueness. Instead, these data will remain immutable, not
+being ‘forced’ into a date or number type to preserve whatever fruity formatting are described in
+your input data.</p>
+<p>During the wrangling process, this field can be used for merging with other input
+data, ensuring consistency between sources.</p>
+</div>
+<div class="section" id="type-and-format">
+<h3><cite>type</cite> and <cite>format</cite><a class="headerlink" href="#type-and-format" title="Permalink to this headline">¶</a></h3>
+<p><cite>type</cite> defines the data-type of the field, while <cite>format</cite> - which is currently unsupported in
+wrangling - further refines the specific <cite>type</cite> properties. The core supported types, with indents
+for formats:</p>
+<ul class="simple">
+<li><p><cite>string</cite>: any text-based string.</p>
+<ul>
+<li><p><cite>default</cite>: any string</p></li>
+<li><p><cite>email</cite>: an email address</p></li>
+<li><p><cite>uri</cite>: any web address / URI</p></li>
+</ul>
+</li>
+<li><p><cite>number</cite>: any number-based value, including integers and floats.</p></li>
+<li><p><cite>integer</cite>: any integer-based value.</p></li>
+<li><p><cite>boolean</cite>: a boolean [<cite>true</cite>, <cite>false</cite>] value. Can set category constraints to fix term used.</p></li>
+<li><p><cite>object</cite>: any valid JSON data.</p></li>
+<li><p><cite>array</cite>: any valid array-based data.</p></li>
+<li><p><cite>date</cite>: any date without a time. Must be in ISO8601 format, <cite>YYYY-MM-DD</cite>.</p></li>
+<li><p><cite>datetime</cite>: any date with a time. Must be in ISO8601 format, with UTC time specified (optionally) as <cite>YYYY-MM-DD hh:mm:ss Zz</cite>.</p></li>
+<li><p><cite>year</cite>: any year, formatted as <cite>YYYY</cite>.</p></li>
+</ul>
+</div>
+<div class="section" id="missing">
+<h3><cite>missing</cite><a class="headerlink" href="#missing" title="Permalink to this headline">¶</a></h3>
+<p><cite>missing</cite> defines the value to be used for any blank values in a column. This is normally <cite>“”</cite> for
+text and <cite>np.nan</cite> for numbers or dates. You can, however, set your own defaults for each field.</p>
+</div>
+</div>
+<div class="section" id="field-constraints">
+<h2>Field constraints<a class="headerlink" href="#field-constraints" title="Permalink to this headline">¶</a></h2>
+<p><cite>Constraints</cite> are optional parameters that refine input data wrangling and act as a primary form of
+validation. Not all of these are available to every <cite>type</cite>, and <cite>default_field_settings(type)</cite>
+will list constraints available to a specific field type.</p>
+<p>Define these as part of your schema definition for a specific field:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+  <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;A simple name&quot;</span><span class="p">,</span>
+  <span class="s2">&quot;fields&quot;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="p">{</span>
+                <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;Field name, e.g. &#39;column_name&#39;&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;Valid data type, e.g. &#39;string&#39;, &#39;number&#39;&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;constraints&quot;</span><span class="p">:</span> <span class="p">{</span>
+                        <span class="s2">&quot;required&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+                        <span class="s2">&quot;unique&quot;</span><span class="p">:</span> <span class="kc">True</span>
+                <span class="p">}</span>
+        <span class="p">}</span>
+  <span class="p">]</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>All available constraints:</p>
+<ul class="simple">
+<li><p><cite>required</cite>: boolean, indicates whether this field is compulsory (but blank values in the input column are permitted and will be set to the <cite>missing</cite> default)</p></li>
+<li><p><cite>unique</cite>: boolean, if <cite>true</cite> then all values for that input column must be unique</p></li>
+<li><p><cite>minimum</cite>: <cite>integer</cite> / <cite>number</cite>, as appropriate defining min number of characters in a string, or the min values of numbers or integers</p></li>
+<li><p><cite>maximum</cite>: <cite>integer</cite> / <cite>number</cite>, as appropriate defining max number of characters in a string, or the max values of numbers or integers</p></li>
+</ul>
+</div>
+<div class="section" id="field-constraints-category">
+<h2>Field constraints: category<a class="headerlink" href="#field-constraints-category" title="Permalink to this headline">¶</a></h2>
+<p>In FrictionlessData.io, this is called <cite>enum</cite>, which isn’t particularly meaningful. <cite>Category</cite> data
+are the set of unique category terms permitted in this field. During wrangling you will be able to
+define values which should be assigned to each of these categories.</p>
+<p>Define these as part of your schema definition for a specific field:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+  <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;A simple name&quot;</span><span class="p">,</span>
+  <span class="s2">&quot;fields&quot;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="p">{</span>
+                <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;Field name, e.g. &#39;column_name&#39;&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;Valid data type, e.g. &#39;string&#39;, &#39;number&#39;&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;constraints&quot;</span><span class="p">:</span> <span class="p">{</span>
+                        <span class="s2">&quot;category&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;cheddar&quot;</span><span class="p">,</span> <span class="s2">&quot;gouda&quot;</span><span class="p">,</span> <span class="s2">&quot;other&quot;</span><span class="p">]</span>
+                <span class="p">}</span>
+        <span class="p">}</span>
+  <span class="p">]</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>Each field <cite>type</cite> will have its own category constraints. For example, boolean categories can use a
+different term than True / False defined by the category, but only permits two terms. Others have
+a minimum of one term in a category, but require the list member type to be <cite>string</cite>, <cite>number</cite>, etc.
+Ordinarily, <cite>category</cite> terms must be unique.</p>
+<p>Review the <cite>default_field_settings(type)</cite> for that field’s specific category constraints.</p>
+</div>
+<div class="section" id="field-constraints-filter">
+<h2>Field constraints: filter<a class="headerlink" href="#field-constraints-filter" title="Permalink to this headline">¶</a></h2>
+<p><cite>Filters</cite> are a constraint that filter a named field, or the <cite>foreignKey</cite>, by date-limited data.</p>
+<p>Define these as part of your schema definition for a valid field:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+  <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;A simple name&quot;</span><span class="p">,</span>
+  <span class="s2">&quot;fields&quot;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="p">{</span>
+                <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;Field name, e.g. &#39;column_name&#39;&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;Valid data type, e.g. &#39;date&#39;, &#39;datetime&#39;&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;filter&quot;</span><span class="p">:</span> <span class="p">{</span>
+                        <span class="s2">&quot;field&quot;</span><span class="p">:</span> <span class="s2">&quot;foreignKey&quot;</span><span class="p">,</span>
+                        <span class="s2">&quot;modifiers&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;LATEST&quot;</span><span class="p">,</span> <span class="s2">&quot;AFTER&quot;</span><span class="p">]</span>
+                <span class="p">}</span>
+        <span class="p">}</span>
+  <span class="p">]</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>There are two compulsory parameters defining a filter:</p>
+<ul class="simple">
+<li><p><cite>field</cite>: another field which is the subject of this filter, or by default the ‘foreignKey’.</p></li>
+<li><p><cite>modifiers</cite>: an array of permitted filter terms, including any of [“LATEST”, “AFTER”, “BEFORE”, “ALL”].</p></li>
+</ul>
+<p>call <cite>default_filter_names()</cite> to get a list, and <cite>default_filter_settings(filter_name)</cite> to get a
+definition</p>
+<p>For example, to filter all foreign keys (which may be duplicated as part of a time-series) to be
+more recent than a specified date, include “AFTER” in your list of filter modifiers.</p>
+</div>
+</div>
+<dl class="class">
+<dt id="whyqd.schema.schema.Schema">
+<em class="property">class </em><code class="sig-prename descclassname">whyqd.schema.schema.</code><code class="sig-name descname">Schema</code><span class="sig-paren">(</span><em class="sig-param">source=None</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#whyqd.schema.schema.Schema" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create and manage a target schema for a wrangling process.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>source</strong> (<em>path to a json file containing a saved schema</em><em>, </em><em>default is None</em>) – </p></li>
+<li><p><strong>kwargs</strong> (<em>a schema defined as a dictionary</em><em>, or </em><em>default blank dictionary</em>) – </p></li>
+</ul>
+</dd>
+</dl>
+<dl class="method">
+<dt id="whyqd.schema.schema.Schema.details">
+<em class="property">property </em><code class="sig-name descname">details</code><a class="headerlink" href="#whyqd.schema.schema.Schema.details" title="Permalink to this definition">¶</a></dt>
+<dd><p>Schema name, title and description.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> (<em>string</em>) – Term used for filename and referencing. Will be lower-cased and spaces replaced with <cite>_</cite></p></li>
+<li><p><strong>title</strong> (<em>string</em>) – Human-readable term used as name.</p></li>
+<li><p><strong>description</strong> (<em>string</em>) – Detailed description for the schema. Reference its objective and use-case.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="whyqd.schema.schema.Schema.set_details">
+<code class="sig-name descname">set_details</code><span class="sig-paren">(</span><em class="sig-param">name=None</em>, <em class="sig-param">title=None</em>, <em class="sig-param">description=None</em><span class="sig-paren">)</span><a class="headerlink" href="#whyqd.schema.schema.Schema.set_details" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set schema name, title and description. Can also be used to update existing information.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> (<em>string</em>) – Term used for filename and referencing. Will be lower-cased and spaces replaced with <cite>_</cite></p></li>
+<li><p><strong>title</strong> (<em>string</em>) – Human-readable term used as name.</p></li>
+<li><p><strong>description</strong> (<em>string</em>) – Detailed description for the schema. Reference its objective and use-case.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Raises</dt>
+<dd class="field-even"><p><strong>KeyError</strong> – if missing name:</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="whyqd.schema.schema.Schema.default_filter_names">
+<em class="property">property </em><code class="sig-name descname">default_filter_names</code><a class="headerlink" href="#whyqd.schema.schema.Schema.default_filter_names" title="Permalink to this definition">¶</a></dt>
+<dd><p>Default list of filter names available as field constraints for the schema. Returns only a
+list of types. Details for individual filters can be returned with
+<cite>default_filter_settings</cite>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p></p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="whyqd.schema.schema.Schema.default_filter_settings">
+<code class="sig-name descname">default_filter_settings</code><span class="sig-paren">(</span><em class="sig-param">filter_name</em><span class="sig-paren">)</span><a class="headerlink" href="#whyqd.schema.schema.Schema.default_filter_settings" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the default settings available for a specific filter.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>filter_name</strong> (<em>string</em>) – A specific name for a filter type (as listed in <cite>default_filter_names</cite>).</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>dict, or empty dict if no such <cite>filter_name</cite></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="whyqd.schema.schema.Schema.default_field_types">
+<em class="property">property </em><code class="sig-name descname">default_field_types</code><a class="headerlink" href="#whyqd.schema.schema.Schema.default_field_types" title="Permalink to this definition">¶</a></dt>
+<dd><p>Default list of field names available to define fields for the schema. Returns only a list
+of types. Details for individual default fields can be returned with
+<cite>default_field_settings</cite>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p></p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="whyqd.schema.schema.Schema.default_field_settings">
+<code class="sig-name descname">default_field_settings</code><span class="sig-paren">(</span><em class="sig-param">field_type</em><span class="sig-paren">)</span><a class="headerlink" href="#whyqd.schema.schema.Schema.default_field_settings" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the default settings available for a specific field type.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>field_type</strong> (<em>string</em>) – A specific term for a field type (as listed in <cite>default_field_types</cite>).</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>dict, or empty dict if no such <cite>field_type</cite></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="whyqd.schema.schema.Schema.all_fields">
+<em class="property">property </em><code class="sig-name descname">all_fields</code><a class="headerlink" href="#whyqd.schema.schema.Schema.all_fields" title="Permalink to this definition">¶</a></dt>
+<dd><p><cite>type</cite>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p></p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>dict, or empty dict if no fields</p>
+</dd>
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>Get dictionary of fields, where key</p>
+</dd>
+<dt class="field-even">Type</dt>
+<dd class="field-even"><p><cite>field_name</cite> and value</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="whyqd.schema.schema.Schema.all_field_names">
+<em class="property">property </em><code class="sig-name descname">all_field_names</code><a class="headerlink" href="#whyqd.schema.schema.Schema.all_field_names" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get list of field names,.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p></p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="whyqd.schema.schema.Schema.field">
+<code class="sig-name descname">field</code><span class="sig-paren">(</span><em class="sig-param">name</em><span class="sig-paren">)</span><a class="headerlink" href="#whyqd.schema.schema.Schema.field" title="Permalink to this definition">¶</a></dt>
+<dd><p>A specific field from the list of fields defining this schema, called by a unique <cite>name</cite>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>name</strong> (<em>string</em>) – Field names must be unique, so a valid <cite>name</cite> in the field list will have no collisions.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>dict, or empty dict if no such <cite>name</cite></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="whyqd.schema.schema.Schema.set_field">
+<code class="sig-name descname">set_field</code><span class="sig-paren">(</span><em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#whyqd.schema.schema.Schema.set_field" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the parameters for a specific field to define this schema, called by a unique <cite>name</cite>.
+If the <cite>name</cite> is already in the schema, then this will update that field.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>kwargs</strong> (<em>dict</em>) – Parameters will be validated against the type requirements, so check carefully with
+<cite>default_field_settings</cite>.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="whyqd.schema.schema.Schema.set_field_constraints">
+<code class="sig-name descname">set_field_constraints</code><span class="sig-paren">(</span><em class="sig-param">name</em>, <em class="sig-param">**constraints</em><span class="sig-paren">)</span><a class="headerlink" href="#whyqd.schema.schema.Schema.set_field_constraints" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the constraint parameters for a specific field to define this schema, called by a unique
+<cite>name</cite> already in the schema.</p>
+<p>The structure of the constraints is defined as follows:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+        <span class="s2">&quot;key&quot;</span><span class="p">:</span> <span class="s2">&quot;value&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;key&quot;</span><span class="p">:</span> <span class="s2">&quot;value&quot;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p><cite>category</cite> is a special constraint that can be defined as e.g.:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+        <span class="s2">&quot;category&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;term1&quot;</span><span class="p">,</span> <span class="s2">&quot;term2&quot;</span><span class="p">]</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>All that is required is a list, and the function will take care of the formal structure.
+<cite>filter</cite> are managed in the Method part of the process (since this are defined in respect
+to the data being structured).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> (<em>string</em>) – Specific name for a field already in the Schema</p></li>
+<li><p><strong>constraints</strong> (<em>dict</em>) – A set of key:value pairs defining constraints as described in <cite>default_field_settings</cite>.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="whyqd.schema.schema.Schema.validates">
+<em class="property">property </em><code class="sig-name descname">validates</code><a class="headerlink" href="#whyqd.schema.schema.Schema.validates" title="Permalink to this definition">¶</a></dt>
+<dd><p>Schema validates with all fields unique and required terms.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Raises</dt>
+<dd class="field-odd"><p><strong>ValueError on field failure.</strong> – </p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>bool</strong></p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>True for validates</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="whyqd.schema.schema.Schema.settings">
+<em class="property">property </em><code class="sig-name descname">settings</code><a class="headerlink" href="#whyqd.schema.schema.Schema.settings" title="Permalink to this definition">¶</a></dt>
+<dd><p>Schema settings returned as a dictionary.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p><strong>dict</strong></p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>settings</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="whyqd.schema.schema.Schema.save">
+<code class="sig-name descname">save</code><span class="sig-paren">(</span><em class="sig-param">directory</em>, <em class="sig-param">filename=None</em>, <em class="sig-param">overwrite=False</em>, <em class="sig-param">created_by=None</em><span class="sig-paren">)</span><a class="headerlink" href="#whyqd.schema.schema.Schema.save" title="Permalink to this definition">¶</a></dt>
+<dd><p>Schema settings returned as a dictionary.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>directory</strong> (<em>the destination directory</em>) – </p></li>
+<li><p><strong>filename</strong> (<em>default to schema name</em>) – </p></li>
+<li><p><strong>overwrite</strong> (<em>bool</em><em>, </em><em>True if overwrite existing file</em>) – </p></li>
+<li><p><strong>created_by</strong> (<em>string</em><em>, or </em><em>None</em><em>, </em><em>to define the schema creator/updater</em>) – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Raises</dt>
+<dd class="field-even"><p><strong>ValueError if no filename</strong> – </p>
+</dd>
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p></p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>bool True if saved</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="method.html" class="btn btn-neutral float-right" title="Method" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="installation.html" class="btn btn-neutral float-left" title="Requirements, installation &amp; importing" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2020, Gavin Chait
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

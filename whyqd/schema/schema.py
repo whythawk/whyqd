@@ -1,8 +1,11 @@
 """
 .. module:: schema
+   :synopsis: Create and manage a target data schema.
 
-Target Schema
-=============
+.. moduleauthor:: Gavin Chait <github.com/turukawa>
+
+Schema
+======
 
 Creating a `schema` is the first part of the wrangling process. Your schema defines the structural
 metadata target for your wrangling process. This is not the format your input data arrive in, but
@@ -170,8 +173,8 @@ for formats:
 * `boolean`: a boolean [`true`, `false`] value. Can set category constraints to fix term used.
 * `object`: any valid JSON data.
 * `array`: any valid array-based data.
-* `date`: any date without a time. Must be in ISO8601 format, `YYYY-MM-DD` with UTC time specified (optionally) as `YYYY-MM-DDThh:mm:ssZ`.
-* `datetime`: any date with a time. Must be in ISO8601 format, with UTC time specified (optionally) as `YYYY-MM-DDThh:mm:ssZ`.
+* `date`: any date without a time. Must be in ISO8601 format, `YYYY-MM-DD`.
+* `datetime`: any date with a time. Must be in ISO8601 format, with UTC time specified (optionally) as `YYYY-MM-DD hh:mm:ss Zz`.
 * `year`: any year, formatted as `YYYY`.
 
 `missing`
@@ -203,13 +206,10 @@ Define these as part of your schema definition for a specific field::
 
 All available constraints:
 
-* `required`: boolean, indicates whether this field is compulsory (but blank values in
-the input column are permitted and will be set to the `missing` default)
+* `required`: boolean, indicates whether this field is compulsory (but blank values in the input column are permitted and will be set to the `missing` default)
 * `unique`: boolean, if `true` then all values for that input column must be unique
-* `minimum`: `integer` / `number`, as appropriate defining min number of characters in a string, or
-the min values of numbers or integers
-* `maximum`: `integer` / `number`, as appropriate defining max number of characters in a string, or
-the max values of numbers or integers
+* `minimum`: `integer` / `number`, as appropriate defining min number of characters in a string, or the min values of numbers or integers
+* `maximum`: `integer` / `number`, as appropriate defining max number of characters in a string, or the max values of numbers or integers
 
 Field constraints: category
 ---------------------------
@@ -263,6 +263,7 @@ There are two compulsory parameters defining a filter:
 
 * `field`: another field which is the subject of this filter, or by default the 'foreignKey'.
 * `modifiers`: an array of permitted filter terms, including any of ["LATEST", "AFTER", "BEFORE", "ALL"].
+
 call `default_filter_names()` to get a list, and `default_filter_settings(filter_name)` to get a
 definition
 
@@ -276,8 +277,7 @@ from whyqd.schema import Field
 import whyqd.common as _c
 
 class Schema:
-	"""
-	Create and manage a target schema for a wrangling process.
+	"""Create and manage a target schema for a wrangling process.
 
 	Parameters
 	----------

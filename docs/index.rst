@@ -28,17 +28,19 @@ inputs.
 
 .. toctree::
    :maxdepth: 2
-   :caption: Contents:
+   :caption: Getting started
 
-.. automodule:: whyqd.schema.schema
-.. autoclass:: whyqd.schema.Schema
-   :members:
+   installation
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Creating and managing Schemas
+
+   schema
 
 
+.. toctree::
+   :maxdepth: 2
+   :caption: Wrangling with Methods
 
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
+   method
