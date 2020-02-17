@@ -9,6 +9,8 @@ from urllib.parse import urlparse
 from datetime import date, datetime, timedelta
 from pathlib import Path, PurePath
 import pandas as pd
+import locale
+locale.setlocale(locale.LC_ALL, "en_US.UTF-8")
 
 short_rows = 3
 long_rows = 5
@@ -94,6 +96,75 @@ def check_date_format(date_type, date_value):
 	txt = DATE_FORMATS[date_type]["txt"]
 	e = "Incorrect date format, should be: `{}`".format(txt)
 	raise ValueError(e)
+
+@staticmethod
+def parse_dates(x):
+	"""
+	This is the hard-won 'trust nobody', certainly not Americans, date parser.
+
+	Yes, this will put Errors in your data. Fix your dates.
+	"""
+	if pd.isnull(x): return pd.NaT
+	# Check if to_datetime can handle things
+	if not pd.isnull(pd.to_datetime(x, errors="coerce", dayfirst=True)):
+		return date.isoformat(pd.to_datetime(x, errors="coerce", dayfirst=True))
+	# Manually see if coersion will work
+	x = str(x).strip()[:10]
+	x = re.sub(r"[\\/,\.]","-", x)
+	try:
+		y, m, d = x.split("-")
+	except ValueError:
+		return "Error: Date ({})".format(x)
+	if len(y) < 4:
+		# Swap the day and year positions
+		# Ignore US dates - fuck 'em
+		d, m, y = x.split("-")
+	# Fat finger on 1999 ... not going to check for other date errors as no way to figure out
+	if y[0] == "9": y = "1" + y[1:]
+	x = "{}-{}-{}".format(y, m, d)
+	try:
+		x = datetime.strptime(x,"%Y-%m-%d")
+	except ValueError:
+		try:
+			x = datetime.strptime(x,"%Y-%m-%d")
+		except ValueError:
+			if x != "":
+				return "Error: Date ({})".format(x)
+			return pd.NaT
+	x = date.isoformat(x)
+	try:
+		pd.Timestamp(x)
+		return x
+	except pd.errors.OutOfBoundsDatetime:
+		return "Error: Date ({})".format(x)
+
+@staticmethod
+def parse_float(x):
+	"""
+	Regex to extract wrecked floats: https://stackoverflow.com/a/385597
+	Checked against: https://regex101.com/
+	"""
+	try:
+		return float(x)
+	except ValueError:
+		re_float = re.compile("""(?x)
+		   ^
+			  \D*     		# first, match an optional sign *and space*
+			  (             # then match integers or f.p. mantissas:
+				  \d+       # start out with a ...
+				  (
+					  \.\d* # mantissa of the form a.b or a.
+				  )?        # ? takes care of integers of the form a
+				 |\.\d+     # mantissa of the form .b
+			  )
+			  ([eE][+-]?\d+)?  # finally, optionally match an exponent
+		   $""")
+		try:
+			x = re_float.match(x).group(1)
+			x = re.sub(r"[^e0-9,-\.]","", str(x))
+			return locale.atof(x)
+		except (ValueError, AttributeError):
+			return np.nan
 
 ###################################################################################################
 ### JSON, Schema and Action get and set

@@ -242,6 +242,7 @@ from operator import itemgetter
 import whyqd.common as _c
 from whyqd.schema import Schema
 from whyqd.method import Action
+import transform as task
 
 STATUS_CODES = {
 	"WAITING": "Waiting ...",
@@ -321,13 +322,21 @@ class Method(Schema):
 		df = _c.get_dataframe(self.directory + self.schema_settings["input_data"][0]["file"],
 							  dtype = object)
 		df_key = self.schema_settings["input_data"][0]["key"]
+		missing_keys = []
 		for data in self.schema_settings["input_data"][1:]:
 			# defaulting to `dtype = object` ...
 			dfm = _c.get_dataframe(self.directory + data["file"], dtype = object)
 			dfm_key = data["key"]
+			missing_keys.append(dfm_key)
 			df = pd.merge(df, dfm, how="outer",
 						  left_on=df_key, right_on=dfm_key,
 						  indicator=False)
+		# Where left key values null, copy any values in the right join-field (i.e. no key match)
+		keys = [m for m in df.columns if any(k == m[:len(k)] for k in missing_keys)]
+		for key in keys:
+			df.loc[:, df_key] = np.where(pd.isnull(df[df_key]),
+										 df[key],
+										 df[df_key])
 		# Deduplicate any columns after merge (and deduplicate the deduplicate in case of artifacts)
 		df.columns = self.deduplicate_columns(self.deduplicate_columns(df.columns))
 		# Save the file to the working directory
@@ -709,6 +718,77 @@ class Method(Schema):
 		# Update the field
 		self.set_field(validate=False, **schema_field)
 		self._status = "READY_TRANSFORM"
+
+
+
+	def transform(self):
+		"""
+		Implement the method to transform input data into output data.
+		"""
+		self.validates
+		# Keep the original merge key field as a dtype=object to avoid messing with text formatting
+		# e.g. leading 0s in a reference id
+		set_dtypes = {}
+		set_dtypes[self.schema_settings["input_data"][0]["key"]] = object
+		df = _c.get_dataframe(self.directory + self.schema_settings["working_data"]["file"],
+							  dtype=set_dtypes)
+		# Begin transformations
+		for field_name in self.all_field_names:
+			field = self.field(field_name)
+			df = task.perform_transform(df, field_name, field["structure"],
+										category = field.get("category", {}).get("assigned"))
+		# Identify keep_fields
+		keep_fields = [field["data"]["name"] for field in method.get("fields", [])]
+		# Identify keep_fields not in df, and set blank fields for these
+		blank_fields = list(set(keep_fields) - set(df.columns))
+		for blank in blank_fields:
+			df[blank] = ""
+		# Conclude transformation
+		df = df[keep_fields]
+		df = df.loc[df.astype(str).drop_duplicates().index]
+		#df.drop_duplicates(inplace=True)
+		# If the user selects a filter-date, then filter by that date, keeping everything after.
+		# Note, very very not good ... hardwiring the fields
+		filter_field = "occupation_state_date"
+		method["filter_date_type"] = kwargs.get("filter")
+		method["filter_date_value"] = kwargs.get("date")
+		if kwargs.get("filter") == "LATEST":
+			# https://pandas.pydata.org/pandas-docs/stable/groupby.html#splitting-an-object-into-groups
+			df = df.sort_values(by=filter_field)
+			df = df.groupby("ba_ref")
+			# Select only the latest date
+			df = df.last()
+			# https://stackoverflow.com/a/20461206
+			df.reset_index(level=df.index.names, inplace=True)
+		if kwargs.get("filter") in ["AFTER", "LAST"] and kwargs.get("date"):
+			df = df[df[filter_field] > kwargs["date"]]
+		try:
+			method["last_date"] = df[filter_field].max()
+		except TypeError:
+			# They're not actually dates but are text for some reason
+			# method["last_date"] = df.sort_values(by=filter_field,
+			#                                      ascending=True,
+			#                                      na_position="first")[filter_field] \
+			#                         .iloc[-1]
+			# df = df.apply(lambda x: self.cf.parse_dates(x[filter_field]))
+			# method["last_date"] = df[filter_field].max()
+			pass
+		method["date"] = cf.get_now()
+		# Save and return
+		df.to_excel(dir_destination +
+					destination_name.format(method["code"], method["scope"], method["cycle"]),
+					index=False)
+		method["destination_file"] = {
+			"directory": dir_destination,
+			"file": destination_name.format(method["code"], method["scope"], method["cycle"]),
+			"df": df.head(long_rows).to_html(border=0, na_rep="")
+		}
+		# Continue Review Transform, but now heads to the Occupation Importer
+		method["state"] = "REVIEW_IMPORT"
+		save_method(**method)
+		return method
+
+
 
 	#########################################################################################
 	# SUPPORT FUNCTIONS
