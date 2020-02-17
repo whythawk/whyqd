@@ -571,7 +571,7 @@ class Schema:
 											 if f.name != field.name]
 		# update field
 		filters = deepcopy(filters)
-		modifiers = [f for f in self.default_filters["filters"]["modifiers"]
+		modifiers = [f for f in self.default_filters["filter"]["modifiers"]
 					 if f["name"] in filters]
 		if modifiers:
 			filters = {

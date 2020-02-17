@@ -85,6 +85,15 @@
 <li class="toctree-l1"><a class="reference internal" href="installation.html">Requirements, installation &amp; importing</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Full worked tutorial</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#creating-a-schema">Creating a Schema</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#creating-a-method">Creating a Method</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#initialise-a-method-and-import-input-data">Initialise a Method and import input data</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#organise-and-merge-input-data">Organise and Merge input data</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#create-a-wrangling-structure">Create a wrangling Structure</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#assigning-category-terms-to-fields">Assigning Category terms to fields</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#method-validation">Method Validation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#transform-your-data">Transform your data</a></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>
@@ -357,6 +366,691 @@ if that field has no data.</p>
  <span class="s1">&#39;title&#39;</span><span class="p">:</span> <span class="s1">&#39;Occupation state reliefs&#39;</span><span class="p">,</span>
  <span class="s1">&#39;description&#39;</span><span class="p">:</span> <span class="s1">&#39;Array of the categories of reliefs / exemptions applied.&#39;</span><span class="p">}</span>
 </pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>These are the official business <a class="reference external" href="https://www.gov.uk/apply-for-business-rate-relief">rates reliefs</a> permitted by the UK government. Unsurprisingly, only by accident do any local authorities actually use these terms when awarding a relief.</p>
+</div>
+<p>We could choose to limit the <cite>filter</cite> field for the <cite>occupation_state_date</cite>, but we’re not going to
+bother. Review your schema, then <cite>save</cite> and we’re ready to begin wrangling:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">schema</span><span class="o">.</span><span class="n">settings</span>
+
+<span class="p">{</span><span class="s1">&#39;fields&#39;</span><span class="p">:</span> <span class="p">[{</span><span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;la_code&#39;</span><span class="p">,</span>
+   <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;string&#39;</span><span class="p">,</span>
+   <span class="s1">&#39;title&#39;</span><span class="p">:</span> <span class="s1">&#39;Local authority code&#39;</span><span class="p">,</span>
+   <span class="s1">&#39;description&#39;</span><span class="p">:</span> <span class="s1">&#39;Standard code for local authority.&#39;</span><span class="p">},</span>
+  <span class="p">{</span><span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;ba_ref&#39;</span><span class="p">,</span>
+   <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;string&#39;</span><span class="p">,</span>
+   <span class="s1">&#39;title&#39;</span><span class="p">:</span> <span class="s1">&#39;Billing reference&#39;</span><span class="p">,</span>
+   <span class="s1">&#39;description&#39;</span><span class="p">:</span> <span class="s1">&#39;Unique code for a specific hereditament. May be multiple rows for history.&#39;</span><span class="p">},</span>
+  <span class="p">{</span><span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;prop_ba_rates&#39;</span><span class="p">,</span>
+   <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;number&#39;</span><span class="p">,</span>
+   <span class="s1">&#39;title&#39;</span><span class="p">:</span> <span class="s1">&#39;Property billing rates&#39;</span><span class="p">,</span>
+   <span class="s1">&#39;description&#39;</span><span class="p">:</span> <span class="s1">&#39;Actual rates paid by a specific ratepayer.&#39;</span><span class="p">},</span>
+  <span class="p">{</span><span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;occupant_name&#39;</span><span class="p">,</span>
+   <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;string&#39;</span><span class="p">,</span>
+   <span class="s1">&#39;title&#39;</span><span class="p">:</span> <span class="s1">&#39;Occupier name&#39;</span><span class="p">,</span>
+   <span class="s1">&#39;description&#39;</span><span class="p">:</span> <span class="s1">&#39;Name of the ratepayer.&#39;</span><span class="p">},</span>
+  <span class="p">{</span><span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;postcode&#39;</span><span class="p">,</span>
+   <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;string&#39;</span><span class="p">,</span>
+   <span class="s1">&#39;title&#39;</span><span class="p">:</span> <span class="s1">&#39;Postcode&#39;</span><span class="p">,</span>
+   <span class="s1">&#39;description&#39;</span><span class="p">:</span> <span class="s1">&#39;Full address or postcode of ratepayer.&#39;</span><span class="p">},</span>
+  <span class="p">{</span><span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;occupation_state&#39;</span><span class="p">,</span>
+   <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;boolean&#39;</span><span class="p">,</span>
+   <span class="s1">&#39;title&#39;</span><span class="p">:</span> <span class="s1">&#39;Occupation state&#39;</span><span class="p">,</span>
+   <span class="s1">&#39;description&#39;</span><span class="p">:</span> <span class="s1">&#39;Occupation status, void or occupied.&#39;</span><span class="p">},</span>
+  <span class="p">{</span><span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;occupation_state_date&#39;</span><span class="p">,</span>
+   <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;date&#39;</span><span class="p">,</span>
+   <span class="s1">&#39;title&#39;</span><span class="p">:</span> <span class="s1">&#39;Date of occupation state&#39;</span><span class="p">,</span>
+   <span class="s1">&#39;description&#39;</span><span class="p">:</span> <span class="s1">&#39;Date of the start of status in occupation_state.&#39;</span><span class="p">},</span>
+  <span class="p">{</span><span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;occupation_state_reliefs&#39;</span><span class="p">,</span>
+   <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;array&#39;</span><span class="p">,</span>
+   <span class="s1">&#39;constraints&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;category&#39;</span><span class="p">:</span> <span class="p">[{</span><span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;small_business&#39;</span><span class="p">},</span>
+         <span class="p">{</span><span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;rural&#39;</span><span class="p">},</span>
+         <span class="p">{</span><span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;charity&#39;</span><span class="p">},</span>
+         <span class="p">{</span><span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;enterprise_zone&#39;</span><span class="p">},</span>
+         <span class="p">{</span><span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;vacancy&#39;</span><span class="p">},</span>
+         <span class="p">{</span><span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;hardship&#39;</span><span class="p">},</span>
+         <span class="p">{</span><span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;retail&#39;</span><span class="p">},</span>
+         <span class="p">{</span><span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;discretionary&#39;</span><span class="p">},</span>
+         <span class="p">{</span><span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;exempt&#39;</span><span class="p">},</span>
+         <span class="p">{</span><span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;transitional&#39;</span><span class="p">},</span>
+         <span class="p">{</span><span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;other&#39;</span><span class="p">}]},</span>
+   <span class="s1">&#39;title&#39;</span><span class="p">:</span> <span class="s1">&#39;Occupation state reliefs&#39;</span><span class="p">,</span>
+   <span class="s1">&#39;description&#39;</span><span class="p">:</span> <span class="s1">&#39;Array of the categories of reliefs / exemptions applied.&#39;</span><span class="p">}],</span>
+ <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;rates_data_schema&#39;</span><span class="p">,</span>
+ <span class="s1">&#39;title&#39;</span><span class="p">:</span> <span class="s1">&#39;UK Ratepayer data schema&#39;</span><span class="p">,</span>
+ <span class="s1">&#39;description&#39;</span><span class="p">:</span> <span class="s1">&#39;Structural metadata target for imported messy data from the 348 local authorities in England &amp; Wales.&#39;</span><span class="p">}</span>
+
+<span class="n">schema</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">directory</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="n">filename</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="creating-a-method">
+<h2>Creating a Method<a class="headerlink" href="#creating-a-method" title="Permalink to this headline">¶</a></h2>
+<p><strong>whyqd</strong> can import any of CSV, XLS or XLSX files, but do check that these files actually open and
+are readable before proceeding. You’ll be surprised at the number of supposedly open datasets
+released with password-protection, fruity formatting, or completely corrupted.</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>The minimum required to ensure a dataset is machine-readable is that it have a header-row, and that there is no weird spacing or merged-fields (if you’re using Excel).</p>
+</div>
+<p>In our tutorial example, the data from <a class="reference external" href="https://www.portsmouth.gov.uk/ext/business/running-a-business/business-rates-foi-requests">Portsmouth City Council</a>
+include three Excel (XLS) data files:</p>
+<ul class="simple">
+<li><p><cite>NDR properties January 2020</cite></p></li>
+<li><p><cite>NDR reliefs January 2020</cite></p></li>
+<li><p><cite>Empty commercial properties January 2020</cite></p></li>
+</ul>
+<p>Apologies for not linking, but these are not persistent URIs. Keep that in mind in the code that
+follows.</p>
+<div class="section" id="initialise-a-method-and-import-input-data">
+<h3>Initialise a Method and import input data<a class="headerlink" href="#initialise-a-method-and-import-input-data" title="Permalink to this headline">¶</a></h3>
+<p>For the technically-minded, the <a class="reference internal" href="method_api.html"><span class="doc">Method</span></a> class inherits from the <a class="reference internal" href="schema_api.html"><span class="doc">Schema</span></a> class.
+This means you have all the schema functionality as well. Why have these separation of processes,
+then? Because schemas are used more often than they’re made, and it helps to keep the terminology
+very distinct.</p>
+<p>The only compulsory parameter needed when creating a method, is a reference to our source schema
+(the one we created above). We may also offer a working directory. During the process, <strong>whyqd</strong> will
+create a number of interim working data files, as well as your JSON method file, and your wrangled
+output data. You need to tell it where to work, or it will simply drop everything into the
+directory you’re calling the function from.</p>
+<p>We can also, at initialisation, provide the list of data sources:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">whyqd</span> <span class="k">as</span> <span class="nn">_w</span>
+
+<span class="n">SCHEMA_SOURCE</span> <span class="o">=</span> <span class="s2">&quot;/full/path_to/2020_rates_data_schema.json&quot;</span>
+<span class="n">DIRECTORY</span> <span class="o">=</span> <span class="s2">&quot;/path_to/working/directory/&quot;</span>
+<span class="c1"># Note: these links may no longer work when you follow this tutorial. Get the latest ones...</span>
+<span class="n">INPUT_DATA</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="s2">&quot;https://www.portsmouth.gov.uk/ext/documents-external/biz-ndr-properties-january-2020.xls&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;https://www.portsmouth.gov.uk/ext/documents-external/biz-ndr-reliefs-january-2020.xls&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;https://www.portsmouth.gov.uk/ext/documents-external/biz-empty-commercial-properties-january-2020.xls&quot;</span>
+<span class="p">]</span>
+<span class="n">method</span> <span class="o">=</span> <span class="n">_w</span><span class="o">.</span><span class="n">Method</span><span class="p">(</span><span class="n">SCHEMA_SOURCE</span><span class="p">,</span> <span class="n">directory</span><span class="o">=</span><span class="n">DIRECTORY</span><span class="p">,</span> <span class="n">input_data</span><span class="o">=</span><span class="n">INPUT_DATA</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>These data will be copied to your working directory and renamed to a unique hashed <cite>id</cite>.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p><strong>Data probity</strong> - the abilty to audit data and methodology back to source - is critical for research transparency and replication. You may end up with hundreds of similarly-named files in a single directory without much information as to where they come from, or how they were created. Unique ids, referenced in your method file, are a more useful way of ensuring you know what they were for.</p>
+</div>
+<p>The method class provides help at each step. Access it like this:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>print(method.help())
+
+**whyqd** provides data wrangling simplicity, complete audit transparency, and at speed.
+
+To get help, type:
+
+        &gt;&gt;&gt; method.help(option)
+
+Where `option` can be any of:
+
+        status
+        merge
+        structure
+        category
+        filter
+        transform
+
+`status` will return the current method status, and your mostly likely next steps. The other options
+will return methodology, and output of that option&#39;s result (if appropriate). The `error` will
+present an error trace and attempt to guide you to fix the process problem.
+
+Current method status: `Ready to Merge`
+</pre></div>
+</div>
+</div>
+<div class="section" id="organise-and-merge-input-data">
+<h3>Organise and Merge input data<a class="headerlink" href="#organise-and-merge-input-data" title="Permalink to this headline">¶</a></h3>
+<p>We have three input data files. These need to be consolidated into a single working data file via a
+merge. <strong>whyqd</strong> will iteratively join files in a list, adding the 2nd to the 1st, then the 3rd, etc.</p>
+<p>What we need to do is decide on the order, and identify a column that can be used to uniquely
+cross-reference rows in each file and link them together. We start with <cite>help</cite>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span># Permits horizontal scroll-bar in Jupyter Notebook
+from IPython.core.display import HTML
+display(HTML(&quot;&lt;style&gt;pre { white-space: pre !important; }&lt;/style&gt;&quot;))
+
+print(method.help(&quot;merge&quot;))
+
+`merge` will join, in order from right to left, your input data on a common column.
+
+To add input data, where `input_data` is a filename, or list of filenames:
+
+        &gt;&gt;&gt; method.add_input_data(input_data)
+
+To remove input data, where `id` is the unique id for that input data:
+
+        &gt;&gt;&gt; method.remove_input_data(id)
+
+Prepare an `order_and_key` list, where each dict in the list has:
+
+        {id: input_data id, key: column_name for merge}
+
+Run the merge by calling (and, optionally - if you need to overwrite an existing merge - setting
+`overwrite_working=True`):
+
+        &gt;&gt;&gt; method.merge(order_and_key, overwrite_working=True)
+
+To view your existing `input_data`:
+
+&gt;&gt;&gt; method.input_data
+
+Data id: ab79fc32-51ce-4e9e-80cf-493af94e4177
+Original source: https://www.portsmouth.gov.uk/ext/documents-external/biz-ndr-properties-january-2020.xls
+
+====  =================  =========================================================================  ==========================================  ===============  ====================  ========================
+  ..    Property ref no  Full Property Address                                                      Primary Liable party name                   Analysis Code    Account Start date      Current Rateable Value
+====  =================  =========================================================================  ==========================================  ===============  ====================  ========================
+   0       177200066910  Unit 7b, The Pompey Centre, Dickinson Road, Southsea, Hants, PO4 8SH       City Electrical Factors  Ltd                CW               2003-11-10 00:00:00                      37000
+   1       177209823010  Express By Holiday Inn, The Plaza, Gunwharf Quays, Portsmouth, PO1 3FD     Kew Green Hotels (Portsmouth Lrg1) Limited  CH               2003-11-08 00:00:00                     594000
+   2       177500013310  Unit 2cd, Shawcross Industrial Estate, Ackworth Road, Portsmouth, PO3 5JP  Personal details not supplied               CG1              1994-12-25 00:00:00                      13250
+====  =================  =========================================================================  ==========================================  ===============  ====================  ========================
+
+Data id: 3b2e9893-c04c-4714-b9bb-6dd2bf274db4
+Original source: https://www.portsmouth.gov.uk/ext/documents-external/biz-ndr-reliefs-january-2020.xls
+
+====  ===========================  =============================  =======================================================  =============================  ====================  =================================  ========================
+  ..    Property Reference Number  Primary Liable party name      Full Property Address                                    Current Relief Type            Account Start date    Current Relief Award Start Date      Current Rateable Value
+====  ===========================  =============================  =======================================================  =============================  ====================  =================================  ========================
+   0                 177500080710  Personal details not supplied  Ground Floor, 25, Albert Road, Southsea, Hants, PO5 2SE  Retail Discount                2003-05-14 00:00:00   2019-04-01 00:00:00                                    8600
+   1                 177504942310  Personal details not supplied  Ground Floor, 102, London Road, Portsmouth, PO2 0LZ      Small Business Relief England  2003-07-28 00:00:00   2005-04-01 00:00:00                                    9900
+   2                 177502823510  Personal details not supplied  33, Festing Road, Southsea, Hants, PO4 0NG               Small Business Relief England  2003-07-08 00:00:00   2005-04-01 00:00:00                                    6400
+====  ===========================  =============================  =======================================================  =============================  ====================  =================================  ========================
+
+Data id: 458d7c0b-1481-487e-b120-19ccd2326d24
+Original source: https://www.portsmouth.gov.uk/ext/documents-external/biz-empty-commercial-properties-january-2020.xls
+
+====  ===========================  ================================================================  =================================  ===================================  ===============  =======================================================  ========================
+  ..    Property Reference Number  Full Property Address                                             Current Property Exemption Code    Current Prop Exemption Start Date    Analysis Code    Primary Liable party name                                  Current Rateable Value
+====  ===========================  ================================================================  =================================  ===================================  ===============  =======================================================  ========================
+   0                 177512281010  Advertising Right, 29 Albert Road, Portsmouth, PO5 2SE            LOW RV                             2019-11-08 00:00:00                  CA1              Personal details not supplied                                                 700
+   1                 177590107810  24, Ordnance Court, Ackworth Road, Portsmouth, PO3 5RZ            INDUSTRIAL                         2019-09-23 00:00:00                  IF3              Personal details not supplied                                               11000
+   2                 177500058410  Unit 12, Admiral Park, Airport Service Road, Portsmouth, PO3 5RQ  EPRI                               2019-09-13 00:00:00                  CW               Legal &amp; General Property Partners (Industrial Fund) Ltd                     26500
+====  ===========================  ================================================================  =================================  ===================================  ===============  =======================================================  ========================
+
+Current method status: `Ready to Merge`
+</pre></div>
+</div>
+<p>Well, <cite>help</cite> shows us the first few rows of our input data, as well as their unique ids, and tells us
+to prepare an <cite>order_and_key</cite> list, where each dict in the list has:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="nb">id</span><span class="p">:</span> <span class="n">input_data</span> <span class="nb">id</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="n">column_name</span> <span class="k">for</span> <span class="n">merge</span><span class="p">}</span>
+</pre></div>
+</div>
+<p>Remember the original source file names:</p>
+<ul class="simple">
+<li><p><cite>NDR properties January 2020</cite></p></li>
+<li><p><cite>NDR reliefs January 2020</cite></p></li>
+<li><p><cite>Empty commercial properties January 2020</cite></p></li>
+</ul>
+<p>You’ll have to take my word for it, but that is a reasonable order, so we’re good. We do need to
+identify the merge columns. Each property has a unique (for a given order of “unique” … local
+government, mutter mutter) id, usually called some variation of “Property Reference”. Let’s create
+our <cite>order_and_key</cite> dict and then merge (and your reference ids will be different):</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>oak = [
+        {
+                &quot;id&quot;: &quot;ab79fc32-51ce-4e9e-80cf-493af94e4177&quot;,
+                &quot;key&quot;: &quot;Property ref no&quot;
+        },
+        {
+                &quot;id&quot;: &quot;3b2e9893-c04c-4714-b9bb-6dd2bf274db4&quot;,
+                &quot;key&quot;: &quot;Property Reference Number&quot;
+        },
+        {
+                &quot;id&quot;: &quot;458d7c0b-1481-487e-b120-19ccd2326d24&quot;,
+                &quot;key&quot;: &quot;Property Reference Number&quot;
+        }
+]
+method.merge(order_and_key=oak)
+
+UserWarning: &#39;3b2e9893-c04c-4714-b9bb-6dd2bf274db4.xls&#39; contains non-unique rows in column `Property Reference Number`
+UserWarning: &#39;458d7c0b-1481-487e-b120-19ccd2326d24.xls&#39; contains non-unique rows in column `Property Reference Number`
+</pre></div>
+</div>
+<p>OK, what does that <cite>warning</cite> mean?</p>
+<p>This is where we need a brief digression into the use of <a class="reference external" href="https://github.com/whythawk/data-as-a-science/">data as a science</a>
+(<em>and, why yes, we are working on exactly such a course, why do you ask?</em>).</p>
+<p>Underneath <strong>whyqd</strong> is <a class="reference external" href="https://pandas.pydata.org/">pandas</a>. A merge in a pandas dataframe will
+join the first of two rows. Any subsequent rows with a similar unique id will be added at the bottom
+(either ‘left’ or ‘right’, depending on the merge source), but orphaned. We can deal with this
+problem in a number of ways, but let’s go back and look at the source data.</p>
+<p>Each of our sources comes with most of the fields we want to populate our target schema. We can ‘fix’
+these orphaned rows in post. However, what happens if we couldn’t? That depends and requires you to
+have an indepth knowledge of your data source and research requirements. You may want to filter
+your source data in advance (i.e. create an interim schema and wrangle these data in as well).</p>
+<p>Wrangling your input data sounds like you needed an interim schema and method. Your objective is a
+readable, auditable method. Don’t try and do too much in one go. Work methodically to ensure you’re
+clear on what you’re doing at each step rather than getting all recursive in your methods:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>print(method.help(&quot;status&quot;))
+
+Current method status: `Ready to Structure`
+</pre></div>
+</div>
+</div>
+<div class="section" id="create-a-wrangling-structure">
+<h3>Create a wrangling Structure<a class="headerlink" href="#create-a-wrangling-structure" title="Permalink to this headline">¶</a></h3>
+<p>This is the part of the wrangling process where, depending on the scale of what you’re up to, you
+reach for Excel, <a class="reference external" href="https://openrefine.org/">OpenRefine</a> or some commercial alternative. These are
+sometimes outside of your workflow, or introduce (hello Excel) the potential for human error.</p>
+<p>Options like OpenRefine are great, but are quite heavy. They’re useful if you’re performing all
+your wrangling in one place (including dealing with row-level value errors), but it’s a fairly
+heavy investment in that system’s language and approach. On the other hand, if you’re already used
+to using pandas and Python for dealing with these post-wrangling validation errors, then <strong>whyqd</strong>
+offers:</p>
+<ul class="simple">
+<li><p>Simplicity: you already know Python, and - as you’ll see - not much is required to wire up a munge.</p></li>
+<li><p>Transparency: you’ll get a full audit trail in a readable JSON file.</p></li>
+<li><p>Speed: hopefully you’ll get a sense of that through this tutorial.</p></li>
+</ul>
+<p>Critically, <strong>whyqd</strong> is for <em>repeatable</em> processing. Next quarter, Portsmouth will update their data
+and we want to import it again. However, it probably won’t be in the same format as this quarter
+since a human being prepared and uploaded these data. That person doesn’t know about your use-case
+and probably doesn’t care (at least they haven’t accused you of <a class="reference external" href="http://informationrights.decisions.tribunals.gov.uk/DBFiles/Decision/i2557/Westminster%20City%20Council%20EA-2018-0033%20(04.12.19).pdf">promoting terrorism</a>
+with these data). Maybe they change some column names. The URI will definitely be different, and maybe
+so will the file order. These are simple changes and all that’s required is a minor adjustment to the
+method to run this process again.</p>
+<p>Let’s start with <cite>help</cite>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>print(method.help(&quot;structure&quot;))
+
+`structure` is the core of the wrangling process and is the process where you define the actions
+which must be performed to restructure your working data.
+
+Create a list of methods of the form:
+
+        {
+                &quot;schema_field1&quot;: [&quot;action&quot;, &quot;column_name1&quot;, [&quot;action&quot;, &quot;column_name2&quot;]],
+                &quot;schema_field2&quot;: [&quot;action&quot;, &quot;column_name1&quot;, &quot;modifier&quot;, [&quot;action&quot;, &quot;column_name2&quot;]],
+        }
+
+The format for defining a `structure` is as follows::
+
+        [action, column_name, [action, column_name]]
+
+e.g.::
+
+        [&quot;CATEGORISE&quot;, &quot;+&quot;, [&quot;ORDER&quot;, &quot;column_1&quot;, &quot;column_2&quot;]]
+
+This permits the creation of quite expressive wrangling structures from simple building
+blocks.
+
+The schema for this method consists of the following terms:
+
+[&#39;la_code&#39;, &#39;ba_ref&#39;, &#39;prop_ba_rates&#39;, &#39;occupant_name&#39;, &#39;postcode&#39;, &#39;occupation_state&#39;,
+&#39;occupation_state_date&#39;, &#39;occupation_state_reliefs&#39;]
+
+The actions:
+
+[&#39;NEW&#39;, &#39;ORDER&#39;, &#39;ORDER_NEW&#39;, &#39;ORDER_OLD&#39;, &#39;CALCULATE&#39;, &#39;CATEGORISE&#39;, &#39;JOIN&#39;]
+
+The columns from your working data:
+
+[&#39;Property ref no&#39;, &#39;Full Property Address_x&#39;, &#39;Primary Liable party name_x&#39;, &#39;Analysis Code_x&#39;,
+&#39;Account Start date_x&#39;, &#39;Current Rateable Value_x&#39;, &#39;Property Reference Number_x&#39;,
+&#39;Primary Liable party name_y&#39;, &#39;Full Property Address_y&#39;, &#39;Current Relief Type&#39;,
+&#39;Account Start date_y&#39;, &#39;Current Relief Award Start Date&#39;, &#39;Current Rateable Value_y&#39;,
+&#39;Property Reference Number_y&#39;, &#39;Full Property Address&#39;, &#39;Current Property Exemption Code&#39;,
+&#39;Current Prop Exemption Start Date&#39;, &#39;Analysis Code_y&#39;, &#39;Primary Liable party name&#39;,
+&#39;Current Rateable Value&#39;]
+
+Data id: a9b99aaf-438d-44cd-bf38-4849edac0c66
+Original source: method.input_data
+
+====  ======================  ======================  =================  =================  ===================================  =================================  ========================  ==========================  ==========================  =================================  =====================  =======================  =========================================================================  =========================================================================  ===========================  ==========================================  =============================  =============================  =============================  =================
+  ..  Account Start date_x    Account Start date_y    Analysis Code_x      Analysis Code_y    Current Prop Exemption Start Date    Current Property Exemption Code    Current Rateable Value    Current Rateable Value_x    Current Rateable Value_y  Current Relief Award Start Date    Current Relief Type      Full Property Address  Full Property Address_x                                                    Full Property Address_y                                                      Primary Liable party name  Primary Liable party name_x                 Primary Liable party name_y      Property Reference Number_x    Property Reference Number_y    Property ref no
+====  ======================  ======================  =================  =================  ===================================  =================================  ========================  ==========================  ==========================  =================================  =====================  =======================  =========================================================================  =========================================================================  ===========================  ==========================================  =============================  =============================  =============================  =================
+   0  2003-11-10 00:00:00     NaT                     CW                               nan                                  nan                                nan                       nan                       37000                         nan  NaT                                nan                                        nan  Unit 7b, The Pompey Centre, Dickinson Road, Southsea, Hants, PO4 8SH       nan                                                                                                nan  City Electrical Factors  Ltd                nan                                              nan                                    nan       177200066910
+   1  2003-11-08 00:00:00     NaT                     CH                               nan                                  nan                                nan                       nan                      594000                         nan  NaT                                nan                                        nan  Express By Holiday Inn, The Plaza, Gunwharf Quays, Portsmouth, PO1 3FD     nan                                                                                                nan  Kew Green Hotels (Portsmouth Lrg1) Limited  nan                                              nan                                    nan       177209823010
+   2  1994-12-25 00:00:00     1994-12-25 00:00:00     CG1                              nan                                  nan                                nan                       nan                       13250                       13250  2019-04-01 00:00:00                Retail Discount                            nan  Unit 2cd, Shawcross Industrial Estate, Ackworth Road, Portsmouth, PO3 5JP  Unit 2cd, Shawcross Industrial Estate, Ackworth Road, Portsmouth, PO3 5JP                          nan  Personal details not supplied               Personal details not supplied                      1.775e+11                            nan       177500013310
+====  ======================  ======================  =================  =================  ===================================  =================================  ========================  ==========================  ==========================  =================================  =====================  =======================  =========================================================================  =========================================================================  ===========================  ==========================================  =============================  =============================  =============================  =================
+
+Current method status: `Ready to Structure`
+</pre></div>
+</div>
+<p>Every task structure must start with an action to describe what to do with the following terms.
+There are several “actions” which can be performed, and some require action modifiers:</p>
+<blockquote>
+<div><ul>
+<li><p>NEW: Add in a new column, and populate it according to the value in the “new” constraint</p></li>
+<li><p>RENAME: If only 1 item in list of source fields, then rename that field</p></li>
+<li><p>ORDER: If &gt; 1 item in list of source fields, pick the value from the column, replacing each value with one from the next in the order of the provided fields</p></li>
+<li><p>ORDER_NEW: As in ORDER, but replacing each value with one associated with a newer “dateorder” constraint</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>MODIFIER: <cite>+</cite> between terms for source and source_date</p></li>
+</ul>
+</div></blockquote>
+</li>
+<li><p>ORDER_OLD: As in ORDER, but replacing each value with one associated with an older “dateorder” constraint</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>MODIFIER: <cite>+</cite> between terms for source and source_date</p></li>
+</ul>
+</div></blockquote>
+</li>
+<li><p>CALCULATE: Only if of “type” = “float64” (or which can be forced to float64)</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>MODIFIER: <cite>+</cite> or <cite>-</cite> before each term to define whether add or subtract</p></li>
+</ul>
+</div></blockquote>
+</li>
+<li><p>JOIN: Only if of “type” = “object”, join text with ” “.join()</p></li>
+<li><p>CATEGORISE: Only if of “type” = “string”; look for associated constraint, “categorise” where <cite>True</cite> = keep a list of categories, <cite>False</cite> = set True if terms found in list</p>
+<blockquote>
+<div><ul>
+<li><p>MODIFIER:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><cite>+</cite> before terms where column values to be classified as unique</p></li>
+<li><p><cite>-</cite> before terms where column values are treated as boolean</p></li>
+</ul>
+</div></blockquote>
+</li>
+</ul>
+</div></blockquote>
+</li>
+</ul>
+</div></blockquote>
+<p>This tutorial doesn’t require you to do all of these, but it gives you a good flavour of use. You
+can also nest actions, but use common sense to ensure you know what the result is likely to be.</p>
+<p>Portsmouth’s unique local authority code (<a class="reference external" href="https://www.ons.gov.uk/geography/local-authority/E06000044">defined by ONS</a>)
+is “E06000044”. We need that to patch our output data into our database, and we’re going to add that
+as a new field. The rest of the data can be derived from our working data in the <cite>help</cite> summary:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">structure</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;la_code&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;NEW&quot;</span><span class="p">,</span> <span class="s2">&quot;E06000044&quot;</span><span class="p">],</span>
+        <span class="s2">&quot;ba_ref&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;ORDER&quot;</span><span class="p">,</span> <span class="s2">&quot;Property Reference Number_y&quot;</span><span class="p">,</span> <span class="s2">&quot;Property Reference Number_x&quot;</span><span class="p">,</span> <span class="s2">&quot;Property ref no&quot;</span><span class="p">],</span>
+        <span class="s2">&quot;prop_ba_rates&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;ORDER&quot;</span><span class="p">,</span> <span class="s2">&quot;Current Rateable Value_x&quot;</span><span class="p">,</span> <span class="s2">&quot;Current Rateable Value_y&quot;</span><span class="p">,</span> <span class="s2">&quot;Current Rateable Value&quot;</span><span class="p">],</span>
+        <span class="s2">&quot;occupant_name&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;ORDER&quot;</span><span class="p">,</span> <span class="s2">&quot;Primary Liable party name_x&quot;</span><span class="p">,</span> <span class="s2">&quot;Primary Liable party name_y&quot;</span><span class="p">,</span> <span class="s2">&quot;Primary Liable party name&quot;</span><span class="p">],</span>
+        <span class="s2">&quot;postcode&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;ORDER&quot;</span><span class="p">,</span> <span class="s2">&quot;Full Property Address_x&quot;</span><span class="p">,</span> <span class="s2">&quot;Full Property Address_y&quot;</span><span class="p">,</span> <span class="s2">&quot;Full Property Address&quot;</span><span class="p">],</span>
+        <span class="s2">&quot;occupation_state&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;CATEGORISE&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;+&quot;</span><span class="p">,</span> <span class="s2">&quot;Current Property Exemption Code&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;+&quot;</span><span class="p">,</span> <span class="s2">&quot;Current Relief Type&quot;</span><span class="p">],</span>
+        <span class="s2">&quot;occupation_state_date&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;ORDER_NEW&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;Current Prop Exemption Start Date&quot;</span><span class="p">,</span> <span class="s2">&quot;+&quot;</span><span class="p">,</span> <span class="s2">&quot;Current Prop Exemption Start Date&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;Current Relief Award Start Date&quot;</span><span class="p">,</span> <span class="s2">&quot;+&quot;</span><span class="p">,</span> <span class="s2">&quot;Current Relief Award Start Date&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;Account Start date_x&quot;</span><span class="p">,</span> <span class="s2">&quot;+&quot;</span><span class="p">,</span> <span class="s2">&quot;Account Start date_x&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;Account Start date_y&quot;</span><span class="p">,</span> <span class="s2">&quot;+&quot;</span><span class="p">,</span> <span class="s2">&quot;Account Start date_y&quot;</span><span class="p">],</span>
+        <span class="s2">&quot;occupation_state_reliefs&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;CATEGORISE&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;+&quot;</span><span class="p">,</span> <span class="s2">&quot;Current Property Exemption Code&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;+&quot;</span><span class="p">,</span> <span class="s2">&quot;Current Relief Type&quot;</span><span class="p">]</span>
+<span class="p">}</span>
+<span class="n">method</span><span class="o">.</span><span class="n">set_structure</span><span class="p">(</span><span class="o">**</span><span class="n">structure</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Let’s get in to what all of this means:</p>
+<ul>
+<li><p><cite>NEW</cite>: is the only case where the term after the action is a <cite>value</cite> not a <cite>field</cite> reference.</p></li>
+<li><p><cite>ORDER</cite>: is a simple first-out-last-in replacement where the value from the next field will replace the current one, unless it’s <cite>nan</cite> or empty.</p></li>
+<li><p><cite>ORDER_NEW</cite>: is a date-comparison between the listed fields, however, you need to tie the value field to a date field with the <cite>+</cite> modifier (in this case, they’re the same, but that isn’t assumed). Here’s it’s <cite>field_to_test_for_newnewss</cite> + <cite>field_with_date_reflecting_field_to_tests_newness</cite>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="s2">&quot;occupation_state_date&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;ORDER_NEW&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;Current Prop Exemption Start Date&quot;</span><span class="p">,</span> <span class="s2">&quot;+&quot;</span><span class="p">,</span> <span class="s2">&quot;Current Prop Exemption Start Date&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;Current Relief Award Start Date&quot;</span><span class="p">,</span> <span class="s2">&quot;+&quot;</span><span class="p">,</span> <span class="s2">&quot;Current Relief Award Start Date&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;Account Start date_x&quot;</span><span class="p">,</span> <span class="s2">&quot;+&quot;</span><span class="p">,</span> <span class="s2">&quot;Account Start date_x&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;Account Start date_y&quot;</span><span class="p">,</span> <span class="s2">&quot;+&quot;</span><span class="p">,</span> <span class="s2">&quot;Account Start date_y&quot;</span><span class="p">]</span>
+</pre></div>
+</div>
+</li>
+<li><p><cite>CATEGORISE</cite>: is the most complex operation (and has another step) … there are two important modifiers: <cite>+</cite> and <cite>-</cite>.</p></li>
+</ul>
+<p>You can think of a column of values you want to use for <strong>categorical</strong> data as having two broad types:</p>
+<ul class="simple">
+<li><p>The presence or absence of a value in a column is of interest (i.e. boolean True or False)</p></li>
+<li><p>The terms present in a column need to be categorised into more appropriate terms</p></li>
+</ul>
+<p>In our tutorial data, we want to know whether a particular address is occupied or vacant. There is no
+common way to present this. Some authorities are kind enough to state “true”/”false” (which is
+actually the latter type of value … make sure that’s clear ;p ). Others provide a date when the
+site when vacant (so the presence of a date is an indication of vacancy). In this case, we’d modify
+the field with a <cite>-</cite>, since the dates are not of interest for <cite>occupation_state</cite>, although they are
+of interest for <cite>occupation_state_date</cite>.</p>
+<p>In this particular case, Portsmouth have not provided any of this type of information, but instead
+have indicated the category of relief that a business receives - none of which are the official
+categories of relief. (<em>You see why people hate wrangling?</em>)</p>
+<p>We need to extract those relief terms and assign them to the appropriate categories we actually want.</p>
+<p>All of that achieved in this phrase:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="s2">&quot;occupation_state_reliefs&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;CATEGORISE&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;+&quot;</span><span class="p">,</span> <span class="s2">&quot;Current Property Exemption Code&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;+&quot;</span><span class="p">,</span> <span class="s2">&quot;Current Relief Type&quot;</span><span class="p">]</span>
+</pre></div>
+</div>
+<p>Which is quite efficient, when you think about how long it took to explain.</p>
+<p>This brings us to the end of structuring:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>print(method.help(&quot;status&quot;))
+
+Current method status: `Ready to Categorise`
+</pre></div>
+</div>
+</div>
+<div class="section" id="assigning-category-terms-to-fields">
+<h3>Assigning Category terms to fields<a class="headerlink" href="#assigning-category-terms-to-fields" title="Permalink to this headline">¶</a></h3>
+<p>Categorisation can be quite frustrating. Given that our data sources haven’t published their own
+schema, we don’t know what the definitions are for any of the terms they use. Experience can help
+you with what is most likely, but sometimes the only thing to do is go back to your source and ask.</p>
+<p>If they won’t tell you, it’s always best not to overfit your data and simply ignore categories that
+are not defined rather than get false positives. Be as conservative as possible in your process.</p>
+<p>Let’s start with <cite>help</cite>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>print(method.help(&quot;category&quot;))
+
+Provide a list of categories of the form::
+
+        {
+                &quot;schema_field1&quot;: {
+                        &quot;category_1&quot;: [&quot;term1&quot;, &quot;term2&quot;, &quot;term3&quot;],
+                        &quot;category_2&quot;: [&quot;term4&quot;, &quot;term5&quot;, &quot;term6&quot;]
+                }
+        }
+
+The format for defining a `category` term as follows::
+
+        `term_name::column_name`
+
+Get a list of available terms, and the categories for assignment, by calling::
+
+        &gt;&gt;&gt; method.category(field_name)
+
+Once your data are prepared as above::
+
+        &gt;&gt;&gt; method.set_category(**category)
+
+Field names requiring categorisation are: [&#39;occupation_state&#39;, &#39;occupation_state_reliefs&#39;]
+
+Current method status: `Ready to Categorise`
+</pre></div>
+</div>
+<p>Hmm, <strong>whyqd</strong> making us do some work here remembering which fields we wanted to categories. Well,
+ok then:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">method</span><span class="o">.</span><span class="n">category</span><span class="p">(</span><span class="s2">&quot;occupation_state&quot;</span><span class="p">)</span>
+
+<span class="p">{</span><span class="s1">&#39;categories&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;true&#39;</span><span class="p">,</span> <span class="s1">&#39;false&#39;</span><span class="p">],</span>
+ <span class="s1">&#39;assigned&#39;</span><span class="p">:</span> <span class="p">{},</span>
+ <span class="s1">&#39;unassigned&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;Retail Discount::Current Relief Type&#39;</span><span class="p">,</span>
+  <span class="s1">&#39;Small Business Relief England::Current Relief Type&#39;</span><span class="p">,</span>
+  <span class="s1">&#39;Supporting Small Business Relief::Current Relief Type&#39;</span><span class="p">,</span>
+  <span class="s1">&#39;Sbre Extension For 12 Months::Current Relief Type&#39;</span><span class="p">,</span>
+  <span class="s1">&#39;Empty Property Rate Industrial::Current Relief Type&#39;</span><span class="p">,</span>
+  <span class="s1">&#39;Empty Property Rate Non-Industrial::Current Relief Type&#39;</span><span class="p">,</span>
+  <span class="s1">&#39;Mandatory::Current Relief Type&#39;</span><span class="p">,</span>
+  <span class="s1">&#39;Sports Club (Registered CASC)::Current Relief Type&#39;</span><span class="p">,</span>
+  <span class="s1">&#39;Empty Property Rate Charitable::Current Relief Type&#39;</span><span class="p">,</span>
+  <span class="s1">&#39;EPRI::Current Property Exemption Code&#39;</span><span class="p">,</span>
+  <span class="s1">&#39;ANCIENT::Current Property Exemption Code&#39;</span><span class="p">,</span>
+  <span class="s1">&#39;LISTED::Current Property Exemption Code&#39;</span><span class="p">,</span>
+  <span class="s1">&#39;EPRN::Current Property Exemption Code&#39;</span><span class="p">,</span>
+  <span class="s1">&#39;VOID::Current Property Exemption Code&#39;</span><span class="p">,</span>
+  <span class="s1">&#39;LIQUIDATE::Current Property Exemption Code&#39;</span><span class="p">,</span>
+  <span class="s1">&#39;LAND::Current Property Exemption Code&#39;</span><span class="p">,</span>
+  <span class="s1">&#39;LOW RV::Current Property Exemption Code&#39;</span><span class="p">,</span>
+  <span class="s1">&#39;INDUSTRIAL::Current Property Exemption Code&#39;</span><span class="p">,</span>
+  <span class="s1">&#39;ADMIN::Current Property Exemption Code&#39;</span><span class="p">,</span>
+  <span class="s1">&#39;LA ACTION::Current Property Exemption Code&#39;</span><span class="p">,</span>
+  <span class="s1">&#39;C::Current Property Exemption Code&#39;</span><span class="p">,</span>
+  <span class="s1">&#39;DECEASED::Current Property Exemption Code&#39;</span><span class="p">,</span>
+  <span class="s1">&#39;PROHIBITED::Current Property Exemption Code&#39;</span><span class="p">,</span>
+  <span class="s1">&#39;BANKRUPT::Current Property Exemption Code&#39;</span><span class="p">,</span>
+  <span class="s1">&#39;EPCH::Current Property Exemption Code&#39;</span><span class="p">]}</span>
+</pre></div>
+</div>
+<p>For <cite>occupation_state</cite> we have two categories “true” and “false” (not, text, not boolean terms), and
+a long list of <cite>unassigned</cite> terms we can use. Notice the terminology <cite>term_name::column_name</cite>. There
+may be multiple columns with multiple identical terms. We need to keep track … Let’s create our
+<cite>category</cite> dict for <cite>occupation_state</cite>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">category</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;occupation_state&quot;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">&quot;false&quot;</span><span class="p">:</span> <span class="p">[</span>
+                        <span class="s1">&#39;EPRN::Current Property Exemption Code&#39;</span><span class="p">,</span>
+                        <span class="s1">&#39;EPRI::Current Property Exemption Code&#39;</span><span class="p">,</span>
+                        <span class="s1">&#39;VOID::Current Property Exemption Code&#39;</span><span class="p">,</span>
+                        <span class="s1">&#39;Empty Property Rate Non-Industrial::Current Relief Type&#39;</span><span class="p">,</span>
+                        <span class="s1">&#39;Empty Property Rate Industrial::Current Relief Type&#39;</span><span class="p">,</span>
+                        <span class="s1">&#39;EPCH::Current Property Exemption Code&#39;</span><span class="p">,</span>
+                        <span class="s1">&#39;LIQUIDATE::Current Property Exemption Code&#39;</span><span class="p">,</span>
+                        <span class="s1">&#39;DECEASED::Current Property Exemption Code&#39;</span><span class="p">,</span>
+                        <span class="s1">&#39;PROHIBITED::Current Property Exemption Code&#39;</span><span class="p">,</span>
+                        <span class="s1">&#39;BANKRUPT::Current Property Exemption Code&#39;</span><span class="p">,</span>
+                        <span class="s1">&#39;Empty Property Rate Charitable::Current Relief Type&#39;</span>
+                <span class="p">]</span>
+        <span class="p">}</span>
+<span class="p">}</span>
+<span class="n">method</span><span class="o">.</span><span class="n">set_category</span><span class="p">(</span><span class="o">**</span><span class="n">category</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>We didn’t need to set anything for “true” because we didn’t have anything. We could have set the
+categories for both <cite>occupation_state_reliefs</cite> and <cite>occupation_state</cite> at the same time (in a single
+dict), but for this tutorial it’ll help to keep them distinct:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">method</span><span class="o">.</span><span class="n">category</span><span class="p">(</span><span class="s2">&quot;occupation_state_reliefs&quot;</span><span class="p">)</span>
+
+<span class="p">{</span><span class="s1">&#39;categories&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;small_business&#39;</span><span class="p">,</span>
+  <span class="s1">&#39;rural&#39;</span><span class="p">,</span>
+  <span class="s1">&#39;charity&#39;</span><span class="p">,</span>
+  <span class="s1">&#39;enterprise_zone&#39;</span><span class="p">,</span>
+  <span class="s1">&#39;vacancy&#39;</span><span class="p">,</span>
+  <span class="s1">&#39;hardship&#39;</span><span class="p">,</span>
+  <span class="s1">&#39;retail&#39;</span><span class="p">,</span>
+  <span class="s1">&#39;discretionary&#39;</span><span class="p">,</span>
+  <span class="s1">&#39;exempt&#39;</span><span class="p">,</span>
+  <span class="s1">&#39;transitional&#39;</span><span class="p">,</span>
+  <span class="s1">&#39;other&#39;</span><span class="p">],</span>
+ <span class="s1">&#39;assigned&#39;</span><span class="p">:</span> <span class="p">{},</span>
+ <span class="s1">&#39;unassigned&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;Retail Discount::Current Relief Type&#39;</span><span class="p">,</span>
+  <span class="s1">&#39;Small Business Relief England::Current Relief Type&#39;</span><span class="p">,</span>
+  <span class="s1">&#39;Supporting Small Business Relief::Current Relief Type&#39;</span><span class="p">,</span>
+  <span class="s1">&#39;Sbre Extension For 12 Months::Current Relief Type&#39;</span><span class="p">,</span>
+  <span class="s1">&#39;Empty Property Rate Industrial::Current Relief Type&#39;</span><span class="p">,</span>
+  <span class="s1">&#39;Empty Property Rate Non-Industrial::Current Relief Type&#39;</span><span class="p">,</span>
+  <span class="s1">&#39;Mandatory::Current Relief Type&#39;</span><span class="p">,</span>
+  <span class="s1">&#39;Sports Club (Registered CASC)::Current Relief Type&#39;</span><span class="p">,</span>
+  <span class="s1">&#39;Empty Property Rate Charitable::Current Relief Type&#39;</span><span class="p">,</span>
+  <span class="s1">&#39;EPRI::Current Property Exemption Code&#39;</span><span class="p">,</span>
+  <span class="s1">&#39;ANCIENT::Current Property Exemption Code&#39;</span><span class="p">,</span>
+  <span class="s1">&#39;LISTED::Current Property Exemption Code&#39;</span><span class="p">,</span>
+  <span class="s1">&#39;EPRN::Current Property Exemption Code&#39;</span><span class="p">,</span>
+  <span class="s1">&#39;VOID::Current Property Exemption Code&#39;</span><span class="p">,</span>
+  <span class="s1">&#39;LIQUIDATE::Current Property Exemption Code&#39;</span><span class="p">,</span>
+  <span class="s1">&#39;LAND::Current Property Exemption Code&#39;</span><span class="p">,</span>
+  <span class="s1">&#39;LOW RV::Current Property Exemption Code&#39;</span><span class="p">,</span>
+  <span class="s1">&#39;INDUSTRIAL::Current Property Exemption Code&#39;</span><span class="p">,</span>
+  <span class="s1">&#39;ADMIN::Current Property Exemption Code&#39;</span><span class="p">,</span>
+  <span class="s1">&#39;LA ACTION::Current Property Exemption Code&#39;</span><span class="p">,</span>
+  <span class="s1">&#39;C::Current Property Exemption Code&#39;</span><span class="p">,</span>
+  <span class="s1">&#39;DECEASED::Current Property Exemption Code&#39;</span><span class="p">,</span>
+  <span class="s1">&#39;PROHIBITED::Current Property Exemption Code&#39;</span><span class="p">,</span>
+  <span class="s1">&#39;BANKRUPT::Current Property Exemption Code&#39;</span><span class="p">,</span>
+  <span class="s1">&#39;EPCH::Current Property Exemption Code&#39;</span><span class="p">]}</span>
+</pre></div>
+</div>
+<p>Here it’s a little more complex to assign everything, but still reasonably clear:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">category</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;occupation_state_reliefs&quot;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">&quot;small_business&quot;</span><span class="p">:</span> <span class="p">[</span>
+                        <span class="s1">&#39;Small Business Relief England::Current Relief Type&#39;</span><span class="p">,</span>
+                        <span class="s1">&#39;Sbre Extension For 12 Months::Current Relief Type&#39;</span><span class="p">,</span>
+                        <span class="s1">&#39;Supporting Small Business Relief::Current Relief Type&#39;</span>
+                <span class="p">],</span>
+                <span class="s2">&quot;enterprise_zone&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;INDUSTRIAL::Current Property Exemption Code&#39;</span><span class="p">],</span>
+                <span class="s2">&quot;vacancy&quot;</span><span class="p">:</span> <span class="p">[</span>
+                        <span class="s1">&#39;EPRN::Current Property Exemption Code&#39;</span><span class="p">,</span>
+                        <span class="s1">&#39;EPRI::Current Property Exemption Code&#39;</span><span class="p">,</span>
+                        <span class="s1">&#39;VOID::Current Property Exemption Code&#39;</span><span class="p">,</span>
+                        <span class="s1">&#39;Empty Property Rate Non-Industrial::Current Relief Type&#39;</span><span class="p">,</span>
+                        <span class="s1">&#39;Empty Property Rate Industrial::Current Relief Type&#39;</span><span class="p">,</span>
+                        <span class="s1">&#39;EPCH::Current Property Exemption Code&#39;</span><span class="p">,</span>
+                        <span class="s1">&#39;LIQUIDATE::Current Property Exemption Code&#39;</span><span class="p">,</span>
+                        <span class="s1">&#39;DECEASED::Current Property Exemption Code&#39;</span><span class="p">,</span>
+                        <span class="s1">&#39;PROHIBITED::Current Property Exemption Code&#39;</span><span class="p">,</span>
+                        <span class="s1">&#39;BANKRUPT::Current Property Exemption Code&#39;</span><span class="p">,</span>
+                        <span class="s1">&#39;Empty Property Rate Charitable::Current Relief Type&#39;</span>
+                <span class="p">],</span>
+                <span class="s2">&quot;retail&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;Retail Discount::Current Relief Type&#39;</span><span class="p">],</span>
+                <span class="s2">&quot;exempt&quot;</span><span class="p">:</span> <span class="p">[</span>
+                        <span class="s1">&#39;C::Current Property Exemption Code&#39;</span><span class="p">,</span>
+                        <span class="s1">&#39;LOW RV::Current Property Exemption Code&#39;</span><span class="p">,</span>
+                        <span class="s1">&#39;LAND::Current Property Exemption Code&#39;</span>
+                <span class="p">],</span>
+                <span class="s2">&quot;other&quot;</span><span class="p">:</span> <span class="p">[</span>
+                        <span class="s1">&#39;Sports Club (Registered CASC)::Current Relief Type&#39;</span><span class="p">,</span>
+                        <span class="s1">&#39;Mandatory::Current Relief Type&#39;</span>
+                <span class="p">]</span>
+        <span class="p">}</span>
+<span class="p">}</span>
+<span class="n">method</span><span class="o">.</span><span class="n">set_category</span><span class="p">(</span><span class="o">**</span><span class="n">category</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Get yourself a cup of coffee. The hard part is now done:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>print(method.help(&quot;status&quot;))
+
+Current method status: `Ready to Transform`
+</pre></div>
+</div>
+<p>Let’s also save our method:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">DIRECTORY</span> <span class="o">=</span> <span class="s2">&quot;/path_to/working/directory/&quot;</span>
+<span class="n">FILENAME</span> <span class="o">=</span> <span class="s2">&quot;2020_q1_portsmouth.json&quot;</span>
+<span class="n">method</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">DIRECTORY</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="n">FILENAME</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="method-validation">
+<h3>Method Validation<a class="headerlink" href="#method-validation" title="Permalink to this headline">¶</a></h3>
+<p>There’s a fair amount of activity behind the scenes, mostly related to validation. Every step has
+an equivalent validation step, testing the method to ensure that it will execute once your run
+your transformation.</p>
+<p>At this state, except for creating a <cite>working_data</cite> file, you’ve actually made no changes to the
+underlying data. Everything you’ve done has been about documenting a process. This process is the
+only thing that will eventually execute and produce your output.</p>
+<p>We can do a few things at this point:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>method.validates
+
+UserWarning: &#39;3b2e9893-c04c-4714-b9bb-6dd2bf274db4.xls&#39; contains non-unique rows in column `Property Reference Number`
+UserWarning: &#39;458d7c0b-1481-487e-b120-19ccd2326d24.xls&#39; contains non-unique rows in column `Property Reference Number`
+
+True
+</pre></div>
+</div>
+<p>Aside from the warning, which we already know about, your method validates. Since you’re a sensible
+person, you’re probably running this tutorial in a Jupyter Notebook and are interested in why it
+takes a bit of time to validate:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">%</span><span class="n">time</span> <span class="n">method</span><span class="o">.</span><span class="n">validates</span>
+
+<span class="n">CPU</span> <span class="n">times</span><span class="p">:</span> <span class="n">user</span> <span class="mf">7.27</span> <span class="n">s</span><span class="p">,</span> <span class="n">sys</span><span class="p">:</span> <span class="mi">172</span> <span class="n">ms</span><span class="p">,</span> <span class="n">total</span><span class="p">:</span> <span class="mf">7.44</span> <span class="n">s</span>
+<span class="n">Wall</span> <span class="n">time</span><span class="p">:</span> <span class="mf">7.5</span> <span class="n">s</span>
+
+<span class="kc">True</span>
+</pre></div>
+</div>
+<p>That’s because validation actually runs your code. It will create a new working_data file and perform
+all the structure and categorisation steps. None of this should make you want to lose your mind, but
+- if this sort of thing is irritating - you could look into running the transformation tasks
+asynchronously in the background.</p>
+<p>If you want to look at your method, do the following (I’m not reproducing the output here):</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">method</span><span class="o">.</span><span class="n">settings</span>
+</pre></div>
+</div>
+<p>OK, everything validates, and we’re ready to transform…</p>
+</div>
+<div class="section" id="transform-your-data">
+<h3>Transform your data<a class="headerlink" href="#transform-your-data" title="Permalink to this headline">¶</a></h3>
+<p>Run the following (which will run your validation all over again):</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">method</span><span class="o">.</span><span class="n">transform</span>
+</pre></div>
+</div>
 </div>
 </div>
 </div>

@@ -233,6 +233,7 @@ Or, to run all the above and complete the method (setting status to 'Ready to Tr
 """
 import os, uuid
 from shutil import copyfile
+import urllib.request
 from copy import deepcopy
 import pandas as pd
 from tabulate import tabulate
@@ -271,7 +272,7 @@ class Method(Schema):
 	def __init__(self, source=None, **kwargs):
 		self._status = "WAITING"
 		# Clear kwargs of things we need to process prior to initialising
-		self.directory = kwargs.pop("directory", None)
+		self.directory = kwargs.pop("directory", _c.get_path())
 		if not self.directory.endswith("/"):
 			self.directory += "/"
 		constructors = kwargs.pop("constructors", None)
@@ -786,28 +787,32 @@ class Method(Schema):
 		if isinstance(input_data, list):
 			valid = all([isinstance(i, str) for i in input_data])
 		if not valid:
-			self._status = "CREATE_ERROR"
 			e = "`{}` is not a valid list of input data.".format(input_data)
 			raise TypeError(e)
 		self.schema_settings["input_data"] = self.schema_settings.get("input_data", [])
-		for filename in input_data:
+		for file_source in input_data:
 			# Check if the filename is remote
-			file_source = "/".join(filename.split("/")[:-1])
-			filename = filename.split("/")[-1]
-			source = self.directory + filename
-			if file_source:
-				copyfile(file_source + "/" + filename, source)
+			file_root = "/".join(file_source.split("/")[:-1])
+			source = self.directory + file_source.split("/")[-1]
+			if _c.check_uri(file_source):
+				# File at remote URI
+				urllib.request.urlretrieve(file_source, source)
+			elif file_root:
+				# File in another directory
+				copyfile(file_source, source)
 			_id = str(uuid.uuid4())
 			summary_data = _c.get_dataframe_summary(source)
 			data = {
 				"id": _id,
 				"checksum": _c.get_checksum(source),
 				"file": _c.rename_file(source, _id),
-				"original": filename,
+				"original": file_source,
 				"dataframe": summary_data["df"],
 				"columns": summary_data["columns"]
 			}
 			self.schema_settings["input_data"].append(data)
+		if input_data and self.input_data:
+			self._status = "READY_MERGE"
 
 	def remove_input_data(self, _id, reset_status=False):
 		"""
@@ -832,6 +837,8 @@ class Method(Schema):
 		if self.schema_settings.get("input_data", []):
 			self.schema_settings["input_data"] = [data for data in self.schema_settings["input_data"]
 												  if data["id"] != _id]
+		if not self.input_data:
+			self._status = "WAITING"
 
 	#########################################################################################
 	# MERGE HELPERS
@@ -1161,7 +1168,6 @@ class Method(Schema):
 		------
 		ValueError on uniqueness failure.
 		"""
-		self.validate_input_data
 		for data in self.schema_settings["input_data"]:
 			if not data.get("key"):
 				e = "Missing merge key on input data `{}`".format(data["original"])
@@ -1183,7 +1189,6 @@ class Method(Schema):
 		-------
 		bool: True for validates
 		"""
-		self.validate_merge_data
 		df = _c.get_dataframe(self.directory + self.schema_settings["input_data"][0]["file"],
 							  dtype = object)
 		df_key = self.schema_settings["input_data"][0]["key"]
@@ -1226,7 +1231,6 @@ class Method(Schema):
 		-------
 		bool: True for validates
 		"""
-		self.validates # First check the fields
 		for field_name in self.all_field_names:
 			# Test structure
 			structure = self.field(field_name).get("structure")
@@ -1351,7 +1355,7 @@ class Method(Schema):
 		return True
 
 	@property
-	def validate(self):
+	def validates(self):
 		"""
 		Method validates all steps. Sets `READY_TRANSFORM` if all pass.
 
@@ -1359,6 +1363,7 @@ class Method(Schema):
 		-------
 		bool: True for validates
 		"""
+		super().validates
 		self.validate_input_data
 		self.validate_merge_data
 		self.validate_merge
@@ -1475,18 +1480,20 @@ class Method(Schema):
 			if option == "merge":
 				for data in self.input_data:
 					_id = data["id"]
+					_source = data["original"]
 					_df = pd.DataFrame(data["dataframe"])
-					_df = tabulate(_df, headers="keys", tablefmt="fancy_grid")
-					response += HELP_RESPONSE["data"].format(_id, _df)
+					_df = tabulate(_df, headers="keys", tablefmt="rst")
+					response += HELP_RESPONSE["data"].format(_id, _source, _df)
 			if option == "structure":
 				response = response.format(self.all_field_names,
 										   self.default_action_types,
 										   self.working_column_list)
 				if "working_data" in self.schema_settings:
 					_id = self.schema_settings["working_data"]["id"]
+					_source = "method.input_data"
 					_df = pd.DataFrame(self.schema_settings["working_data"]["dataframe"])
-					_df = tabulate(_df, headers="keys", tablefmt="fancy_grid")
-					response += HELP_RESPONSE["data"].format(_id, _df)
+					_df = tabulate(_df, headers="keys", tablefmt="rst")
+					response += HELP_RESPONSE["data"].format(_id, _source, _df)
 			if option == "category":
 				category_fields = []
 				for field_name in self.all_field_names:
@@ -1519,7 +1526,6 @@ Where `option` can be any of:
 	category
 	filter
 	transform
-	error
 
 `status` will return the current method status, and your mostly likely next steps. The other options
 will return methodology, and output of that option's result (if appropriate). The `error` will
@@ -1643,6 +1649,7 @@ Field names which can be filtered are: {}
 	"data": """
 
 Data id: {}
+Original source: {}
 
 {}
 """,

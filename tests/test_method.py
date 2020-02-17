@@ -92,7 +92,6 @@ class TestMethod:
 			"occupation_state_reliefs": ["CATEGORISE",
 										 "+", "Current Property Exemption Code",
 										 "+", "Current Relief Type"]
-
 		}
 		method.set_structure(**structure)
 		method.save(overwrite=True)

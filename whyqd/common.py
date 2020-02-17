@@ -5,6 +5,7 @@ import json
 import re
 import copy
 import hashlib
+from urllib.parse import urlparse
 from datetime import date, datetime, timedelta
 from pathlib import Path, PurePath
 import pandas as pd
@@ -27,6 +28,14 @@ def check_source(source):
 
 def get_path():
 	return Path(__file__).resolve().parent
+
+def check_uri(source):
+	# https://stackoverflow.com/a/38020041
+    try:
+        result = urlparse(source)
+        return all([result.scheme, result.netloc, result.path])
+    except:
+        return False
 
 def rename_file(source, newname):
 	p = Path(source)
