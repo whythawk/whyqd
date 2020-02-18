@@ -236,13 +236,14 @@ from shutil import copyfile
 import urllib.request
 from copy import deepcopy
 import pandas as pd
+import numpy as np
 from tabulate import tabulate
 from operator import itemgetter
 
 import whyqd.common as _c
 from whyqd.schema import Schema
 from whyqd.method import Action
-import transform as task
+import whyqd.method.transform as task
 
 STATUS_CODES = {
 	"WAITING": "Waiting ...",
@@ -312,8 +313,7 @@ class Method(Schema):
 			e = "Current status: `{}` - performing `merge` is not permitted.".format(self.status)
 			raise PermissionError(e)
 		self.validate_merge_data
-		if ("working_data" in self.schema_settings and
-			not self.schema_settings["working_data"].get("checksum")):
+		if self.schema_settings.get("working_data",{}).get("checksum") and not overwrite_working:
 			e = "Permission required to overwrite `working_data`. Set `overwrite_working` to `True`."
 			raise PermissionError(e)
 		# Pandas 1.0 says `dtype = "string"` is possible, but it isn't currently working
@@ -625,6 +625,7 @@ class Method(Schema):
 			}
 			# Update the field
 			self.set_field(validate=False, **schema_field)
+		self.reset_data_checksums(reset_output_only=True)
 		self._status = "READY_TRANSFORM"
 
 	def filter(self, name):
@@ -717,78 +718,78 @@ class Method(Schema):
 		}
 		# Update the field
 		self.set_field(validate=False, **schema_field)
+		self.reset_data_checksums(reset_output_only=True)
 		self._status = "READY_TRANSFORM"
 
-
-
-	def transform(self):
+	def transform(self, overwrite_output=False):
 		"""
 		Implement the method to transform input data into output data.
+
+		Parameters
+		----------
+		overwrite_output: bool
+			Permission to overwrite existing output data
 		"""
+		if self._status in STATUS_CODES.keys() - ["READY_TRANSFORM", "PROCESS_COMPLETE"]:
+			e = "Current status: `{}` - performing `transform` is not permitted.".format(self.status)
+			raise PermissionError(e)
 		self.validates
+		if self.schema_settings.get("output_data",{}).get("checksum") and not overwrite_output:
+			e = "Permission required to overwrite `output_data`. Set `overwrite_output` to `True`."
+			raise PermissionError(e)
 		# Keep the original merge key field as a dtype=object to avoid messing with text formatting
 		# e.g. leading 0s in a reference id
 		set_dtypes = {}
 		set_dtypes[self.schema_settings["input_data"][0]["key"]] = object
 		df = _c.get_dataframe(self.directory + self.schema_settings["working_data"]["file"],
 							  dtype=set_dtypes)
-		# Begin transformations
+		# Begin transformations + keep track if any need filters
+		filter_list = []
 		for field_name in self.all_field_names:
 			field = self.field(field_name)
-			df = task.perform_transform(df, field_name, field["structure"],
+			if field.get("filter"):
+				filter_list.append(field_name)
+			df = task.perform_transform(df, field_name, field["type"], field["structure"],
 										category = field.get("category", {}).get("assigned"))
-		# Identify keep_fields
-		keep_fields = [field["data"]["name"] for field in method.get("fields", [])]
-		# Identify keep_fields not in df, and set blank fields for these
-		blank_fields = list(set(keep_fields) - set(df.columns))
+		# Identify required output fields not in df, and set blank fields for these
+		blank_fields = list(set(self.all_field_names) - set(df.columns))
 		for blank in blank_fields:
 			df[blank] = ""
 		# Conclude transformation
-		df = df[keep_fields]
+		df = df[self.all_field_names]
 		df = df.loc[df.astype(str).drop_duplicates().index]
-		#df.drop_duplicates(inplace=True)
-		# If the user selects a filter-date, then filter by that date, keeping everything after.
-		# Note, very very not good ... hardwiring the fields
-		filter_field = "occupation_state_date"
-		method["filter_date_type"] = kwargs.get("filter")
-		method["filter_date_value"] = kwargs.get("date")
-		if kwargs.get("filter") == "LATEST":
-			# https://pandas.pydata.org/pandas-docs/stable/groupby.html#splitting-an-object-into-groups
-			df = df.sort_values(by=filter_field)
-			df = df.groupby("ba_ref")
-			# Select only the latest date
-			df = df.last()
-			# https://stackoverflow.com/a/20461206
-			df.reset_index(level=df.index.names, inplace=True)
-		if kwargs.get("filter") in ["AFTER", "LAST"] and kwargs.get("date"):
-			df = df[df[filter_field] > kwargs["date"]]
-		try:
-			method["last_date"] = df[filter_field].max()
-		except TypeError:
-			# They're not actually dates but are text for some reason
-			# method["last_date"] = df.sort_values(by=filter_field,
-			#                                      ascending=True,
-			#                                      na_position="first")[filter_field] \
-			#                         .iloc[-1]
-			# df = df.apply(lambda x: self.cf.parse_dates(x[filter_field]))
-			# method["last_date"] = df[filter_field].max()
-			pass
-		method["date"] = cf.get_now()
-		# Save and return
-		df.to_excel(dir_destination +
-					destination_name.format(method["code"], method["scope"], method["cycle"]),
-					index=False)
-		method["destination_file"] = {
-			"directory": dir_destination,
-			"file": destination_name.format(method["code"], method["scope"], method["cycle"]),
-			"df": df.head(long_rows).to_html(border=0, na_rep="")
-		}
-		# Continue Review Transform, but now heads to the Occupation Importer
-		method["state"] = "REVIEW_IMPORT"
-		save_method(**method)
-		return method
-
-
+		# Perform filter requirements - note, the order may be important, but the user should be
+		# careful with brute-force filters and should only set one. If they didn't ...
+		for field_name in filter_list:
+			field = self.field(field_name)
+			filter = field["filter"]
+			if filter["modifiers"]["name"] == "LATEST":
+				# https://pandas.pydata.org/pandas-docs/stable/groupby.html#splitting-an-object-into-groups
+				df = df.sort_values(by=field_name)
+				df = df.groupby(filter["field"])
+				# Select only the latest date
+				df = df.last()
+				# https://stackoverflow.com/a/20461206
+				df.reset_index(level=df.index.names, inplace=True)
+			if filter["modifiers"]["name"] == "AFTER" and filter["modifiers"].get("date"):
+				df = df[df[field_name] > filter["modifiers"]["date"]]
+			if filter["modifiers"]["name"] == "BEFORE" and filter["modifiers"].get("date"):
+				df = df[df[field_name] < filter["modifiers"]["date"]]
+			try:
+				if filter["modifiers"]["name"] in ["LATEST", "AFTER"]:
+					field["filter"]["date"] = df[pd.notnull(df[field_name])][field_name].max()
+				else:
+					field["filter"]["date"] = df[pd.notnull(df[field_name])][field_name].min()
+				self.set_field(validate=False, **field)
+			except TypeError:
+				# They're not actually dates but are text for some reason
+				pass
+		self.schema_settings["process_date"] = _c.get_now()
+		# Save the file to the working directory
+		if "output_data" in self.schema_settings:
+			del self.schema_settings["output_data"]
+		self.schema_settings["output_data"] = self.save_data(df)
+		self._status = "PROCESS_COMPLETE"
 
 	#########################################################################################
 	# SUPPORT FUNCTIONS
@@ -830,6 +831,29 @@ class Method(Schema):
 			raise TypeError(e)
 		self.schema_settings["constructors"] = deepcopy(constructors)
 
+	def reset_data_checksums(self, reset_status=False, reset_output_only=False):
+		"""
+		If input or working data are modified, then the checksums for working and output data
+		must be deleted (i.e. they're no longer valid and everything else must be re-run).
+
+		Parameters
+		----------
+		reset_status: bool
+			Requires a deliberate choice. Default False.
+		reset_output_only: bool
+			Requires a deliberate choice. Default False. Only resets output data.
+		"""
+		if (not (reset_status or reset_output_only) and
+			(self.schema_settings.get("output_data", {}).get("checksum") or
+			 self.schema_settings.get("working_data", {}).get("checksum"))):
+			e = "Permission required to reset data. Set `reset_status` or `reset_output_only` to `True`."
+			raise PermissionError(e)
+		if reset_status and self.schema_settings.get("working_data", {}).get("checksum"):
+			del self.schema_settings["working_data"]["checksum"]
+		if ((reset_status or reset_output_only) and
+			self.schema_settings.get("output_data", {}).get("checksum")):
+			del self.schema_settings["output_data"]["checksum"]
+
 	#########################################################################################
 	# CREATE & MODIFY INPUT DATA
 	#########################################################################################
@@ -848,7 +872,7 @@ class Method(Schema):
 			response += HELP_RESPONSE["data"].format(_id, _df)
 		return response
 
-	def add_input_data(self, input_data):
+	def add_input_data(self, input_data, reset_status=False):
 		"""
 		Provide a list of strings, each the filename of input data for wrangling.
 
@@ -856,6 +880,8 @@ class Method(Schema):
 		----------
 		input_data: str or list of str
 			Each input data can be a filename, or a file_source (where filename is remote)
+		reset_status: bool
+			Requires a deliberate choice. Default False.
 
 		Raises
 		------
@@ -870,6 +896,7 @@ class Method(Schema):
 			e = "`{}` is not a valid list of input data.".format(input_data)
 			raise TypeError(e)
 		self.schema_settings["input_data"] = self.schema_settings.get("input_data", [])
+		self.reset_data_checksums(reset_status=reset_status)
 		for file_source in input_data:
 			# Check if the filename is remote
 			file_root = "/".join(file_source.split("/")[:-1])
@@ -903,17 +930,14 @@ class Method(Schema):
 		----------
 		_id: str
 			Unique id for an input data source. View all input data from `input_data`
+		reset_status: bool
+			Requires a deliberate choice. Default False.
 
 		Raises
 		------
 		TypeError if not a list of str.
 		"""
-		if self.schema_settings.get("working_data", {}).get("checksum"):
-			if reset_status:
-				del self.schema_settings["working_data"]["checksum"]
-			else:
-				e = "Permission required to reset `working_data`. Set `reset_status` to `True`."
-				raise PermissionError(e)
+		self.reset_data_checksums(reset_status=reset_status)
 		if self.schema_settings.get("input_data", []):
 			self.schema_settings["input_data"] = [data for data in self.schema_settings["input_data"]
 												  if data["id"] != _id]

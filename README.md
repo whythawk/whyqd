@@ -17,7 +17,12 @@ destination file validated against that schema.
 your input data to a separate json-defined methods file. This permits others to scrutinise your
 approach, validate your methodology, or even use your methods to import data in production.
 
-## Why is it needed?
+## Why use it?
+
+If all you want to do is test whether your source data are even useful, spending days or weeks
+slogging through data restructuring could kill a project. If you already have a workflow and
+established software which includes Python and pandas, having to change your code every time your
+source data changes is really, really frustrating.
 
 There are two complex and time-consuming parts to preparing data for analysis: social, and technical.
 
@@ -26,11 +31,8 @@ destination database users, to agree structural metadata. Without any agreement 
 formats or destination structure, you are left with the tedious frustration of manually wrangling
 each independent dataset into a single schema.
 
-If all you want to do is test whether your source data are even useful, this time-consuming slog
-could kill a project.
-
-**whyqd** allows you to get to work without requiring you to achieve buy-in from anyone. They can
-always edit the method themselves should they need to make changes.
+**whyqd** allows you to get to work without requiring you to achieve buy-in from anyone or change
+your existing code.
 
 ## Wrangling process
 

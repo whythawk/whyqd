@@ -8,7 +8,7 @@ import uuid
 
 import whyqd.common as _c
 
-def perform_transform(df, field_name, structure, category = None):
+def perform_transform(df, field_name, field_type, structure, category = None):
 	"""
 	A recursive transformation. A method should be a list fields upon which actions are applied, but
 	each field may have nested sub-fields requiring their own actions. Before the action on the
@@ -16,12 +16,14 @@ def perform_transform(df, field_name, structure, category = None):
 
 	Parameters
 	----------
+	df: DataFrame
+		Working data to be transformed
 	field_name: str
 		Name of the target schema field
 	structure: list
 		List of fields with restructuring action defined by term 0
-	category: dict
-		Dictionary defining unique terms to be categorised
+	category: list
+		List defining unique terms to be categorised
 
 	Returns
 	-------
@@ -50,14 +52,16 @@ def perform_transform(df, field_name, structure, category = None):
 			# Need to create a temporary column ... the action will be performed here
 			# then this nested structure will be replaced by the output of this new column
 			temp_name = "nested_" + str(uuid.uuid4())
-			df = perform_transform(df, temp_name, *field, **category)
+			df = perform_transform(df, temp_name, field_type, field, category=category)
 			field = {
-				"name": temp_name
+				"name": temp_name,
+				"type": "nested"
 			}
 		flattened_structure.append(field)
 	# Actions: ORDER / ORDER_NEW / ORDER_OLD / CALCULATE / JOIN / CATEGORISE / NEW / RENAME
 	if action["name"] == "CATEGORISE":
-		return perform[action["name"]](df, field_name, flattened_structure, category=category)
+		return perform[action["name"]](df, field_name, field_type,
+									   flattened_structure, category=category)
 	return perform[action["name"]](df, field_name, flattened_structure)
 
 def transform_by_rename(df, field_name, structure):
@@ -66,6 +70,8 @@ def transform_by_rename(df, field_name, structure):
 
 	Parameters
 	----------
+	df: DataFrame
+		Working data to be transformed
 	field_name: str
 		Name of the target schema field
 	structure: list
@@ -94,6 +100,8 @@ def transform_by_new_field(df, field_name, structure):
 
 	Parameters
 	----------
+	df: DataFrame
+		Working data to be transformed
 	field_name: str
 		Name of the target schema field
 	structure: list
@@ -117,6 +125,8 @@ def transform_by_joining(df, field_name, structure):
 
 	Parameters
 	----------
+	df: DataFrame
+		Working data to be transformed
 	field_name: str
 		Name of the target schema field
 	structure: list
@@ -144,6 +154,8 @@ def transform_by_order(df, field_name, structure):
 
 	Parameters
 	----------
+	df: DataFrame
+		Working data to be transformed
 	field_name: str
 		Name of the target schema field
 	structure: list
@@ -178,6 +190,8 @@ def transform_by_order_by_date(df, field_name, structure):
 
 	Parameters
 	----------
+	df: DataFrame
+		Working data to be transformed
 	field_name: str
 		Name of the target schema field
 	structure: list
@@ -249,6 +263,8 @@ def transform_by_calculation(df, field_name, structure):
 
 	Parameters
 	----------
+	df: DataFrame
+		Working data to be transformed
 	field_name: str
 		Name of the target schema field
 	structure: list
@@ -273,7 +289,7 @@ def transform_by_calculation(df, field_name, structure):
 	df.loc[:, field_name] = df[add_fields].abs().sum(axis=1) - df[sub_fields].abs().sum(axis=1)
 	return df
 
-def transform_by_categorisation(df, field_name, structure, category = None):
+def transform_by_categorisation(df, field_name, field_type, structure, category = None):
 	"""
 	Produce categories from terms or headers. There are three categorisation options:
 
@@ -286,12 +302,14 @@ def transform_by_categorisation(df, field_name, structure, category = None):
 
 	Parameters
 	----------
+	df: DataFrame
+		Working data to be transformed
 	field_name: str
 		Name of the target schema field
 	structure: list
 		List of fields with restructuring action defined by term 0
-	category: dict
-		Dictionary defining unique terms to be categorised
+	category: list
+		List defining unique terms to be categorised
 
 	Returns
 	-------
@@ -307,8 +325,13 @@ def transform_by_categorisation(df, field_name, structure, category = None):
 	#   '-': Non-null terms indicate presence of a schema category
 	# If field type is 'array', then the destination terms are lists;
 	# If field type is 'boolean', then the default term is True;
-	is_array = True if categories["type"] == "array" else False
-	is_boolean = True if categories["type"] == "boolean" else False
+	is_array = True if field_type == "array" else False
+	is_boolean = True if field_type == "boolean" else False
+	# Sort out boolean term names before they cause further pain, correct later ...
+	if is_boolean:
+		for c in category:
+			if c["name"]: c["name"] = "true"
+			else: c["name"] = "false"
 	default = "None" if is_array else is_boolean
 	# Set the field according to the default
 	#https://stackoverflow.com/a/31469249
@@ -317,19 +340,26 @@ def transform_by_categorisation(df, field_name, structure, category = None):
 	# Requires sets of 2 terms: + or -, field
 	new_field = []
 	term_set = len(structure[0]["structure"])
-	all_terms = [t for t in list(categories["fields"].keys()) if categories["fields"][t]["fields"]]
 	all_terms = [c["name"] for c in categories]
+	# Any fields modified below must be restored: (tmp_column, original_column)
+	modified_fields = []
 	for modifier, field in _c.chunks(structure[1:], term_set):
 		# https://docs.scipy.org/doc/numpy/reference/generated/numpy.select.html
 		# Extract only the terms valid for this particular field
 		terms = []
 		for field_term in all_terms:
-			for f in categories["fields"][field_term]["fields"]:
-				if f["source"] == field["name"]:
-					terms.append(field_term)
+			for f in categories:
+				if f["name"] == field_term:
+					for c in f["category_input"]:
+						if c["column"] == field["name"]:
+							terms.extend([field_term for t in c["terms"]])
+					break
 		if modifier["name"] == "+":
-			conditions = [df[field["name"]].isin([t["name"] for t in
-														  categories["fields"][field_term]["fields"]])
+			conditions = [df[field["name"]].isin([t for subterms in
+												  [item["terms"] for category_input in categories
+												   for item in category_input["category_input"]
+												   if category_input["name"] == field_term]
+												  for t in subterms])
 						  for field_term in terms]
 		else:
 			# Modifier is -, so can make certain assumptions
@@ -337,13 +367,17 @@ def transform_by_categorisation(df, field_name, structure, category = None):
 			# - However, all terms allocated to 'true' will fail (since True on default is True no matter)
 			# - User may return both True / False or only one
 			# - If both True and False, keep False. If True, convert the True to False
-			# First ensure any numerical zeros are nan'ed
-			fdn = field["name"]
-			if df[fdn].dtype in ["float64", "int64"]:
-				df[fdn] = df[fdn].replace({0:np.nan, 0.0:np.nan})
-			if df[fdn].dtype in ["datetime64[ns]"]:
-				df.loc[:, fdn] = df.loc[:, fdn].apply(lambda x: pd.to_datetime(_c.parse_dates(x),
-																			   errors="coerce"))
+			# Create temporary column to preserve data
+			if df[field["name"]].dtype in ["float64", "int64", "datetime64[ns]"]:
+				tmp = "tmp_" + str(uuid.uuid4())
+				modified_fields.append((tmp, field["name"]))
+				df[tmp] = df[field["name"]].copy()
+			# Ensure any numerical zeros are nan'ed +
+			if df[field["name"]].dtype in ["float64", "int64"]:
+				df[field["name"]] = df[field["name"]].replace({0:np.nan, 0.0:np.nan})
+			if df[field["name"]].dtype in ["datetime64[ns]"]:
+				df.loc[:, field["name"]] = df.loc[:, field["name"]].apply(lambda x: pd.to_datetime(_c.parse_dates(x),
+																								   errors="coerce"))
 			conditions = [pd.notnull(df[field["name"]])
 						  if categories["fields"][field_term]["fields"][0]["name"] else
 						  ~pd.notnull(df[field["name"]])
@@ -375,4 +409,8 @@ def transform_by_categorisation(df, field_name, structure, category = None):
 			if "none" in n: n.remove("none")
 		if new_field:
 			df[field_name] = new_field
+	# Finally, fix the artifact columns introduced in the dataframe in case these are used elsewhere
+	for tmp, original in modified_fields:
+		df[original] = df[tmp].copy()
+		del df[tmp]
 	return df
