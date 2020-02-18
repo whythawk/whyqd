@@ -2,10 +2,10 @@
 
 ## What is it?
 
-**whyqd** provides an intuitive and quick method for restructuring messy data to conform to a
-standardised metadata schema. It supports data managers and researchers looking to rapidly, and
-continuously, normalise any messy spreadsheets using a simple series of steps. Once complete, you
-can import wrangled data into more complex analytical systems or full-feature wrangling tools.
+**whyqd** provides an intuitive method for restructuring messy data to conform to a standardised
+metadata schema. It supports data managers and researchers looking to rapidly, and continuously,
+normalise any messy spreadsheets using a simple series of steps. Once complete, you can import
+wrangled data into more complex analytical systems or full-feature wrangling tools.
 
 It aims to get you to the point where you can perform automated data munging prior to
 committing your data into a database, and no further. It is built on Pandas, and plays well with
@@ -16,6 +16,10 @@ destination file validated against that schema.
 **whyqd** ensures complete audit transparency by saving all actions performed to restructure
 your input data to a separate json-defined methods file. This permits others to scrutinise your
 approach, validate your methodology, or even use your methods to import data in production.
+
+Once complete, a method file can be shared, along with your input data, and anyone can
+import **whyqd** and validate your method to verify that your output data is the product of these
+inputs.
 
 ## Why use it?
 
@@ -42,13 +46,19 @@ your existing code.
   - Structure input data fields to conform to the requriements for each schema field;
   - Assign categorical data identified during structuring;
   - Transform and filter input data to produce a final destination data file;
+  - Share your data and a citation;
 
-## Roadmap
+## Installation and dependencies
 
-  - Method to filter by unique join keys prior to merging;
-  - Input data from remote sources via URI;
-  - Zip output and produce citation report;
-  - Validate zipped file;
+  pip install whyqd
+
+Code has been tested on the following dependency versions:
+
+* numpy=1.18.1
+* openpyxl=3.0.3
+* pandas=1.0.0
+* tabulate=0.8.3
+* xlrd=1.2.0
 
 ## Background
 
@@ -56,11 +66,6 @@ your existing code.
 complex messy sources, ensuring the integrity of the source data, and producing a complete audit
 trail from data imported to our database, back to source. You can see the product of that at
 [Sqwyre.com](https://sqwyre.com).
-
-That said, the first ideas for how a more general approach would work was during extensive data
-wrangling workshops to national government open data initiatives. These projects often fail to
-deliver data publication when government data owners give up because they can't get their (messy)
-data to validate against FrictionlessData prior to official release approval.
 
 [Frictionlessdata.io](https://frictionlessdata.io/) is intended as a containerised validation schema
 for CSV files. **whyqd** uses their *table schema* as a starting-point, but our objectives

@@ -35,6 +35,7 @@
   <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Transform" href="transform_api.html" />
     <link rel="prev" title="Action" href="action_api.html" /> 
 </head>
 
@@ -83,6 +84,7 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="installation.html">Requirements, installation &amp; importing</a></li>
 <li class="toctree-l1"><a class="reference internal" href="tutorial.html">Full worked tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="citation.html">Distribution &amp; Citation of methods and data</a></li>
 </ul>
 <p class="caption"><span class="caption-text">Creating and managing Schemas</span></p>
 <ul>
@@ -92,12 +94,17 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="method.html">Method</a></li>
 </ul>
+<p class="caption"><span class="caption-text">What next?</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="contributing.html">Background and Contributing</a></li>
+</ul>
 <p class="caption"><span class="caption-text">Reference API</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="field_api.html">Field</a></li>
 <li class="toctree-l1"><a class="reference internal" href="schema_api.html">Schema</a></li>
 <li class="toctree-l1"><a class="reference internal" href="action_api.html">Action</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Method</a></li>
+<li class="toctree-l1"><a class="reference internal" href="transform_api.html">Transform</a></li>
 </ul>
 
             
@@ -377,6 +384,36 @@ will include <cite>ALL</cite> data.</p>
 </dd></dl>
 
 <dl class="method">
+<dt id="method.Method.transform">
+<code class="sig-name descname">transform</code><span class="sig-paren">(</span><em class="sig-param">overwrite_output=False</em><span class="sig-paren">)</span><a class="headerlink" href="#method.Method.transform" title="Permalink to this definition">¶</a></dt>
+<dd><p>Implement the method to transform input data into output data.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>overwrite_output</strong> (<em>bool</em>) – Permission to overwrite existing output data</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="method.Method.citation">
+<em class="property">property </em><code class="sig-name descname">citation</code><a class="headerlink" href="#method.Method.citation" title="Permalink to this definition">¶</a></dt>
+<dd><p>Present a citation and validation report for this method. If citation data has been included
+in the <cite>constructor</cite> then that will be included.</p>
+<p>Format for citation is:</p>
+<blockquote>
+<div><p>author/s, date, title, repository, doi, hash (for output data), [input sources: URI, hash]</p>
+</div></blockquote>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Text ready for citation.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
 <dt id="method.Method.constructors">
 <em class="property">property </em><code class="sig-name descname">constructors</code><a class="headerlink" href="#method.Method.constructors" title="Permalink to this definition">¶</a></dt>
 <dd><p>Constructors are additional metadata to be included with the <cite>method</cite>. Ordinarily, this is
@@ -386,11 +423,29 @@ need to be maintained with the target data.</p>
 
 <dl class="method">
 <dt id="method.Method.set_constructors">
-<code class="sig-name descname">set_constructors</code><span class="sig-paren">(</span><em class="sig-param">constructors</em><span class="sig-paren">)</span><a class="headerlink" href="#method.Method.set_constructors" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">set_constructors</code><span class="sig-paren">(</span><em class="sig-param">constructors</em>, <em class="sig-param">overwrite=False</em><span class="sig-paren">)</span><a class="headerlink" href="#method.Method.set_constructors" title="Permalink to this definition">¶</a></dt>
 <dd><p>Define additional metadata to be included with the <cite>method</cite>.</p>
+<p>Citation data must be specifically included as:</p>
+<blockquote>
+<div><dl>
+<dt>{</dt><dd><dl class="simple">
+<dt>“citation”: {</dt><dd><p>“authors”: [“Author Name 1”, “Author Name 2”],
+“title”: “Citation Title”,
+“repository”: “Data distributor”,
+“doi”: “Persistent URI”</p>
+</dd>
+</dl>
+<p>}</p>
+</dd>
+</dl>
+<p>}</p>
+</div></blockquote>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>constructors</strong> (<em>dict</em>) – A set of key:value pairs. These will not be validated, or used during transformation.</p>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>constructors</strong> (<em>dict</em>) – A set of key:value pairs. These will not be validated, or used during transformation.</p></li>
+<li><p><strong>overwrite</strong> (<em>boolean</em>) – To overwrite any existing data in the constructor, set to True</p></li>
+</ul>
 </dd>
 <dt class="field-even">Raises</dt>
 <dd class="field-even"><p><strong>TypeError if not a dict.</strong> – </p>
@@ -399,12 +454,30 @@ need to be maintained with the target data.</p>
 </dd></dl>
 
 <dl class="method">
+<dt id="method.Method.reset_data_checksums">
+<code class="sig-name descname">reset_data_checksums</code><span class="sig-paren">(</span><em class="sig-param">reset_status=False</em>, <em class="sig-param">reset_output_only=False</em><span class="sig-paren">)</span><a class="headerlink" href="#method.Method.reset_data_checksums" title="Permalink to this definition">¶</a></dt>
+<dd><p>If input or working data are modified, then the checksums for working and output data
+must be deleted (i.e. they’re no longer valid and everything else must be re-run).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>reset_status</strong> (<em>bool</em>) – Requires a deliberate choice. Default False.</p></li>
+<li><p><strong>reset_output_only</strong> (<em>bool</em>) – Requires a deliberate choice. Default False. Only resets output data.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
 <dt id="method.Method.add_input_data">
-<code class="sig-name descname">add_input_data</code><span class="sig-paren">(</span><em class="sig-param">input_data</em><span class="sig-paren">)</span><a class="headerlink" href="#method.Method.add_input_data" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">add_input_data</code><span class="sig-paren">(</span><em class="sig-param">input_data</em>, <em class="sig-param">reset_status=False</em><span class="sig-paren">)</span><a class="headerlink" href="#method.Method.add_input_data" title="Permalink to this definition">¶</a></dt>
 <dd><p>Provide a list of strings, each the filename of input data for wrangling.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>input_data</strong> (<em>str</em><em> or </em><em>list of str</em>) – Each input data can be a filename, or a file_source (where filename is remote)</p>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>input_data</strong> (<em>str</em><em> or </em><em>list of str</em>) – Each input data can be a filename, or a file_source (where filename is remote)</p></li>
+<li><p><strong>reset_status</strong> (<em>bool</em>) – Requires a deliberate choice. Default False.</p></li>
+</ul>
 </dd>
 <dt class="field-even">Raises</dt>
 <dd class="field-even"><p><strong>TypeError if not a list of str.</strong> – </p>
@@ -419,10 +492,27 @@ need to be maintained with the target data.</p>
 reset data processing, or raise an error.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>_id</strong> (<em>str</em>) – Unique id for an input data source. View all input data from <cite>input_data</cite></p>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>_id</strong> (<em>str</em>) – Unique id for an input data source. View all input data from <cite>input_data</cite></p></li>
+<li><p><strong>reset_status</strong> (<em>bool</em>) – Requires a deliberate choice. Default False.</p></li>
+</ul>
 </dd>
 <dt class="field-even">Raises</dt>
 <dd class="field-even"><p><strong>TypeError if not a list of str.</strong> – </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="method.Method.perform_merge">
+<em class="property">property </em><code class="sig-name descname">perform_merge</code><a class="headerlink" href="#method.Method.perform_merge" title="Permalink to this definition">¶</a></dt>
+<dd><p>Helper function to perform the merge. Also used by merge_validation step.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Merged dataframe derived from input_data</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>DataFrame</p>
 </dd>
 </dl>
 </dd></dl>
@@ -598,6 +688,20 @@ of types. Details for individual default actions can be returned with
 </dd></dl>
 
 <dl class="method">
+<dt id="method.Method.perform_transform">
+<em class="property">property </em><code class="sig-name descname">perform_transform</code><a class="headerlink" href="#method.Method.perform_transform" title="Permalink to this definition">¶</a></dt>
+<dd><p>Helper function to perform the transformation. Also used by validate_transform step.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Transformed dataframe derived from method</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>DataFrame</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
 <dt id="method.Method.validate_input_data">
 <em class="property">property </em><code class="sig-name descname">validate_input_data</code><a class="headerlink" href="#method.Method.validate_input_data" title="Permalink to this definition">¶</a></dt>
 <dd><p>Test input data for checksum errors.</p>
@@ -678,6 +782,23 @@ are unique.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Raises</dt>
 <dd class="field-odd"><p><strong>ValueError on filter failure.</strong> – </p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>bool</strong></p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>True for validates</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="method.Method.validate_transform">
+<em class="property">property </em><code class="sig-name descname">validate_transform</code><a class="headerlink" href="#method.Method.validate_transform" title="Permalink to this definition">¶</a></dt>
+<dd><p>Validate output data.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Raises</dt>
+<dd class="field-odd"><p><strong>ValueError on checksum failure.</strong> – </p>
 </dd>
 <dt class="field-even">Returns</dt>
 <dd class="field-even"><p><strong>bool</strong></p>
@@ -803,6 +924,8 @@ unique filename and data summary.</p>
           <footer>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="transform_api.html" class="btn btn-neutral float-right" title="Transform" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
         <a href="action_api.html" class="btn btn-neutral float-left" title="Action" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>

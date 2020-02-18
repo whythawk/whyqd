@@ -230,6 +230,64 @@ Each step can be validated and, once all steps validate, you can move to transfo
 Or, to run all the above and complete the method (setting status to 'Ready to Transform')::
 
 	method.validate
+
+Transform
+---------
+
+Transformation requires only the following::
+
+	method.transform()
+	method.save(DIRECTORY, filename=FILENAME, overwrite=True)
+
+With one little permutation ... if you've ever created a transform before, you'll need to deliberately
+tell the function to overwrite your original::
+
+	method.transform(overwrite_output=True)
+
+Citation
+--------
+
+**whyqd** is designed for sharing. Add information you wish to be cited to a `constructor` field in the `method`.
+
+The `constructor` field is there to store any metadata you wish to add. Whether it be `Dublin Core <https://dublincore.org/>`_
+or `SDMX <https://sdmx.org/>`_, add that metadata by creating a dictionary and placing it in the
+`constructor`.
+
+A citation is a special set of fields, with the minimum of:
+
+* **authors**: a list of author names in the format, and order, you wish to reference them
+* **title**: a text field for the full study title
+* **repository**: the organisation, or distributor, responsible for hosting your data (and your method file)
+* **doi**: the persistent `DOI <http://www.doi.org/>`_ for your repository
+
+Those of you familiar with Dataverse's `universal numerical fingerprint <http://guides.dataverse.org/en/latest/developers/unf/index.html>`_
+may be wondering where it is? **whyqd**, similarly, produces a unique hash for each datasource,
+including inputs, working data, and outputs. Ours is based on `BLAKE2b <https://en.wikipedia.org/wiki/BLAKE_(hash_function)>`_
+and is sufficiently universally available as to ensure you can run this as required.
+
+As an example::
+
+	citation = {
+		"authors": ["Gavin Chait"],
+		"title": "Portsmouth City Council normalised database of commercial ratepayers",
+		"repository": "Github.com"
+	}
+	method.set_constructors({"citation": citation})
+	method.save(DIRECTORY, filename=FILENAME, overwrite=True)
+
+You can then get your citation report::
+
+	method.citation
+
+	Gavin Chait, 2020-02-18, Portsmouth City Council normalised database of commercial ratepayers,
+	Github.com, 1367d4f02c99030f6645389141b85a93d54c226b435fb1b5a6cbccd7f703687e442a011f62c1381793a2d3fbf13cc52c176e0c5c573008991134658759eef948,
+	[input sources:
+	https://www.portsmouth.gov.uk/ext/documents-external/biz-ndr-properties-january-2020.xls,
+	476089d8f37581613344873068d6e94f8cd63a1a64b421edf374a2b341bc7563aff03b86db4d3fec8ca90ce150ba1e531e3ff0d374f932d13fc103fd709e01bd;
+	https://www.portsmouth.gov.uk/ext/documents-external/biz-ndr-reliefs-january-2020.xls,
+	892ec5b6e9b1f68e0b371bbaed8d93095d57f2b656753af2b279aee17b5854c5e9d731b2795aac285d7f7d9f5991311bc8fae0cfe5446a47163f30f0314cac06;
+	https://www.portsmouth.gov.uk/ext/documents-external/biz-empty-commercial-properties-january-2020.xls,
+	a41b4eb629c249fd59e6816d10d113bf2b9594c7dd7f9a61a82333a8a41bf07e59f9104eb3c1dc4269607de5a4a12eaf3215d0afc7545fdb1dfe7fe1bf5e0d29]
 """
 import os, uuid
 from shutil import copyfile, SameFileError
@@ -727,6 +785,47 @@ class Method(Schema):
 		self._status = "PROCESS_COMPLETE"
 
 	#########################################################################################
+	# CITATION
+	#########################################################################################
+
+	@property
+	def citation(self):
+		"""
+		Present a citation and validation report for this method. If citation data has been included
+		in the `constructor` then that will be included.
+
+		Format for citation is:
+
+			author/s, date, title, repository, doi, hash (for output data), [input sources: URI, hash]
+
+		Returns
+		-------
+		str
+			Text ready for citation.
+		"""
+		# Validate the input and output
+		self.validate_input_data
+		self.validate_transform
+		citation = []
+		ctn = self.schema_settings.get("constructors", {}).get("citation", {})
+		if ctn.get("authors"):
+			if isinstance(ctn["authors"], list): citation.extend(ctn["authors"])
+			else: citation.append(ctn["authors"])
+		# Date
+		citation.append(self.schema_settings["process_date"])
+		if ctn.get("title"): citation.append(ctn["title"])
+		if ctn.get("repository"): citation.append(ctn["repository"])
+		if ctn.get("doi"): citation.append(ctn["doi"])
+		# Output hash
+		citation.append(self.schema_settings["output_data"]["checksum"])
+		# Input data
+		input_reference = []
+		for input_data in self.input_data:
+			input_reference.append("{}, {}".format(input_data["original"], input_data["checksum"]))
+		citation.append("[input sources: {}]".format("; ".join(input_reference)))
+		return ", ".join(citation)
+
+	#########################################################################################
 	# SUPPORT FUNCTIONS
 	#########################################################################################
 
@@ -748,14 +847,27 @@ class Method(Schema):
 		"""
 		return deepcopy(self.schema_settings.get("constructors"))
 
-	def set_constructors(self, constructors):
+	def set_constructors(self, constructors, overwrite=False):
 		"""
 		Define additional metadata to be included with the `method`.
+
+		Citation data must be specifically included as:
+
+			{
+				"citation": {
+					"authors": ["Author Name 1", "Author Name 2"],
+					"title": "Citation Title",
+					"repository": "Data distributor",
+					"doi": "Persistent URI"
+				}
+			}
 
 		Parameters
 		----------
 		constructors: dict
 			A set of key:value pairs. These will not be validated, or used during transformation.
+		overwrite: boolean
+			To overwrite any existing data in the constructor, set to True
 
 		Raises
 		------
@@ -764,7 +876,11 @@ class Method(Schema):
 		if not constructors or not isinstance(constructors, dict):
 			e = "Method constructor is not a valid dict."
 			raise TypeError(e)
-		self.schema_settings["constructors"] = deepcopy(constructors)
+		if self.schema_settings.get("constructors") and not overwrite:
+			self.schema_settings["constructors"] = {**self.schema_settings["constructors"],
+													**deepcopy(constructors)}
+		else:
+			self.schema_settings["constructors"] = deepcopy(constructors)
 
 	def reset_data_checksums(self, reset_status=False, reset_output_only=False):
 		"""

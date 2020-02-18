@@ -1,4 +1,4 @@
-Requirements, installation & importing
+Dependencies, installation & importing
 ======================================
 
 **whyqd** can be integrated into an existing data importer, or you could use it as part of your
@@ -12,6 +12,9 @@ Requirements
 
 	* Python 3.7+
 	* Pandas 1.0+
+	* Numpy 1.18+
+	* OpenPyxl 3.0+
+	* XLRD 1.2+
 	* Tabulate 0.8+ (for pretty-printing tables)
 
 It could run on lower versions, but this hasn't been tested. If you want to work with Jupyter, then

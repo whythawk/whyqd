@@ -7,10 +7,10 @@ whyqd: simplicity, transparency, speed
 What is it?
 -----------
 
-**whyqd** provides an intuitive and quick method for restructuring messy data to conform to a
-standardised metadata schema. It supports data managers and researchers looking to rapidly, and
-continuously, normalise any messy spreadsheets using a simple series of steps. Once complete, you
-can import wrangled data into more complex analytical systems or full-feature wrangling tools.
+**whyqd** provides an intuitive method for restructuring messy data to conform to a standardised
+metadata schema. It supports data managers and researchers looking to rapidly, and continuously,
+normalise any messy spreadsheets using a simple series of steps. Once complete, you can import
+wrangled data into more complex analytical systems or full-feature wrangling tools.
 
 It aims to get you to the point where you can perform automated data munging prior to
 committing your data into a database, and no further. It is built on Pandas, and plays well with
@@ -26,6 +26,24 @@ Once complete, a method file can be shared, along with your input data, and anyo
 import **whyqd** and validate your method to verify that your output data is the product of these
 inputs.
 
+Why use it?
+-----------
+
+If all you want to do is test whether your source data are even useful, spending days or weeks
+slogging through data restructuring could kill a project. If you already have a workflow and
+established software which includes Python and pandas, having to change your code every time your
+source data changes is really, really frustrating.
+
+There are two complex and time-consuming parts to preparing data for analysis: social, and technical.
+
+The social part requires multi-stakeholder engagement with source data-publishers, and with
+destination database users, to agree structural metadata. Without any agreement on data publication
+formats or destination structure, you are left with the tedious frustration of manually wrangling
+each independent dataset into a single schema.
+
+**whyqd** allows you to get to work without requiring you to achieve buy-in from anyone or change
+your existing code.
+
 How does it work?
 -----------------
 
@@ -37,12 +55,19 @@ There is a full worked :doc:`tutorial` to help you on your way, but the core pro
   - Structure input data fields to conform to the requriements for each schema field
   - Assign categorical data identified during structuring
   - Transform and filter input data to produce a final destination data file
+  - Share your data and a citation
+
+Licencing
+---------
+
+**whyqd** is distributed under a 3-clause ("Simplified" or "New") BSD license.
 
 .. toctree::
    :caption: Getting started
 
    installation
    tutorial
+   citation
 
 .. toctree::
    :maxdepth: 2
@@ -69,3 +94,4 @@ There is a full worked :doc:`tutorial` to help you on your way, but the core pro
    schema_api
    action_api
    method_api
+   transform_api

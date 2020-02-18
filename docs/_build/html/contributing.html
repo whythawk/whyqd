@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Dependencies, installation &amp; importing &mdash; whyqd 0.1.0 documentation</title>
+  <title>Background and Contributing &mdash; whyqd 0.1.0 documentation</title>
   
 
   
@@ -35,8 +35,8 @@
   <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Full worked tutorial" href="tutorial.html" />
-    <link rel="prev" title="whyqd: simplicity, transparency, speed" href="index.html" /> 
+    <link rel="next" title="Field" href="field_api.html" />
+    <link rel="prev" title="Roadmap" href="roadmap.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -81,12 +81,8 @@
             
             
               <p class="caption"><span class="caption-text">Getting started</span></p>
-<ul class="current">
-<li class="toctree-l1 current"><a class="current reference internal" href="#">Dependencies, installation &amp; importing</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#requirements">Requirements</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#installing">Installing</a></li>
-</ul>
-</li>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Requirements, installation &amp; importing</a></li>
 <li class="toctree-l1"><a class="reference internal" href="tutorial.html">Full worked tutorial</a></li>
 <li class="toctree-l1"><a class="reference internal" href="citation.html">Distribution &amp; Citation of methods and data</a></li>
 </ul>
@@ -99,9 +95,12 @@
 <li class="toctree-l1"><a class="reference internal" href="method.html">Method</a></li>
 </ul>
 <p class="caption"><span class="caption-text">What next?</span></p>
-<ul>
+<ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="roadmap.html">Roadmap</a></li>
-<li class="toctree-l1"><a class="reference internal" href="contributing.html">Background and Contributing</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Background and Contributing</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#background">Background</a></li>
+</ul>
+</li>
 </ul>
 <p class="caption"><span class="caption-text">Reference API</span></p>
 <ul>
@@ -155,13 +154,13 @@
     
       <li><a href="index.html">Docs</a> &raquo;</li>
         
-      <li>Dependencies, installation &amp; importing</li>
+      <li>Background and Contributing</li>
     
     
       <li class="wy-breadcrumbs-aside">
         
             
-            <a href="_sources/installation.rst.txt" rel="nofollow"> View page source</a>
+            <a href="_sources/contributing.rst.txt" rel="nofollow"> View page source</a>
           
         
       </li>
@@ -174,39 +173,21 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="dependencies-installation-importing">
-<h1>Dependencies, installation &amp; importing<a class="headerlink" href="#dependencies-installation-importing" title="Permalink to this headline">¶</a></h1>
-<p><strong>whyqd</strong> can be integrated into an existing data importer, or you could use it as part of your
-data analysis and exploration in Jupyter Notebooks. Tables can be printed as reStructuredText or
-as Pandas dataframes.</p>
-<div class="section" id="requirements">
-<h2>Requirements<a class="headerlink" href="#requirements" title="Permalink to this headline">¶</a></h2>
-<p><strong>whyqd</strong> has a relatively short list of requirements (excl. dependencies):</p>
-<blockquote>
-<div><ul class="simple">
-<li><p>Python 3.7+</p></li>
-<li><p>Pandas 1.0+</p></li>
-<li><p>Numpy 1.18+</p></li>
-<li><p>OpenPyxl 3.0+</p></li>
-<li><p>XLRD 1.2+</p></li>
-<li><p>Tabulate 0.8+ (for pretty-printing tables)</p></li>
-</ul>
-</div></blockquote>
-<p>It could run on lower versions, but this hasn’t been tested. If you want to work with Jupyter, then
-either install Jupyter only, or Anaconda.</p>
-</div>
-<div class="section" id="installing">
-<h2>Installing<a class="headerlink" href="#installing" title="Permalink to this headline">¶</a></h2>
-<p>Install with <cite>pip</cite>:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="n">whyqd</span>
-</pre></div>
-</div>
-<p>Then import:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">whyqd</span>
-</pre></div>
-</div>
-<p>Your next steps are to build a target <a class="reference internal" href="schema.html"><span class="doc">Schema</span></a> to describe the data structure, and then import
-that into a <a class="reference internal" href="method.html"><span class="doc">Method</span></a>.</p>
+  <div class="section" id="background-and-contributing">
+<h1>Background and Contributing<a class="headerlink" href="#background-and-contributing" title="Permalink to this headline">¶</a></h1>
+<p><strong>whyqd</strong> is open-source and we welcome your support. This is very early in the release process, so
+please have a look at the <a class="reference internal" href="roadmap.html"><span class="doc">Roadmap</span></a>, or simply let me know what you think, what works, what
+doesn’t.</p>
+<div class="section" id="background">
+<h2>Background<a class="headerlink" href="#background" title="Permalink to this headline">¶</a></h2>
+<p><strong>whyqd</strong> was created to serve a continuous data wrangling process, including collaboration on more
+complex messy sources, ensuring the integrity of the source data, and producing a complete audit
+trail from data imported to our database, back to source. You can see the product of that at
+<a class="reference external" href="https://sqwyre.com">Sqwyre.com</a>.</p>
+<p>All the code (so far) has been written by <a class="reference external" href="https://gavinchait.com">Gavin Chait</a> with references in
+the code to snippets from elsewhere.</p>
+<p>The ‘backronym’ for <strong>whyqd</strong> /wɪkɪd/ is <em>Whythawk Quantitative Data</em>, <a class="reference external" href="https://whythawk.com">Whythawk</a>
+is an open data science and open research technical consultancy.</p>
 </div>
 </div>
 
@@ -218,10 +199,10 @@ that into a <a class="reference internal" href="method.html"><span class="doc">M
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="tutorial.html" class="btn btn-neutral float-right" title="Full worked tutorial" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="field_api.html" class="btn btn-neutral float-right" title="Field" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="index.html" class="btn btn-neutral float-left" title="whyqd: simplicity, transparency, speed" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="roadmap.html" class="btn btn-neutral float-left" title="Roadmap" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   

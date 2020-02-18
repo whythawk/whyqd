@@ -832,6 +832,57 @@ Let's also save our method::
 	FILENAME = "2020_q1_portsmouth.json"
 	method.save(DIRECTORY, filename=FILENAME, overwrite=True)
 
+Filtering is optional
+^^^^^^^^^^^^^^^^^^^^^
+
+Sometimes data are bulky. Sometimes processing data you've already imported because an updated
+data source adds new rows at the bottom makes for time-consuming workflows. Filtering is not
+meant to replace post-wrangling validation and processing, but to support it by importing only
+the data you need.
+
+This is an optional step, and we start with `help`::
+
+	print(method.help("filter"))
+
+	Set date filters on any date-type fields. **whyqd** offers only rudimentary post-
+	wrangling functionality. Filters are there to, for example, facilitate importing data
+	outside the bounds of a previous import.
+
+	This is also an optional step. By default, if no filters are present, the transformed output
+	will include `ALL` data.
+
+	Parameters
+	----------
+	field_name: str
+		Name of field on which filters to be set
+	filter_name: str
+		Name of filter type from the list of valid filter names
+	filter_date: str (optional)
+		A date in the format specified by the field type
+	foreign_field: str (optional)
+		Name of field to which filter will be applied. Defaults to `field_name`
+
+	There are four filter_names:
+
+		ALL: default, import all data
+		LATEST: only the latest date
+		BEFORE: before a specified date
+		AFTER: after a specified date
+
+	BEFORE and AFTER take an optional `foreign_field` term for filtering on that column. e.g.
+
+		>>> method.set_filter("occupation_state_date", "AFTER", "2019-09-01", "ba_ref")
+
+	Filters references in column `ba_ref` by dates in column `occupation_state_date` after `2019-09-01`.
+
+	Field names which can be filtered are: ['occupation_state_date']
+
+Let's set a filter to import only data released after `2010-01-01` and set the filter for our
+reference column `ba_ref`::
+
+	method.set_filter("occupation_state_date", "AFTER", "2010-01-01", "ba_ref")
+	method.save(DIRECTORY, filename=FILENAME, overwrite=True)
+
 Method Validation
 ^^^^^^^^^^^^^^^^^
 
@@ -877,6 +928,68 @@ OK, everything validates, and we're ready to transform...
 Transform your data
 ^^^^^^^^^^^^^^^^^^^
 
-Run the following (which will validate all over again)::
+After all that, you'll be relieved (possibly) to know that there's not a lot left to do. One line::
 
-	method.transform
+	method.transform()
+	method.save(DIRECTORY, filename=FILENAME, overwrite=True)
+
+With one little permutation ... if you've ever created a transform before, you'll need to deliberately
+tell the function to overwrite your original::
+
+	method.transform(overwrite_output=True)
+
+And, then, because you're appropriately paranoid::
+
+	method.validate_transform
+
+	True
+
+Preparing a Citation
+^^^^^^^^^^^^^^^^^^^^
+
+Data scientists (with the emphasis on the `science` part) are not always treated well in the research
+community. Data are hoarded by researchers, which also means that the people who produced that data
+don't get referenced or recognised.
+
+**whyqd** is designed for sharing. To produce a full citation for your dataset, there's one last
+requirement. Add information you wish to be cited to a `constructor` field in the `method`.
+
+The `constructor` field is there to store any metadata you wish to add. Whether it be `Dublin Core <https://dublincore.org/>`_
+or `SDMX <https://sdmx.org/>`_, add that metadata by creating a dictionary and placing it in the
+`constructor`.
+
+A citation is a special set of fields, with the minimum of:
+
+* **authors**: a list of author names in the format, and order, you wish to reference them
+* **title**: a text field for the full study title
+* **repository**: the organisation, or distributor, responsible for hosting your data (and your method file)
+* **doi**: the persistent `DOI <http://www.doi.org/>`_ for your repository
+
+Those of you familiar with Dataverse's `universal numerical fingerprint <http://guides.dataverse.org/en/latest/developers/unf/index.html>`_
+may be wondering where it is? **whyqd**, similarly, produces a unique hash for each datasource,
+including inputs, working data, and outputs. Ours is based on `BLAKE2b <https://en.wikipedia.org/wiki/BLAKE_(hash_function)>`_
+and is sufficiently universally available as to ensure you can run this as required.
+
+Let's create a citation for this tutorial::
+
+	citation = {
+		"authors": ["Gavin Chait"],
+		"title": "Portsmouth City Council normalised database of commercial ratepayers",
+		"repository": "Github.com"
+	}
+	method.set_constructors({"citation": citation})
+	method.save(DIRECTORY, filename=FILENAME, overwrite=True)
+
+You can then get your citation report::
+
+	method.citation
+
+	Gavin Chait, 2020-02-18, Portsmouth City Council normalised database of commercial ratepayers,
+	Github.com, 1367d4f02c99030f6645389141b85a93d54c226b435fb1b5a6cbccd7f703687e442a011f62c1381793a2d3fbf13cc52c176e0c5c573008991134658759eef948,
+	[input sources:
+	https://www.portsmouth.gov.uk/ext/documents-external/biz-ndr-properties-january-2020.xls,
+	476089d8f37581613344873068d6e94f8cd63a1a64b421edf374a2b341bc7563aff03b86db4d3fec8ca90ce150ba1e531e3ff0d374f932d13fc103fd709e01bd;
+	https://www.portsmouth.gov.uk/ext/documents-external/biz-ndr-reliefs-january-2020.xls,
+	892ec5b6e9b1f68e0b371bbaed8d93095d57f2b656753af2b279aee17b5854c5e9d731b2795aac285d7f7d9f5991311bc8fae0cfe5446a47163f30f0314cac06;
+	https://www.portsmouth.gov.uk/ext/documents-external/biz-empty-commercial-properties-january-2020.xls,
+	a41b4eb629c249fd59e6816d10d113bf2b9594c7dd7f9a61a82333a8a41bf07e59f9104eb3c1dc4269607de5a4a12eaf3215d0afc7545fdb1dfe7fe1bf5e0d29]

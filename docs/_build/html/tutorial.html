@@ -35,7 +35,7 @@
   <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Schema" href="schema.html" />
+    <link rel="next" title="Distribution &amp; Citation of methods and data" href="citation.html" />
     <link rel="prev" title="Requirements, installation &amp; importing" href="installation.html" /> 
 </head>
 
@@ -90,12 +90,15 @@
 <li class="toctree-l3"><a class="reference internal" href="#organise-and-merge-input-data">Organise and Merge input data</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#create-a-wrangling-structure">Create a wrangling Structure</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#assigning-category-terms-to-fields">Assigning Category terms to fields</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#filtering-is-optional">Filtering is optional</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#method-validation">Method Validation</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#transform-your-data">Transform your data</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#preparing-a-citation">Preparing a Citation</a></li>
 </ul>
 </li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="citation.html">Distribution &amp; Citation of methods and data</a></li>
 </ul>
 <p class="caption"><span class="caption-text">Creating and managing Schemas</span></p>
 <ul>
@@ -105,12 +108,17 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="method.html">Method</a></li>
 </ul>
+<p class="caption"><span class="caption-text">What next?</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="contributing.html">Background and Contributing</a></li>
+</ul>
 <p class="caption"><span class="caption-text">Reference API</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="field_api.html">Field</a></li>
 <li class="toctree-l1"><a class="reference internal" href="schema_api.html">Schema</a></li>
 <li class="toctree-l1"><a class="reference internal" href="action_api.html">Action</a></li>
 <li class="toctree-l1"><a class="reference internal" href="method_api.html">Method</a></li>
+<li class="toctree-l1"><a class="reference internal" href="transform_api.html">Transform</a></li>
 </ul>
 
             
@@ -1007,6 +1015,56 @@ Current method status: `Ready to Transform`
 </pre></div>
 </div>
 </div>
+<div class="section" id="filtering-is-optional">
+<h3>Filtering is optional<a class="headerlink" href="#filtering-is-optional" title="Permalink to this headline">¶</a></h3>
+<p>Sometimes data are bulky. Sometimes processing data you’ve already imported because an updated
+data source adds new rows at the bottom makes for time-consuming workflows. Filtering is not
+meant to replace post-wrangling validation and processing, but to support it by importing only
+the data you need.</p>
+<p>This is an optional step, and we start with <cite>help</cite>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>print(method.help(&quot;filter&quot;))
+
+Set date filters on any date-type fields. **whyqd** offers only rudimentary post-
+wrangling functionality. Filters are there to, for example, facilitate importing data
+outside the bounds of a previous import.
+
+This is also an optional step. By default, if no filters are present, the transformed output
+will include `ALL` data.
+
+Parameters
+----------
+field_name: str
+        Name of field on which filters to be set
+filter_name: str
+        Name of filter type from the list of valid filter names
+filter_date: str (optional)
+        A date in the format specified by the field type
+foreign_field: str (optional)
+        Name of field to which filter will be applied. Defaults to `field_name`
+
+There are four filter_names:
+
+        ALL: default, import all data
+        LATEST: only the latest date
+        BEFORE: before a specified date
+        AFTER: after a specified date
+
+BEFORE and AFTER take an optional `foreign_field` term for filtering on that column. e.g.
+
+        &gt;&gt;&gt; method.set_filter(&quot;occupation_state_date&quot;, &quot;AFTER&quot;, &quot;2019-09-01&quot;, &quot;ba_ref&quot;)
+
+Filters references in column `ba_ref` by dates in column `occupation_state_date` after `2019-09-01`.
+
+Field names which can be filtered are: [&#39;occupation_state_date&#39;]
+</pre></div>
+</div>
+<p>Let’s set a filter to import only data released after <cite>2010-01-01</cite> and set the filter for our
+reference column <cite>ba_ref</cite>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">method</span><span class="o">.</span><span class="n">set_filter</span><span class="p">(</span><span class="s2">&quot;occupation_state_date&quot;</span><span class="p">,</span> <span class="s2">&quot;AFTER&quot;</span><span class="p">,</span> <span class="s2">&quot;2010-01-01&quot;</span><span class="p">,</span> <span class="s2">&quot;ba_ref&quot;</span><span class="p">)</span>
+<span class="n">method</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">DIRECTORY</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="n">FILENAME</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
 <div class="section" id="method-validation">
 <h3>Method Validation<a class="headerlink" href="#method-validation" title="Permalink to this headline">¶</a></h3>
 <p>There’s a fair amount of activity behind the scenes, mostly related to validation. Every step has
@@ -1047,8 +1105,66 @@ asynchronously in the background.</p>
 </div>
 <div class="section" id="transform-your-data">
 <h3>Transform your data<a class="headerlink" href="#transform-your-data" title="Permalink to this headline">¶</a></h3>
-<p>Run the following (which will run your validation all over again):</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">method</span><span class="o">.</span><span class="n">transform</span>
+<p>After all that, you’ll be relieved (possibly) to know that there’s not a lot left to do. One line:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">method</span><span class="o">.</span><span class="n">transform</span><span class="p">()</span>
+<span class="n">method</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">DIRECTORY</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="n">FILENAME</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>With one little permutation … if you’ve ever created a transform before, you’ll need to deliberately
+tell the function to overwrite your original:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">method</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">overwrite_output</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>And, then, because you’re appropriately paranoid:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">method</span><span class="o">.</span><span class="n">validate_transform</span>
+
+<span class="kc">True</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="preparing-a-citation">
+<h3>Preparing a Citation<a class="headerlink" href="#preparing-a-citation" title="Permalink to this headline">¶</a></h3>
+<p>Data scientists (with the emphasis on the <cite>science</cite> part) are not always treated well in the research
+community. Data are hoarded by researchers, which also means that the people who produced that data
+don’t get referenced or recognised.</p>
+<p><strong>whyqd</strong> is designed for sharing. To produce a full citation for your dataset, there’s one last
+requirement. Add information you wish to be cited to a <cite>constructor</cite> field in the <cite>method</cite>.</p>
+<p>The <cite>constructor</cite> field is there to store any metadata you wish to add. Whether it be <a class="reference external" href="https://dublincore.org/">Dublin Core</a>
+or <a class="reference external" href="https://sdmx.org/">SDMX</a>, add that metadata by creating a dictionary and placing it in the
+<cite>constructor</cite>.</p>
+<p>A citation is a special set of fields, with the minimum of:</p>
+<ul class="simple">
+<li><p><strong>authors</strong>: a list of author names in the format, and order, you wish to reference them</p></li>
+<li><p><strong>title</strong>: a text field for the full study title</p></li>
+<li><p><strong>repository</strong>: the organisation, or distributor, responsible for hosting your data (and your method file)</p></li>
+<li><p><strong>doi</strong>: the persistent <a class="reference external" href="http://www.doi.org/">DOI</a> for your repository</p></li>
+</ul>
+<p>Those of you familiar with Dataverse’s <a class="reference external" href="http://guides.dataverse.org/en/latest/developers/unf/index.html">universal numerical fingerprint</a>
+may be wondering where it is? <strong>whyqd</strong>, similarly, produces a unique hash for each datasource,
+including inputs, working data, and outputs. Ours is based on <a class="reference external" href="https://en.wikipedia.org/wiki/BLAKE_(hash_function)">BLAKE2b</a>
+and is sufficiently universally available as to ensure you can run this as required.</p>
+<p>Let’s create a citation for this tutorial:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">citation</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;authors&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;Gavin Chait&quot;</span><span class="p">],</span>
+        <span class="s2">&quot;title&quot;</span><span class="p">:</span> <span class="s2">&quot;Portsmouth City Council normalised database of commercial ratepayers&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;repository&quot;</span><span class="p">:</span> <span class="s2">&quot;Github.com&quot;</span>
+<span class="p">}</span>
+<span class="n">method</span><span class="o">.</span><span class="n">set_constructors</span><span class="p">({</span><span class="s2">&quot;citation&quot;</span><span class="p">:</span> <span class="n">citation</span><span class="p">})</span>
+<span class="n">method</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">DIRECTORY</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="n">FILENAME</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>You can then get your citation report:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">method</span><span class="o">.</span><span class="n">citation</span>
+
+<span class="n">Gavin</span> <span class="n">Chait</span><span class="p">,</span> <span class="mi">2020</span><span class="o">-</span><span class="mi">02</span><span class="o">-</span><span class="mi">18</span><span class="p">,</span> <span class="n">Portsmouth</span> <span class="n">City</span> <span class="n">Council</span> <span class="n">normalised</span> <span class="n">database</span> <span class="n">of</span> <span class="n">commercial</span> <span class="n">ratepayers</span><span class="p">,</span>
+<span class="n">Github</span><span class="o">.</span><span class="n">com</span><span class="p">,</span> <span class="mi">1367</span><span class="n">d4f02c99030f6645389141b85a93d54c226b435fb1b5a6cbccd7f703687e442a011f62c1381793a2d3fbf13cc52c176e0c5c573008991134658759eef948</span><span class="p">,</span>
+<span class="p">[</span><span class="nb">input</span> <span class="n">sources</span><span class="p">:</span>
+<span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">www</span><span class="o">.</span><span class="n">portsmouth</span><span class="o">.</span><span class="n">gov</span><span class="o">.</span><span class="n">uk</span><span class="o">/</span><span class="n">ext</span><span class="o">/</span><span class="n">documents</span><span class="o">-</span><span class="n">external</span><span class="o">/</span><span class="n">biz</span><span class="o">-</span><span class="n">ndr</span><span class="o">-</span><span class="n">properties</span><span class="o">-</span><span class="n">january</span><span class="o">-</span><span class="mf">2020.</span><span class="n">xls</span><span class="p">,</span>
+<span class="mi">476089</span><span class="n">d8f37581613344873068d6e94f8cd63a1a64b421edf374a2b341bc7563aff03b86db4d3fec8ca90ce150ba1e531e3ff0d374f932d13fc103fd709e01bd</span><span class="p">;</span>
+<span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">www</span><span class="o">.</span><span class="n">portsmouth</span><span class="o">.</span><span class="n">gov</span><span class="o">.</span><span class="n">uk</span><span class="o">/</span><span class="n">ext</span><span class="o">/</span><span class="n">documents</span><span class="o">-</span><span class="n">external</span><span class="o">/</span><span class="n">biz</span><span class="o">-</span><span class="n">ndr</span><span class="o">-</span><span class="n">reliefs</span><span class="o">-</span><span class="n">january</span><span class="o">-</span><span class="mf">2020.</span><span class="n">xls</span><span class="p">,</span>
+<span class="mi">892</span><span class="n">ec5b6e9b1f68e0b371bbaed8d93095d57f2b656753af2b279aee17b5854c5e9d731b2795aac285d7f7d9f5991311bc8fae0cfe5446a47163f30f0314cac06</span><span class="p">;</span>
+<span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">www</span><span class="o">.</span><span class="n">portsmouth</span><span class="o">.</span><span class="n">gov</span><span class="o">.</span><span class="n">uk</span><span class="o">/</span><span class="n">ext</span><span class="o">/</span><span class="n">documents</span><span class="o">-</span><span class="n">external</span><span class="o">/</span><span class="n">biz</span><span class="o">-</span><span class="n">empty</span><span class="o">-</span><span class="n">commercial</span><span class="o">-</span><span class="n">properties</span><span class="o">-</span><span class="n">january</span><span class="o">-</span><span class="mf">2020.</span><span class="n">xls</span><span class="p">,</span>
+<span class="n">a41b4eb629c249fd59e6816d10d113bf2b9594c7dd7f9a61a82333a8a41bf07e59f9104eb3c1dc4269607de5a4a12eaf3215d0afc7545fdb1dfe7fe1bf5e0d29</span><span class="p">]</span>
 </pre></div>
 </div>
 </div>
@@ -1063,7 +1179,7 @@ asynchronously in the background.</p>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="schema.html" class="btn btn-neutral float-right" title="Schema" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="citation.html" class="btn btn-neutral float-right" title="Distribution &amp; Citation of methods and data" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
         <a href="installation.html" class="btn btn-neutral float-left" title="Requirements, installation &amp; importing" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>

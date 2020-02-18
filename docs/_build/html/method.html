@@ -35,7 +35,7 @@
   <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Field" href="field_api.html" />
+    <link rel="next" title="&lt;no title&gt;" href="roadmap.html" />
     <link rel="prev" title="Schema" href="schema.html" /> 
 </head>
 
@@ -84,6 +84,7 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="installation.html">Requirements, installation &amp; importing</a></li>
 <li class="toctree-l1"><a class="reference internal" href="tutorial.html">Full worked tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="citation.html">Distribution &amp; Citation of methods and data</a></li>
 </ul>
 <p class="caption"><span class="caption-text">Creating and managing Schemas</span></p>
 <ul>
@@ -98,8 +99,14 @@
 <li class="toctree-l2"><a class="reference internal" href="#category">Category</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#filter">Filter</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#validation">Validation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#transform">Transform</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#citation">Citation</a></li>
 </ul>
 </li>
+</ul>
+<p class="caption"><span class="caption-text">What next?</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="contributing.html">Background and Contributing</a></li>
 </ul>
 <p class="caption"><span class="caption-text">Reference API</span></p>
 <ul>
@@ -107,6 +114,7 @@
 <li class="toctree-l1"><a class="reference internal" href="schema_api.html">Schema</a></li>
 <li class="toctree-l1"><a class="reference internal" href="action_api.html">Action</a></li>
 <li class="toctree-l1"><a class="reference internal" href="method_api.html">Method</a></li>
+<li class="toctree-l1"><a class="reference internal" href="transform_api.html">Transform</a></li>
 </ul>
 
             
@@ -409,6 +417,61 @@ will include <cite>ALL</cite> data. Parameters for filtering:</p>
 </pre></div>
 </div>
 </div>
+<div class="section" id="transform">
+<h2>Transform<a class="headerlink" href="#transform" title="Permalink to this headline">¶</a></h2>
+<p>Transformation requires only the following:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">method</span><span class="o">.</span><span class="n">transform</span><span class="p">()</span>
+<span class="n">method</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">DIRECTORY</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="n">FILENAME</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>With one little permutation … if you’ve ever created a transform before, you’ll need to deliberately
+tell the function to overwrite your original:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">method</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">overwrite_output</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="citation">
+<h2>Citation<a class="headerlink" href="#citation" title="Permalink to this headline">¶</a></h2>
+<p><strong>whyqd</strong> is designed for sharing. Add information you wish to be cited to a <cite>constructor</cite> field in the <cite>method</cite>.</p>
+<p>The <cite>constructor</cite> field is there to store any metadata you wish to add. Whether it be <a class="reference external" href="https://dublincore.org/">Dublin Core</a>
+or <a class="reference external" href="https://sdmx.org/">SDMX</a>, add that metadata by creating a dictionary and placing it in the
+<cite>constructor</cite>.</p>
+<p>A citation is a special set of fields, with the minimum of:</p>
+<ul class="simple">
+<li><p><strong>authors</strong>: a list of author names in the format, and order, you wish to reference them</p></li>
+<li><p><strong>title</strong>: a text field for the full study title</p></li>
+<li><p><strong>repository</strong>: the organisation, or distributor, responsible for hosting your data (and your method file)</p></li>
+<li><p><strong>doi</strong>: the persistent <a class="reference external" href="http://www.doi.org/">DOI</a> for your repository</p></li>
+</ul>
+<p>Those of you familiar with Dataverse’s <a class="reference external" href="http://guides.dataverse.org/en/latest/developers/unf/index.html">universal numerical fingerprint</a>
+may be wondering where it is? <strong>whyqd</strong>, similarly, produces a unique hash for each datasource,
+including inputs, working data, and outputs. Ours is based on <a class="reference external" href="https://en.wikipedia.org/wiki/BLAKE_(hash_function)">BLAKE2b</a>
+and is sufficiently universally available as to ensure you can run this as required.</p>
+<p>As an example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">citation</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;authors&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;Gavin Chait&quot;</span><span class="p">],</span>
+        <span class="s2">&quot;title&quot;</span><span class="p">:</span> <span class="s2">&quot;Portsmouth City Council normalised database of commercial ratepayers&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;repository&quot;</span><span class="p">:</span> <span class="s2">&quot;Github.com&quot;</span>
+<span class="p">}</span>
+<span class="n">method</span><span class="o">.</span><span class="n">set_constructors</span><span class="p">({</span><span class="s2">&quot;citation&quot;</span><span class="p">:</span> <span class="n">citation</span><span class="p">})</span>
+<span class="n">method</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">DIRECTORY</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="n">FILENAME</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>You can then get your citation report:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">method</span><span class="o">.</span><span class="n">citation</span>
+
+<span class="n">Gavin</span> <span class="n">Chait</span><span class="p">,</span> <span class="mi">2020</span><span class="o">-</span><span class="mi">02</span><span class="o">-</span><span class="mi">18</span><span class="p">,</span> <span class="n">Portsmouth</span> <span class="n">City</span> <span class="n">Council</span> <span class="n">normalised</span> <span class="n">database</span> <span class="n">of</span> <span class="n">commercial</span> <span class="n">ratepayers</span><span class="p">,</span>
+<span class="n">Github</span><span class="o">.</span><span class="n">com</span><span class="p">,</span> <span class="mi">1367</span><span class="n">d4f02c99030f6645389141b85a93d54c226b435fb1b5a6cbccd7f703687e442a011f62c1381793a2d3fbf13cc52c176e0c5c573008991134658759eef948</span><span class="p">,</span>
+<span class="p">[</span><span class="nb">input</span> <span class="n">sources</span><span class="p">:</span>
+<span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">www</span><span class="o">.</span><span class="n">portsmouth</span><span class="o">.</span><span class="n">gov</span><span class="o">.</span><span class="n">uk</span><span class="o">/</span><span class="n">ext</span><span class="o">/</span><span class="n">documents</span><span class="o">-</span><span class="n">external</span><span class="o">/</span><span class="n">biz</span><span class="o">-</span><span class="n">ndr</span><span class="o">-</span><span class="n">properties</span><span class="o">-</span><span class="n">january</span><span class="o">-</span><span class="mf">2020.</span><span class="n">xls</span><span class="p">,</span>
+<span class="mi">476089</span><span class="n">d8f37581613344873068d6e94f8cd63a1a64b421edf374a2b341bc7563aff03b86db4d3fec8ca90ce150ba1e531e3ff0d374f932d13fc103fd709e01bd</span><span class="p">;</span>
+<span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">www</span><span class="o">.</span><span class="n">portsmouth</span><span class="o">.</span><span class="n">gov</span><span class="o">.</span><span class="n">uk</span><span class="o">/</span><span class="n">ext</span><span class="o">/</span><span class="n">documents</span><span class="o">-</span><span class="n">external</span><span class="o">/</span><span class="n">biz</span><span class="o">-</span><span class="n">ndr</span><span class="o">-</span><span class="n">reliefs</span><span class="o">-</span><span class="n">january</span><span class="o">-</span><span class="mf">2020.</span><span class="n">xls</span><span class="p">,</span>
+<span class="mi">892</span><span class="n">ec5b6e9b1f68e0b371bbaed8d93095d57f2b656753af2b279aee17b5854c5e9d731b2795aac285d7f7d9f5991311bc8fae0cfe5446a47163f30f0314cac06</span><span class="p">;</span>
+<span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">www</span><span class="o">.</span><span class="n">portsmouth</span><span class="o">.</span><span class="n">gov</span><span class="o">.</span><span class="n">uk</span><span class="o">/</span><span class="n">ext</span><span class="o">/</span><span class="n">documents</span><span class="o">-</span><span class="n">external</span><span class="o">/</span><span class="n">biz</span><span class="o">-</span><span class="n">empty</span><span class="o">-</span><span class="n">commercial</span><span class="o">-</span><span class="n">properties</span><span class="o">-</span><span class="n">january</span><span class="o">-</span><span class="mf">2020.</span><span class="n">xls</span><span class="p">,</span>
+<span class="n">a41b4eb629c249fd59e6816d10d113bf2b9594c7dd7f9a61a82333a8a41bf07e59f9104eb3c1dc4269607de5a4a12eaf3215d0afc7545fdb1dfe7fe1bf5e0d29</span><span class="p">]</span>
+</pre></div>
+</div>
+</div>
 </div>
 
 
@@ -419,7 +482,7 @@ will include <cite>ALL</cite> data. Parameters for filtering:</p>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="field_api.html" class="btn btn-neutral float-right" title="Field" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="roadmap.html" class="btn btn-neutral float-right" title="&lt;no title&gt;" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
         <a href="schema.html" class="btn btn-neutral float-left" title="Schema" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>

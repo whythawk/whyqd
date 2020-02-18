@@ -35,7 +35,7 @@
   <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Requirements, installation &amp; importing" href="installation.html" /> 
+    <link rel="next" title="Dependencies, installation &amp; importing" href="installation.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -81,8 +81,9 @@
             
               <p class="caption"><span class="caption-text">Getting started</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="installation.html">Requirements, installation &amp; importing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Dependencies, installation &amp; importing</a></li>
 <li class="toctree-l1"><a class="reference internal" href="tutorial.html">Full worked tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="citation.html">Distribution &amp; Citation of methods and data</a></li>
 </ul>
 <p class="caption"><span class="caption-text">Creating and managing Schemas</span></p>
 <ul>
@@ -92,12 +93,18 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="method.html">Method</a></li>
 </ul>
+<p class="caption"><span class="caption-text">What next?</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="roadmap.html">Roadmap</a></li>
+<li class="toctree-l1"><a class="reference internal" href="contributing.html">Background and Contributing</a></li>
+</ul>
 <p class="caption"><span class="caption-text">Reference API</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="field_api.html">Field</a></li>
 <li class="toctree-l1"><a class="reference internal" href="schema_api.html">Schema</a></li>
 <li class="toctree-l1"><a class="reference internal" href="action_api.html">Action</a></li>
 <li class="toctree-l1"><a class="reference internal" href="method_api.html">Method</a></li>
+<li class="toctree-l1"><a class="reference internal" href="transform_api.html">Transform</a></li>
 </ul>
 
             
@@ -166,10 +173,10 @@
 <h1>whyqd: simplicity, transparency, speed<a class="headerlink" href="#whyqd-simplicity-transparency-speed" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="what-is-it">
 <h2>What is it?<a class="headerlink" href="#what-is-it" title="Permalink to this headline">¶</a></h2>
-<p><strong>whyqd</strong> provides an intuitive and quick method for restructuring messy data to conform to a
-standardised metadata schema. It supports data managers and researchers looking to rapidly, and
-continuously, normalise any messy spreadsheets using a simple series of steps. Once complete, you
-can import wrangled data into more complex analytical systems or full-feature wrangling tools.</p>
+<p><strong>whyqd</strong> provides an intuitive method for restructuring messy data to conform to a standardised
+metadata schema. It supports data managers and researchers looking to rapidly, and continuously,
+normalise any messy spreadsheets using a simple series of steps. Once complete, you can import
+wrangled data into more complex analytical systems or full-feature wrangling tools.</p>
 <p>It aims to get you to the point where you can perform automated data munging prior to
 committing your data into a database, and no further. It is built on Pandas, and plays well with
 existing Python-based data-analytical tools. Each raw source file will produce a json schema and
@@ -182,6 +189,20 @@ approach, validate your methodology, or even use your methods to import data in 
 import <strong>whyqd</strong> and validate your method to verify that your output data is the product of these
 inputs.</p>
 </div>
+<div class="section" id="why-use-it">
+<h2>Why use it?<a class="headerlink" href="#why-use-it" title="Permalink to this headline">¶</a></h2>
+<p>If all you want to do is test whether your source data are even useful, spending days or weeks
+slogging through data restructuring could kill a project. If you already have a workflow and
+established software which includes Python and pandas, having to change your code every time your
+source data changes is really, really frustrating.</p>
+<p>There are two complex and time-consuming parts to preparing data for analysis: social, and technical.</p>
+<p>The social part requires multi-stakeholder engagement with source data-publishers, and with
+destination database users, to agree structural metadata. Without any agreement on data publication
+formats or destination structure, you are left with the tedious frustration of manually wrangling
+each independent dataset into a single schema.</p>
+<p><strong>whyqd</strong> allows you to get to work without requiring you to achieve buy-in from anyone or change
+your existing code.</p>
+</div>
 <div class="section" id="how-does-it-work">
 <h2>How does it work?<a class="headerlink" href="#how-does-it-work" title="Permalink to this headline">¶</a></h2>
 <p>There is a full worked <a class="reference internal" href="tutorial.html"><span class="doc">Full worked tutorial</span></a> to help you on your way, but the core process is as follows:</p>
@@ -193,12 +214,17 @@ inputs.</p>
 <li><p>Structure input data fields to conform to the requriements for each schema field</p></li>
 <li><p>Assign categorical data identified during structuring</p></li>
 <li><p>Transform and filter input data to produce a final destination data file</p></li>
+<li><p>Share your data and a citation</p></li>
 </ul>
 </div></blockquote>
+</div>
+<div class="section" id="licencing">
+<h2>Licencing<a class="headerlink" href="#licencing" title="Permalink to this headline">¶</a></h2>
+<p><strong>whyqd</strong> is distributed under a 3-clause (“Simplified” or “New”) BSD license.</p>
 <div class="toctree-wrapper compound">
 <p class="caption"><span class="caption-text">Getting started</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="installation.html">Requirements, installation &amp; importing</a><ul>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Dependencies, installation &amp; importing</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="installation.html#requirements">Requirements</a></li>
 <li class="toctree-l2"><a class="reference internal" href="installation.html#installing">Installing</a></li>
 </ul>
@@ -210,12 +236,15 @@ inputs.</p>
 <li class="toctree-l3"><a class="reference internal" href="tutorial.html#organise-and-merge-input-data">Organise and Merge input data</a></li>
 <li class="toctree-l3"><a class="reference internal" href="tutorial.html#create-a-wrangling-structure">Create a wrangling Structure</a></li>
 <li class="toctree-l3"><a class="reference internal" href="tutorial.html#assigning-category-terms-to-fields">Assigning Category terms to fields</a></li>
+<li class="toctree-l3"><a class="reference internal" href="tutorial.html#filtering-is-optional">Filtering is optional</a></li>
 <li class="toctree-l3"><a class="reference internal" href="tutorial.html#method-validation">Method Validation</a></li>
 <li class="toctree-l3"><a class="reference internal" href="tutorial.html#transform-your-data">Transform your data</a></li>
+<li class="toctree-l3"><a class="reference internal" href="tutorial.html#preparing-a-citation">Preparing a Citation</a></li>
 </ul>
 </li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="citation.html">Distribution &amp; Citation of methods and data</a></li>
 </ul>
 </div>
 <div class="toctree-wrapper compound">
@@ -242,11 +271,21 @@ inputs.</p>
 <li class="toctree-l2"><a class="reference internal" href="method.html#category">Category</a></li>
 <li class="toctree-l2"><a class="reference internal" href="method.html#filter">Filter</a></li>
 <li class="toctree-l2"><a class="reference internal" href="method.html#validation">Validation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="method.html#transform">Transform</a></li>
+<li class="toctree-l2"><a class="reference internal" href="method.html#citation">Citation</a></li>
 </ul>
 </li>
 </ul>
 </div>
 <div class="toctree-wrapper compound">
+<p class="caption"><span class="caption-text">What next?</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="roadmap.html">Roadmap</a></li>
+<li class="toctree-l1"><a class="reference internal" href="contributing.html">Background and Contributing</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="contributing.html#background">Background</a></li>
+</ul>
+</li>
+</ul>
 </div>
 <div class="toctree-wrapper compound">
 <p class="caption"><span class="caption-text">Reference API</span></p>
@@ -255,6 +294,7 @@ inputs.</p>
 <li class="toctree-l1"><a class="reference internal" href="schema_api.html">Schema</a></li>
 <li class="toctree-l1"><a class="reference internal" href="action_api.html">Action</a></li>
 <li class="toctree-l1"><a class="reference internal" href="method_api.html">Method</a></li>
+<li class="toctree-l1"><a class="reference internal" href="transform_api.html">Transform</a></li>
 </ul>
 </div>
 </div>
@@ -268,7 +308,7 @@ inputs.</p>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="installation.html" class="btn btn-neutral float-right" title="Requirements, installation &amp; importing" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="installation.html" class="btn btn-neutral float-right" title="Dependencies, installation &amp; importing" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
     </div>
