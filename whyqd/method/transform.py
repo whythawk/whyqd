@@ -140,8 +140,7 @@ def transform_by_joining(df, field_name, structure):
 	if len(structure) < 2 or structure[0]["name"] != "JOIN":
 		e = "Field `{}` has invalid JOIN method. Please review.".format(field_name)
 		raise ValueError(e)
-	fields = [structure["name"] for field in structure[1:]]
-	field_name = kwargs["name"]
+	fields = [field["name"] for field in structure[1:]]
 	# https://stackoverflow.com/a/45976632
 	df.loc[:, field_name] = df.loc[:, fields].apply(lambda x: "" if x.isnull().all() else
 															  " ".join(x.dropna().astype(str)).strip(),
@@ -169,7 +168,7 @@ def transform_by_order(df, field_name, structure):
 	if len(structure) < 2 or structure[0]["name"] != "ORDER":
 		e = "Field `{}` has invalid ORDER method. Please review.".format(field_name)
 		raise ValueError(e)
-	fields = [structure["name"] for field in structure[1:]]
+	fields = [field["name"] for field in structure[1:]]
 	if len(fields) > 1:
 		df.rename(index=str, columns= {fields[0]: field_name}, inplace=True)
 		for field in fields[1:]:
@@ -179,7 +178,7 @@ def transform_by_order(df, field_name, structure):
 											  axis=1)
 	else:
 		# Deal with the single case
-		structure["name"] = "RENAME"
+		structure[1]["name"] = "RENAME"
 		return transform_by_rename(df, field_name, structure)
 	return df
 
@@ -340,7 +339,7 @@ def transform_by_categorisation(df, field_name, field_type, structure, category 
 	# Requires sets of 2 terms: + or -, field
 	new_field = []
 	term_set = len(structure[0]["structure"])
-	all_terms = [c["name"] for c in categories]
+	all_terms = [c["name"] for c in category]
 	# Any fields modified below must be restored: (tmp_column, original_column)
 	modified_fields = []
 	for modifier, field in _c.chunks(structure[1:], term_set):
@@ -348,7 +347,7 @@ def transform_by_categorisation(df, field_name, field_type, structure, category 
 		# Extract only the terms valid for this particular field
 		terms = []
 		for field_term in all_terms:
-			for f in categories:
+			for f in category:
 				if f["name"] == field_term:
 					for c in f["category_input"]:
 						if c["column"] == field["name"]:
@@ -356,7 +355,7 @@ def transform_by_categorisation(df, field_name, field_type, structure, category 
 					break
 		if modifier["name"] == "+":
 			conditions = [df[field["name"]].isin([t for subterms in
-												  [item["terms"] for category_input in categories
+												  [item["terms"] for category_input in category
 												   for item in category_input["category_input"]
 												   if category_input["name"] == field_term]
 												  for t in subterms])
@@ -379,7 +378,7 @@ def transform_by_categorisation(df, field_name, field_type, structure, category 
 				df.loc[:, field["name"]] = df.loc[:, field["name"]].apply(lambda x: pd.to_datetime(_c.parse_dates(x),
 																								   errors="coerce"))
 			conditions = [pd.notnull(df[field["name"]])
-						  if categories["fields"][field_term]["fields"][0]["name"] else
+						  if category["fields"][field_term]["fields"][0]["name"] else
 						  ~pd.notnull(df[field["name"]])
 						  for field_term in terms]
 		if is_boolean and modifier["name"] == "-":
@@ -392,9 +391,9 @@ def transform_by_categorisation(df, field_name, field_type, structure, category 
 					invrt["false"] = ~invrt["true"]
 				terms = [t for t in invrt.keys() if t != "true"]
 				conditions = [invrt["false"]]
-			# Only two terms, True or False. Reset the dictionary names
-			if terms == ["false"]:
-				terms = [False]
+		# Only two terms, True or False. Reset the dictionary names
+		if is_boolean and "false" in terms:
+			terms = [False if t == "false" else t for t in terms]
 		if not is_array:
 			# Set the field terms immediately for membership, note, if no data defaults to current
 			# i.e. this is equivalent to order, but with category data

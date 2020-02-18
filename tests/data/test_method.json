@@ -512,6 +512,7 @@
         {
             "description": "Date of the start of status in occupation_state.",
             "filter": {
+                "date": "2020-04-01 00:00:00",
                 "field": "ba_ref",
                 "modifiers": {
                     "date": "2010-01-01",
@@ -793,7 +794,89 @@
         }
     ],
     "name": "test_method",
-    "status": "READY_TRANSFORM",
+    "output_data": {
+        "checksum": "1367d4f02c99030f6645389141b85a93d54c226b435fb1b5a6cbccd7f703687e442a011f62c1381793a2d3fbf13cc52c176e0c5c573008991134658759eef948",
+        "columns": [
+            {
+                "name": "la_code",
+                "type": "string"
+            },
+            {
+                "name": "ba_ref",
+                "type": "number"
+            },
+            {
+                "name": "prop_ba_rates",
+                "type": "number"
+            },
+            {
+                "name": "occupant_name",
+                "type": "string"
+            },
+            {
+                "name": "postcode",
+                "type": "string"
+            },
+            {
+                "name": "occupation_state",
+                "type": "string"
+            },
+            {
+                "name": "occupation_state_reliefs",
+                "type": "string"
+            },
+            {
+                "name": "occupation_state_date",
+                "type": "date"
+            }
+        ],
+        "dataframe": {
+            "ba_ref": {
+                "0": 177500013310,
+                "1": 177500013310,
+                "2": 177500013510
+            },
+            "la_code": {
+                "0": "E06000044",
+                "1": "E06000044",
+                "2": "E06000044"
+            },
+            "occupant_name": {
+                "0": "Personal details not supplied",
+                "1": "Personal details not supplied",
+                "2": "Personal details not supplied"
+            },
+            "occupation_state": {
+                "0": true,
+                "1": true,
+                "2": true
+            },
+            "occupation_state_date": {
+                "0": "2019-04-01 00:00:00",
+                "1": "2017-04-01 00:00:00",
+                "2": "2015-12-01 00:00:00"
+            },
+            "occupation_state_reliefs": {
+                "0": "['retail']",
+                "1": "['small_business']",
+                "2": "[]"
+            },
+            "postcode": {
+                "0": "Unit 2cd, Shawcross Industrial Estate, Ackworth Road, Portsmouth, PO3 5JP",
+                "1": "Unit 2cd, Shawcross Industrial Estate, Ackworth Road, Portsmouth, PO3 5JP",
+                "2": "Emmerson Transport Ltd Unit 8, Shawcross Industrial Estate, Ackworth Road, Portsmouth, PO3 5HU"
+            },
+            "prop_ba_rates": {
+                "0": 13250,
+                "1": 13250,
+                "2": 52500
+            }
+        },
+        "file": "a102c00a-9066-44bc-a9e7-3f3413e146c9.xlsx",
+        "id": "a102c00a-9066-44bc-a9e7-3f3413e146c9"
+    },
+    "process_date": "2020-02-18",
+    "status": "PROCESS_COMPLETE",
     "title": "Test Schema",
     "updated": "2020-02-18",
     "working_data": {

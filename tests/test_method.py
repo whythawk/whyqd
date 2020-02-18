@@ -200,9 +200,13 @@ class TestMethod:
 			assert category[key].keys() == test_category[key].keys()
 			for k in category[key]:
 				assert set(category[key][k]) == set(test_category[key][k])
-		method.validate_category
+		assert method.validate_category
 		method.set_filter("occupation_state_date", "AFTER", "2010-01-01", "ba_ref")
 		method.save(overwrite=True)
 		test_source = DIRECTORY + "test_method.json"
 		method = _w.Method(test_source, directory=DIRECTORY)
-		method.validate_filter
+		assert method.validate_filter
+		method.transform(overwrite_output=True)
+		method.save(overwrite=True)
+		method = _w.Method(test_source, directory=DIRECTORY)
+		assert method.validate_transform

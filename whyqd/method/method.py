@@ -717,53 +717,8 @@ class Method(Schema):
 		if self.schema_settings.get("output_data",{}).get("checksum") and not overwrite_output:
 			e = "Permission required to overwrite `output_data`. Set `overwrite_output` to `True`."
 			raise PermissionError(e)
-		# Keep the original merge key field as a dtype=object to avoid messing with text formatting
-		# e.g. leading 0s in a reference id
-		set_dtypes = {}
-		set_dtypes[self.schema_settings["input_data"][0]["key"]] = object
-		df = _c.get_dataframe(self.directory + self.schema_settings["working_data"]["file"],
-							  dtype=set_dtypes)
-		# Begin transformations + keep track if any need filters
-		filter_list = []
-		for field_name in self.all_field_names:
-			field = self.field(field_name)
-			if field.get("filter"):
-				filter_list.append(field_name)
-			df = task.perform_transform(df, field_name, field["type"], field["structure"],
-										category = field.get("category", {}).get("assigned"))
-		# Identify required output fields not in df, and set blank fields for these
-		blank_fields = list(set(self.all_field_names) - set(df.columns))
-		for blank in blank_fields:
-			df[blank] = ""
-		# Conclude transformation
-		df = df[self.all_field_names]
-		df = df.loc[df.astype(str).drop_duplicates().index]
-		# Perform filter requirements - note, the order may be important, but the user should be
-		# careful with brute-force filters and should only set one. If they didn't ...
-		for field_name in filter_list:
-			field = self.field(field_name)
-			filter = field["filter"]
-			if filter["modifiers"]["name"] == "LATEST":
-				# https://pandas.pydata.org/pandas-docs/stable/groupby.html#splitting-an-object-into-groups
-				df = df.sort_values(by=field_name)
-				df = df.groupby(filter["field"])
-				# Select only the latest date
-				df = df.last()
-				# https://stackoverflow.com/a/20461206
-				df.reset_index(level=df.index.names, inplace=True)
-			if filter["modifiers"]["name"] == "AFTER" and filter["modifiers"].get("date"):
-				df = df[df[field_name] > filter["modifiers"]["date"]]
-			if filter["modifiers"]["name"] == "BEFORE" and filter["modifiers"].get("date"):
-				df = df[df[field_name] < filter["modifiers"]["date"]]
-			try:
-				if filter["modifiers"]["name"] in ["LATEST", "AFTER"]:
-					field["filter"]["date"] = df[pd.notnull(df[field_name])][field_name].max()
-				else:
-					field["filter"]["date"] = df[pd.notnull(df[field_name])][field_name].min()
-				self.set_field(validate=False, **field)
-			except TypeError:
-				# They're not actually dates but are text for some reason
-				pass
+		# Perform the transformation according to the method
+		df = self.perform_transform
 		self.schema_settings["process_date"] = _c.get_now()
 		# Save the file to the working directory
 		if "output_data" in self.schema_settings:
@@ -1258,6 +1213,69 @@ class Method(Schema):
 		return markdown
 
 	#########################################################################################
+	# TRANSFORM HELPERS
+	#########################################################################################
+
+	@property
+	def perform_transform(self):
+		"""
+		Helper function to perform the transformation. Also used by validate_transform step.
+
+		Returns
+		-------
+		DataFrame
+			Transformed dataframe derived from method
+		"""
+		# Keep the original merge key field as a dtype=object to avoid messing with text formatting
+		# e.g. leading 0s in a reference id
+		set_dtypes = {}
+		set_dtypes[self.schema_settings["input_data"][0]["key"]] = object
+		df = _c.get_dataframe(self.directory + self.schema_settings["working_data"]["file"],
+							  dtype=set_dtypes)
+		# Begin transformations + keep track if any need filters
+		filter_list = []
+		for field_name in self.all_field_names:
+			field = self.field(field_name)
+			if field.get("filter"):
+				filter_list.append(field_name)
+			df = task.perform_transform(df, field_name, field["type"], field["structure"],
+										category = field.get("category", {}).get("assigned"))
+		# Identify required output fields not in df, and set blank fields for these
+		blank_fields = list(set(self.all_field_names) - set(df.columns))
+		for blank in blank_fields:
+			df[blank] = ""
+		# Conclude transformation
+		df = df[self.all_field_names]
+		df = df.loc[df.astype(str).drop_duplicates().index]
+		# Perform filter requirements - note, the order may be important, but the user should be
+		# careful with brute-force filters and should only set one. If they didn't ...
+		for field_name in filter_list:
+			field = self.field(field_name)
+			filter = field["filter"]
+			if filter["modifiers"]["name"] == "LATEST":
+				# https://pandas.pydata.org/pandas-docs/stable/groupby.html#splitting-an-object-into-groups
+				df = df.sort_values(by=field_name)
+				df = df.groupby(filter["field"])
+				# Select only the latest date
+				df = df.last()
+				# https://stackoverflow.com/a/20461206
+				df.reset_index(level=df.index.names, inplace=True)
+			if filter["modifiers"]["name"] == "AFTER" and filter["modifiers"].get("date"):
+				df = df[df[field_name] > filter["modifiers"]["date"]]
+			if filter["modifiers"]["name"] == "BEFORE" and filter["modifiers"].get("date"):
+				df = df[df[field_name] < filter["modifiers"]["date"]]
+			try:
+				if filter["modifiers"]["name"] in ["LATEST", "AFTER"]:
+					field["filter"]["date"] = df[pd.notnull(df[field_name])][field_name].max()
+				else:
+					field["filter"]["date"] = df[pd.notnull(df[field_name])][field_name].min()
+				self.set_field(validate=False, **field)
+			except TypeError:
+				# They're not actually dates but are text for some reason
+				pass
+		return df
+
+	#########################################################################################
 	# VALIDATE, BUILD AND SAVE
 	#########################################################################################
 
@@ -1464,6 +1482,38 @@ class Method(Schema):
 			if schema_field["filter"]["modifiers"]["date"]:
 				_c.check_date_format(schema_field["type"],
 									 schema_field["filter"]["modifiers"]["date"])
+		return True
+
+	@property
+	def validate_transform(self):
+		"""
+		Validate output data.
+
+		Raises
+		------
+		ValueError on checksum failure.
+
+		Returns
+		-------
+		bool: True for validates
+		"""
+		df = self.perform_transform
+		# Save temporary file ... has to save & load for checksum validation
+		_id = str(uuid.uuid4())
+		filetype = self.schema_settings["output_data"]["file"].split(".")[-1]
+		filename = "".join([_id, ".", filetype])
+		source = self.directory + filename
+		if filetype == "csv":
+			df.to_csv(source, index=False)
+		if filetype == "xlsx":
+			df.to_excel(source, index=False)
+		checksum = _c.get_checksum(source)
+		_c.delete_file(source)
+		if (self.schema_settings["output_data"]["checksum"] != checksum):
+			e = "Transformation validation checksum failure {} != {}".format(
+				self.schema_settings["output_data"]["checksum"],
+				checksum)
+			raise ValueError(e)
 		return True
 
 	@property

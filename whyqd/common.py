@@ -97,7 +97,6 @@ def check_date_format(date_type, date_value):
 	e = "Incorrect date format, should be: `{}`".format(txt)
 	raise ValueError(e)
 
-@staticmethod
 def parse_dates(x):
 	"""
 	This is the hard-won 'trust nobody', certainly not Americans, date parser.
@@ -138,7 +137,6 @@ def parse_dates(x):
 	except pd.errors.OutOfBoundsDatetime:
 		return "Error: Date ({})".format(x)
 
-@staticmethod
 def parse_float(x):
 	"""
 	Regex to extract wrecked floats: https://stackoverflow.com/a/385597
