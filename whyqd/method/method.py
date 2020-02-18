@@ -232,7 +232,7 @@ Or, to run all the above and complete the method (setting status to 'Ready to Tr
 	method.validate
 """
 import os, uuid
-from shutil import copyfile
+from shutil import copyfile, SameFileError
 import urllib.request
 from copy import deepcopy
 import pandas as pd
@@ -277,6 +277,7 @@ class Method(Schema):
 		self.directory = kwargs.pop("directory", _c.get_path())
 		if not self.directory.endswith("/"):
 			self.directory += "/"
+		_c.check_path(self.directory)
 		constructors = kwargs.pop("constructors", None)
 		input_data = kwargs.pop("input_data", None)
 		super().__init__(source=source, **kwargs)
@@ -316,29 +317,8 @@ class Method(Schema):
 		if self.schema_settings.get("working_data",{}).get("checksum") and not overwrite_working:
 			e = "Permission required to overwrite `working_data`. Set `overwrite_working` to `True`."
 			raise PermissionError(e)
-		# Pandas 1.0 says `dtype = "string"` is possible, but it isn't currently working
-		# defaulting to `dtype = object` ...
-		# Note, this is done to avoid any random column processing
-		df = _c.get_dataframe(self.directory + self.schema_settings["input_data"][0]["file"],
-							  dtype = object)
-		df_key = self.schema_settings["input_data"][0]["key"]
-		missing_keys = []
-		for data in self.schema_settings["input_data"][1:]:
-			# defaulting to `dtype = object` ...
-			dfm = _c.get_dataframe(self.directory + data["file"], dtype = object)
-			dfm_key = data["key"]
-			missing_keys.append(dfm_key)
-			df = pd.merge(df, dfm, how="outer",
-						  left_on=df_key, right_on=dfm_key,
-						  indicator=False)
-		# Where left key values null, copy any values in the right join-field (i.e. no key match)
-		keys = [m for m in df.columns if any(k == m[:len(k)] for k in missing_keys)]
-		for key in keys:
-			df.loc[:, df_key] = np.where(pd.isnull(df[df_key]),
-										 df[key],
-										 df[df_key])
-		# Deduplicate any columns after merge (and deduplicate the deduplicate in case of artifacts)
-		df.columns = self.deduplicate_columns(self.deduplicate_columns(df.columns))
+		# Perform merge
+		df = self.perform_merge
 		# Save the file to the working directory
 		if "working_data" in self.schema_settings:
 			del self.schema_settings["working_data"]
@@ -905,8 +885,11 @@ class Method(Schema):
 				# File at remote URI
 				urllib.request.urlretrieve(file_source, source)
 			elif file_root:
-				# File in another directory
-				copyfile(file_source, source)
+				try:
+					# File in another directory
+					copyfile(file_source, source)
+				except SameFileError:
+					pass
 			_id = str(uuid.uuid4())
 			summary_data = _c.get_dataframe_summary(source)
 			data = {
@@ -947,6 +930,41 @@ class Method(Schema):
 	#########################################################################################
 	# MERGE HELPERS
 	#########################################################################################
+
+	@property
+	def perform_merge(self):
+		"""
+		Helper function to perform the merge. Also used by merge_validation step.
+
+		Returns
+		-------
+		DataFrame
+			Merged dataframe derived from input_data
+		"""
+		# Pandas 1.0 says `dtype = "string"` is possible, but it isn't currently working
+		# defaulting to `dtype = object` ...
+		# Note, this is done to avoid any random column processing
+		df = _c.get_dataframe(self.directory + self.schema_settings["input_data"][0]["file"],
+							  dtype = object)
+		df_key = self.schema_settings["input_data"][0]["key"]
+		missing_keys = []
+		for data in self.schema_settings["input_data"][1:]:
+			# defaulting to `dtype = object` ...
+			dfm = _c.get_dataframe(self.directory + data["file"], dtype = object)
+			dfm_key = data["key"]
+			missing_keys.append(dfm_key)
+			df = pd.merge(df, dfm, how="outer",
+						  left_on=df_key, right_on=dfm_key,
+						  indicator=False)
+		# Where left key values null, copy any values in the right join-field (i.e. no key match)
+		keys = [m for m in df.columns if any(k == m[:len(k)] for k in missing_keys)]
+		for key in keys:
+			df.loc[:, df_key] = np.where(pd.isnull(df[df_key]),
+										 df[key],
+										 df[df_key])
+		# Deduplicate any columns after merge (and deduplicate the deduplicate in case of artifacts)
+		df.columns = self.deduplicate_columns(self.deduplicate_columns(df.columns))
+		return df
 
 	def order_and_key_input_data(self, *order_and_key):
 		"""
@@ -1272,7 +1290,7 @@ class Method(Schema):
 		------
 		ValueError on uniqueness failure.
 		"""
-		for data in self.schema_settings["input_data"]:
+		for data in self.input_data:
 			if not data.get("key"):
 				e = "Missing merge key on input data `{}`".format(data["original"])
 				raise ValueError(e)
@@ -1293,17 +1311,7 @@ class Method(Schema):
 		-------
 		bool: True for validates
 		"""
-		df = _c.get_dataframe(self.directory + self.schema_settings["input_data"][0]["file"],
-							  dtype = object)
-		df_key = self.schema_settings["input_data"][0]["key"]
-		for data in self.schema_settings["input_data"][1:]:
-			dfm = _c.get_dataframe(self.directory + data["file"], dtype = object)
-			dfm_key = data["key"]
-			df = pd.merge(df, dfm, how="outer",
-						  left_on=df_key, right_on=dfm_key,
-						  indicator=False)
-		# Deduplicate any columns after merge (and deduplicate the deduplicate in case of artifacts)
-		df.columns = self.deduplicate_columns(self.deduplicate_columns(df.columns))
+		df = self.perform_merge
 		# Save temporary file ... has to save & load for checksum validation
 		_id = str(uuid.uuid4())
 		filetype = self.schema_settings["working_data"]["file"].split(".")[-1]
@@ -1511,7 +1519,7 @@ class Method(Schema):
 		if not self.directory:
 			e = "Action is not a valid dictionary"
 			raise ValueError(e)
-		self.set_directory(self.directory)
+		#self.set_directory(self.directory)
 		self._status = self.schema_settings.get("status", self._status)
 
 	def save_data(self, df, filetype="xlsx"):

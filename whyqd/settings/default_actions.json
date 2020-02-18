@@ -8,6 +8,13 @@
 			"structure": ["value"]
 		},
 		{
+			"name": "RENAME",
+			"type": "action",
+			"title": "Rename",
+			"description": "Rename an existing field to conform to a schema name. Only valid where a single field is provided.",
+			"structure": ["field"]
+		},
+		{
 			"name": "ORDER",
 			"type": "action",
 			"title": "Order",

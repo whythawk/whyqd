@@ -25,9 +25,10 @@ class TestMethod:
 		method.save()
 		test_source = DIRECTORY + "test_method.json"
 		method = _w.Method(test_source, directory=DIRECTORY)
-		assert METHOD["input_data"][0]["checksum"] == method.input_data[0]["checksum"]
+		# Reversed
+		assert METHOD["input_data"][2]["checksum"] == method.input_data[0]["checksum"]
 		assert METHOD["input_data"][1]["checksum"] == method.input_data[1]["checksum"]
-		assert METHOD["input_data"][2]["checksum"] == method.input_data[2]["checksum"]
+		assert METHOD["input_data"][0]["checksum"] == method.input_data[2]["checksum"]
 
 	def test_merge(self, tmp_path):
 		DIRECTORY = str(tmp_path) + "/"
@@ -36,16 +37,16 @@ class TestMethod:
 		method.set_details(name="test_method")
 		oak = [
 			{
-				"id": method.input_data[0]["id"],
-				"key": "Property Reference Number"
+				"id": method.input_data[2]["id"],
+				"key": "Property ref no"
 			},
 			{
 				"id": method.input_data[1]["id"],
 				"key": "Property Reference Number"
 			},
 			{
-				"id": method.input_data[2]["id"],
-				"key": "Property ref no"
+				"id": method.input_data[0]["id"],
+				"key": "Property Reference Number"
 			}
 		]
 		method.merge(order_and_key=oak)
@@ -62,27 +63,27 @@ class TestMethod:
 		method.set_details(name="test_method")
 		oak = [
 			{
-				"id": method.input_data[0]["id"],
-				"key": "Property Reference Number"
+				"id": method.input_data[2]["id"],
+				"key": "Property ref no"
 			},
 			{
 				"id": method.input_data[1]["id"],
 				"key": "Property Reference Number"
 			},
 			{
-				"id": method.input_data[2]["id"],
-				"key": "Property ref no"
+				"id": method.input_data[0]["id"],
+				"key": "Property Reference Number"
 			}
 		]
 		method.merge(order_and_key=oak)
 		structure = {
 			"la_code": ["NEW", "E06000044"],
-			"ba_ref": ["ORDER", "Property Reference Number", "Property ref no"],
+			"ba_ref": ["RENAME", "Property ref no"],
 			"prop_ba_rates": ["ORDER", "Current Rateable Value_x", "Current Rateable Value_y", "Current Rateable Value"],
 			"occupant_name": ["ORDER", "Primary Liable party name_x", "Primary Liable party name_y", "Primary Liable party name"],
 			"postcode": ["ORDER", "Full Property Address_x", "Full Property Address_y", "Full Property Address"],
 			"occupation_state": ["CATEGORISE",
-								 "+", "Current Property Exemption Code",
+								 "+", 'Current Property Exemption Code',
 								 "+", "Current Relief Type"],
 			"occupation_state_date": ["ORDER_NEW",
 									  "Current Prop Exemption Start Date", "+", "Current Prop Exemption Start Date",
@@ -90,7 +91,7 @@ class TestMethod:
 									  "Account Start date_x", "+", "Account Start date_x",
 									  "Account Start date_y", "+", "Account Start date_y"],
 			"occupation_state_reliefs": ["CATEGORISE",
-										 "+", "Current Property Exemption Code",
+										 "+", 'Current Property Exemption Code',
 										 "+", "Current Relief Type"]
 		}
 		method.set_structure(**structure)
@@ -121,12 +122,12 @@ class TestMethod:
 		method.merge(order_and_key=oak)
 		structure = {
 			"la_code": ["NEW", "E06000044"],
-			"ba_ref": ["ORDER", "Property Reference Number", "Property ref no"],
+			"ba_ref": ["RENAME", "Property ref no"],
 			"prop_ba_rates": ["ORDER", "Current Rateable Value_x", "Current Rateable Value_y", "Current Rateable Value"],
 			"occupant_name": ["ORDER", "Primary Liable party name_x", "Primary Liable party name_y", "Primary Liable party name"],
 			"postcode": ["ORDER", "Full Property Address_x", "Full Property Address_y", "Full Property Address"],
 			"occupation_state": ["CATEGORISE",
-								 "+", "Current Property Exemption Code",
+								 "+", 'Current Property Exemption Code',
 								 "+", "Current Relief Type"],
 			"occupation_state_date": ["ORDER_NEW",
 									  "Current Prop Exemption Start Date", "+", "Current Prop Exemption Start Date",
@@ -134,9 +135,8 @@ class TestMethod:
 									  "Account Start date_x", "+", "Account Start date_x",
 									  "Account Start date_y", "+", "Account Start date_y"],
 			"occupation_state_reliefs": ["CATEGORISE",
-										 "+", "Current Property Exemption Code",
+										 "+", 'Current Property Exemption Code',
 										 "+", "Current Relief Type"]
-
 		}
 		method.set_structure(**structure)
 		category = {
@@ -201,7 +201,7 @@ class TestMethod:
 			for k in category[key]:
 				assert set(category[key][k]) == set(test_category[key][k])
 		method.validate_category
-		method.set_filter("occupation_state_date", "ALL", "2019-12-12", "ba_ref")
+		method.set_filter("occupation_state_date", "AFTER", "2010-01-01", "ba_ref")
 		method.save(overwrite=True)
 		test_source = DIRECTORY + "test_method.json"
 		method = _w.Method(test_source, directory=DIRECTORY)

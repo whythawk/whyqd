@@ -677,9 +677,6 @@ class Schema:
 		dict: settings
 		"""
 		schema_dict = deepcopy(self.schema_settings)
-		if not self.validates:
-			e = "Schema did not validate during dictionary build. Check `name` and `fields`."
-			raise ValueError(e)
 		schema_dict["fields"] = [field.settings for field in self.schema_settings.get("fields", [])]
 		return schema_dict
 
