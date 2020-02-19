@@ -10,7 +10,11 @@ from datetime import date, datetime, timedelta
 from pathlib import Path, PurePath
 import pandas as pd
 import locale
-locale.setlocale(locale.LC_ALL, "en_US.UTF-8")
+try:
+	locale.setlocale(locale.LC_ALL, "en_US.UTF-8")
+except locale.Error:
+	# Readthedocs has a problem, but difficult to replicate
+	locale.setlocale(locale.LC_ALL, "")
 
 short_rows = 3
 long_rows = 5
