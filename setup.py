@@ -1,6 +1,6 @@
 import setuptools
 
-DESCRIPTION = "data wrangling simplicity, audit transparency, at speed"
+DESCRIPTION = "data wrangling simplicity, complete audit transparency, and at speed "
 LONG_DESCRIPTION = """
 **whyqd** provides an intuitive method for restructuring messy data to conform to a standardised
 metadata schema. It supports data managers and researchers looking to rapidly, and continuously,
@@ -71,7 +71,7 @@ CLASSIFIERS = [
 ]
 
 setuptools.setup(
-    name="example-pkg-YOUR-USERNAME-HERE", # Replace with your own username
+    name=DISTNAME,
     version="0.1.0",
     author=AUTHOR,
     author_email=EMAIL,
