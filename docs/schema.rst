@@ -1,1 +1,4 @@
+Schema
+======
+
 .. automodule:: schema.schema
