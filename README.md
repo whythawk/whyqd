@@ -1,5 +1,8 @@
 # whyqd: simplicity, transparency, speed
 
+[![Documentation Status](https://readthedocs.org/projects/whyqd/badge/?version=latest)](https://whyqd.readthedocs.io/en/latest/?badge=latest)
+[![Build Status](https://travis-ci.com/whythawk/whyqd.svg?branch=master)](https://travis-ci.com/whythawk/whyqd.svg?branch=master)
+
 ## What is it?
 
 **whyqd** provides an intuitive method for restructuring messy data to conform to a standardised
@@ -53,7 +56,7 @@ your existing code.
 
 ## Installation and dependencies
 
-  pip install whyqd
+  `pip install whyqd`
 
 Code has been tested on the following dependency versions:
 
