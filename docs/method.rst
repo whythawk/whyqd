@@ -1,4 +1,1 @@
-Method
-======
-
 .. automodule:: method.method

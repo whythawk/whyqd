@@ -1,4 +1,1 @@
-Schema
-======
-
 .. automodule:: schema.schema
