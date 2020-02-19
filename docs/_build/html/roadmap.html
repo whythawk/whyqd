@@ -82,7 +82,7 @@
             
               <p class="caption"><span class="caption-text">Getting started</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="installation.html">Requirements, installation &amp; importing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Dependencies, installation &amp; importing</a></li>
 <li class="toctree-l1"><a class="reference internal" href="tutorial.html">Full worked tutorial</a></li>
 <li class="toctree-l1"><a class="reference internal" href="citation.html">Distribution &amp; Citation of methods and data</a></li>
 </ul>
@@ -178,8 +178,11 @@
 </div>
 <p>That still leaves a fair amount to do, including improving the documentation and tests:</p>
 <ul>
+<li><p>pandas supports multiple fruity CSV formats (#*-seperated, etc) - need a <cite>config</cite> to support these wilder problems</p></li>
 <li><p>Zip data files, method, and produce citation report as a single step to aid distribution</p></li>
 <li><p>Validate a zipped output file and produce a validation report</p></li>
+<li><p>Setting the <cite>missing_data</cite> function doesn’t do anything at the moment</p></li>
+<li><p>Potentially refactor <cite>transform.py</cite> to make it more expressive and extensible?</p></li>
 <li><p>Additional transformations / actions:</p>
 <ul class="simple">
 <li><p>Pivots: some data are horizontal instead of vertical, e.g.</p></li>

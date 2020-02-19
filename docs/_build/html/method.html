@@ -35,7 +35,7 @@
   <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="&lt;no title&gt;" href="roadmap.html" />
+    <link rel="next" title="Roadmap" href="roadmap.html" />
     <link rel="prev" title="Schema" href="schema.html" /> 
 </head>
 
@@ -82,7 +82,7 @@
             
               <p class="caption"><span class="caption-text">Getting started</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="installation.html">Requirements, installation &amp; importing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Dependencies, installation &amp; importing</a></li>
 <li class="toctree-l1"><a class="reference internal" href="tutorial.html">Full worked tutorial</a></li>
 <li class="toctree-l1"><a class="reference internal" href="citation.html">Distribution &amp; Citation of methods and data</a></li>
 </ul>
@@ -106,6 +106,7 @@
 </ul>
 <p class="caption"><span class="caption-text">What next?</span></p>
 <ul>
+<li class="toctree-l1"><a class="reference internal" href="roadmap.html">Roadmap</a></li>
 <li class="toctree-l1"><a class="reference internal" href="contributing.html">Background and Contributing</a></li>
 </ul>
 <p class="caption"><span class="caption-text">Reference API</span></p>
@@ -436,9 +437,10 @@ tell the function to overwrite your original:</p>
 <p>The <cite>constructor</cite> field is there to store any metadata you wish to add. Whether it be <a class="reference external" href="https://dublincore.org/">Dublin Core</a>
 or <a class="reference external" href="https://sdmx.org/">SDMX</a>, add that metadata by creating a dictionary and placing it in the
 <cite>constructor</cite>.</p>
-<p>A citation is a special set of fields, with the minimum of:</p>
+<p>A citation is a special set of fields, with options for:</p>
 <ul class="simple">
 <li><p><strong>authors</strong>: a list of author names in the format, and order, you wish to reference them</p></li>
+<li><p><strong>date</strong>: publication date</p></li>
 <li><p><strong>title</strong>: a text field for the full study title</p></li>
 <li><p><strong>repository</strong>: the organisation, or distributor, responsible for hosting your data (and your method file)</p></li>
 <li><p><strong>doi</strong>: the persistent <a class="reference external" href="http://www.doi.org/">DOI</a> for your repository</p></li>
@@ -450,6 +452,7 @@ and is sufficiently universally available as to ensure you can run this as requi
 <p>As an example:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">citation</span> <span class="o">=</span> <span class="p">{</span>
         <span class="s2">&quot;authors&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;Gavin Chait&quot;</span><span class="p">],</span>
+        <span class="s2">&quot;date&quot;</span><span class="p">:</span> <span class="s2">&quot;2020-02-18&quot;</span><span class="p">,</span>
         <span class="s2">&quot;title&quot;</span><span class="p">:</span> <span class="s2">&quot;Portsmouth City Council normalised database of commercial ratepayers&quot;</span><span class="p">,</span>
         <span class="s2">&quot;repository&quot;</span><span class="p">:</span> <span class="s2">&quot;Github.com&quot;</span>
 <span class="p">}</span>
@@ -482,7 +485,7 @@ and is sufficiently universally available as to ensure you can run this as requi
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="roadmap.html" class="btn btn-neutral float-right" title="&lt;no title&gt;" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="roadmap.html" class="btn btn-neutral float-right" title="Roadmap" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
         <a href="schema.html" class="btn btn-neutral float-left" title="Schema" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>

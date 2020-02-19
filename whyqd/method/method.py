@@ -253,9 +253,10 @@ The `constructor` field is there to store any metadata you wish to add. Whether 
 or `SDMX <https://sdmx.org/>`_, add that metadata by creating a dictionary and placing it in the
 `constructor`.
 
-A citation is a special set of fields, with the minimum of:
+A citation is a special set of fields, with options for:
 
 * **authors**: a list of author names in the format, and order, you wish to reference them
+* **date**: publication date
 * **title**: a text field for the full study title
 * **repository**: the organisation, or distributor, responsible for hosting your data (and your method file)
 * **doi**: the persistent `DOI <http://www.doi.org/>`_ for your repository
@@ -269,6 +270,7 @@ As an example::
 
 	citation = {
 		"authors": ["Gavin Chait"],
+		"date": "2020-02-18",
 		"title": "Portsmouth City Council normalised database of commercial ratepayers",
 		"repository": "Github.com"
 	}
@@ -380,7 +382,7 @@ class Method(Schema):
 		# Save the file to the working directory
 		if "working_data" in self.schema_settings:
 			del self.schema_settings["working_data"]
-		self.schema_settings["working_data"] = self.save_data(df)
+		self.schema_settings["working_data"] = self.save_data(df, prefix="working")
 
 		# Review for any existing actions
 		# self.validate_actions
@@ -781,7 +783,7 @@ class Method(Schema):
 		# Save the file to the working directory
 		if "output_data" in self.schema_settings:
 			del self.schema_settings["output_data"]
-		self.schema_settings["output_data"] = self.save_data(df)
+		self.schema_settings["output_data"] = self.save_data(df, prefix="output")
 		self._status = "PROCESS_COMPLETE"
 
 	#########################################################################################
@@ -793,6 +795,14 @@ class Method(Schema):
 		"""
 		Present a citation and validation report for this method. If citation data has been included
 		in the `constructor` then that will be included.
+
+		A citation is a special set of fields, with options for:
+
+		* **authors**: a list of author names in the format, and order, you wish to reference them
+		* **date**: publication date (uses transformation date, if not provided)
+		* **title**: a text field for the full study title
+		* **repository**: the organisation, or distributor, responsible for hosting your data (and your method file)
+		* **doi**: the persistent `DOI <http://www.doi.org/>`_ for your repository
 
 		Format for citation is:
 
@@ -812,8 +822,9 @@ class Method(Schema):
 			if isinstance(ctn["authors"], list): citation.extend(ctn["authors"])
 			else: citation.append(ctn["authors"])
 		# Date
-		citation.append(self.schema_settings["process_date"])
-		if ctn.get("title"): citation.append(ctn["title"])
+		citation.append(ctn.get("date", self.schema_settings["process_date"]))
+		if ctn.get("title", self.details.get("title")):
+			citation.append(ctn.get("title", self.details.get("title")))
 		if ctn.get("repository"): citation.append(ctn["repository"])
 		if ctn.get("doi"): citation.append(ctn["doi"])
 		# Output hash
@@ -1688,7 +1699,7 @@ class Method(Schema):
 		#self.set_directory(self.directory)
 		self._status = self.schema_settings.get("status", self._status)
 
-	def save_data(self, df, filetype="xlsx"):
+	def save_data(self, df, filetype="xlsx", prefix=None):
 		"""
 		Generate a unique filename for a dataframe, save to the working directory, and return the
 		unique filename and data summary.
@@ -1710,6 +1721,7 @@ class Method(Schema):
 			e = "`{}` not supported for saving DataFrame".format(filetype)
 			raise TypeError(e)
 		_id = str(uuid.uuid4())
+		if prefix: _id = "_".join([prefix, _id])
 		filename = "".join([_id, ".", filetype])
 		source = self.directory + filename
 		if filetype == "csv":

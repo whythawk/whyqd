@@ -961,6 +961,7 @@ or `SDMX <https://sdmx.org/>`_, add that metadata by creating a dictionary and p
 A citation is a special set of fields, with the minimum of:
 
 * **authors**: a list of author names in the format, and order, you wish to reference them
+* **date**: publication date (uses transformation date, if not provided)
 * **title**: a text field for the full study title
 * **repository**: the organisation, or distributor, responsible for hosting your data (and your method file)
 * **doi**: the persistent `DOI <http://www.doi.org/>`_ for your repository

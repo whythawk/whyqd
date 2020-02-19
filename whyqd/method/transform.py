@@ -403,7 +403,8 @@ def transform_by_categorisation(df, field_name, field_type, structure, category 
 				new_field.append(np.select(conditions, terms, default="none").tolist())
 	# If a list of terms, organise the nested lists and then set the new field
 	if is_array:
-		new_field = [list(set(x)) for x in zip(*new_field)]
+		# Sorted to avoid hashing errors later ...
+		new_field = [sorted(list(set(x))) for x in zip(*new_field)]
 		for n in new_field:
 			if "none" in n: n.remove("none")
 		if new_field:

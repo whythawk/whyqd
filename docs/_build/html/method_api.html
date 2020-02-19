@@ -82,7 +82,7 @@
             
               <p class="caption"><span class="caption-text">Getting started</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="installation.html">Requirements, installation &amp; importing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Dependencies, installation &amp; importing</a></li>
 <li class="toctree-l1"><a class="reference internal" href="tutorial.html">Full worked tutorial</a></li>
 <li class="toctree-l1"><a class="reference internal" href="citation.html">Distribution &amp; Citation of methods and data</a></li>
 </ul>
@@ -96,6 +96,7 @@
 </ul>
 <p class="caption"><span class="caption-text">What next?</span></p>
 <ul>
+<li class="toctree-l1"><a class="reference internal" href="roadmap.html">Roadmap</a></li>
 <li class="toctree-l1"><a class="reference internal" href="contributing.html">Background and Contributing</a></li>
 </ul>
 <p class="caption"><span class="caption-text">Reference API</span></p>
@@ -399,6 +400,14 @@ will include <cite>ALL</cite> data.</p>
 <em class="property">property </em><code class="sig-name descname">citation</code><a class="headerlink" href="#method.Method.citation" title="Permalink to this definition">¶</a></dt>
 <dd><p>Present a citation and validation report for this method. If citation data has been included
 in the <cite>constructor</cite> then that will be included.</p>
+<p>A citation is a special set of fields, with options for:</p>
+<ul class="simple">
+<li><p><strong>authors</strong>: a list of author names in the format, and order, you wish to reference them</p></li>
+<li><p><strong>date</strong>: publication date (uses transformation date, if not provided)</p></li>
+<li><p><strong>title</strong>: a text field for the full study title</p></li>
+<li><p><strong>repository</strong>: the organisation, or distributor, responsible for hosting your data (and your method file)</p></li>
+<li><p><strong>doi</strong>: the persistent <a class="reference external" href="http://www.doi.org/">DOI</a> for your repository</p></li>
+</ul>
 <p>Format for citation is:</p>
 <blockquote>
 <div><p>author/s, date, title, repository, doi, hash (for output data), [input sources: URI, hash]</p>
@@ -851,7 +860,7 @@ are unique.</p>
 
 <dl class="method">
 <dt id="method.Method.save_data">
-<code class="sig-name descname">save_data</code><span class="sig-paren">(</span><em class="sig-param">df</em>, <em class="sig-param">filetype='xlsx'</em><span class="sig-paren">)</span><a class="headerlink" href="#method.Method.save_data" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">save_data</code><span class="sig-paren">(</span><em class="sig-param">df</em>, <em class="sig-param">filetype='xlsx'</em>, <em class="sig-param">prefix=None</em><span class="sig-paren">)</span><a class="headerlink" href="#method.Method.save_data" title="Permalink to this definition">¶</a></dt>
 <dd><p>Generate a unique filename for a dataframe, save to the working directory, and return the
 unique filename and data summary.</p>
 <dl class="field-list simple">

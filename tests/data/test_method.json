@@ -651,7 +651,7 @@
             "file": "fae2fa9a-0df6-40dd-9066-4a9ff7619c26.XLSX",
             "id": "fae2fa9a-0df6-40dd-9066-4a9ff7619c26",
             "key": "Property ref no",
-            "original": "/mnt/c/Users/Turukawa/Documents/GitHub/whyqd/tests/data/raw_E06000044_014_2.XLSX"
+            "original": "raw_E06000044_014_2.XLSX"
         },
         {
             "checksum": "892ec5b6e9b1f68e0b371bbaed8d93095d57f2b656753af2b279aee17b5854c5e9d731b2795aac285d7f7d9f5991311bc8fae0cfe5446a47163f30f0314cac06",
@@ -716,7 +716,7 @@
             "file": "4c66cec7-41a6-4cb5-877e-94489e0321d2.XLSX",
             "id": "4c66cec7-41a6-4cb5-877e-94489e0321d2",
             "key": "Property Reference Number",
-            "original": "/mnt/c/Users/Turukawa/Documents/GitHub/whyqd/tests/data/raw_E06000044_014_1.XLSX"
+            "original": "raw_E06000044_014_1.XLSX"
         },
         {
             "checksum": "a41b4eb629c249fd59e6816d10d113bf2b9594c7dd7f9a61a82333a8a41bf07e59f9104eb3c1dc4269607de5a4a12eaf3215d0afc7545fdb1dfe7fe1bf5e0d29",
@@ -790,12 +790,12 @@
             "file": "a50f48ab-f781-431c-9107-6788cc260c79.XLSX",
             "id": "a50f48ab-f781-431c-9107-6788cc260c79",
             "key": "Property Reference Number",
-            "original": "/mnt/c/Users/Turukawa/Documents/GitHub/whyqd/tests/data/raw_E06000044_014_0.XLSX"
+            "original": "raw_E06000044_014_0.XLSX"
         }
     ],
     "name": "test_method",
     "output_data": {
-        "checksum": "1367d4f02c99030f6645389141b85a93d54c226b435fb1b5a6cbccd7f703687e442a011f62c1381793a2d3fbf13cc52c176e0c5c573008991134658759eef948",
+        "checksum": "be6a1c1acee2b313d460403ee075dacda0db75c4d772a56927b35d24a221c036b5480b9b796172f73b9fd49f3819df025eb1c2b9788dcf2a20e5d2bc7a773b09",
         "columns": [
             {
                 "name": "la_code",
@@ -872,13 +872,13 @@
                 "2": 52500
             }
         },
-        "file": "a102c00a-9066-44bc-a9e7-3f3413e146c9.xlsx",
-        "id": "a102c00a-9066-44bc-a9e7-3f3413e146c9"
+        "file": "output_aad2a0f0-7b6d-4b63-9a2c-1e7e1340cae0.xlsx",
+        "id": "output_aad2a0f0-7b6d-4b63-9a2c-1e7e1340cae0"
     },
-    "process_date": "2020-02-18",
+    "process_date": "2020-02-19",
     "status": "PROCESS_COMPLETE",
     "title": "Test Schema",
-    "updated": "2020-02-18",
+    "updated": "2020-02-19",
     "working_data": {
         "checksum": "cebd1a9db7eaac3fd358e25d0a2abc687942f30d152690107c8a7a1587f646bb7b30d5144daea38f23f1585a09ebce7af4fad5b07d138fc2b3d607864e78c12f",
         "columns": [
