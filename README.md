@@ -21,6 +21,9 @@ Once complete, a method file can be shared, along with your input data, and anyo
 import **whyqd** and validate your method to verify that your output data is the product of these
 inputs.
 
+[Read the docs](https://whyqd.readthedocs.io/en/latest/) and a
+[full tutorial](https://whyqd.readthedocs.io/en/latest/tutorial.html).
+
 ## Why use it?
 
 If all you want to do is test whether your source data are even useful, spending days or weeks

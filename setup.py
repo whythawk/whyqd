@@ -56,7 +56,7 @@ URL = "http://whyqd.com"
 DOWNLOAD_URL = ""
 PROJECT_URLS = {
     "Bug Tracker": "https://github.com/whythawk/whyqd/issues/",
-    "Documentation": "https://readthedocs.org/projects/whyqd/",
+    "Documentation": "https://whyqd.readthedocs.io/en/latest/",
     "Source Code": "https://github.com/whythawk/whyqd/",
 }
 CLASSIFIERS = [
