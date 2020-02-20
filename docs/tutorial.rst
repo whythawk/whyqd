@@ -32,7 +32,7 @@ The example in our worked tutorial is derived directly from our workflow at Sqwy
 dataset released by `Portsmouth City Council <https://www.portsmouth.gov.uk/ext/business/running-a-business/business-rates-foi-requests>`_.
 The data in this tutorial are from January 2020, but follow along with the current download.
 
-.. note:: This tutorial does assume familiarity with Python and Pandas, and a little experience with JSON.
+.. note:: This tutorial does assume familiarity with Python, homeopathic quantities of Pandas, and a little experience with JSON.
 
 Creating a Schema
 -----------------

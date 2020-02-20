@@ -1,6 +1,7 @@
 # whyqd: simplicity, transparency, speed
 
 [![Documentation Status](https://readthedocs.org/projects/whyqd/badge/?version=latest)](https://whyqd.readthedocs.io/en/latest/?badge=latest)
+[![Build Status](https://travis-ci.com/whythawk/whyqd.svg?branch=master)](https://travis-ci.com/whythawk/whyqd.svg?branch=master)
 
 ## What is it?
 
@@ -55,9 +56,11 @@ your existing code.
 
 ## Installation and dependencies
 
+You'll need at least Python 3.6, then:
+
   `pip install whyqd`
 
-Code has been tested on the following dependency versions:
+Code requirements have been tested on the following versions:
 
 * numpy=1.18.1
 * openpyxl=3.0.3
@@ -72,17 +75,12 @@ complex messy sources, ensuring the integrity of the source data, and producing 
 trail from data imported to our database, back to source. You can see the product of that at
 [Sqwyre.com](https://sqwyre.com).
 
-[Frictionlessdata.io](https://frictionlessdata.io/) is intended as a containerised validation schema
-for CSV files. **whyqd** uses their *table schema* as a starting-point, but our objectives
-are different.
-
-For starters, there is no guarantee that a restructured dataset emerging from a
-**whyqd** method will validate against *table schema* as this output is still an interim point
-prior to automated data munging. There is also no expectation that the final destination for these
-data would be a CSV, since it is more likely you are going to import into a database.
-
-There are additional terms in the schema which are there to support data wrangling and data integrity,
-and some of the less meaningful field names have been changed.
+**whyqd** uses [Frictionlessdata.io](https://frictionlessdata.io/)'s *table schema* as a
+starting-point, but our objectives are different. It is intended as a containerised CSV validation
+schema, however, there is no guarantee that a restructured dataset emerging from a **whyqd** method
+will validate against *table schema* as this output is still an interim point prior to automated
+data munging. There is also no expectation that the final destination for these data would be a CSV,
+since it is more likely you are going to import into a database.
 
 The 'backronym' for **whyqd** /wɪkɪd/ is *Whythawk Quantitative Data*, [Whythawk](https://whythawk.com)
 is an open data science and open research technical consultancy.

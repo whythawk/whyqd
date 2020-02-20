@@ -56,7 +56,7 @@ URL = "http://whyqd.com"
 DOWNLOAD_URL = ""
 PROJECT_URLS = {
     "Bug Tracker": "https://github.com/whythawk/whyqd/issues/",
-    "Documentation": "https://whyqd.readthedocs.io/en/latest/",
+    "Documentation": "https://whyqd.readthedocs.io/",
     "Source Code": "https://github.com/whythawk/whyqd/",
 }
 CLASSIFIERS = [
@@ -72,7 +72,7 @@ CLASSIFIERS = [
 
 setuptools.setup(
     name=DISTNAME,
-    version="0.1.0",
+    version="0.1.1",
     author=AUTHOR,
     author_email=EMAIL,
     description=DESCRIPTION,
@@ -84,5 +84,5 @@ setuptools.setup(
 	project_urls=PROJECT_URLS,
 	classifiers=CLASSIFIERS,
     packages=setuptools.find_packages(),
-    python_requires='>=3.7',
+    python_requires='>=3.6',
 )

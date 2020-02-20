@@ -291,7 +291,7 @@ You can then get your citation report::
 	https://www.portsmouth.gov.uk/ext/documents-external/biz-empty-commercial-properties-january-2020.xls,
 	a41b4eb629c249fd59e6816d10d113bf2b9594c7dd7f9a61a82333a8a41bf07e59f9104eb3c1dc4269607de5a4a12eaf3215d0afc7545fdb1dfe7fe1bf5e0d29]
 """
-import os, uuid
+import sys, os, uuid
 from shutil import copyfile, SameFileError
 import urllib.request
 from copy import deepcopy
@@ -300,10 +300,17 @@ import numpy as np
 from tabulate import tabulate
 from operator import itemgetter
 
-import whyqd.common as _c
+try:
+	assert sys.version_info >= (3,7)
+except AssertionError:
+	from whyqd import common as _c
+	from whyqd.method import transform as task
+else:
+	import whyqd.common as _c
+	import whyqd.method.transform as task
 from whyqd.schema import Schema
 from whyqd.method import Action
-import whyqd.method.transform as task
+
 
 STATUS_CODES = {
 	"WAITING": "Waiting ...",

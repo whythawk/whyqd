@@ -2,7 +2,7 @@
 Miscellaneous tools for supporting core functionality.
 """
 import json
-import re
+import sys, re
 import copy
 import hashlib
 from urllib.parse import urlparse
@@ -50,7 +50,12 @@ def rename_file(source, newname):
 	return newname
 
 def delete_file(source):
-	Path(source).unlink(missing_ok=True)
+	try:
+		assert sys.version_info >= (3,8)
+	except AssertionError:
+		Path(source).unlink()
+	else:
+		Path(source).unlink(missing_ok=True)
 
 def get_checksum(source, load_source=True):
 	# https://stackoverflow.com/a/47800021
