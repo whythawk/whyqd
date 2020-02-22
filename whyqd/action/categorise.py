@@ -1,7 +1,9 @@
 import pandas as pd
 import numpy as np
+import uuid
 
 from whyqd.core import BaseAction
+import whyqd.common as _c
 
 class Action(BaseAction):
     """
@@ -44,7 +46,7 @@ class Action(BaseAction):
         ]
         return modifiers
 
-    def transform(df, field_name, structure, **kwargs):
+    def transform(self, df, field_name, structure, **kwargs):
         """
         Produce categories from terms or headers. There are three categorisation options:
 
@@ -95,7 +97,7 @@ class Action(BaseAction):
         all_terms = [c["name"] for c in kwargs["category"]]
         # Any fields modified below must be restored: (tmp_column, original_column)
         modified_fields = []
-        for modifier, field in _c.chunks(structure[1:], term_set):
+        for modifier, field in _c.chunks(structure, term_set):
             # https://docs.scipy.org/doc/numpy/reference/generated/numpy.select.html
             # Extract only the terms valid for this particular field
             terms = []

@@ -12,7 +12,7 @@ class Action(BaseAction):
         self.description = "Use sparse data from a list of fields to populate a new field. Order is important, each successive field in the list have priority over the ones before it (e.g. for columns A, B & C, values in C will have precedence over values in B and A)."
         self.structure = ["field"]
 
-    def transform(df, field_name, structure, **kwargs):
+    def transform(self, df, field_name, structure, **kwargs):
         """
         Create a new field by iterating over a list of fields and picking the next value in the list.
 
@@ -32,7 +32,7 @@ class Action(BaseAction):
         Dataframe
             Containing the implementation of the Action
         """
-        fields = [field["name"] for field in structure[1:]]
+        fields = [field["name"] for field in structure]
         df.rename(index=str, columns= {fields[0]: field_name}, inplace=True)
         for field in fields[1:]:
             df.loc[:, field_name] = df.apply(lambda x: (x[field]

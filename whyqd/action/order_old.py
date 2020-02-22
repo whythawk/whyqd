@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np
 
 from whyqd.core import BaseAction
+import whyqd.common as _c
 
 class Action(BaseAction):
     """
@@ -32,7 +33,7 @@ class Action(BaseAction):
         ]
         return modifiers
 
-    def transform(df, field_name, structure, **kwargs):
+    def transform(self, df, field_name, structure, **kwargs):
         """
         Create a new field by iterating over a list of fields and picking the oldest value in
 	    the list. Requires a "datename" constraint, otherwise it raise a ValueError.
@@ -53,7 +54,7 @@ class Action(BaseAction):
         Dataframe
             Containing the implementation of the Action
         """
-        fields = [field["name"] for field in structure[1:]]
+        fields = [field["name"] for field in structure]
         base_date = None
         # Requires sets of 3 terms: field, +, date_field
         term_set = len(self.structure)

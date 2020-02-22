@@ -10,7 +10,7 @@ class Action(BaseAction):
         self.description = "Join values in different fields to create a new concatenated value. Each value will be converted to a string (e.g. A: 'Word 1' B: 'Word 2' => 'Word 1 Word 2')."
         self.structure = ["field"]
 
-    def transform(df, field_name, structure, **kwargs):
+    def transform(self, df, field_name, structure, **kwargs):
         """
         Join a list of columns together with a space (i.e. concatenating text in multiple fields).
 
@@ -30,7 +30,7 @@ class Action(BaseAction):
         Dataframe
             Containing the implementation of the Action
         """
-        fields = [field["name"] for field in structure[1:]]
+        fields = [field["name"] for field in structure]
         # https://stackoverflow.com/a/45976632
         df.loc[:, field_name] = df.loc[:, fields].apply(lambda x: "" if x.isnull().all() else
                                                                 " ".join(x.dropna().astype(str)).strip(),

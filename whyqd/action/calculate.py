@@ -1,4 +1,5 @@
 from whyqd.core import BaseAction
+import whyqd.common as _c
 
 class Action(BaseAction):
     """
@@ -37,7 +38,7 @@ class Action(BaseAction):
         ]
         return modifiers
 
-    def transform(df, field_name, structure, **kwargs):
+    def transform(self, df, field_name, structure, **kwargs):
         """
         Calculate the value of a field derived from the values of other fields. Requires a constraint
 	    indicating whether the fields should be ADD or SUB from the current total.
@@ -59,9 +60,9 @@ class Action(BaseAction):
             Containing the implementation of the Action
         """
         term_set = len(self.structure)
-        add_fields = [field["name"] for modifier, field in _c.chunks(structure[1:], term_set)
+        add_fields = [field["name"] for modifier, field in _c.chunks(structure, term_set)
                       if modifier["name"] == "+"]
-        sub_fields = [field["name"] for modifier, field in _c.chunks(structure[1:], term_set)
+        sub_fields = [field["name"] for modifier, field in _c.chunks(structure, term_set)
                       if modifier["name"] == "-"]
         for field in add_fields + sub_fields:
             df.loc[:, field] = df.loc[:, field].apply(lambda x: _c.parse_float(x))

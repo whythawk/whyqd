@@ -10,7 +10,7 @@ class Action(BaseAction):
         self.description = "Create a new field and assign a set value."
         self.structure = ["value"]
 
-    def transform(df, field_name, structure, **kwargs):
+    def transform(self, df, field_name, structure, **kwargs):
         """
         Add a new field to a dataframe and set its value to the default provided.
 
@@ -30,5 +30,5 @@ class Action(BaseAction):
         Dataframe
             Containing the implementation of the Action
         """
-        df.loc[:, field_name] = structure[1]["value"]
+        df.loc[:, field_name] = structure[0]["value"]
         return df

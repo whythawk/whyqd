@@ -83,7 +83,7 @@ class BaseAction:
 
         A calling function would specify::
 
-            Action.has_valid_structure(working_columns, *structure[1:])
+            Action.validates(structure[1:], working_columns)
 
         Parameters
         ----------
@@ -139,7 +139,7 @@ class BaseAction:
             action_settings["modifiers"] = self.modifiers
         return action_settings
 
-    def transform(df, field_name, structure, **kwargs):
+    def transform(self, df, field_name, structure, **kwargs):
         """
         Perform a transformation. This function must be overridden by child Actions and describe a unique
         new method.

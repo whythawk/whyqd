@@ -10,7 +10,7 @@ class Action(BaseAction):
         self.description = "Rename an existing field to conform to a schema name. Only valid where a single field is provided."
         self.structure = ["field"]
 
-    def transform(df, field_name, structure, **kwargs):
+    def transform(self, df, field_name, structure, **kwargs):
         """
         Rename the field to the schema field.
 
@@ -34,6 +34,6 @@ class Action(BaseAction):
         # https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.rename.html
         # {'from': 'too'}
         df.rename(index=str,
-                columns= {structure[1]["name"]: field_name},
+                columns= {structure[0]["name"]: field_name},
                 inplace=True)
         return df
