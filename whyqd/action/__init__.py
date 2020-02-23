@@ -36,7 +36,7 @@ must conform to the structure defined in the action's structure, but with a form
 instead of a `name`.
 """
 import pkgutil
-import whyqd.common as _c
+from whyqd.core import common as _c
 __action_path__ = str(_c.get_path()) + "/action"
 
 actions = {

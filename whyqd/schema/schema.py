@@ -274,7 +274,7 @@ more recent than a specified date, include "AFTER" in your list of filter modifi
 from copy import deepcopy
 
 from whyqd.schema import Field
-import whyqd.common as _c
+from whyqd.core import common as _c
 
 class Schema:
 	"""Create and manage a target schema for a wrangling process.

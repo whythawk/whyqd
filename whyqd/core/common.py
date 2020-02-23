@@ -16,6 +16,10 @@ except locale.Error:
 	# Readthedocs has a problem, but difficult to replicate
 	locale.setlocale(locale.LC_ALL, "")
 
+###################################################################################################
+### Path management
+###################################################################################################
+
 short_rows = 3
 long_rows = 5
 
@@ -33,7 +37,8 @@ def check_source(source):
 		raise FileNotFoundError(e)
 
 def get_path():
-	return Path(__file__).resolve().parent
+	# whyqd/core/common ... .parent.parent -> whyqd/
+	return Path(__file__).resolve().parent.parent
 
 def check_uri(source):
 	# https://stackoverflow.com/a/38020041
@@ -56,6 +61,10 @@ def delete_file(source):
 		Path(source).unlink()
 	else:
 		Path(source).unlink(missing_ok=True)
+
+###################################################################################################
+### Parsers
+###################################################################################################
 
 def get_checksum(source, load_source=True):
 	# https://stackoverflow.com/a/47800021

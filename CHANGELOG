@@ -1,0 +1,3 @@
+- 0.2.0: Refactored `Action` wrangling functions to support new drop-in actions
+- 0.1.1: Minor bug fixes
+- 0.1.0: Initial release

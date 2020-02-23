@@ -68,6 +68,10 @@ Code requirements have been tested on the following versions:
 * tabulate>=0.8.3
 * xlrd>=1.2.0
 
+## Changelog
+
+The version history can be found in the [changelog](https://github.com/whythawk/whyqd/blob/master/CHANGELOG).
+
 ## Background
 
 **whyqd** was created to serve a continuous data wrangling process, including collaboration on more

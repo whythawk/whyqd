@@ -6,7 +6,7 @@ Definitions and customisation for canonical destination fields forming the targe
 """
 from copy import deepcopy
 
-import whyqd.common as _c
+from whyqd.core import common as _c
 
 class Field:
 	"""

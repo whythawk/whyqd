@@ -2,7 +2,7 @@
 Base class defining core functions for an Action.
 """
 from copy import deepcopy
-import whyqd.common as _c
+from whyqd.core import common as _c
 
 class BaseAction:
     """
@@ -10,7 +10,7 @@ class BaseAction:
 
     Actions should redefine `name`, `title`, `description`, `modifiers` and `structure`, as well as produce a 
     `transform` function. Everything else will probably remain as defined, but particularly complex Actions should
-    modify as rquired.
+    modify as required.
     """
     def __init__(self):
         self.name = ""

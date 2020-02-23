@@ -300,12 +300,7 @@ import numpy as np
 from tabulate import tabulate
 from operator import itemgetter
 
-try:
-	assert sys.version_info >= (3,7)
-except AssertionError:
-	from whyqd import common as _c
-else:
-	import whyqd.common as _c
+from whyqd.core import common as _c
 from whyqd.schema import Schema
 from whyqd.action import actions, default_actions
 

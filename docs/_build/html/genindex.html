@@ -104,7 +104,6 @@
 <li class="toctree-l1"><a class="reference internal" href="schema_api.html">Schema</a></li>
 <li class="toctree-l1"><a class="reference internal" href="action_api.html">Action</a></li>
 <li class="toctree-l1"><a class="reference internal" href="method_api.html">Method</a></li>
-<li class="toctree-l1"><a class="reference internal" href="transform_api.html">Transform</a></li>
 </ul>
 
             
@@ -190,7 +189,7 @@
 <h2 id="A">A</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="action_api.html#method.Action">Action (class in method)</a>
+      <li><a href="method_api.html#method.Method.action_transform">action_transform() (method.Method method)</a>
 </li>
       <li><a href="method_api.html#method.Method.add_input_data">add_input_data() (method.Method method)</a>
 </li>
@@ -206,19 +205,17 @@
 <h2 id="B">B</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="action_api.html#core.BaseAction">BaseAction (class in core)</a>
+</li>
       <li><a href="method_api.html#method.Method.build">build() (method.Method method)</a>
 
       <ul>
         <li><a href="schema_api.html#schema.Schema.build">(schema.Schema method)</a>
 </li>
       </ul></li>
-      <li><a href="method_api.html#method.Method.build_action">build_action() (method.Method method)</a>
-</li>
-      <li><a href="method_api.html#method.Method.build_category_markdown">build_category_markdown() (method.Method method)</a>
-</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="method_api.html#method.Method.build_default_actions">build_default_actions() (method.Method method)</a>
+      <li><a href="method_api.html#method.Method.build_category_markdown">build_category_markdown() (method.Method method)</a>
 </li>
       <li><a href="schema_api.html#schema.Schema.build_default_fields">build_default_fields() (schema.Schema method)</a>
 </li>
@@ -288,10 +285,6 @@
 <h2 id="H">H</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="action_api.html#method.Action.has_valid_structure">has_valid_structure() (method.Action method)</a>
-</li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="method_api.html#method.Method.help">help() (method.Method method)</a>
 </li>
   </ul></td>
@@ -309,6 +302,8 @@
       <li><a href="method.html#module-method">method (module)</a>
 </li>
       <li><a href="method.html#module-method.method">method.method (module)</a>
+</li>
+      <li><a href="action_api.html#core.BaseAction.modifiers">modifiers() (core.BaseAction property)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -406,7 +401,7 @@
 </li>
       <li><a href="method_api.html#method.Method.set_structure">set_structure() (method.Method method)</a>
 </li>
-      <li><a href="action_api.html#method.Action.settings">settings() (method.Action property)</a>
+      <li><a href="action_api.html#core.BaseAction.settings">settings() (core.BaseAction property)</a>
 
       <ul>
         <li><a href="field_api.html#schema.Field.settings">(schema.Field property)</a>
@@ -422,8 +417,12 @@
 <h2 id="T">T</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="method_api.html#method.Method.transform">transform() (method.Method method)</a>
+      <li><a href="action_api.html#core.BaseAction.transform">transform() (core.BaseAction method)</a>
+
+      <ul>
+        <li><a href="method_api.html#method.Method.transform">(method.Method method)</a>
 </li>
+      </ul></li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="field_api.html#schema.Field.type">type() (schema.Field property)</a>
@@ -444,17 +443,13 @@
 </li>
       <li><a href="method_api.html#method.Method.validate_merge_data">validate_merge_data() (method.Method property)</a>
 </li>
-      <li><a href="action_api.html#method.Action.validate_structure">validate_structure() (method.Action method)</a>
-
-      <ul>
-        <li><a href="method_api.html#method.Method.validate_structure">(method.Method property)</a>
-</li>
-      </ul></li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="method_api.html#method.Method.validate_structure">validate_structure() (method.Method property)</a>
+</li>
       <li><a href="method_api.html#method.Method.validate_transform">validate_transform() (method.Method property)</a>
 </li>
-      <li><a href="action_api.html#method.Action.validates">validates() (method.Action method)</a>
+      <li><a href="action_api.html#core.BaseAction.validates">validates() (core.BaseAction method)</a>
 
       <ul>
         <li><a href="method_api.html#method.Method.validates">(method.Method property)</a>

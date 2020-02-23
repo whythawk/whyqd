@@ -1,5 +1,5 @@
 from whyqd.core import BaseAction
-import whyqd.common as _c
+from whyqd.core import common as _c
 
 class Action(BaseAction):
     """
