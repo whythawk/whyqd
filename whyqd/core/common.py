@@ -9,6 +9,7 @@ from urllib.parse import urlparse
 from datetime import date, datetime, timedelta
 from pathlib import Path, PurePath
 import pandas as pd
+import numpy as np
 import locale
 try:
 	locale.setlocale(locale.LC_ALL, "en_US.UTF-8")
