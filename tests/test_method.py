@@ -2,7 +2,7 @@ from pathlib import Path
 import os
 
 import whyqd as _w
-import whyqd.common as _c
+from whyqd.core import common as _c
 
 method_name = "/data/test_method.json"
 schema_name = "/data/test_schema.json"

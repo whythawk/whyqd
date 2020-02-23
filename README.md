@@ -62,11 +62,15 @@ You'll need at least Python 3.6, then:
 
 Code requirements have been tested on the following versions:
 
-* numpy=1.18.1
-* openpyxl=3.0.3
-* pandas=1.0.0
-* tabulate=0.8.3
-* xlrd=1.2.0
+* numpy>=1.18.1
+* openpyxl>=3.0.3
+* pandas>=1.0.0
+* tabulate>=0.8.3
+* xlrd>=1.2.0
+
+## Changelog
+
+The version history can be found in the [changelog](https://github.com/whythawk/whyqd/blob/master/CHANGELOG).
 
 ## Background
 

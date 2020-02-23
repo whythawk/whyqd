@@ -1,6 +1,6 @@
 """
 .. module:: method
-   :synopsis: Create and manage a wrangling method based on a predefined schema.
+:synopsis: Create and manage a wrangling method based on a predefined schema.
 
 .. moduleauthor:: Gavin Chait <github.com/turukawa>
 
@@ -70,31 +70,31 @@ To display a nicely-formatted output for review::
 	Data id: c8944fed-4e8c-4cbd-807d-53fcc96b7018
 
 	====  ====================  ========================  =================================  =============================  =======================================================  =============================  ===========================
-	  ..  Account Start date      Current Rateable Value  Current Relief Award Start Date    Current Relief Type            Full Property Address                                    Primary Liable party name        Property Reference Number
+	..  Account Start date      Current Rateable Value  Current Relief Award Start Date    Current Relief Type            Full Property Address                                    Primary Liable party name        Property Reference Number
 	====  ====================  ========================  =================================  =============================  =======================================================  =============================  ===========================
-	   0  2003-05-14 00:00:00                       8600  2019-04-01 00:00:00                Retail Discount                Ground Floor, 25, Albert Road, Southsea, Hants, PO5 2SE  Personal details not supplied                 177500080710
-	   1  2003-07-28 00:00:00                       9900  2005-04-01 00:00:00                Small Business Relief England  Ground Floor, 102, London Road, Portsmouth, PO2 0LZ      Personal details not supplied                 177504942310
-	   2  2003-07-08 00:00:00                       6400  2005-04-01 00:00:00                Small Business Relief England  33, Festing Road, Southsea, Hants, PO4 0NG               Personal details not supplied                 177502823510
+	0  2003-05-14 00:00:00                       8600  2019-04-01 00:00:00                Retail Discount                Ground Floor, 25, Albert Road, Southsea, Hants, PO5 2SE  Personal details not supplied                 177500080710
+	1  2003-07-28 00:00:00                       9900  2005-04-01 00:00:00                Small Business Relief England  Ground Floor, 102, London Road, Portsmouth, PO2 0LZ      Personal details not supplied                 177504942310
+	2  2003-07-08 00:00:00                       6400  2005-04-01 00:00:00                Small Business Relief England  33, Festing Road, Southsea, Hants, PO4 0NG               Personal details not supplied                 177502823510
 	====  ====================  ========================  =================================  =============================  =======================================================  =============================  ===========================
 
 	Data id: a9ad7716-f777-4752-8627-dd6206bede65
 
 	====  ===================================  =================================  ========================  ================================================================  =======================================================  ===========================
-	  ..  Current Prop Exemption Start Date    Current Property Exemption Code      Current Rateable Value  Full Property Address                                             Primary Liable party name                                  Property Reference Number
+	..  Current Prop Exemption Start Date    Current Property Exemption Code      Current Rateable Value  Full Property Address                                             Primary Liable party name                                  Property Reference Number
 	====  ===================================  =================================  ========================  ================================================================  =======================================================  ===========================
-	   0  2019-11-08 00:00:00                  LOW RV                                                  700  Advertising Right, 29 Albert Road, Portsmouth, PO5 2SE            Personal details not supplied                                           177512281010
-	   1  2019-09-23 00:00:00                  INDUSTRIAL                                            11000  24, Ordnance Court, Ackworth Road, Portsmouth, PO3 5RZ            Personal details not supplied                                           177590107810
-	   2  2019-09-13 00:00:00                  EPRI                                                  26500  Unit 12, Admiral Park, Airport Service Road, Portsmouth, PO3 5RQ  Legal & General Property Partners (Industrial Fund) Ltd                 177500058410
+	0  2019-11-08 00:00:00                  LOW RV                                                  700  Advertising Right, 29 Albert Road, Portsmouth, PO5 2SE            Personal details not supplied                                           177512281010
+	1  2019-09-23 00:00:00                  INDUSTRIAL                                            11000  24, Ordnance Court, Ackworth Road, Portsmouth, PO3 5RZ            Personal details not supplied                                           177590107810
+	2  2019-09-13 00:00:00                  EPRI                                                  26500  Unit 12, Admiral Park, Airport Service Road, Portsmouth, PO3 5RQ  Legal & General Property Partners (Industrial Fund) Ltd                 177500058410
 	====  ===================================  =================================  ========================  ================================================================  =======================================================  ===========================
 
 	Data id: 1e5a165d-5e83-4eec-9781-d450a1d3f5f1
 
 	====  ====================  ========================  =========================================================================  ==========================================  =================
-	  ..  Account Start date      Current Rateable Value  Full Property Address                                                      Primary Liable party name                     Property ref no
+	..  Account Start date      Current Rateable Value  Full Property Address                                                      Primary Liable party name                     Property ref no
 	====  ====================  ========================  =========================================================================  ==========================================  =================
-	   0  2003-11-10 00:00:00                      37000  Unit 7b, The Pompey Centre, Dickinson Road, Southsea, Hants, PO4 8SH       City Electrical Factors  Ltd                     177200066910
-	   1  2003-11-08 00:00:00                     594000  Express By Holiday Inn, The Plaza, Gunwharf Quays, Portsmouth, PO1 3FD     Kew Green Hotels (Portsmouth Lrg1) Limited       177209823010
-	   2  1994-12-25 00:00:00                      13250  Unit 2cd, Shawcross Industrial Estate, Ackworth Road, Portsmouth, PO3 5JP  Personal details not supplied                    177500013310
+	0  2003-11-10 00:00:00                      37000  Unit 7b, The Pompey Centre, Dickinson Road, Southsea, Hants, PO4 8SH       City Electrical Factors  Ltd                     177200066910
+	1  2003-11-08 00:00:00                     594000  Express By Holiday Inn, The Plaza, Gunwharf Quays, Portsmouth, PO1 3FD     Kew Green Hotels (Portsmouth Lrg1) Limited       177209823010
+	2  1994-12-25 00:00:00                      13250  Unit 2cd, Shawcross Industrial Estate, Ackworth Road, Portsmouth, PO3 5JP  Personal details not supplied                    177500013310
 	====  ====================  ========================  =========================================================================  ==========================================  =================
 
 Once you're satisfied with your `input_data`, prepare an `order_and_key` list to define the merge
@@ -300,16 +300,9 @@ import numpy as np
 from tabulate import tabulate
 from operator import itemgetter
 
-try:
-	assert sys.version_info >= (3,7)
-except AssertionError:
-	from whyqd import common as _c
-	from whyqd.method import transform as task
-else:
-	import whyqd.common as _c
-	import whyqd.method.transform as task
+from whyqd.core import common as _c
 from whyqd.schema import Schema
-from whyqd.method import Action
+from whyqd.action import actions, default_actions
 
 
 STATUS_CODES = {
@@ -341,7 +334,7 @@ class Method(Schema):
 	def __init__(self, source=None, **kwargs):
 		self._status = "WAITING"
 		# Clear kwargs of things we need to process prior to initialising
-		self.directory = kwargs.pop("directory", _c.get_path())
+		self.directory = kwargs.pop("directory", str(_c.get_path()))
 		if not self.directory.endswith("/"):
 			self.directory += "/"
 		_c.check_path(self.directory)
@@ -349,7 +342,7 @@ class Method(Schema):
 		input_data = kwargs.pop("input_data", None)
 		super().__init__(source=source, **kwargs)
 		# Initialise after Schema initialisation
-		self.default_actions = self.build_default_actions()
+		self.default_actions = actions
 		if constructors: self.set_constructors(constructors)
 		if input_data: self.add_input_data(input_data)
 		self.valid_filter_field_types = ["date", "year", "datetime"]
@@ -376,8 +369,8 @@ class Method(Schema):
 		if order_and_key and isinstance(order_and_key, list):
 			self.order_and_key_input_data(*order_and_key)
 		if self._status in STATUS_CODES.keys() - ["READY_MERGE", "READY_STRUCTURE", "READY_CATEGORY",
-												  "READY_FILTER", "READY_TRANSFORM", "PROCESS_COMPLETE",
-												  "MERGE_ERROR"]:
+												"READY_FILTER", "READY_TRANSFORM", "PROCESS_COMPLETE",
+												"MERGE_ERROR"]:
 			e = "Current status: `{}` - performing `merge` is not permitted.".format(self.status)
 			raise PermissionError(e)
 		self.validate_merge_data
@@ -468,7 +461,7 @@ class Method(Schema):
 			Where key is schema target field and value is list defining the structure action
 		"""
 		if self._status in STATUS_CODES.keys() - ["READY_STRUCTURE", "READY_CATEGORY", "READY_FILTER",
-												  "READY_TRANSFORM", "PROCESS_COMPLETE", "STRUCTURE_ERROR"]:
+												"READY_TRANSFORM", "PROCESS_COMPLETE", "STRUCTURE_ERROR"]:
 			e = "Current status: `{}` - performing `set_structure` not permitted.".format(self.status)
 			raise PermissionError(e)
 		self.validate_merge
@@ -579,7 +572,7 @@ class Method(Schema):
 			`term_name::column_name`
 		"""
 		if self._status in STATUS_CODES.keys() - ["READY_CATEGORY", "READY_FILTER",
-												  "READY_TRANSFORM", "PROCESS_COMPLETE", "CATEGORY_ERROR"]:
+												"READY_TRANSFORM", "PROCESS_COMPLETE", "CATEGORY_ERROR"]:
 			e = "Current status: `{}` - performing `set_category` not permitted.".format(self.status)
 			raise PermissionError(e)
 		self.validate_structure
@@ -648,7 +641,7 @@ class Method(Schema):
 					if set(assigned_input_terms) - set(all_terms):
 						e = "Field `{}` has invalid input category terms `{}`."
 						raise ValueError(e.format(field_name,
-												  set(assigned_input_terms) - set(all_terms)))
+												set(assigned_input_terms) - set(all_terms)))
 					# extend
 					all_assigned_terms.extend(assigned_input_terms)
 				# validate if duplicates
@@ -722,7 +715,7 @@ class Method(Schema):
 		ValueError for any validation failures.
 		"""
 		if self._status in STATUS_CODES.keys() - ["READY_FILTER", "READY_TRANSFORM",
-												  "PROCESS_COMPLETE", "FILTER_ERROR"]:
+												"PROCESS_COMPLETE", "FILTER_ERROR"]:
 			e = "Current status: `{}` - performing `set_filter` not permitted.".format(self.status)
 			raise PermissionError(e)
 		self.validate_category
@@ -742,7 +735,7 @@ class Method(Schema):
 		if filter_settings["date"]:
 			if not filter_date:
 				e = "Filter: `{}` requires a `{}` for filtering.".format(filter_name,
-																		 schema_field["type"])
+																		schema_field["type"])
 				raise ValueError(e)
 			_c.check_date_format(schema_field["type"], filter_date)
 		else:
@@ -914,7 +907,7 @@ class Method(Schema):
 		"""
 		if (not (reset_status or reset_output_only) and
 			(self.schema_settings.get("output_data", {}).get("checksum") or
-			 self.schema_settings.get("working_data", {}).get("checksum"))):
+			self.schema_settings.get("working_data", {}).get("checksum"))):
 			e = "Permission required to reset data. Set `reset_status` or `reset_output_only` to `True`."
 			raise PermissionError(e)
 		if reset_status and self.schema_settings.get("working_data", {}).get("checksum"):
@@ -1012,7 +1005,7 @@ class Method(Schema):
 		self.reset_data_checksums(reset_status=reset_status)
 		if self.schema_settings.get("input_data", []):
 			self.schema_settings["input_data"] = [data for data in self.schema_settings["input_data"]
-												  if data["id"] != _id]
+												if data["id"] != _id]
 		if not self.input_data:
 			self._status = "WAITING"
 
@@ -1034,7 +1027,7 @@ class Method(Schema):
 		# defaulting to `dtype = object` ...
 		# Note, this is done to avoid any random column processing
 		df = _c.get_dataframe(self.directory + self.schema_settings["input_data"][0]["file"],
-							  dtype = object)
+							dtype = object)
 		df_key = self.schema_settings["input_data"][0]["key"]
 		missing_keys = []
 		for data in self.schema_settings["input_data"][1:]:
@@ -1043,14 +1036,14 @@ class Method(Schema):
 			dfm_key = data["key"]
 			missing_keys.append(dfm_key)
 			df = pd.merge(df, dfm, how="outer",
-						  left_on=df_key, right_on=dfm_key,
-						  indicator=False)
+						left_on=df_key, right_on=dfm_key,
+						indicator=False)
 		# Where left key values null, copy any values in the right join-field (i.e. no key match)
 		keys = [m for m in df.columns if any(k == m[:len(k)] for k in missing_keys)]
 		for key in keys:
 			df.loc[:, df_key] = np.where(pd.isnull(df[df_key]),
-										 df[key],
-										 df[df_key])
+										df[key],
+										df[df_key])
 		# Deduplicate any columns after merge (and deduplicate the deduplicate in case of artifacts)
 		df.columns = self.deduplicate_columns(self.deduplicate_columns(df.columns))
 		return df
@@ -1104,7 +1097,7 @@ class Method(Schema):
 		for name in duplicates:
 			dups = idx==name
 			ret = [fmt%(name,i) if (i!=0 or not ignoreFirst) else name
-				   for i in range(dups.sum())]
+				for i in range(dups.sum())]
 			idx.loc[dups] = ret
 		# Fix any fields with the same name as any of the target fields
 		for name in self.all_field_names:
@@ -1224,33 +1217,30 @@ class Method(Schema):
 		"""
 		# Sets or updates a structure, and sets any required categories
 		structure = []
-		for i, term in enumerate(structure_list):
-			if i == 0:
-				# Validate the rest of the structure_list first
-				action = self.default_actions[term]
-				if not action.has_valid_structure(self.working_column_list, structure_list[1:]):
-					e = "Task action `{}` has invalid structure `{}`.".format(term, structure_list)
-					raise ValueError(e)
-				structure.append(action.settings)
-				continue
-			if isinstance(term, list):
-				# Deal with nested structures
-				structure.append(self.set_field_structure(term))
-				continue
-			if action.name == "NEW":
-				# Special case for "NEW" action
-				new_term = {
-					"value": term,
-					"type": _c.get_field_type(term)
-				}
-				structure.append(new_term)
-				continue
-			if term in action.modifier_names:
-				structure.append(action.get_modifier(term))
-				continue
-			if term in self.working_column_list:
-				structure.append(self.working_data_field(term))
-				continue
+		# Validate the action of the structure_list first
+		action = self.default_actions[structure_list[0]]()
+		if not action.validates(structure_list[1:], self.working_column_list):
+			e = "Task action `{}` has invalid structure `{}`.".format(action.name, structure_list)
+			raise ValueError(e)
+		structure.append(action.settings)
+		term_set = len(action.structure)
+		# Process the rest of the action structure
+		for field in _c.chunks(structure_list[1:], term_set):
+			for i, term in enumerate(action.structure):
+				if isinstance(field[i], list):
+					# Deal with nested structures
+					structure.append(self.set_field_structure(field[i]))
+					continue
+				if term == "value":
+					new_field = {
+						"value": field[i],
+						"type": _c.get_field_type(field[i])
+					}
+					structure.append(new_field)
+				if term == "modifier" and field[i] in action.modifier_names:
+					structure.append(action.get_modifier(field[i]))
+				if term == "field" and field[i] in self.working_column_list:
+					structure.append(self.working_data_field(field[i]))
 		return structure
 
 	@property
@@ -1264,7 +1254,7 @@ class Method(Schema):
 		-------
 		list
 		"""
-		return list(self.default_actions.keys())
+		return list(actions.keys())
 
 	def default_action_settings(self, action):
 		"""
@@ -1279,21 +1269,10 @@ class Method(Schema):
 		-------
 		dict, or empty dict if no such `action_type`
 		"""
-		if action in self.default_actions:
-			return deepcopy(self.default_action[action].settings)
+		for field_action in default_actions:
+			if action == field_action["name"]:
+				return deepcopy(field_action)
 		return {}
-
-	def build_default_actions(self):
-		"""
-		Build the default actions for presentation to the user as options.
-
-		Returns
-		-------
-		dict of Actions
-		"""
-		default_actions = {action["name"]: Action(validate=False, **action)
-						   for action in _c.get_settings("actions")["fields"]}
-		return default_actions
 
 	def build_structure_markdown(self, structure):
 		"""
@@ -1350,6 +1329,49 @@ class Method(Schema):
 	# TRANSFORM HELPERS
 	#########################################################################################
 
+	def action_transform(self, df, field_name, structure, **kwargs):
+		"""
+		A recursive transformation. A method should be a list fields upon which actions are applied, but
+		each field may have nested sub-fields requiring their own actions. Before the action on the
+		current field can be completed, it is necessary to perform the actions on each sub-field.
+
+		Parameters
+		----------
+		df: DataFrame
+			Working data to be transformed
+		field_name: str
+			Name of the target schema field
+		structure: list
+			List of fields with restructuring action defined by term 0 (i.e. `this` action)
+		**kwargs: 
+			Other fields which may be required in custom transforms
+
+		Returns
+		-------
+		Dataframe
+			Containing the implementation of all nested transformations
+		"""
+		action = self.default_actions[structure[0]["name"]]()
+		if not action.validates(self.build_structure_markdown(deepcopy(structure[1:])), 
+															  self.working_column_list):
+			e = "Task action `{}` has invalid structure `{}`.".format(action.name, structure)
+			raise ValueError(e)
+		# Recursive check ...
+		flattened_structure = []
+		for i, field in enumerate(structure[1:]):
+			if isinstance(field, list):
+				# Need to create a temporary column ... the action will be performed here
+				# then this nested structure will be replaced by the output of this new column
+				temp_name = "nested_" + str(uuid.uuid4())
+				df = self.action_transform(df, field_name, field, **kwargs)
+				field = {
+					"name": temp_name,
+					"type": "nested"
+				}
+			flattened_structure.append(field)
+		# Action transform
+		return action.transform(df, field_name, flattened_structure, **kwargs)
+
 	@property
 	def perform_transform(self):
 		"""
@@ -1365,15 +1387,18 @@ class Method(Schema):
 		set_dtypes = {}
 		set_dtypes[self.schema_settings["input_data"][0]["key"]] = object
 		df = _c.get_dataframe(self.directory + self.schema_settings["working_data"]["file"],
-							  dtype=set_dtypes)
+							dtype=set_dtypes)
 		# Begin transformations + keep track if any need filters
 		filter_list = []
 		for field_name in self.all_field_names:
 			field = self.field(field_name)
 			if field.get("filter"):
 				filter_list.append(field_name)
-			df = task.perform_transform(df, field_name, field["type"], field["structure"],
-										category = field.get("category", {}).get("assigned"))
+			kwargs = {
+				"field_type": field["type"],
+				"category": field.get("category", {}).get("assigned")
+			}
+			df = self.action_transform(df, field_name, field["structure"], **kwargs)
 		# Identify required output fields not in df, and set blank fields for these
 		blank_fields = list(set(self.all_field_names) - set(df.columns))
 		for blank in blank_fields:
@@ -1561,7 +1586,7 @@ class Method(Schema):
 							category_input[term[-1]] = []
 						category_input[term[-1]].append("::".join(term[:-1]))
 				category_input_columns = [c["column"] for c in
-										  schema_field["constraints"].get("category_input", {})]
+										schema_field["constraints"].get("category_input", {})]
 				diff = set(category_input.keys()) - set(category_input_columns)
 				if diff:
 					e = "Category for Field `{}` has invalid data columns `{}`"
@@ -1571,7 +1596,7 @@ class Method(Schema):
 				category_input_terms = [item for sublist in category_input_terms
 										for item in sublist]
 				category_terms = [item for sublist in category_input.values()
-								  for item in sublist]
+								for item in sublist]
 				diff = set(category_terms) - set(category_input_terms)
 				if diff:
 					e = "Category for Field `{}` has invalid input category terms `{}`"
@@ -1615,7 +1640,7 @@ class Method(Schema):
 			# Filter date valid
 			if schema_field["filter"]["modifiers"]["date"]:
 				_c.check_date_format(schema_field["type"],
-									 schema_field["filter"]["modifiers"]["date"])
+									schema_field["filter"]["modifiers"]["date"])
 		return True
 
 	@property
@@ -1669,41 +1694,15 @@ class Method(Schema):
 		self._status = "READY_TRANSFORM"
 		return True
 
-	def build_action(self, **action):
-		"""
-		For a list of actions, defined as dictionaries, create and return Action objects.
-
-		Parameters
-		----------
-		field: dictionary of Action parameters
-
-		Raises
-		------
-		ValueError: if action fails validation
-
-		Returns
-		-------
-		Action
-		"""
-		if not isinstance(action, dict) or not all(key in action for key in self.required_field_terms):
-			e = "Action is not a valid dictionary"
-			raise ValueError(e)
-		action = Action(**action)
-		if not action.validates:
-			e = "Action `{}` of type `{}` does not validate".format(_name, _type)
-			raise ValueError(e)
-		return action
-
 	def build(self):
 		"""
 		Build and validate the Method. Note, this replaces the Schema base-class.
 		"""
 		self.schema_settings["fields"] = [self.build_field(validate=False, **field) for field in
-										  self.schema_settings.get("fields", [])]
+										self.schema_settings.get("fields", [])]
 		if not self.directory:
 			e = "Action is not a valid dictionary"
 			raise ValueError(e)
-		#self.set_directory(self.directory)
 		self._status = self.schema_settings.get("status", self._status)
 
 	def save_data(self, df, filetype="xlsx", prefix=None):
@@ -1749,7 +1748,7 @@ class Method(Schema):
 		if not directory: directory = self.directory
 		self.schema_settings["status"] = self._status
 		super().save(directory=directory, filename=filename,
-					 overwrite=overwrite, created_by=created_by)
+					overwrite=overwrite, created_by=created_by)
 
 	#########################################################################################
 	# HELP
@@ -1770,7 +1769,7 @@ class Method(Schema):
 		"""
 		response = ""
 		if not option or option not in ["status", "merge", "structure", "category",
-										  "filter", "transform", "error"]:
+										"filter", "transform", "error"]:
 			response = HELP_RESPONSE["default"].format(self.status)
 		elif option != "status":
 			response = HELP_RESPONSE[option]
@@ -1783,8 +1782,8 @@ class Method(Schema):
 					response += HELP_RESPONSE["data"].format(_id, _source, _df)
 			if option == "structure":
 				response = response.format(self.all_field_names,
-										   self.default_action_types,
-										   self.working_column_list)
+										self.default_action_types,
+										self.working_column_list)
 				if "working_data" in self.schema_settings:
 					_id = self.schema_settings["working_data"]["id"]
 					_source = "method.input_data"

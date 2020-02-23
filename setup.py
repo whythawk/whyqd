@@ -59,6 +59,13 @@ PROJECT_URLS = {
     "Documentation": "https://whyqd.readthedocs.io/",
     "Source Code": "https://github.com/whythawk/whyqd/",
 }
+INSTALL_REQUIRES = [
+    "openpyxl>=3.0.3",
+    "pandas>=1.0.0",
+    "tabulate>=0.8.3",
+    "xlrd>=1.2.0",
+    "numpy>=1.18.1",
+]
 CLASSIFIERS = [
     "Development Status :: 5 - Production/Stable",
     "Environment :: Console",
@@ -72,7 +79,7 @@ CLASSIFIERS = [
 
 setuptools.setup(
     name=DISTNAME,
-    version="0.1.1",
+    version="0.2.0",
     author=AUTHOR,
     author_email=EMAIL,
     description=DESCRIPTION,
@@ -85,4 +92,5 @@ setuptools.setup(
 	classifiers=CLASSIFIERS,
     packages=setuptools.find_packages(),
     python_requires='>=3.6',
+    install_requires=INSTALL_REQUIRES,
 )

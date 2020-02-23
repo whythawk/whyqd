@@ -82,8 +82,9 @@
             
               <p class="caption"><span class="caption-text">Getting started</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="installation.html">Requirements, installation &amp; importing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Dependencies, installation &amp; importing</a></li>
 <li class="toctree-l1"><a class="reference internal" href="tutorial.html">Full worked tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="citation.html">Distribution &amp; Citation of methods and data</a></li>
 </ul>
 <p class="caption"><span class="caption-text">Creating and managing Schemas</span></p>
 <ul>
@@ -92,6 +93,11 @@
 <p class="caption"><span class="caption-text">Wrangling with Methods</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="method.html">Method</a></li>
+</ul>
+<p class="caption"><span class="caption-text">What next?</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="roadmap.html">Roadmap</a></li>
+<li class="toctree-l1"><a class="reference internal" href="contributing.html">Background and Contributing</a></li>
 </ul>
 <p class="caption"><span class="caption-text">Reference API</span></p>
 <ul class="current">
@@ -165,13 +171,48 @@
             
   <div class="section" id="action">
 <h1>Action<a class="headerlink" href="#action" title="Permalink to this headline">¶</a></h1>
-<p>The <cite>Action</cite> class defines the restructuring actions performed in a <a class="reference internal" href="method.html"><span class="doc">Method</span></a>.</p>
+<p>The <cite>Action</cite> class defines the restructuring actions performed in a <a class="reference internal" href="method.html"><span class="doc">Method</span></a>. <cite>BaseAction</cite> is the main definition
+for an action and is inherited by child classes in the <cite>/action</cite> folder.</p>
 <dl class="class">
-<dt id="method.Action">
-<em class="property">class </em><code class="sig-prename descclassname">method.</code><code class="sig-name descname">Action</code><span class="sig-paren">(</span><em class="sig-param">**action</em><span class="sig-paren">)</span><a class="headerlink" href="#method.Action" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="method">
-<dt id="method.Action.has_valid_structure">
-<code class="sig-name descname">has_valid_structure</code><span class="sig-paren">(</span><em class="sig-param">working_columns</em>, <em class="sig-param">structure</em><span class="sig-paren">)</span><a class="headerlink" href="#method.Action.has_valid_structure" title="Permalink to this definition">¶</a></dt>
+<dt id="core.BaseAction">
+<em class="property">class </em><code class="sig-prename descclassname">core.</code><code class="sig-name descname">BaseAction</code><a class="headerlink" href="#core.BaseAction" title="Permalink to this definition">¶</a></dt>
+<dd><p>Custom Actions inherit from this base class which describes the core functions and methodology for an Action.</p>
+<p>Actions should redefine <cite>name</cite>, <cite>title</cite>, <cite>description</cite>, <cite>modifiers</cite> and <cite>structure</cite>, as well as produce a
+<cite>transform</cite> function. Everything else will probably remain as defined, but particularly complex Actions should
+modify as required.</p>
+<dl class="method">
+<dt id="core.BaseAction.modifiers">
+<em class="property">property </em><code class="sig-name descname">modifiers</code><a class="headerlink" href="#core.BaseAction.modifiers" title="Permalink to this definition">¶</a></dt>
+<dd><p>Describes the modifiers for the Action. Typical modifiers are <cite>+</cite> or <cite>-</cite> but the Action can implement any
+type of modifier as part of the <cite>transform</cite> function.</p>
+<p>As an example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">[</span>
+    <span class="p">{</span>
+        <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;+&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;title&quot;</span><span class="p">:</span> <span class="s2">&quot;Add&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;modifier&quot;</span>
+    <span class="p">},</span>
+    <span class="p">{</span>
+        <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;-&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;title&quot;</span><span class="p">:</span> <span class="s2">&quot;Subtract&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;modifier&quot;</span>
+    <span class="p">}</span>
+<span class="p">]</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Dict representation of the modifiers.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>None or dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="core.BaseAction.validates">
+<code class="sig-name descname">validates</code><span class="sig-paren">(</span><em class="sig-param">structure</em>, <em class="sig-param">working_columns=[]</em><span class="sig-paren">)</span><a class="headerlink" href="#core.BaseAction.validates" title="Permalink to this definition">¶</a></dt>
 <dd><p>Traverses a list defined by <cite>*structure</cite>, ensuring that the terms conform to that action’s
 default structural requirements. Nested structures are permitted. Note that the
 responsibility for digging in to the nested structures lies with the calling function.</p>
@@ -184,73 +225,63 @@ responsibility for digging in to the nested structures lies with the calling fun
 </pre></div>
 </div>
 <p>A calling function would specify:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Action</span><span class="o">.</span><span class="n">has_valid_structure</span><span class="p">(</span><span class="n">working_columns</span><span class="p">,</span> <span class="o">*</span><span class="n">structure</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Action</span><span class="o">.</span><span class="n">validates</span><span class="p">(</span><span class="n">structure</span><span class="p">[</span><span class="mi">1</span><span class="p">:],</span> <span class="n">working_columns</span><span class="p">)</span>
 </pre></div>
 </div>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>working_columns</strong> (<em>list</em>) – List of valid terms from the working data columns.</p></li>
 <li><p><strong>structure</strong> (<em>list</em>) – Each structure list must conform to the requirements for that action. Nested actions
 defined by nested lists.</p></li>
+<li><p><strong>working_columns</strong> (<em>list</em>) – List of valid field names from the working data columns.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
-<dd class="field-even"><p></p>
+<dd class="field-even"><p>True if valid</p>
 </dd>
 <dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>bool, True if valid</p>
+<dd class="field-odd"><p>bool</p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="method">
-<dt id="method.Action.settings">
-<em class="property">property </em><code class="sig-name descname">settings</code><a class="headerlink" href="#method.Action.settings" title="Permalink to this definition">¶</a></dt>
-<dd><p>Action settings</p>
+<dt id="core.BaseAction.settings">
+<em class="property">property </em><code class="sig-name descname">settings</code><a class="headerlink" href="#core.BaseAction.settings" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the dict representation of the Action.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p><strong>dict</strong></p>
+<dd class="field-odd"><p>Dict representation of an Action.</p>
 </dd>
 <dt class="field-even">Return type</dt>
-<dd class="field-even"><p>settings</p>
+<dd class="field-even"><p>dict</p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="method">
-<dt id="method.Action.validate_structure">
-<code class="sig-name descname">validate_structure</code><span class="sig-paren">(</span><em class="sig-param">working_columns</em>, <em class="sig-param">*structure</em><span class="sig-paren">)</span><a class="headerlink" href="#method.Action.validate_structure" title="Permalink to this definition">¶</a></dt>
-<dd><p>A recursive function testing method structure and that field names are entities of the list
-of <cite>working_columns</cite>. A method should have fields upon which actions are applied, but each
-field may have sub-fields requiring their own actions.</p>
+<dt id="core.BaseAction.transform">
+<code class="sig-name descname">transform</code><span class="sig-paren">(</span><em class="sig-param">df</em>, <em class="sig-param">field_name</em>, <em class="sig-param">structure</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#core.BaseAction.transform" title="Permalink to this definition">¶</a></dt>
+<dd><p>Perform a transformation. This function must be overridden by child Actions and describe a unique
+new method.</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>Assumes <cite>validates</cite> has been run.</p>
+</div>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>working_columns</strong> (<em>list</em>) – Permitted column names from <cite>working_data</cite></p></li>
-<li><p><strong>method</strong> (<em>list of dicts</em>) – Each dict an element of a <cite>method</cite>, and must start with an <cite>action</cite></p></li>
+<li><p><strong>df</strong> (<em>DataFrame</em>) – Working data to be transformed</p></li>
+<li><p><strong>field_name</strong> (<em>str</em>) – Name of the target schema field</p></li>
+<li><p><strong>structure</strong> (<em>list</em>) – List of fields with restructuring action defined by term 0 (i.e. <cite>this</cite> action)</p></li>
+<li><p><strong>**kwargs</strong> – Other fields which may be required in custom transforms</p></li>
 </ul>
 </dd>
-</dl>
-</dd></dl>
-
-<dl class="method">
-<dt id="method.Action.validates">
-<code class="sig-name descname">validates</code><span class="sig-paren">(</span><em class="sig-param">working_columns</em><span class="sig-paren">)</span><a class="headerlink" href="#method.Action.validates" title="Permalink to this definition">¶</a></dt>
-<dd><p>Test action <cite>structure</cite> for structure (every action starts with an action <cite>type</cite>), and that
-columns, categories and filters (depending on what is supplied) are valid.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>working_columns</strong> (<em>list</em>) – Permitted column names from <cite>working_data</cite></p>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Containing the implementation of the Action</p>
 </dd>
-<dt class="field-even">Raises</dt>
-<dd class="field-even"><p><strong>ValueError if working data not provided</strong><strong>, </strong><strong>if names not permitted</strong><strong>, or </strong><strong>if action not valid</strong> – </p>
-</dd>
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p></p>
-</dd>
-<dt class="field-even">Return type</dt>
-<dd class="field-even"><p>Bool, True if valid</p>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>Dataframe</p>
 </dd>
 </dl>
 </dd></dl>

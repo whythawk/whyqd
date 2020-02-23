@@ -1,7 +1,7 @@
 from pathlib import Path
 
 import whyqd as _w
-import whyqd.common as _c
+from whyqd.core import common as _c
 
 filename = "/data/test_schema.json"
 source = str(Path(__file__).resolve().parent) + filename

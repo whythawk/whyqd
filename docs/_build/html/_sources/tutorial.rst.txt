@@ -2,16 +2,12 @@ Full worked tutorial
 ====================
 
 **whyqd** was developed to solve a daily, grinding need in our `Sqwyre.com <https://sqwyre.com>`_
-project. Every quarter, we import about 300 very messy spreadsheets from local authorities across
-the UK. These need to be restructured to conform to a single schema, including redefining
-whatever weird terms they use to describe categorical data, and only then can we begin the automated
-process of cleaning and validating the data.
-
-**Sqwyre** is an online market intelligence service helping you assess opportunities and risks for
-every commercial property in England and Wales. Our data wrangling process requires that we import
-data, including the business name, address and occupation status of every commercial ratepayer, in
-whatever format it is released, and align it to a single schema before bulk-uploading it into our
-database. It's a mostly free service, so you can see it in action at `Sqwyre.com <https://sqwyre.com>`_.
+project. *Sqwyre* is an online market intelligence service helping you assess opportunities and risks 
+for every commercial property in England and Wales. Every quarter, we import about 300 very messy 
+spreadsheets from local authorities across the UK. These need to be restructured to conform to a 
+single schema, including redefining whatever weird terms they use to describe categorical data, and 
+only then can we begin the automated process of cleaning and validation. It's a mostly free
+ service, so you can see it in action at `Sqwyre.com <https://sqwyre.com>`_.
 
 When we started, this was a purely manual process but, gradually, we developed what has become
 **whyqd**. The process, at a high level, is as follows:
@@ -25,14 +21,14 @@ When we started, this was a purely manual process but, gradually, we developed w
 
 You are more likely to create your schema at the beginning of a project, and then spend most of your
 time using that schema as the base for creating new methods for each new data source. If you're really
-lucky, your data source won't change their own methods from release-to-release and you can reuse your
-own methods. In our experience that is like searching for unicorns.
+lucky, your data source won't change their methods from release-to-release and you can reuse your
+own. In our experience that is like searching for unicorns.
 
 The example in our worked tutorial is derived directly from our workflow at Sqwyre.com and is from a
 dataset released by `Portsmouth City Council <https://www.portsmouth.gov.uk/ext/business/running-a-business/business-rates-foi-requests>`_.
 The data in this tutorial are from January 2020, but follow along with the current download.
 
-.. note:: This tutorial does assume familiarity with Python and Pandas, and a little experience with JSON.
+.. note:: This tutorial does assume familiarity with Python, homeopathic quantities of Pandas, and a little experience with JSON.
 
 Creating a Schema
 -----------------
@@ -255,7 +251,7 @@ Creating a Method
 
 **whyqd** can import any of CSV, XLS or XLSX files, but do check that these files actually open and
 are readable before proceeding. You'll be surprised at the number of supposedly open datasets
-released with password-protection, fruity formatting, or completely corrupted.
+released with password-protection, fruity formatting, or which are completely corrupted.
 
 .. warning:: The minimum required to ensure a dataset is machine-readable is that it have a header-row, and that there is no weird spacing or merged-fields (if you're using Excel).
 
@@ -360,9 +356,9 @@ cross-reference rows in each file and link them together. We start with `help`::
 
 		>>> method.merge(order_and_key, overwrite_working=True)
 
-	To view your existing `input_data`:
+	To view your existing `input_data`::
 
-	>>> method.input_data
+		>>> method.input_data
 
 	Data id: ab79fc32-51ce-4e9e-80cf-493af94e4177
 	Original source: https://www.portsmouth.gov.uk/ext/documents-external/biz-ndr-properties-january-2020.xls

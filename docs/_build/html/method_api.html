@@ -35,7 +35,6 @@
   <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Transform" href="transform_api.html" />
     <link rel="prev" title="Action" href="action_api.html" /> 
 </head>
 
@@ -105,7 +104,6 @@
 <li class="toctree-l1"><a class="reference internal" href="schema_api.html">Schema</a></li>
 <li class="toctree-l1"><a class="reference internal" href="action_api.html">Action</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Method</a></li>
-<li class="toctree-l1"><a class="reference internal" href="transform_api.html">Transform</a></li>
 </ul>
 
             
@@ -645,20 +643,6 @@ of types. Details for individual default actions can be returned with
 </dd></dl>
 
 <dl class="method">
-<dt id="method.Method.build_default_actions">
-<code class="sig-name descname">build_default_actions</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#method.Method.build_default_actions" title="Permalink to this definition">¶</a></dt>
-<dd><p>Build the default actions for presentation to the user as options.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p></p>
-</dd>
-<dt class="field-even">Return type</dt>
-<dd class="field-even"><p>dict of Actions</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="method">
 <dt id="method.Method.build_structure_markdown">
 <code class="sig-name descname">build_structure_markdown</code><span class="sig-paren">(</span><em class="sig-param">structure</em><span class="sig-paren">)</span><a class="headerlink" href="#method.Method.build_structure_markdown" title="Permalink to this definition">¶</a></dt>
 <dd><p>Recursive function that iteratively builds a markdown version of a formal field structure.</p>
@@ -694,6 +678,30 @@ of types. Details for individual default actions can be returned with
 <span class="p">}</span>
 </pre></div>
 </div>
+</dd></dl>
+
+<dl class="method">
+<dt id="method.Method.action_transform">
+<code class="sig-name descname">action_transform</code><span class="sig-paren">(</span><em class="sig-param">df</em>, <em class="sig-param">field_name</em>, <em class="sig-param">structure</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#method.Method.action_transform" title="Permalink to this definition">¶</a></dt>
+<dd><p>A recursive transformation. A method should be a list fields upon which actions are applied, but
+each field may have nested sub-fields requiring their own actions. Before the action on the
+current field can be completed, it is necessary to perform the actions on each sub-field.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>df</strong> (<em>DataFrame</em>) – Working data to be transformed</p></li>
+<li><p><strong>field_name</strong> (<em>str</em>) – Name of the target schema field</p></li>
+<li><p><strong>structure</strong> (<em>list</em>) – List of fields with restructuring action defined by term 0 (i.e. <cite>this</cite> action)</p></li>
+<li><p><strong>**kwargs</strong> – Other fields which may be required in custom transforms</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Containing the implementation of all nested transformations</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>Dataframe</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="method">
@@ -833,26 +841,6 @@ are unique.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="method.Method.build_action">
-<code class="sig-name descname">build_action</code><span class="sig-paren">(</span><em class="sig-param">**action</em><span class="sig-paren">)</span><a class="headerlink" href="#method.Method.build_action" title="Permalink to this definition">¶</a></dt>
-<dd><p>For a list of actions, defined as dictionaries, create and return Action objects.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>field</strong> (<em>dictionary of Action parameters</em>) – </p>
-</dd>
-<dt class="field-even">Raises</dt>
-<dd class="field-even"><p><strong>ValueError</strong> – if action fails validation:</p>
-</dd>
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p></p>
-</dd>
-<dt class="field-even">Return type</dt>
-<dd class="field-even"><p><a class="reference internal" href="action_api.html#method.Action" title="method.Action">Action</a></p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="method">
 <dt id="method.Method.build">
 <code class="sig-name descname">build</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#method.Method.build" title="Permalink to this definition">¶</a></dt>
 <dd><p>Build and validate the Method. Note, this replaces the Schema base-class.</p>
@@ -933,8 +921,6 @@ unique filename and data summary.</p>
           <footer>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-      
-        <a href="transform_api.html" class="btn btn-neutral float-right" title="Transform" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
         <a href="action_api.html" class="btn btn-neutral float-left" title="Action" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
