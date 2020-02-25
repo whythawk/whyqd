@@ -119,8 +119,6 @@ def check_date_format(date_type, date_value):
 def parse_dates(x):
 	"""
 	This is the hard-won 'trust nobody', certainly not Americans, date parser.
-
-	Yes, this will put Errors in your data. Fix your dates.
 	"""
 	if pd.isnull(x): return pd.NaT
 	# Check if to_datetime can handle things
@@ -132,10 +130,10 @@ def parse_dates(x):
 	try:
 		y, m, d = x.split("-")
 	except ValueError:
-		return "Error: Date ({})".format(x)
+		return pd.NaT
 	if len(y) < 4:
 		# Swap the day and year positions
-		# Ignore US dates - fuck 'em
+		# Ignore US dates
 		d, m, y = x.split("-")
 	# Fat finger on 1999 ... not going to check for other date errors as no way to figure out
 	if y[0] == "9": y = "1" + y[1:]
@@ -143,18 +141,13 @@ def parse_dates(x):
 	try:
 		x = datetime.strptime(x,"%Y-%m-%d")
 	except ValueError:
-		try:
-			x = datetime.strptime(x,"%Y-%m-%d")
-		except ValueError:
-			if x != "":
-				return "Error: Date ({})".format(x)
-			return pd.NaT
+		return pd.NaT
 	x = date.isoformat(x)
 	try:
 		pd.Timestamp(x)
 		return x
 	except pd.errors.OutOfBoundsDatetime:
-		return "Error: Date ({})".format(x)
+		return pd.NaT
 
 def parse_float(x):
 	"""
