@@ -7,7 +7,7 @@ for every commercial property in England and Wales. Every quarter, we import abo
 spreadsheets from local authorities across the UK. These need to be restructured to conform to a 
 single schema, including redefining whatever weird terms they use to describe categorical data, and 
 only then can we begin the automated process of cleaning and validation. It's a mostly free
- service, so you can see it in action at `Sqwyre.com <https://sqwyre.com>`_.
+service, so you can see it in action at `Sqwyre.com <https://sqwyre.com>`_.
 
 When we started, this was a purely manual process but, gradually, we developed what has become
 **whyqd**. The process, at a high level, is as follows:
