@@ -79,7 +79,7 @@ CLASSIFIERS = [
 
 setuptools.setup(
     name=DISTNAME,
-    version="0.2.0",
+    version="0.2.2",
     author=AUTHOR,
     author_email=EMAIL,
     description=DESCRIPTION,
@@ -93,4 +93,5 @@ setuptools.setup(
     packages=setuptools.find_packages(),
     python_requires='>=3.6',
     install_requires=INSTALL_REQUIRES,
+	include_package_data=True,
 )
