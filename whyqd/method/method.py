@@ -1018,7 +1018,118 @@ class Method(Schema):
 		if not self.input_data:
 			self._status = "WAITING"
 
-	def add_input_data_morph(self, _id, )
+	def _get_input_data_morph(self, _id):
+		"""
+		Returns the `input_data` source settings based on its `id`.
+
+		Parameters
+		----------
+		_id: str
+			Unique id for an input data source. View all input data from `input_data`.
+
+		Raises
+		------
+		ValueError if id does not exist.
+
+		Returns
+		-------
+		Dict
+			Settings for that `input_data` source.
+		"""
+		input_source = next((item for item in self.schema_settings["input_data"] 
+							 if item["id"] == _id), 
+							None)
+		if input_source is None:
+			e = F"Input data source {_id} does not exist."
+			raise ValueError(e)
+		return input_source
+
+	def _set_input_data_morph(self, input_source):
+		""""
+		Updates the morph methods of an `input_data` source.
+
+		Parameters
+		----------
+		input_source: dict
+			Complete replacement of existing source, checked by id.
+		""""
+		self.schema_settings["input_data"] = [data if data["id"] != input_source["id"] else input_source
+											  for data in self.schema_settings["input_data"]
+											 ]
+
+	def add_input_data_morph(self, _id, new_morph=None):
+		"""
+		Wrapper around `add_morph`. Append a new morph method defined by `new_morph` to `morph_methods`, 
+		ensuring that the first term is a `morph`, and that the subsequent terms conform to that morph's
+		validation requirements.
+
+		The format for defining a `new_morph` is as follows::
+
+			[morph, rows, columns, column_names]
+
+		e.g.::
+
+			["REBASE", [2]]
+
+		Parameters
+		----------
+		_id: str
+			Unique id for an input data source. View all input data from `input_data`
+		new_morph: list
+			Each parameter list must start with a `morph`, with subsequent terms conforming to the
+			requirements for that morph.
+		"""
+		input_source = self._get_input_data_morph(_id)
+		df = _c.get_dataframe(self.directory + input_source["file"])
+		input_source["morph"] = self.add_morph(df=df, new_morph=new_morph, morph_methods=input_source.get(morph_methods))
+		self._set_input_data_morph(input_source)
+
+	def delete_input_data_morph(self, _id, morph_id):
+		"""
+		Wrapper around `delete_morph`. Delete morph method defined by `morph_id`.
+
+		Parameters
+		----------
+		_id: str
+			Unique id for an input data source. View all input data from `input_data`
+		morph_id: str
+			Unique id for morph method. View all morph methods from `input_data_morphs`.
+		"""
+		input_source = self._get_input_data_morph(_id)
+		input_source["morph"] = self.delete_morph_id(self, morph_methods=input_source.get(morph_methods), _id=morph_id)
+		self._set_input_data_morph(input_source)
+
+	def reorder_input_data_morph(self, _id, order):
+        """
+        Wrapper around `reorder_morph`. Reorder morph methods defined by `order`.
+        
+        Parameters
+        ----------
+		_id: str
+			Unique id for an input data source. View all input data from `input_data`
+        order: list
+            List of id strings.
+        """
+		input_source = self._get_input_data_morph(_id)
+		input_source["morph"] = self.delete_morph_id(self, morph_methods=input_source.get(morph_methods), order=order)
+		self._set_input_data_morph(input_source)
+
+	def input_data_morphs(self, _id):
+		"""
+		Wrapper around `get_morph_markup`. Return a markup version of a formal morph method. 
+		Useful for re-ordering methods.
+
+		Parameters
+        ----------
+		_id: str
+			Unique id for an input data source. View all input data from `input_data`
+
+		Returns
+		-------
+		list of dicts
+		"""
+		input_source = self._get_input_data_morph(_id)
+		return self.get_morph_markup(self, morph_methods=input_source.get(morph_methods))
 
 	#########################################################################################
 	# MORPH HELPERS
@@ -1079,15 +1190,19 @@ class Method(Schema):
 			Existing morph methods. If `None` provided, creates a new list.
 		"""
 		if morph_methods is None:
-			morph_methods = []
+			morph_methods = self.reset_morph()
 		structure = []
 		# Validate the morph of the structure_list first
 		morph = self.default_morphs[new_morph[0]]()
-		parameters = dict(zip(morph.structure, new_morph[1:]))
+		parameters = {}
+		if len(new_morph) > 1:
+			parameters = dict(zip(morph.structure, new_morph[1:]))
 		if not morph.validates(df=df, **parameters):
 			e = F"Task morph `{morph.name}` has invalid structure `{morph.structure}`."
 			raise ValueError(e)
-		morph_methods.append(morph.settings)
+		morph_settings = morph.settings
+		morph_settings["id"] = str(uuid.uuid4())
+		morph_methods.append(morph_settings)
 		return morph_methods
 
     def delete_morph_id(self, morph_methods, _id):
@@ -1106,12 +1221,13 @@ class Method(Schema):
         """
         Reset list of morph methods to base.      
         """
-        self.method = []
+        morph_methods = []
         if not empty:
-            self.remove_blanks()
-            self.remove_duplicates()
+            morph_methods = self.add_morph(new_morph=["DEBLANK"], morph_methods=morph_methods)
+            morph_methods = self.add_morph(new_morph=["DEDUPE"], morph_methods=morph_methods)
+		return morph_methods
 
-    def reorder_morph(self, order):
+    def reorder_morph(self, morph_methods, order):
         """
         Reorder morph methods.
         
@@ -1124,33 +1240,31 @@ class Method(Schema):
         ------
         ValueError if not all ids in list, or duplicates in list.
         """
-        if len(order) > len(self.method):
+        if len(order) > len(morph_methods):
             e = F"List of ids is longer than list of methods."
             raise ValueError(e)
-        if set([i["id"] for i in self.method]).difference(set(order)):
+        if set([i["id"] for i in morph_methods]).difference(set(order)):
             e = F"List of ids must contain all method ids."
             raise ValueError(e)
-        self.method = sorted(self.method, key = lambda item: order.index(item["id"]))
+        return sorted(morph_methods, key = lambda item: order.index(item["id"]))
 
-	def build_morph_markup(self, morph_methods):
+	def get_morph_markup(self, morph_methods):
 		"""
-		Return a markup version of a formal morph method.
+		Return a markup version of a formal morph method. Useful for re-ordering methods.
 
 		Returns
 		-------
 		list of dicts
 		"""
 		markup = []
-		for morph_methods in morph_methods:
-			if isinstance(strut, list):
-				markdown.append(self.build_structure_markdown(strut))
-				continue
-			if strut.get("name"):
-				markdown.append(strut["name"])
-				continue
-			if strut.get("value"):
-				markdown.append(strut["value"])
-		return markdown
+		for morph in morph_methods:
+			mrph = [morph["name"]]
+			for s in self.default_morphs[morph["name"]]().structure:
+				if morph["parameters"].get(s): mrph.append(morph["parameters"][s])
+			markup.append({
+				morph["id"]: mrph
+			})
+		return markup
 
 	#########################################################################################
 	# MERGE HELPERS
@@ -1274,6 +1388,70 @@ class Method(Schema):
 	@property
 	def working_data(self):
 		return deepcopy(self.schema_settings.get("working_data", {}))
+
+	def add_working_data_morph(self, new_morph=None):
+		"""
+		Wrapper around `add_morph`. Append a new morph method defined by `new_morph` to `morph_methods`, 
+		ensuring that the first term is a `morph`, and that the subsequent terms conform to that morph's
+		validation requirements.
+
+		The format for defining a `new_morph` is as follows::
+
+			[morph, rows, columns, column_names]
+
+		e.g.::
+
+			["REBASE", [2]]
+
+		Parameters
+		----------
+		new_morph: list
+			Each parameter list must start with a `morph`, with subsequent terms conforming to the
+			requirements for that morph.
+		"""
+		df = self.working_dataframe
+		morph = self.add_morph(df=df, new_morph=new_morph, morph_methods=self.working_data.get(morph_methods))
+		self.schema_settings["working_data"]["morph"] = morph
+
+	def delete_working_data_morph(self, _id):
+		"""
+		Wrapper around `delete_morph`. Delete morph method defined by `morph_id`.
+
+		Parameters
+		----------
+		_id: str
+			Unique id for morph method. View all morph methods from `working_data_morphs`.
+		"""
+		morph = self.delete_morph_id(self, morph_methods=self.working_data.get(morph_methods), _id=_id)
+		self.schema_settings["working_data"]["morph"] = morph
+
+	def reorder_working_data_morph(self, order):
+        """
+        Wrapper around `reorder_morph`. Reorder morph methods defined by `order`.
+        
+        Parameters
+        ----------
+        order: list
+            List of id strings.
+        """
+		morph = self.delete_morph_id(self, morph_methods=self.working_data.get(morph_methods), order=order)
+		self.schema_settings["working_data"]["morph"] = morph
+
+	def working_data_morphs(self):
+		"""
+		Wrapper around `get_morph_markup`. Return a markup version of a formal morph method. 
+		Useful for re-ordering methods.
+
+		Parameters
+        ----------
+		_id: str
+			Unique id for an input data source. View all input data from `input_data`
+
+		Returns
+		-------
+		list of dicts
+		"""
+		return self.get_morph_markup(self, morph_methods=self.working_data.get(morph_methods))
 
 	#########################################################################################
 	# STRUCTURE HELPERS
@@ -1471,6 +1649,29 @@ class Method(Schema):
 	#########################################################################################
 	# TRANSFORM HELPERS
 	#########################################################################################
+
+	def morph_transform(self, df, morph_methods=None):
+		"""
+		Performs the morph transforms on a DataFrame. Assumes parameters have been validated.
+
+		Parameters
+		----------
+		df: dataframe
+            DataFrame must be explicitly provided.
+		morph_methods: list of morphs
+			Existing morph methods.
+
+		Returns
+		-------
+		Dataframe
+			Containing the implementation of all morph transformations
+		"""
+		if morph_methods is None:
+			return df
+		for mm in morph_methods:
+			morph = self.default_morphs[mm["name"]]()
+			df = morph.transform(df=df, **mm.get("parameters", {})):
+		return df
 
 	def action_transform(self, df, field_name, structure, **kwargs):
 		"""
