@@ -65,7 +65,7 @@ To display a nicely-formatted output for review::
 	from IPython.core.display import HTML
 	display(HTML("<style>pre { white-space: pre !important; }</style>"))
 
-	print(method.pretty_print_input_data())
+	print(method.print_input_data())
 
 	Data id: c8944fed-4e8c-4cbd-807d-53fcc96b7018
 
@@ -107,7 +107,7 @@ Run the merge by calling (and, optionally - if you need to overwrite an existing
 
 	method.merge(order_and_key, overwrite_working=True)
 
-To view your existing `input_data` as a JSON output (or the `pretty_print_input_data` as above)::
+To view your existing `input_data` as a JSON output (or the `print_input_data` as above)::
 
 	method.input_data
 
@@ -303,6 +303,7 @@ from operator import itemgetter
 from whyqd.core import common as _c
 from whyqd.schema import Schema
 from whyqd.action import actions, default_actions
+from whyqd.morph import morphs, default_morphs
 
 
 STATUS_CODES = {
@@ -343,6 +344,7 @@ class Method(Schema):
 		super().__init__(source=source, **kwargs)
 		# Initialise after Schema initialisation
 		self.default_actions = actions
+		self.default_morphs = morphs
 		if constructors: self.set_constructors(constructors)
 		if input_data: self.add_input_data(input_data)
 		self.valid_filter_field_types = ["date", "year", "datetime"]
@@ -388,6 +390,13 @@ class Method(Schema):
 		# self.validate_actions
 
 		self._status = "READY_STRUCTURE"
+
+	def morph(self):
+		if self._status in STATUS_CODES.keys() - ["READY_STRUCTURE", "READY_CATEGORY", "READY_FILTER",
+												"READY_TRANSFORM", "PROCESS_COMPLETE", "STRUCTURE_ERROR"]:
+			e = "Current status: `{}` - performing `set_structure` not permitted.".format(self.status)
+			raise PermissionError(e)
+		self.validate_merge
 
 	def structure(self, name):
 		"""
@@ -461,7 +470,7 @@ class Method(Schema):
 			Where key is schema target field and value is list defining the structure action
 		"""
 		if self._status in STATUS_CODES.keys() - ["READY_STRUCTURE", "READY_CATEGORY", "READY_FILTER",
-												"READY_TRANSFORM", "PROCESS_COMPLETE", "STRUCTURE_ERROR"]:
+												  "READY_TRANSFORM", "PROCESS_COMPLETE", "STRUCTURE_ERROR"]:
 			e = "Current status: `{}` - performing `set_structure` not permitted.".format(self.status)
 			raise PermissionError(e)
 		self.validate_merge
@@ -924,7 +933,7 @@ class Method(Schema):
 	def input_data(self):
 		return deepcopy(self.schema_settings.get("input_data", []))
 
-	def pretty_print_input_data(self, format="rst"):
+	def print_input_data(self, format="rst"):
 		# https://github.com/astanin/python-tabulate#table-format
 		response = ""
 		for data in self.input_data:
@@ -1008,6 +1017,140 @@ class Method(Schema):
 												if data["id"] != _id]
 		if not self.input_data:
 			self._status = "WAITING"
+
+	def add_input_data_morph(self, _id, )
+
+	#########################################################################################
+	# MORPH HELPERS
+	#########################################################################################
+
+	@property
+	def default_morph_types(self):
+		"""
+		Default list of morphs available to transform tabular data. Returns only a list
+		of types. Details for individual default morphs can be returned with
+		`default_morph_settings`.
+
+		Returns
+		-------
+		list
+		"""
+		return list(morphs.keys())
+
+	def default_morph_settings(self, morph):
+		"""
+		Get the default settings available for a specific morph type.
+
+		Parameters
+		----------
+		morph: string
+			A specific term for an morph type (as listed in `default_morph_types`).
+
+		Returns
+		-------
+		dict, or empty dict if no such `morph_type`
+		"""
+		for field_morph in default_morphs:
+			if morph == field_morph["name"]:
+				return deepcopy(field_morph)
+		return {}
+
+	def add_morph(self, df=pd.DataFrame(), new_morph=None, morph_methods=None):
+		"""
+		Append a new morph method defined by `new_morph` to `morph_methods`, ensuring that the first
+		term is a `morph`, and that the subsequent terms conform to that morph's validation requirements.
+
+		The format for defining a `new_morph` is as follows::
+
+			[morph, rows, columns, column_names]
+
+		e.g.::
+
+			["REBASE", [2]]
+
+		Parameters
+		----------
+		df: dataframe
+            DataFrame must be explicitly provided.
+		new_morph: list
+			Each parameter list must start with a `morph`, with subsequent terms conforming to the
+			requirements for that morph.
+		morph_methods: list of morphs
+			Existing morph methods. If `None` provided, creates a new list.
+		"""
+		if morph_methods is None:
+			morph_methods = []
+		structure = []
+		# Validate the morph of the structure_list first
+		morph = self.default_morphs[new_morph[0]]()
+		parameters = dict(zip(morph.structure, new_morph[1:]))
+		if not morph.validates(df=df, **parameters):
+			e = F"Task morph `{morph.name}` has invalid structure `{morph.structure}`."
+			raise ValueError(e)
+		morph_methods.append(morph.settings)
+		return morph_methods
+
+    def delete_morph_id(self, morph_methods, _id):
+        """
+        Delete morph method by id.
+        
+        Parameters
+        ----------
+		morph_methods: list of dicts of morphs
+			Existing morph methods.
+        _id: string        
+        """
+        return [m for m in morph_methods if not(m["id"] == _id)]
+        
+    def reset_morph(self, empty=False):
+        """
+        Reset list of morph methods to base.      
+        """
+        self.method = []
+        if not empty:
+            self.remove_blanks()
+            self.remove_duplicates()
+
+    def reorder_morph(self, order):
+        """
+        Reorder morph methods.
+        
+        Parameters
+        ----------
+        order: list
+            List of id strings.
+            
+        Raises
+        ------
+        ValueError if not all ids in list, or duplicates in list.
+        """
+        if len(order) > len(self.method):
+            e = F"List of ids is longer than list of methods."
+            raise ValueError(e)
+        if set([i["id"] for i in self.method]).difference(set(order)):
+            e = F"List of ids must contain all method ids."
+            raise ValueError(e)
+        self.method = sorted(self.method, key = lambda item: order.index(item["id"]))
+
+	def build_morph_markup(self, morph_methods):
+		"""
+		Return a markup version of a formal morph method.
+
+		Returns
+		-------
+		list of dicts
+		"""
+		markup = []
+		for morph_methods in morph_methods:
+			if isinstance(strut, list):
+				markdown.append(self.build_structure_markdown(strut))
+				continue
+			if strut.get("name"):
+				markdown.append(strut["name"])
+				continue
+			if strut.get("value"):
+				markdown.append(strut["value"])
+		return markdown
 
 	#########################################################################################
 	# MERGE HELPERS
