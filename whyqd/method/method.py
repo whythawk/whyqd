@@ -391,13 +391,6 @@ class Method(Schema):
 
 		self._status = "READY_STRUCTURE"
 
-	def morph(self):
-		if self._status in STATUS_CODES.keys() - ["READY_STRUCTURE", "READY_CATEGORY", "READY_FILTER",
-												"READY_TRANSFORM", "PROCESS_COMPLETE", "STRUCTURE_ERROR"]:
-			e = "Current status: `{}` - performing `set_structure` not permitted.".format(self.status)
-			raise PermissionError(e)
-		self.validate_merge
-
 	def structure(self, name):
 		"""
 		Return a 'markdown' version of the formal structure for a specific `name` field.
@@ -470,7 +463,7 @@ class Method(Schema):
 			Where key is schema target field and value is list defining the structure action
 		"""
 		if self._status in STATUS_CODES.keys() - ["READY_STRUCTURE", "READY_CATEGORY", "READY_FILTER",
-												  "READY_TRANSFORM", "PROCESS_COMPLETE", "STRUCTURE_ERROR"]:
+												"READY_TRANSFORM", "PROCESS_COMPLETE", "STRUCTURE_ERROR"]:
 			e = "Current status: `{}` - performing `set_structure` not permitted.".format(self.status)
 			raise PermissionError(e)
 		self.validate_merge
@@ -1037,7 +1030,7 @@ class Method(Schema):
 			Settings for that `input_data` source.
 		"""
 		input_source = next((item for item in self.schema_settings["input_data"] 
-							 if item["id"] == _id), 
+							if item["id"] == _id), 
 							None)
 		if input_source is None:
 			e = F"Input data source {_id} does not exist."
@@ -1045,17 +1038,17 @@ class Method(Schema):
 		return input_source
 
 	def _set_input_data_morph(self, input_source):
-		""""
+		"""
 		Updates the morph methods of an `input_data` source.
 
 		Parameters
 		----------
 		input_source: dict
 			Complete replacement of existing source, checked by id.
-		""""
+		"""
 		self.schema_settings["input_data"] = [data if data["id"] != input_source["id"] else input_source
-											  for data in self.schema_settings["input_data"]
-											 ]
+											for data in self.schema_settings["input_data"]
+											]
 
 	def add_input_data_morph(self, _id, new_morph=None):
 		"""
@@ -1100,16 +1093,16 @@ class Method(Schema):
 		self._set_input_data_morph(input_source)
 
 	def reorder_input_data_morph(self, _id, order):
-        """
-        Wrapper around `reorder_morph`. Reorder morph methods defined by `order`.
-        
-        Parameters
-        ----------
+		"""
+		Wrapper around `reorder_morph`. Reorder morph methods defined by `order`.
+		
+		Parameters
+		----------
 		_id: str
 			Unique id for an input data source. View all input data from `input_data`
-        order: list
-            List of id strings.
-        """
+		order: list
+			List of id strings.
+		"""
 		input_source = self._get_input_data_morph(_id)
 		input_source["morph"] = self.delete_morph_id(self, morph_methods=input_source.get(morph_methods), order=order)
 		self._set_input_data_morph(input_source)
@@ -1120,7 +1113,7 @@ class Method(Schema):
 		Useful for re-ordering methods.
 
 		Parameters
-        ----------
+		----------
 		_id: str
 			Unique id for an input data source. View all input data from `input_data`
 
@@ -1182,7 +1175,7 @@ class Method(Schema):
 		Parameters
 		----------
 		df: dataframe
-            DataFrame must be explicitly provided.
+			DataFrame must be explicitly provided.
 		new_morph: list
 			Each parameter list must start with a `morph`, with subsequent terms conforming to the
 			requirements for that morph.
@@ -1205,48 +1198,48 @@ class Method(Schema):
 		morph_methods.append(morph_settings)
 		return morph_methods
 
-    def delete_morph_id(self, morph_methods, _id):
-        """
-        Delete morph method by id.
-        
-        Parameters
-        ----------
+	def delete_morph_id(self, morph_methods, _id):
+		"""
+		Delete morph method by id.
+		
+		Parameters
+		----------
 		morph_methods: list of dicts of morphs
 			Existing morph methods.
-        _id: string        
-        """
-        return [m for m in morph_methods if not(m["id"] == _id)]
-        
-    def reset_morph(self, empty=False):
-        """
-        Reset list of morph methods to base.      
-        """
-        morph_methods = []
-        if not empty:
-            morph_methods = self.add_morph(new_morph=["DEBLANK"], morph_methods=morph_methods)
-            morph_methods = self.add_morph(new_morph=["DEDUPE"], morph_methods=morph_methods)
+		_id: string        
+		"""
+		return [m for m in morph_methods if not(m["id"] == _id)]
+		
+	def reset_morph(self, empty=False):
+		"""
+		Reset list of morph methods to base.      
+		"""
+		morph_methods = []
+		if not empty:
+			morph_methods = self.add_morph(new_morph=["DEBLANK"], morph_methods=morph_methods)
+			morph_methods = self.add_morph(new_morph=["DEDUPE"], morph_methods=morph_methods)
 		return morph_methods
 
-    def reorder_morph(self, morph_methods, order):
-        """
-        Reorder morph methods.
-        
-        Parameters
-        ----------
-        order: list
-            List of id strings.
-            
-        Raises
-        ------
-        ValueError if not all ids in list, or duplicates in list.
-        """
-        if len(order) > len(morph_methods):
-            e = F"List of ids is longer than list of methods."
-            raise ValueError(e)
-        if set([i["id"] for i in morph_methods]).difference(set(order)):
-            e = F"List of ids must contain all method ids."
-            raise ValueError(e)
-        return sorted(morph_methods, key = lambda item: order.index(item["id"]))
+	def reorder_morph(self, morph_methods, order):
+		"""
+		Reorder morph methods.
+		
+		Parameters
+		----------
+		order: list
+			List of id strings.
+			
+		Raises
+		------
+		ValueError if not all ids in list, or duplicates in list.
+		"""
+		if len(order) > len(morph_methods):
+			e = F"List of ids is longer than list of methods."
+			raise ValueError(e)
+		if set([i["id"] for i in morph_methods]).difference(set(order)):
+			e = F"List of ids must contain all method ids."
+			raise ValueError(e)
+		return sorted(morph_methods, key = lambda item: order.index(item["id"]))
 
 	def get_morph_markup(self, morph_methods):
 		"""
@@ -1285,11 +1278,17 @@ class Method(Schema):
 		# Note, this is done to avoid any random column processing
 		df = _c.get_dataframe(self.directory + self.schema_settings["input_data"][0]["file"],
 							dtype = object)
+		# Perform morph
+		if "morph" in self.schema_settings["input_data"][0]:
+			df = self.morph_transform(df, morph_methods=self.schema_settings["input_data"][0]["morph"])
 		df_key = self.schema_settings["input_data"][0]["key"]
 		missing_keys = []
 		for data in self.schema_settings["input_data"][1:]:
 			# defaulting to `dtype = object` ...
 			dfm = _c.get_dataframe(self.directory + data["file"], dtype = object)
+			# Perform morph
+			if "morph" in data:
+				dfm = self.morph_transform(df, morph_methods=data["morph"])
 			dfm_key = data["key"]
 			missing_keys.append(dfm_key)
 			df = pd.merge(df, dfm, how="outer",
@@ -1426,14 +1425,14 @@ class Method(Schema):
 		self.schema_settings["working_data"]["morph"] = morph
 
 	def reorder_working_data_morph(self, order):
-        """
-        Wrapper around `reorder_morph`. Reorder morph methods defined by `order`.
-        
-        Parameters
-        ----------
-        order: list
-            List of id strings.
-        """
+		"""
+		Wrapper around `reorder_morph`. Reorder morph methods defined by `order`.
+		
+		Parameters
+		----------
+		order: list
+			List of id strings.
+		"""
 		morph = self.delete_morph_id(self, morph_methods=self.working_data.get(morph_methods), order=order)
 		self.schema_settings["working_data"]["morph"] = morph
 
@@ -1443,7 +1442,7 @@ class Method(Schema):
 		Useful for re-ordering methods.
 
 		Parameters
-        ----------
+		----------
 		_id: str
 			Unique id for an input data source. View all input data from `input_data`
 
@@ -1657,7 +1656,7 @@ class Method(Schema):
 		Parameters
 		----------
 		df: dataframe
-            DataFrame must be explicitly provided.
+			DataFrame must be explicitly provided.
 		morph_methods: list of morphs
 			Existing morph methods.
 
@@ -1670,7 +1669,7 @@ class Method(Schema):
 			return df
 		for mm in morph_methods:
 			morph = self.default_morphs[mm["name"]]()
-			df = morph.transform(df=df, **mm.get("parameters", {})):
+			df = morph.transform(df=df, **mm.get("parameters", {}))
 		return df
 
 	def action_transform(self, df, field_name, structure, **kwargs):
@@ -1697,7 +1696,7 @@ class Method(Schema):
 		"""
 		action = self.default_actions[structure[0]["name"]]()
 		if not action.validates(self.build_structure_markdown(deepcopy(structure[1:])), 
-															  self.working_column_list):
+															self.working_column_list):
 			e = "Task action `{}` has invalid structure `{}`.".format(action.name, structure)
 			raise ValueError(e)
 		# Recursive check ...
