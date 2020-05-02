@@ -188,7 +188,7 @@ class BaseMorph:
         return "_" + "".join(list((random.choice(x) for num in range(3))))
     
     def _generate_unique_suffix(self, terms):
-        suffix = _generate_suffix()
+        suffix = self._generate_suffix()
         while suffix in [t[-4:] for t in terms]:
-            suffix = _generate_suffix()
+            suffix = self._generate_suffix()
         return suffix
