@@ -272,6 +272,7 @@ more recent than a specified date, include "AFTER" in your list of filter modifi
 """
 
 from copy import deepcopy
+import json
 
 from whyqd.schema import Field
 from whyqd.core import common as _c
@@ -679,6 +680,29 @@ class Schema:
 		schema_dict = deepcopy(self.schema_settings)
 		schema_dict["fields"] = [field.settings for field in self.schema_settings.get("fields", [])]
 		return schema_dict
+
+	@property
+	def schema_validation_settings(self):
+		"""
+		Schema settings for validation of output data and schema, returned as a dictionary.
+
+		Based on `Frictionless Data Table Schema <https://specs.frictionlessdata.io/table-schema/>`_.
+
+		Returns
+		-------
+		dict: settings
+		"""
+		schema_dict = self.settings
+		fields = []
+		for f in schema_dict["fields"]:
+			for unneeded in f.keys():
+				if unneeded not in ["name", "title", "type", "description", "constraints"]:
+					del f[unneeded]
+			if f.get("constraints", {}).get("category"):
+				f["constraints"]["enum"] = [c["name"] for c in f["constraints"].pop("category")]
+			fields.append(f)
+		schema_dict["fields"] = fields
+		return json.dumps(schema_dict)
 
 	def save(self, directory, filename=None, overwrite=False, created_by=None):
 		"""
