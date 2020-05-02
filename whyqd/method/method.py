@@ -297,6 +297,7 @@ import urllib.request
 from copy import deepcopy
 import pandas as pd
 import numpy as np
+import string
 from tabulate import tabulate
 from operator import itemgetter
 
@@ -763,7 +764,7 @@ class Method(Schema):
 		self.reset_data_checksums(reset_output_only=True)
 		self._status = "READY_TRANSFORM"
 
-	def transform(self, overwrite_output=False):
+	def transform(self, overwrite_output=False, filetype="csv"):
 		"""
 		Implement the method to transform input data into output data.
 
@@ -771,8 +772,12 @@ class Method(Schema):
 		----------
 		overwrite_output: bool
 			Permission to overwrite existing output data
+		filetype: str
+			Must be in 'xlsx' or 'csv'. Default, 'csv'.
 		"""
-		if self._status in STATUS_CODES.keys() - ["READY_TRANSFORM", "PROCESS_COMPLETE"]:
+		if filetype not in ["csv", "xlsx"]:
+			filetype = "csv"
+		if self._status in STATUS_CODES.keys() - ["READY_FILTER", "READY_TRANSFORM", "PROCESS_COMPLETE"]:
 			e = "Current status: `{}` - performing `transform` is not permitted.".format(self.status)
 			raise PermissionError(e)
 		self.validates
@@ -785,7 +790,7 @@ class Method(Schema):
 		# Save the file to the working directory
 		if "output_data" in self.schema_settings:
 			del self.schema_settings["output_data"]
-		self.schema_settings["output_data"] = self.save_data(df, prefix="output")
+		self.schema_settings["output_data"] = self.save_data(df, filetype=filetype, prefix="output")
 		self._status = "PROCESS_COMPLETE"
 
 	#########################################################################################
@@ -926,14 +931,40 @@ class Method(Schema):
 	def input_data(self):
 		return deepcopy(self.schema_settings.get("input_data", []))
 
+	def input_dataframe(self, _id, do_morph=True):
+		"""
+		Return dataframe of a specified `input_data` source. Perform the current morph method.
+
+		Parameters
+		----------
+		_id: str
+			Unique id for an input data source. View all input data from `input_data`
+		do_morph: boolean, default True
+			Perform the current morph method.
+
+		Returns 
+		-------
+		DataFrame
+		"""
+		if "input_data" in self.schema_settings:
+			input_dataframe = self._get_input_data_morph(_id)
+			source = self.directory + input_dataframe["file"]
+			df = _c.get_dataframe(source, dtype=object)
+			if do_morph and input_dataframe.get("morph"):
+				df = self.morph_transform(df, morph_methods=input_dataframe["morph"])
+			return df
+		e = F"No input data found for {_id}."
+		raise ValueError(e)
+
 	def print_input_data(self, format="rst"):
 		# https://github.com/astanin/python-tabulate#table-format
 		response = ""
 		for data in self.input_data:
 			_id = data["id"]
+			_source = data["original"]
 			_df = pd.DataFrame(data["dataframe"])
 			_df = tabulate(_df, headers="keys", tablefmt=format)
-			response += HELP_RESPONSE["data"].format(_id, _df)
+			response += HELP_RESPONSE["data"].format(_id, _source, _df)
 		return response
 
 	def add_input_data(self, input_data, reset_status=False):
@@ -964,7 +995,9 @@ class Method(Schema):
 		for file_source in input_data:
 			# Check if the filename is remote
 			file_root = "/".join(file_source.split("/")[:-1])
-			source = self.directory + file_source.split("/")[-1]
+			valid_file_source = "".join(c for c in file_source.split("/")[-1] 
+										if c in F"-_. {string.ascii_letters}{string.digits}")
+			source = self.directory + valid_file_source
 			if _c.check_uri(file_source):
 				# File at remote URI
 				urllib.request.urlretrieve(file_source, source)
@@ -1050,6 +1083,22 @@ class Method(Schema):
 											for data in self.schema_settings["input_data"]
 											]
 
+	def reset_input_data_morph(self, _id, empty=False):
+		"""
+		Wrapper around `reset_morph`. Reset list of morph methods to base. Automatically adds `DEBLANK` and `DEDUPE`
+		unless `empty=True`.
+
+		Parameters
+		----------
+		_id: str
+			Unique id for an input data source. View all input data from `input_data`
+		empty: boolean
+			Start with an empty morph method. Default `False`.
+		"""
+		input_source = self._get_input_data_morph(_id)
+		input_source["morph"] = self.reset_morph(empty=empty)
+		self._set_input_data_morph(input_source)
+
 	def add_input_data_morph(self, _id, new_morph=None):
 		"""
 		Wrapper around `add_morph`. Append a new morph method defined by `new_morph` to `morph_methods`, 
@@ -1073,8 +1122,12 @@ class Method(Schema):
 			requirements for that morph.
 		"""
 		input_source = self._get_input_data_morph(_id)
-		df = _c.get_dataframe(self.directory + input_source["file"])
-		input_source["morph"] = self.add_morph(df=df, new_morph=new_morph, morph_methods=input_source.get(morph_methods))
+		if not input_source.get("morph"):
+			input_source["morph"] = self.reset_morph()
+			self._set_input_data_morph(input_source)
+			input_source = self._get_input_data_morph(_id)
+		df = self.input_dataframe(_id)
+		input_source["morph"] = self.add_morph(df=df, new_morph=new_morph, morph_methods=input_source.get("morph"))
 		self._set_input_data_morph(input_source)
 
 	def delete_input_data_morph(self, _id, morph_id):
@@ -1089,7 +1142,7 @@ class Method(Schema):
 			Unique id for morph method. View all morph methods from `input_data_morphs`.
 		"""
 		input_source = self._get_input_data_morph(_id)
-		input_source["morph"] = self.delete_morph_id(self, morph_methods=input_source.get(morph_methods), _id=morph_id)
+		input_source["morph"] = self.delete_morph_id(_id=morph_id, morph_methods=input_source.get("morph"))
 		self._set_input_data_morph(input_source)
 
 	def reorder_input_data_morph(self, _id, order):
@@ -1104,7 +1157,7 @@ class Method(Schema):
 			List of id strings.
 		"""
 		input_source = self._get_input_data_morph(_id)
-		input_source["morph"] = self.delete_morph_id(self, morph_methods=input_source.get(morph_methods), order=order)
+		input_source["morph"] = self.delete_morph_id(morph_methods=input_source.get("morph"), order=order)
 		self._set_input_data_morph(input_source)
 
 	def input_data_morphs(self, _id):
@@ -1122,7 +1175,7 @@ class Method(Schema):
 		list of dicts
 		"""
 		input_source = self._get_input_data_morph(_id)
-		return self.get_morph_markup(self, morph_methods=input_source.get(morph_methods))
+		return self.get_morph_markup(morph_methods=input_source.get("morph"))
 
 	#########################################################################################
 	# MORPH HELPERS
@@ -1184,6 +1237,9 @@ class Method(Schema):
 		"""
 		if morph_methods is None:
 			morph_methods = self.reset_morph()
+		if new_morph is None:
+			# For the default reset case
+			return morph_methods
 		structure = []
 		# Validate the morph of the structure_list first
 		morph = self.default_morphs[new_morph[0]]()
@@ -1198,7 +1254,7 @@ class Method(Schema):
 		morph_methods.append(morph_settings)
 		return morph_methods
 
-	def delete_morph_id(self, morph_methods, _id):
+	def delete_morph_id(self, _id, morph_methods):
 		"""
 		Delete morph method by id.
 		
@@ -1212,7 +1268,12 @@ class Method(Schema):
 		
 	def reset_morph(self, empty=False):
 		"""
-		Reset list of morph methods to base.      
+		Reset list of morph methods to base. Automatically adds `DEBLANK` and `DEDUPE` unless `empty=True`.
+
+		Parameters
+		----------
+		empty: boolean
+			Start with an empty morph method. Default `False`.
 		"""
 		morph_methods = []
 		if not empty:
@@ -1250,6 +1311,8 @@ class Method(Schema):
 		list of dicts
 		"""
 		markup = []
+		if morph_methods is None:
+			return markup
 		for morph in morph_methods:
 			mrph = [morph["name"]]
 			for s in self.default_morphs[morph["name"]]().structure:
@@ -1281,6 +1344,9 @@ class Method(Schema):
 		# Perform morph
 		if "morph" in self.schema_settings["input_data"][0]:
 			df = self.morph_transform(df, morph_methods=self.schema_settings["input_data"][0]["morph"])
+		if len(self.schema_settings["input_data"]) == 1:
+			return df
+		# Continue merge if > 1 `input_data` sources
 		df_key = self.schema_settings["input_data"][0]["key"]
 		missing_keys = []
 		for data in self.schema_settings["input_data"][1:]:
@@ -1381,12 +1447,22 @@ class Method(Schema):
 		if "working_data" in self.schema_settings:
 			source = self.directory + self.schema_settings["working_data"]["file"]
 			return _c.get_dataframe(source, dtype=object)
+			#if do_morph and input_dataframe.get("morph"):
+			#	df = self.morph_transform(df, morph_methods=input_dataframe["morph"])
 		e = "No working data found."
 		raise ValueError(e)
 
 	@property
 	def working_data(self):
 		return deepcopy(self.schema_settings.get("working_data", {}))
+
+	def print_working_data(self, format="rst"):
+		# https://github.com/astanin/python-tabulate#table-format
+		_id = self.working_data["id"]
+		_source = "working data"
+		_df = pd.DataFrame(self.working_data["dataframe"])
+		_df = tabulate(_df, headers="keys", tablefmt=format)
+		return HELP_RESPONSE["data"].format(_id, _source, _df)
 
 	def add_working_data_morph(self, new_morph=None):
 		"""
@@ -1421,7 +1497,7 @@ class Method(Schema):
 		_id: str
 			Unique id for morph method. View all morph methods from `working_data_morphs`.
 		"""
-		morph = self.delete_morph_id(self, morph_methods=self.working_data.get(morph_methods), _id=_id)
+		morph = self.delete_morph_id(morph_methods=self.working_data.get(morph_methods), _id=_id)
 		self.schema_settings["working_data"]["morph"] = morph
 
 	def reorder_working_data_morph(self, order):
@@ -1433,7 +1509,7 @@ class Method(Schema):
 		order: list
 			List of id strings.
 		"""
-		morph = self.delete_morph_id(self, morph_methods=self.working_data.get(morph_methods), order=order)
+		morph = self.delete_morph_id(morph_methods=self.working_data.get(morph_methods), order=order)
 		self.schema_settings["working_data"]["morph"] = morph
 
 	def working_data_morphs(self):
@@ -1450,7 +1526,7 @@ class Method(Schema):
 		-------
 		list of dicts
 		"""
-		return self.get_morph_markup(self, morph_methods=self.working_data.get(morph_methods))
+		return self.get_morph_markup(morph_methods=self.working_data.get(morph_methods))
 
 	#########################################################################################
 	# STRUCTURE HELPERS
@@ -1667,7 +1743,7 @@ class Method(Schema):
 		"""
 		if morph_methods is None:
 			return df
-		for mm in morph_methods:
+		for mm in deepcopy(morph_methods):
 			morph = self.default_morphs[mm["name"]]()
 			df = morph.transform(df=df, **mm.get("parameters", {}))
 		return df
@@ -1728,7 +1804,8 @@ class Method(Schema):
 		# Keep the original merge key field as a dtype=object to avoid messing with text formatting
 		# e.g. leading 0s in a reference id
 		set_dtypes = {}
-		set_dtypes[self.schema_settings["input_data"][0]["key"]] = object
+		if self.schema_settings["input_data"][0].get("key"):
+			set_dtypes[self.schema_settings["input_data"][0]["key"]] = object
 		df = _c.get_dataframe(self.directory + self.schema_settings["working_data"]["file"],
 							dtype=set_dtypes)
 		# Begin transformations + keep track if any need filters
@@ -1737,6 +1814,9 @@ class Method(Schema):
 			field = self.field(field_name)
 			if field.get("filter"):
 				filter_list.append(field_name)
+			if not field.get("structure") and not field.get("constraints", {}).get("required"):
+					# Isn't present and is not required
+					continue
 			kwargs = {
 				"field_type": field["type"],
 				"category": field.get("category", {}).get("assigned")
@@ -1804,13 +1884,13 @@ class Method(Schema):
 	def validate_merge_data(self):
 		"""
 		Test input data ready to merge; that it has a merge key, and that the data in that column
-		are unique.
+		are unique. Only required if there is more than one `input_data` source.
 
 		Raises
 		------
 		ValueError on uniqueness failure.
 		"""
-		for data in self.input_data:
+		for data in (data for data in self.input_data if len(self.input_data) > 1):
 			if not data.get("key"):
 				e = "Missing merge key on input data `{}`".format(data["original"])
 				raise ValueError(e)
@@ -1867,6 +1947,9 @@ class Method(Schema):
 			# Test structure
 			structure = self.field(field_name).get("structure")
 			if not structure:
+				if not self.field(field_name).get("constraints", {}).get("required"):
+					# Isn't present and is not required
+					continue
 				e = "Structure: {}".format(field_name)
 				raise ValueError(e)
 			test_structure = self.build_structure_markdown(structure)
@@ -2182,7 +2265,7 @@ To remove input data, where `id` is the unique id for that input data:
 
 Prepare an `order_and_key` list, where each dict in the list has:
 
-	{id: input_data id, key: column_name for merge}
+	{{id: input_data id, key: column_name for merge}}
 
 Run the merge by calling (and, optionally - if you need to overwrite an existing merge - setting
 `overwrite_working=True`):
