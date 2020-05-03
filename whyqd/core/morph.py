@@ -4,6 +4,7 @@ Base class defining core functions to Morph a table in a dataframe.
 import random
 import pandas as pd
 import numpy as np
+from string import ascii_letters
 
 class BaseMorph:
     """
@@ -30,7 +31,7 @@ class BaseMorph:
     In markup, the user codes::
 
         morph = ["MORPH_NAME", [rows], [columns]]
-        method.set_morph(morphs)
+        method.set_morph(morph)
 
     Where the presence and order of the lists is set by `structure`.
     """
