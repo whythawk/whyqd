@@ -35,7 +35,7 @@
   <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="prev" title="Action" href="action_api.html" /> 
+    <link rel="prev" title="Morph" href="morph_api.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -83,6 +83,7 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="installation.html">Dependencies, installation &amp; importing</a></li>
 <li class="toctree-l1"><a class="reference internal" href="tutorial.html">Full worked tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="morph_tutorial.html">Table morph tutorial</a></li>
 <li class="toctree-l1"><a class="reference internal" href="citation.html">Distribution &amp; Citation of methods and data</a></li>
 </ul>
 <p class="caption"><span class="caption-text">Creating and managing Schemas</span></p>
@@ -103,6 +104,7 @@
 <li class="toctree-l1"><a class="reference internal" href="field_api.html">Field</a></li>
 <li class="toctree-l1"><a class="reference internal" href="schema_api.html">Schema</a></li>
 <li class="toctree-l1"><a class="reference internal" href="action_api.html">Action</a></li>
+<li class="toctree-l1"><a class="reference internal" href="morph_api.html">Morph</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Method</a></li>
 </ul>
 
@@ -359,8 +361,11 @@ of the form:</p>
 <dt id="method.Method.set_filter">
 <code class="sig-name descname">set_filter</code><span class="sig-paren">(</span><em class="sig-param">field_name</em>, <em class="sig-param">filter_name</em>, <em class="sig-param">filter_date=None</em>, <em class="sig-param">foreign_field=None</em><span class="sig-paren">)</span><a class="headerlink" href="#method.Method.set_filter" title="Permalink to this definition">¶</a></dt>
 <dd><p>Sets the filter settings for a named field after validating all parameters.</p>
-<p>NOTE: filters can only be set on date-type fields. <strong>whyqd</strong> offers only rudimentary post-
-wrangling functionality. Filters are there to, for example, facilitate importing data
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>filters can only be set on date-type fields. <strong>whyqd</strong> offers only rudimentary post-</p>
+</div>
+<p>wrangling functionality. Filters are there to, for example, facilitate importing data
 outside the bounds of a previous import.</p>
 <p>This is also an optional step. By default, if no filters are present, the transformed output
 will include <cite>ALL</cite> data.</p>
@@ -384,11 +389,14 @@ will include <cite>ALL</cite> data.</p>
 
 <dl class="method">
 <dt id="method.Method.transform">
-<code class="sig-name descname">transform</code><span class="sig-paren">(</span><em class="sig-param">overwrite_output=False</em><span class="sig-paren">)</span><a class="headerlink" href="#method.Method.transform" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">transform</code><span class="sig-paren">(</span><em class="sig-param">overwrite_output=False</em>, <em class="sig-param">filetype='csv'</em><span class="sig-paren">)</span><a class="headerlink" href="#method.Method.transform" title="Permalink to this definition">¶</a></dt>
 <dd><p>Implement the method to transform input data into output data.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>overwrite_output</strong> (<em>bool</em>) – Permission to overwrite existing output data</p>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>overwrite_output</strong> (<em>bool</em>) – Permission to overwrite existing output data</p></li>
+<li><p><strong>filetype</strong> (<em>str</em>) – Must be in ‘xlsx’ or ‘csv’. Default, ‘csv’.</p></li>
+</ul>
 </dd>
 </dl>
 </dd></dl>
@@ -476,6 +484,26 @@ must be deleted (i.e. they’re no longer valid and everything else must be re-r
 </dd></dl>
 
 <dl class="method">
+<dt id="method.Method.input_dataframe">
+<code class="sig-name descname">input_dataframe</code><span class="sig-paren">(</span><em class="sig-param">_id</em>, <em class="sig-param">do_morph=True</em><span class="sig-paren">)</span><a class="headerlink" href="#method.Method.input_dataframe" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return dataframe of a specified <cite>input_data</cite> source. Perform the current morph method.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>_id</strong> (<em>str</em>) – Unique id for an input data source. View all input data from <cite>input_data</cite></p></li>
+<li><p><strong>do_morph</strong> (<em>boolean</em><em>, </em><em>default True</em>) – Perform the current morph method.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>DataFrame</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
 <dt id="method.Method.add_input_data">
 <code class="sig-name descname">add_input_data</code><span class="sig-paren">(</span><em class="sig-param">input_data</em>, <em class="sig-param">reset_status=False</em><span class="sig-paren">)</span><a class="headerlink" href="#method.Method.add_input_data" title="Permalink to this definition">¶</a></dt>
 <dd><p>Provide a list of strings, each the filename of input data for wrangling.</p>
@@ -506,6 +534,203 @@ reset data processing, or raise an error.</p>
 </dd>
 <dt class="field-even">Raises</dt>
 <dd class="field-even"><p><strong>TypeError if not a list of str.</strong> – </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="method.Method.reset_input_data_morph">
+<code class="sig-name descname">reset_input_data_morph</code><span class="sig-paren">(</span><em class="sig-param">_id</em>, <em class="sig-param">empty=False</em><span class="sig-paren">)</span><a class="headerlink" href="#method.Method.reset_input_data_morph" title="Permalink to this definition">¶</a></dt>
+<dd><p>Wrapper around <cite>reset_morph</cite>. Reset list of morph methods to base. Automatically adds <cite>DEBLANK</cite> and <cite>DEDUPE</cite>
+unless <cite>empty=True</cite>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>_id</strong> (<em>str</em>) – Unique id for an input data source. View all input data from <cite>input_data</cite></p></li>
+<li><p><strong>empty</strong> (<em>boolean</em>) – Start with an empty morph method. Default <cite>False</cite>.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="method.Method.add_input_data_morph">
+<code class="sig-name descname">add_input_data_morph</code><span class="sig-paren">(</span><em class="sig-param">_id</em>, <em class="sig-param">new_morph=None</em><span class="sig-paren">)</span><a class="headerlink" href="#method.Method.add_input_data_morph" title="Permalink to this definition">¶</a></dt>
+<dd><p>Wrapper around <cite>add_morph</cite>. Append a new morph method defined by <cite>new_morph</cite> to <cite>morph_methods</cite>,
+ensuring that the first term is a <cite>morph</cite>, and that the subsequent terms conform to that morph’s
+validation requirements.</p>
+<p>The format for defining a <cite>new_morph</cite> is as follows:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">[</span><span class="n">morph</span><span class="p">,</span> <span class="n">rows</span><span class="p">,</span> <span class="n">columns</span><span class="p">,</span> <span class="n">column_names</span><span class="p">]</span>
+</pre></div>
+</div>
+<p>e.g.:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">[</span><span class="s2">&quot;REBASE&quot;</span><span class="p">,</span> <span class="p">[</span><span class="mi">2</span><span class="p">]]</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>_id</strong> (<em>str</em>) – Unique id for an input data source. View all input data from <cite>input_data</cite></p></li>
+<li><p><strong>new_morph</strong> (<em>list</em>) – Each parameter list must start with a <cite>morph</cite>, with subsequent terms conforming to the
+requirements for that morph.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="method.Method.delete_input_data_morph">
+<code class="sig-name descname">delete_input_data_morph</code><span class="sig-paren">(</span><em class="sig-param">_id</em>, <em class="sig-param">morph_id</em><span class="sig-paren">)</span><a class="headerlink" href="#method.Method.delete_input_data_morph" title="Permalink to this definition">¶</a></dt>
+<dd><p>Wrapper around <cite>delete_morph</cite>. Delete morph method defined by <cite>morph_id</cite>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>_id</strong> (<em>str</em>) – Unique id for an input data source. View all input data from <cite>input_data</cite></p></li>
+<li><p><strong>morph_id</strong> (<em>str</em>) – Unique id for morph method. View all morph methods from <cite>input_data_morphs</cite>.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="method.Method.reorder_input_data_morph">
+<code class="sig-name descname">reorder_input_data_morph</code><span class="sig-paren">(</span><em class="sig-param">_id</em>, <em class="sig-param">order</em><span class="sig-paren">)</span><a class="headerlink" href="#method.Method.reorder_input_data_morph" title="Permalink to this definition">¶</a></dt>
+<dd><p>Wrapper around <cite>reorder_morph</cite>. Reorder morph methods defined by <cite>order</cite>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>_id</strong> (<em>str</em>) – Unique id for an input data source. View all input data from <cite>input_data</cite></p></li>
+<li><p><strong>order</strong> (<em>list</em>) – List of id strings.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="method.Method.input_data_morphs">
+<code class="sig-name descname">input_data_morphs</code><span class="sig-paren">(</span><em class="sig-param">_id</em><span class="sig-paren">)</span><a class="headerlink" href="#method.Method.input_data_morphs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Wrapper around <cite>get_morph_markup</cite>. Return a markup version of a formal morph method.
+Useful for re-ordering methods.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>_id</strong> (<em>str</em>) – Unique id for an input data source. View all input data from <cite>input_data</cite></p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>list of dicts</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="method.Method.default_morph_types">
+<em class="property">property </em><code class="sig-name descname">default_morph_types</code><a class="headerlink" href="#method.Method.default_morph_types" title="Permalink to this definition">¶</a></dt>
+<dd><p>Default list of morphs available to transform tabular data. Returns only a list
+of types. Details for individual default morphs can be returned with
+<cite>default_morph_settings</cite>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p></p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="method.Method.default_morph_settings">
+<code class="sig-name descname">default_morph_settings</code><span class="sig-paren">(</span><em class="sig-param">morph</em><span class="sig-paren">)</span><a class="headerlink" href="#method.Method.default_morph_settings" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the default settings available for a specific morph type.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>morph</strong> (<em>string</em>) – A specific term for an morph type (as listed in <cite>default_morph_types</cite>).</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>dict, or empty dict if no such <cite>morph_type</cite></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="method.Method.add_morph">
+<code class="sig-name descname">add_morph</code><span class="sig-paren">(</span><em class="sig-param">df=Empty DataFrame Columns: [] Index: []</em>, <em class="sig-param">new_morph=None</em>, <em class="sig-param">morph_methods=None</em><span class="sig-paren">)</span><a class="headerlink" href="#method.Method.add_morph" title="Permalink to this definition">¶</a></dt>
+<dd><p>Append a new morph method defined by <cite>new_morph</cite> to <cite>morph_methods</cite>, ensuring that the first
+term is a <cite>morph</cite>, and that the subsequent terms conform to that morph’s validation requirements.</p>
+<p>The format for defining a <cite>new_morph</cite> is as follows:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">[</span><span class="n">morph</span><span class="p">,</span> <span class="n">rows</span><span class="p">,</span> <span class="n">columns</span><span class="p">,</span> <span class="n">column_names</span><span class="p">]</span>
+</pre></div>
+</div>
+<p>e.g.:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">[</span><span class="s2">&quot;REBASE&quot;</span><span class="p">,</span> <span class="p">[</span><span class="mi">2</span><span class="p">]]</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>df</strong> (<em>dataframe</em>) – DataFrame must be explicitly provided.</p></li>
+<li><p><strong>new_morph</strong> (<em>list</em>) – Each parameter list must start with a <cite>morph</cite>, with subsequent terms conforming to the
+requirements for that morph.</p></li>
+<li><p><strong>morph_methods</strong> (<em>list of morphs</em>) – Existing morph methods. If <cite>None</cite> provided, creates a new list.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="method.Method.delete_morph_id">
+<code class="sig-name descname">delete_morph_id</code><span class="sig-paren">(</span><em class="sig-param">_id</em>, <em class="sig-param">morph_methods</em><span class="sig-paren">)</span><a class="headerlink" href="#method.Method.delete_morph_id" title="Permalink to this definition">¶</a></dt>
+<dd><p>Delete morph method by id.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>morph_methods</strong> (<em>list of dicts of morphs</em>) – Existing morph methods.</p></li>
+<li><p><strong>_id</strong> (<em>string</em>) – </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="method.Method.reset_morph">
+<code class="sig-name descname">reset_morph</code><span class="sig-paren">(</span><em class="sig-param">empty=False</em><span class="sig-paren">)</span><a class="headerlink" href="#method.Method.reset_morph" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reset list of morph methods to base. Automatically adds <cite>DEBLANK</cite> and <cite>DEDUPE</cite> unless <cite>empty=True</cite>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>empty</strong> (<em>boolean</em>) – Start with an empty morph method. Default <cite>False</cite>.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="method.Method.reorder_morph">
+<code class="sig-name descname">reorder_morph</code><span class="sig-paren">(</span><em class="sig-param">morph_methods</em>, <em class="sig-param">order</em><span class="sig-paren">)</span><a class="headerlink" href="#method.Method.reorder_morph" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reorder morph methods.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>order</strong> (<em>list</em>) – List of id strings.</p>
+</dd>
+<dt class="field-even">Raises</dt>
+<dd class="field-even"><p><strong>ValueError if not all ids in list</strong><strong>, or </strong><strong>duplicates in list.</strong> – </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="method.Method.get_morph_markup">
+<code class="sig-name descname">get_morph_markup</code><span class="sig-paren">(</span><em class="sig-param">morph_methods</em><span class="sig-paren">)</span><a class="headerlink" href="#method.Method.get_morph_markup" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a markup version of a formal morph method. Useful for re-ordering methods.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p></p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>list of dicts</p>
 </dd>
 </dl>
 </dd></dl>
@@ -556,6 +781,68 @@ Returns a new column list permitting deduplication of dataframes which may resul
 </dd>
 <dt class="field-odd">Return type</dt>
 <dd class="field-odd"><p>list of strings</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="method.Method.add_working_data_morph">
+<code class="sig-name descname">add_working_data_morph</code><span class="sig-paren">(</span><em class="sig-param">new_morph=None</em><span class="sig-paren">)</span><a class="headerlink" href="#method.Method.add_working_data_morph" title="Permalink to this definition">¶</a></dt>
+<dd><p>Wrapper around <cite>add_morph</cite>. Append a new morph method defined by <cite>new_morph</cite> to <cite>morph_methods</cite>,
+ensuring that the first term is a <cite>morph</cite>, and that the subsequent terms conform to that morph’s
+validation requirements.</p>
+<p>The format for defining a <cite>new_morph</cite> is as follows:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">[</span><span class="n">morph</span><span class="p">,</span> <span class="n">rows</span><span class="p">,</span> <span class="n">columns</span><span class="p">,</span> <span class="n">column_names</span><span class="p">]</span>
+</pre></div>
+</div>
+<p>e.g.:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">[</span><span class="s2">&quot;REBASE&quot;</span><span class="p">,</span> <span class="p">[</span><span class="mi">2</span><span class="p">]]</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>new_morph</strong> (<em>list</em>) – Each parameter list must start with a <cite>morph</cite>, with subsequent terms conforming to the
+requirements for that morph.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="method.Method.delete_working_data_morph">
+<code class="sig-name descname">delete_working_data_morph</code><span class="sig-paren">(</span><em class="sig-param">_id</em><span class="sig-paren">)</span><a class="headerlink" href="#method.Method.delete_working_data_morph" title="Permalink to this definition">¶</a></dt>
+<dd><p>Wrapper around <cite>delete_morph</cite>. Delete morph method defined by <cite>morph_id</cite>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>_id</strong> (<em>str</em>) – Unique id for morph method. View all morph methods from <cite>working_data_morphs</cite>.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="method.Method.reorder_working_data_morph">
+<code class="sig-name descname">reorder_working_data_morph</code><span class="sig-paren">(</span><em class="sig-param">order</em><span class="sig-paren">)</span><a class="headerlink" href="#method.Method.reorder_working_data_morph" title="Permalink to this definition">¶</a></dt>
+<dd><p>Wrapper around <cite>reorder_morph</cite>. Reorder morph methods defined by <cite>order</cite>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>order</strong> (<em>list</em>) – List of id strings.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="method.Method.working_data_morphs">
+<code class="sig-name descname">working_data_morphs</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#method.Method.working_data_morphs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Wrapper around <cite>get_morph_markup</cite>. Return a markup version of a formal morph method.
+Useful for re-ordering methods.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>_id</strong> (<em>str</em>) – Unique id for an input data source. View all input data from <cite>input_data</cite></p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>list of dicts</p>
 </dd>
 </dl>
 </dd></dl>
@@ -681,6 +968,26 @@ of types. Details for individual default actions can be returned with
 </dd></dl>
 
 <dl class="method">
+<dt id="method.Method.morph_transform">
+<code class="sig-name descname">morph_transform</code><span class="sig-paren">(</span><em class="sig-param">df</em>, <em class="sig-param">morph_methods=None</em><span class="sig-paren">)</span><a class="headerlink" href="#method.Method.morph_transform" title="Permalink to this definition">¶</a></dt>
+<dd><p>Performs the morph transforms on a DataFrame. Assumes parameters have been validated.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>df</strong> (<em>dataframe</em>) – DataFrame must be explicitly provided.</p></li>
+<li><p><strong>morph_methods</strong> (<em>list of morphs</em>) – Existing morph methods.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Containing the implementation of all morph transformations</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>Dataframe</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
 <dt id="method.Method.action_transform">
 <code class="sig-name descname">action_transform</code><span class="sig-paren">(</span><em class="sig-param">df</em>, <em class="sig-param">field_name</em>, <em class="sig-param">structure</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#method.Method.action_transform" title="Permalink to this definition">¶</a></dt>
 <dd><p>A recursive transformation. A method should be a list fields upon which actions are applied, but
@@ -733,7 +1040,7 @@ current field can be completed, it is necessary to perform the actions on each s
 <dt id="method.Method.validate_merge_data">
 <em class="property">property </em><code class="sig-name descname">validate_merge_data</code><a class="headerlink" href="#method.Method.validate_merge_data" title="Permalink to this definition">¶</a></dt>
 <dd><p>Test input data ready to merge; that it has a merge key, and that the data in that column
-are unique.</p>
+are unique. Only required if there is more than one <cite>input_data</cite> source.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Raises</dt>
 <dd class="field-odd"><p><strong>ValueError on uniqueness failure.</strong> – </p>
@@ -923,7 +1230,7 @@ unique filename and data summary.</p>
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
       
-        <a href="action_api.html" class="btn btn-neutral float-left" title="Action" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="morph_api.html" class="btn btn-neutral float-left" title="Morph" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   

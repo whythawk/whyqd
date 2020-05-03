@@ -67,6 +67,7 @@ Licencing
 
    installation
    tutorial
+   morph_tutorial
    citation
 
 .. toctree::
@@ -93,4 +94,5 @@ Licencing
    field_api
    schema_api
    action_api
+   morph_api
    method_api
