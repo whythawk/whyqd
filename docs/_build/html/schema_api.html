@@ -84,6 +84,7 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="installation.html">Dependencies, installation &amp; importing</a></li>
 <li class="toctree-l1"><a class="reference internal" href="tutorial.html">Full worked tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="morph_tutorial.html">Table morph tutorial</a></li>
 <li class="toctree-l1"><a class="reference internal" href="citation.html">Distribution &amp; Citation of methods and data</a></li>
 </ul>
 <p class="caption"><span class="caption-text">Creating and managing Schemas</span></p>
@@ -104,6 +105,7 @@
 <li class="toctree-l1"><a class="reference internal" href="field_api.html">Field</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Schema</a></li>
 <li class="toctree-l1"><a class="reference internal" href="action_api.html">Action</a></li>
+<li class="toctree-l1"><a class="reference internal" href="morph_api.html">Morph</a></li>
 <li class="toctree-l1"><a class="reference internal" href="method_api.html">Method</a></li>
 </ul>
 
@@ -479,6 +481,21 @@ to the data being structured).</p>
 <dt id="schema.Schema.settings">
 <em class="property">property </em><code class="sig-name descname">settings</code><a class="headerlink" href="#schema.Schema.settings" title="Permalink to this definition">¶</a></dt>
 <dd><p>Schema settings returned as a dictionary.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p><strong>dict</strong></p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>settings</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="schema.Schema.schema_validation_settings">
+<em class="property">property </em><code class="sig-name descname">schema_validation_settings</code><a class="headerlink" href="#schema.Schema.schema_validation_settings" title="Permalink to this definition">¶</a></dt>
+<dd><p>Schema settings for validation of output data and schema, returned as a dictionary.</p>
+<p>Based on <a class="reference external" href="https://specs.frictionlessdata.io/table-schema/">Frictionless Data Table Schema</a>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns</dt>
 <dd class="field-odd"><p><strong>dict</strong></p>

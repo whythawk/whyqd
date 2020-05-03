@@ -79,7 +79,7 @@ CLASSIFIERS = [
 
 setuptools.setup(
     name=DISTNAME,
-    version="0.2.2",
+    version="0.3.0",
     author=AUTHOR,
     author_email=EMAIL,
     description=DESCRIPTION,

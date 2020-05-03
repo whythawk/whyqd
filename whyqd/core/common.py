@@ -9,6 +9,7 @@ from urllib.parse import urlparse
 from datetime import date, datetime, timedelta
 from pathlib import Path, PurePath
 import pandas as pd
+from xlrd import XLRDError
 import numpy as np
 import locale
 try:
@@ -296,18 +297,22 @@ def get_dataframe(source,
 		filetype = filetype.lower()
 	else:
 		filetype = source.split(".")[-1].lower()
-	if filetype in ["xlsx", "xls"]:
-		df = pd.read_excel(source, **kwargs)
-	elif filetype == "csv":
+	if filetype not in ["csv"]:
+		try:
+			df = pd.read_excel(source, **kwargs)
+			return df
+		except XLRDError:
+			pass
+	elif filetype not in ["xlsx", "xls"]:
 		kwargs["encoding"] = kwargs.get("encoding", "ISO-8859-1")
 		kwargs["iterator"] = True
-		kwargs["chunk_size"] = kwargs.get("chunk_size", 100000)
+		kwargs["chunksize"] = kwargs.get("chunksize", 100000)
 		df = pd.read_csv(source, **kwargs)
 		df_chunks = []
 		loop = True
 		while loop:
 			try:
-				chunk = df.get_chunk(kwargs["chunk_size"])
+				chunk = df.get_chunk(kwargs["chunksize"])
 				df_chunks.append(chunk)
 			except StopIteration:
 				loop = False

@@ -83,6 +83,7 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="installation.html">Dependencies, installation &amp; importing</a></li>
 <li class="toctree-l1"><a class="reference internal" href="tutorial.html">Full worked tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="morph_tutorial.html">Table morph tutorial</a></li>
 <li class="toctree-l1"><a class="reference internal" href="citation.html">Distribution &amp; Citation of methods and data</a></li>
 </ul>
 <p class="caption"><span class="caption-text">Creating and managing Schemas</span></p>
@@ -103,6 +104,7 @@
 <li class="toctree-l1"><a class="reference internal" href="field_api.html">Field</a></li>
 <li class="toctree-l1"><a class="reference internal" href="schema_api.html">Schema</a></li>
 <li class="toctree-l1"><a class="reference internal" href="action_api.html">Action</a></li>
+<li class="toctree-l1"><a class="reference internal" href="morph_api.html">Morph</a></li>
 <li class="toctree-l1"><a class="reference internal" href="method_api.html">Method</a></li>
 </ul>
 
@@ -175,7 +177,9 @@
  | <a href="#C"><strong>C</strong></a>
  | <a href="#D"><strong>D</strong></a>
  | <a href="#F"><strong>F</strong></a>
+ | <a href="#G"><strong>G</strong></a>
  | <a href="#H"><strong>H</strong></a>
+ | <a href="#I"><strong>I</strong></a>
  | <a href="#M"><strong>M</strong></a>
  | <a href="#N"><strong>N</strong></a>
  | <a href="#O"><strong>O</strong></a>
@@ -184,6 +188,7 @@
  | <a href="#S"><strong>S</strong></a>
  | <a href="#T"><strong>T</strong></a>
  | <a href="#V"><strong>V</strong></a>
+ | <a href="#W"><strong>W</strong></a>
  
 </div>
 <h2 id="A">A</h2>
@@ -193,8 +198,14 @@
 </li>
       <li><a href="method_api.html#method.Method.add_input_data">add_input_data() (method.Method method)</a>
 </li>
+      <li><a href="method_api.html#method.Method.add_input_data_morph">add_input_data_morph() (method.Method method)</a>
+</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="method_api.html#method.Method.add_morph">add_morph() (method.Method method)</a>
+</li>
+      <li><a href="method_api.html#method.Method.add_working_data_morph">add_working_data_morph() (method.Method method)</a>
+</li>
       <li><a href="schema_api.html#schema.Schema.all_field_names">all_field_names() (schema.Schema property)</a>
 </li>
       <li><a href="schema_api.html#schema.Schema.all_fields">all_fields() (schema.Schema property)</a>
@@ -206,6 +217,8 @@
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="action_api.html#core.BaseAction">BaseAction (class in core)</a>
+</li>
+      <li><a href="morph_api.html#core.BaseMorph">BaseMorph (class in core)</a>
 </li>
       <li><a href="method_api.html#method.Method.build">build() (method.Method method)</a>
 
@@ -253,13 +266,23 @@
 </li>
       <li><a href="schema_api.html#schema.Schema.default_field_settings">default_field_settings() (schema.Schema method)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="schema_api.html#schema.Schema.default_field_types">default_field_types() (schema.Schema property)</a>
 </li>
       <li><a href="schema_api.html#schema.Schema.default_filter_names">default_filter_names() (schema.Schema property)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="schema_api.html#schema.Schema.default_filter_settings">default_filter_settings() (schema.Schema method)</a>
+</li>
+      <li><a href="method_api.html#method.Method.default_morph_settings">default_morph_settings() (method.Method method)</a>
+</li>
+      <li><a href="method_api.html#method.Method.default_morph_types">default_morph_types() (method.Method property)</a>
+</li>
+      <li><a href="method_api.html#method.Method.delete_input_data_morph">delete_input_data_morph() (method.Method method)</a>
+</li>
+      <li><a href="method_api.html#method.Method.delete_morph_id">delete_morph_id() (method.Method method)</a>
+</li>
+      <li><a href="method_api.html#method.Method.delete_working_data_morph">delete_working_data_morph() (method.Method method)</a>
 </li>
       <li><a href="schema_api.html#schema.Schema.details">details() (schema.Schema property)</a>
 </li>
@@ -282,10 +305,30 @@
   </ul></td>
 </tr></table>
 
+<h2 id="G">G</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="method_api.html#method.Method.get_morph_markup">get_morph_markup() (method.Method method)</a>
+</li>
+  </ul></td>
+</tr></table>
+
 <h2 id="H">H</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="method_api.html#method.Method.help">help() (method.Method method)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="I">I</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="method_api.html#method.Method.input_data_morphs">input_data_morphs() (method.Method method)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="method_api.html#method.Method.input_dataframe">input_dataframe() (method.Method method)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -297,13 +340,15 @@
 </li>
       <li><a href="method_api.html#method.Method">Method (class in method)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="method.html#module-method">method (module)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="method.html#module-method.method">method.method (module)</a>
 </li>
       <li><a href="action_api.html#core.BaseAction.modifiers">modifiers() (core.BaseAction property)</a>
+</li>
+      <li><a href="method_api.html#method.Method.morph_transform">morph_transform() (method.Method method)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -341,11 +386,21 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="method_api.html#method.Method.remove_input_data">remove_input_data() (method.Method method)</a>
 </li>
+      <li><a href="method_api.html#method.Method.reorder_input_data_morph">reorder_input_data_morph() (method.Method method)</a>
+</li>
+      <li><a href="method_api.html#method.Method.reorder_morph">reorder_morph() (method.Method method)</a>
+</li>
+      <li><a href="method_api.html#method.Method.reorder_working_data_morph">reorder_working_data_morph() (method.Method method)</a>
+</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="field_api.html#schema.Field.required">required() (schema.Field property)</a>
 </li>
       <li><a href="method_api.html#method.Method.reset_data_checksums">reset_data_checksums() (method.Method method)</a>
+</li>
+      <li><a href="method_api.html#method.Method.reset_input_data_morph">reset_input_data_morph() (method.Method method)</a>
+</li>
+      <li><a href="method_api.html#method.Method.reset_morph">reset_morph() (method.Method method)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -366,6 +421,8 @@
       <li><a href="schema.html#module-schema">schema (module)</a>
 </li>
       <li><a href="schema.html#module-schema.schema">schema.schema (module)</a>
+</li>
+      <li><a href="schema_api.html#schema.Schema.schema_validation_settings">schema_validation_settings() (schema.Schema property)</a>
 </li>
       <li><a href="field_api.html#schema.Field.set_all">set_all() (schema.Field method)</a>
 </li>
@@ -404,6 +461,8 @@
       <li><a href="action_api.html#core.BaseAction.settings">settings() (core.BaseAction property)</a>
 
       <ul>
+        <li><a href="morph_api.html#core.BaseMorph.settings">(core.BaseMorph property)</a>
+</li>
         <li><a href="field_api.html#schema.Field.settings">(schema.Field property)</a>
 </li>
         <li><a href="schema_api.html#schema.Schema.settings">(schema.Schema property)</a>
@@ -420,6 +479,8 @@
       <li><a href="action_api.html#core.BaseAction.transform">transform() (core.BaseAction method)</a>
 
       <ul>
+        <li><a href="morph_api.html#core.BaseMorph.transform">(core.BaseMorph method)</a>
+</li>
         <li><a href="method_api.html#method.Method.transform">(method.Method method)</a>
 </li>
       </ul></li>
@@ -443,15 +504,17 @@
 </li>
       <li><a href="method_api.html#method.Method.validate_merge_data">validate_merge_data() (method.Method property)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="method_api.html#method.Method.validate_structure">validate_structure() (method.Method property)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="method_api.html#method.Method.validate_transform">validate_transform() (method.Method property)</a>
 </li>
       <li><a href="action_api.html#core.BaseAction.validates">validates() (core.BaseAction method)</a>
 
       <ul>
+        <li><a href="morph_api.html#core.BaseMorph.validates">(core.BaseMorph method)</a>
+</li>
         <li><a href="method_api.html#method.Method.validates">(method.Method property)</a>
 </li>
         <li><a href="field_api.html#schema.Field.validates">(schema.Field property)</a>
@@ -459,6 +522,14 @@
         <li><a href="schema_api.html#schema.Schema.validates">(schema.Schema property)</a>
 </li>
       </ul></li>
+  </ul></td>
+</tr></table>
+
+<h2 id="W">W</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="method_api.html#method.Method.working_data_morphs">working_data_morphs() (method.Method method)</a>
+</li>
   </ul></td>
 </tr></table>
 

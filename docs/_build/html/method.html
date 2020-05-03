@@ -84,6 +84,7 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="installation.html">Dependencies, installation &amp; importing</a></li>
 <li class="toctree-l1"><a class="reference internal" href="tutorial.html">Full worked tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="morph_tutorial.html">Table morph tutorial</a></li>
 <li class="toctree-l1"><a class="reference internal" href="citation.html">Distribution &amp; Citation of methods and data</a></li>
 </ul>
 <p class="caption"><span class="caption-text">Creating and managing Schemas</span></p>
@@ -114,6 +115,7 @@
 <li class="toctree-l1"><a class="reference internal" href="field_api.html">Field</a></li>
 <li class="toctree-l1"><a class="reference internal" href="schema_api.html">Schema</a></li>
 <li class="toctree-l1"><a class="reference internal" href="action_api.html">Action</a></li>
+<li class="toctree-l1"><a class="reference internal" href="morph_api.html">Morph</a></li>
 <li class="toctree-l1"><a class="reference internal" href="method_api.html">Method</a></li>
 </ul>
 
@@ -232,7 +234,7 @@ revalidation of all subsequent steps.</p>
 <span class="kn">from</span> <span class="nn">IPython.core.display</span> <span class="kn">import</span> <span class="n">HTML</span>
 <span class="n">display</span><span class="p">(</span><span class="n">HTML</span><span class="p">(</span><span class="s2">&quot;&lt;style&gt;pre { white-space: pre !important; }&lt;/style&gt;&quot;</span><span class="p">))</span>
 
-<span class="nb">print</span><span class="p">(</span><span class="n">method</span><span class="o">.</span><span class="n">pretty_print_input_data</span><span class="p">())</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">method</span><span class="o">.</span><span class="n">print_input_data</span><span class="p">())</span>
 
 <span class="n">Data</span> <span class="nb">id</span><span class="p">:</span> <span class="n">c8944fed</span><span class="o">-</span><span class="mf">4e8</span><span class="n">c</span><span class="o">-</span><span class="mi">4</span><span class="n">cbd</span><span class="o">-</span><span class="mi">807</span><span class="n">d</span><span class="o">-</span><span class="mi">53</span><span class="n">fcc96b7018</span>
 
@@ -275,7 +277,7 @@ order, and a unique key for merging. Each input data file needs to be defined in
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">method</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">order_and_key</span><span class="p">,</span> <span class="n">overwrite_working</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>To view your existing <cite>input_data</cite> as a JSON output (or the <cite>pretty_print_input_data</cite> as above):</p>
+<p>To view your existing <cite>input_data</cite> as a JSON output (or the <cite>print_input_data</cite> as above):</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">method</span><span class="o">.</span><span class="n">input_data</span>
 </pre></div>
 </div>
