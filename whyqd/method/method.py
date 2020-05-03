@@ -694,7 +694,7 @@ class Method(Schema):
 		"""
 		Sets the filter settings for a named field after validating all parameters.
 
-		NOTE: filters can only be set on date-type fields. **whyqd** offers only rudimentary post-
+		.. note:: filters can only be set on date-type fields. **whyqd** offers only rudimentary post-
 		wrangling functionality. Filters are there to, for example, facilitate importing data
 		outside the bounds of a previous import.
 
@@ -1207,9 +1207,11 @@ class Method(Schema):
 		-------
 		dict, or empty dict if no such `morph_type`
 		"""
-		for field_morph in default_morphs:
+		for field_morph in default_morphs["fields"]:
 			if morph == field_morph["name"]:
-				return deepcopy(field_morph)
+				field_morph = deepcopy(field_morph)
+				if "parameters" in field_morph: del field_morph["parameters"]
+				return field_morph
 		return {}
 
 	def add_morph(self, df=pd.DataFrame(), new_morph=None, morph_methods=None):
