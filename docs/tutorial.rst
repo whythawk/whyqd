@@ -28,7 +28,8 @@ The example in our worked tutorial is derived directly from our workflow at Sqwy
 dataset released by `Portsmouth City Council <https://www.portsmouth.gov.uk/ext/business/running-a-business/business-rates-foi-requests>`_.
 The data in this tutorial are from January 2020, but follow along with the current download.
 
-.. note:: This tutorial does assume familiarity with Python, homeopathic quantities of Pandas, and a little experience with JSON.
+.. note:: This tutorial does assume familiarity with Python, homeopathic quantities of Pandas, and a 
+	little experience with JSON.
 
 Creating a Schema
 -----------------
@@ -65,19 +66,20 @@ We can also save our schema to a specified `directory`::
 
 We'll now start to create each of our schema `fields`.
 
-.. note:: You can think of a schema `field` as a `column` in a table, or a `field` in a database. Fields have a `type`, such as integer or text.
+.. note:: You can think of a schema `field` as a `column` in a table, or a `field` in a database. 
+	Fields have a `type`, such as integer or text.
 
 Each field, unsurprisingly, has a `name`, `title` and `description`, of which only the `name` is required.
 Fields also have a `type`. This describes the data expected and limits the actions which can be performed
 during the wrangling process.
 
-We want our destination data to conform to the following structure::
+We want our destination data to conform to the following structure:
 
-	=========  ============  =============  ========  ================  =====================  =============  ========================
-	  la_code        ba_ref  occupant_name  postcode  occupation_state  occupation_state_date  prop_ba_rates  occupation_state_reliefs
-	=========  ============  =============  ========  ================  =====================  =============  ========================
-	E06000044  177500080710  A company       PO5 2SE              True             2019-04-01          98530  [small_business, retail]
-	=========  ============  =============  ========  ================  =====================  =============  ========================
+=========  ============  =============  ========  ================  =====================  =============  ========================
+la_code    ba_ref        occupant_name  postcode  occupation_state  occupation_state_date  prop_ba_rates  occupation_state_reliefs
+=========  ============  =============  ========  ================  =====================  =============  ========================
+E06000044  177500080710  A company       PO5 2SE              True             2019-04-01          98530  [small_business, retail]
+=========  ============  =============  ========  ================  =====================  =============  ========================
 
 Each of these fields is a different `type` of data:
 
@@ -88,15 +90,19 @@ Each of these fields is a different `type` of data:
 * `object`: any valid JSON data.
 * `array`: any valid array-based data.
 * `date`: any date without a time. Must be in ISO8601 format, `YYYY-MM-DD`.
-* `datetime`: any date with a time. Must be in ISO8601 format, with UTC time specified (optionally) as `YYYY-MM-DD hh:mm:ss Zz`.
+* `datetime`: any date with a time. Must be in ISO8601 format, with UTC time specified (optionally) as 
+  `YYYY-MM-DD hh:mm:ss Zz`.
 * `year`: any year, formatted as `YYYY`.
 
 In addition, these data can be `constrained`:
 
-* `required`: boolean, indicates whether this field is compulsory (but blank values in the input column are permitted and will be set to the `missing` default)
+* `required`: boolean, indicates whether this field is compulsory (but blank values in the input column 
+  are permitted and will be set to the `missing` default)
 * `unique`: boolean, if `true` then all values for that input column must be unique
-* `minimum`: `integer` / `number`, as appropriate defining min number of characters in a string, or the min values of numbers or integers
-* `maximum`: `integer` / `number`, as appropriate defining max number of characters in a string, or the max values of numbers or integers
+* `minimum`: `integer` / `number`, as appropriate defining min number of characters in a string, or 
+  the min values of numbers or integers
+* `maximum`: `integer` / `number`, as appropriate defining max number of characters in a string, or 
+  the max values of numbers or integers
 * `category`: the set of unique category terms permitted in this field
 * `filter`: limit a named field by date-limited data
 
@@ -190,7 +196,9 @@ Let's add a list of `category` terms as a constraint for `occupation_state_relie
 	 'title': 'Occupation state reliefs',
 	 'description': 'Array of the categories of reliefs / exemptions applied.'}
 
-.. note:: These are the official business `rates reliefs <https://www.gov.uk/apply-for-business-rate-relief>`_ permitted by the UK government. Unsurprisingly, only by accident do any local authorities actually use these terms when awarding a relief.
+.. note:: These are the official business `rates reliefs <https://www.gov.uk/apply-for-business-rate-relief>`_
+	permitted by the UK government. Unsurprisingly, only by accident do any local authorities actually 
+	use these terms when awarding a relief.
 
 We could choose to limit the `filter` field for the `occupation_state_date`, but we're not going to
 bother. Review your schema, then `save` and we're ready to begin wrangling::
@@ -253,7 +261,8 @@ Creating a Method
 are readable before proceeding. You'll be surprised at the number of supposedly open datasets
 released with password-protection, fruity formatting, or which are completely corrupted.
 
-.. warning:: The minimum required to ensure a dataset is machine-readable is that it have a header-row, and that there is no weird spacing or merged-fields (if you're using Excel).
+.. warning:: The minimum required to ensure a dataset is machine-readable is that it have a header-row,
+	and that there is no weird spacing or merged-fields (if you're using Excel).
 
 In our tutorial example, the data from `Portsmouth City Council <https://www.portsmouth.gov.uk/ext/business/running-a-business/business-rates-foi-requests>`_
 include three Excel (XLS) data files:
@@ -295,7 +304,11 @@ We can also, at initialisation, provide the list of data sources::
 
 These data will be copied to your working directory and renamed to a unique hashed `id`.
 
-.. note:: **Data probity** - the abilty to audit data and methodology back to source - is critical for research transparency and replication. You may end up with hundreds of similarly-named files in a single directory without much information as to where they come from, or how they were created. Unique ids, referenced in your method file, are a more useful way of ensuring you know what they were for.
+.. note:: **Data probity** - the abilty to audit data and methodology back to source - is critical for 
+	research transparency and replication. You may end up with hundreds of similarly-named files in a 
+	single directory without much information as to where they come from, or how they were created. 
+	Unique ids, referenced in your method file, are a more useful way of ensuring you know what they 
+	were for.
 
 The method class provides help at each step. Access it like this::
 
@@ -363,35 +376,41 @@ cross-reference rows in each file and link them together. We start with `help`::
 	Data id: ab79fc32-51ce-4e9e-80cf-493af94e4177
 	Original source: https://www.portsmouth.gov.uk/ext/documents-external/biz-ndr-properties-january-2020.xls
 
-	====  =================  =========================================================================  ==========================================  ===============  ====================  ========================
-	  ..    Property ref no  Full Property Address                                                      Primary Liable party name                   Analysis Code    Account Start date      Current Rateable Value
-	====  =================  =========================================================================  ==========================================  ===============  ====================  ========================
-	   0       177200066910  Unit 7b, The Pompey Centre, Dickinson Road, Southsea, Hants, PO4 8SH       City Electrical Factors  Ltd                CW               2003-11-10 00:00:00                      37000
-	   1       177209823010  Express By Holiday Inn, The Plaza, Gunwharf Quays, Portsmouth, PO1 3FD     Kew Green Hotels (Portsmouth Lrg1) Limited  CH               2003-11-08 00:00:00                     594000
-	   2       177500013310  Unit 2cd, Shawcross Industrial Estate, Ackworth Road, Portsmouth, PO3 5JP  Personal details not supplied               CG1              1994-12-25 00:00:00                      13250
-	====  =================  =========================================================================  ==========================================  ===============  ====================  ========================
+====  =================  =========================================================================  ==========================================  ===============  ====================  ========================
+  ..  Property ref no    Full Property Address                                                      Primary Liable party name                   Analysis Code    Account Start date      Current Rateable Value
+====  =================  =========================================================================  ==========================================  ===============  ====================  ========================
+   0       177200066910  Unit 7b, The Pompey Centre, Dickinson Road, Southsea, Hants, PO4 8SH       City Electrical Factors  Ltd                CW               2003-11-10 00:00:00                      37000
+   1       177209823010  Express By Holiday Inn, The Plaza, Gunwharf Quays, Portsmouth, PO1 3FD     Kew Green Hotels (Portsmouth Lrg1) Limited  CH               2003-11-08 00:00:00                     594000
+   2       177500013310  Unit 2cd, Shawcross Industrial Estate, Ackworth Road, Portsmouth, PO3 5JP  Personal details not supplied               CG1              1994-12-25 00:00:00                      13250
+====  =================  =========================================================================  ==========================================  ===============  ====================  ========================
+
+.. code-block::
 
 	Data id: 3b2e9893-c04c-4714-b9bb-6dd2bf274db4
 	Original source: https://www.portsmouth.gov.uk/ext/documents-external/biz-ndr-reliefs-january-2020.xls
 
-	====  ===========================  =============================  =======================================================  =============================  ====================  =================================  ========================
-	  ..    Property Reference Number  Primary Liable party name      Full Property Address                                    Current Relief Type            Account Start date    Current Relief Award Start Date      Current Rateable Value
-	====  ===========================  =============================  =======================================================  =============================  ====================  =================================  ========================
-	   0                 177500080710  Personal details not supplied  Ground Floor, 25, Albert Road, Southsea, Hants, PO5 2SE  Retail Discount                2003-05-14 00:00:00   2019-04-01 00:00:00                                    8600
-	   1                 177504942310  Personal details not supplied  Ground Floor, 102, London Road, Portsmouth, PO2 0LZ      Small Business Relief England  2003-07-28 00:00:00   2005-04-01 00:00:00                                    9900
-	   2                 177502823510  Personal details not supplied  33, Festing Road, Southsea, Hants, PO4 0NG               Small Business Relief England  2003-07-08 00:00:00   2005-04-01 00:00:00                                    6400
-	====  ===========================  =============================  =======================================================  =============================  ====================  =================================  ========================
+====  ===========================  =============================  =======================================================  =============================  ====================  =================================  ========================
+  ..    Property Reference Number  Primary Liable party name      Full Property Address                                    Current Relief Type            Account Start date    Current Relief Award Start Date      Current Rateable Value
+====  ===========================  =============================  =======================================================  =============================  ====================  =================================  ========================
+   0                 177500080710  Personal details not supplied  Ground Floor, 25, Albert Road, Southsea, Hants, PO5 2SE  Retail Discount                2003-05-14 00:00:00   2019-04-01 00:00:00                                    8600
+   1                 177504942310  Personal details not supplied  Ground Floor, 102, London Road, Portsmouth, PO2 0LZ      Small Business Relief England  2003-07-28 00:00:00   2005-04-01 00:00:00                                    9900
+   2                 177502823510  Personal details not supplied  33, Festing Road, Southsea, Hants, PO4 0NG               Small Business Relief England  2003-07-08 00:00:00   2005-04-01 00:00:00                                    6400
+====  ===========================  =============================  =======================================================  =============================  ====================  =================================  ========================
+
+.. code-block::
 
 	Data id: 458d7c0b-1481-487e-b120-19ccd2326d24
 	Original source: https://www.portsmouth.gov.uk/ext/documents-external/biz-empty-commercial-properties-january-2020.xls
 
-	====  ===========================  ================================================================  =================================  ===================================  ===============  =======================================================  ========================
-	  ..    Property Reference Number  Full Property Address                                             Current Property Exemption Code    Current Prop Exemption Start Date    Analysis Code    Primary Liable party name                                  Current Rateable Value
-	====  ===========================  ================================================================  =================================  ===================================  ===============  =======================================================  ========================
-	   0                 177512281010  Advertising Right, 29 Albert Road, Portsmouth, PO5 2SE            LOW RV                             2019-11-08 00:00:00                  CA1              Personal details not supplied                                                 700
-	   1                 177590107810  24, Ordnance Court, Ackworth Road, Portsmouth, PO3 5RZ            INDUSTRIAL                         2019-09-23 00:00:00                  IF3              Personal details not supplied                                               11000
-	   2                 177500058410  Unit 12, Admiral Park, Airport Service Road, Portsmouth, PO3 5RQ  EPRI                               2019-09-13 00:00:00                  CW               Legal & General Property Partners (Industrial Fund) Ltd                     26500
-	====  ===========================  ================================================================  =================================  ===================================  ===============  =======================================================  ========================
+====  ===========================  ================================================================  =================================  ===================================  ===============  =======================================================  ========================
+  ..    Property Reference Number  Full Property Address                                             Current Property Exemption Code    Current Prop Exemption Start Date    Analysis Code    Primary Liable party name                                  Current Rateable Value
+====  ===========================  ================================================================  =================================  ===================================  ===============  =======================================================  ========================
+   0                 177512281010  Advertising Right, 29 Albert Road, Portsmouth, PO5 2SE            LOW RV                             2019-11-08 00:00:00                  CA1              Personal details not supplied                                                 700
+   1                 177590107810  24, Ordnance Court, Ackworth Road, Portsmouth, PO3 5RZ            INDUSTRIAL                         2019-09-23 00:00:00                  IF3              Personal details not supplied                                               11000
+   2                 177500058410  Unit 12, Admiral Park, Airport Service Road, Portsmouth, PO3 5RQ  EPRI                               2019-09-13 00:00:00                  CW               Legal & General Property Partners (Industrial Fund) Ltd                     26500
+====  ===========================  ================================================================  =================================  ===================================  ===============  =======================================================  ========================
+
+.. code-block::
 
 	Current method status: `Ready to Merge`
 
@@ -525,46 +544,52 @@ Let's start with `help`::
 	Data id: a9b99aaf-438d-44cd-bf38-4849edac0c66
 	Original source: method.input_data
 
-	====  ======================  ======================  =================  =================  ===================================  =================================  ========================  ==========================  ==========================  =================================  =====================  =======================  =========================================================================  =========================================================================  ===========================  ==========================================  =============================  =============================  =============================  =================
-	  ..  Account Start date_x    Account Start date_y    Analysis Code_x      Analysis Code_y    Current Prop Exemption Start Date    Current Property Exemption Code    Current Rateable Value    Current Rateable Value_x    Current Rateable Value_y  Current Relief Award Start Date    Current Relief Type      Full Property Address  Full Property Address_x                                                    Full Property Address_y                                                      Primary Liable party name  Primary Liable party name_x                 Primary Liable party name_y      Property Reference Number_x    Property Reference Number_y    Property ref no
-	====  ======================  ======================  =================  =================  ===================================  =================================  ========================  ==========================  ==========================  =================================  =====================  =======================  =========================================================================  =========================================================================  ===========================  ==========================================  =============================  =============================  =============================  =================
-	   0  2003-11-10 00:00:00     NaT                     CW                               nan                                  nan                                nan                       nan                       37000                         nan  NaT                                nan                                        nan  Unit 7b, The Pompey Centre, Dickinson Road, Southsea, Hants, PO4 8SH       nan                                                                                                nan  City Electrical Factors  Ltd                nan                                              nan                                    nan       177200066910
-	   1  2003-11-08 00:00:00     NaT                     CH                               nan                                  nan                                nan                       nan                      594000                         nan  NaT                                nan                                        nan  Express By Holiday Inn, The Plaza, Gunwharf Quays, Portsmouth, PO1 3FD     nan                                                                                                nan  Kew Green Hotels (Portsmouth Lrg1) Limited  nan                                              nan                                    nan       177209823010
-	   2  1994-12-25 00:00:00     1994-12-25 00:00:00     CG1                              nan                                  nan                                nan                       nan                       13250                       13250  2019-04-01 00:00:00                Retail Discount                            nan  Unit 2cd, Shawcross Industrial Estate, Ackworth Road, Portsmouth, PO3 5JP  Unit 2cd, Shawcross Industrial Estate, Ackworth Road, Portsmouth, PO3 5JP                          nan  Personal details not supplied               Personal details not supplied                      1.775e+11                            nan       177500013310
-	====  ======================  ======================  =================  =================  ===================================  =================================  ========================  ==========================  ==========================  =================================  =====================  =======================  =========================================================================  =========================================================================  ===========================  ==========================================  =============================  =============================  =============================  =================
+====  ======================  ======================  =================  =================  ===================================  =================================  ========================  ==========================  ==========================  =================================  =====================  =======================  =========================================================================  =========================================================================  ===========================  ==========================================  =============================  =============================  =============================  =================
+  ..  Account Start date_x    Account Start date_y    Analysis Code_x      Analysis Code_y    Current Prop Exemption Start Date    Current Property Exemption Code    Current Rateable Value    Current Rateable Value_x    Current Rateable Value_y  Current Relief Award Start Date    Current Relief Type      Full Property Address  Full Property Address_x                                                    Full Property Address_y                                                      Primary Liable party name  Primary Liable party name_x                 Primary Liable party name_y      Property Reference Number_x    Property Reference Number_y    Property ref no
+====  ======================  ======================  =================  =================  ===================================  =================================  ========================  ==========================  ==========================  =================================  =====================  =======================  =========================================================================  =========================================================================  ===========================  ==========================================  =============================  =============================  =============================  =================
+   0  2003-11-10 00:00:00     NaT                     CW                               nan                                  nan                                nan                       nan                       37000                         nan  NaT                                nan                                        nan  Unit 7b, The Pompey Centre, Dickinson Road, Southsea, Hants, PO4 8SH       nan                                                                                                nan  City Electrical Factors  Ltd                nan                                              nan                                    nan       177200066910
+   1  2003-11-08 00:00:00     NaT                     CH                               nan                                  nan                                nan                       nan                      594000                         nan  NaT                                nan                                        nan  Express By Holiday Inn, The Plaza, Gunwharf Quays, Portsmouth, PO1 3FD     nan                                                                                                nan  Kew Green Hotels (Portsmouth Lrg1) Limited  nan                                              nan                                    nan       177209823010
+   2  1994-12-25 00:00:00     1994-12-25 00:00:00     CG1                              nan                                  nan                                nan                       nan                       13250                       13250  2019-04-01 00:00:00                Retail Discount                            nan  Unit 2cd, Shawcross Industrial Estate, Ackworth Road, Portsmouth, PO3 5JP  Unit 2cd, Shawcross Industrial Estate, Ackworth Road, Portsmouth, PO3 5JP                          nan  Personal details not supplied               Personal details not supplied                      1.775e+11                            nan       177500013310
+====  ======================  ======================  =================  =================  ===================================  =================================  ========================  ==========================  ==========================  =================================  =====================  =======================  =========================================================================  =========================================================================  ===========================  ==========================================  =============================  =============================  =============================  =================
+
+.. code-block::
 
 	Current method status: `Ready to Structure`
 
 Every task structure must start with an action to describe what to do with the following terms.
 There are several "actions" which can be performed, and some require action modifiers:
 
-	* NEW: Add in a new column, and populate it according to the value in the "new" constraint
+* NEW: Add in a new column, and populate it according to the value in the "new" constraint
 
-	* RENAME: If only 1 item in list of source fields, then rename that field
+* RENAME: If only 1 item in list of source fields, then rename that field
 
-	* ORDER: If > 1 item in list of source fields, pick the value from the column, replacing each value with one from the next in the order of the provided fields
+* ORDER: If > 1 item in list of source fields, pick the value from the column, replacing each 
+  value with one from the next in the order of the provided fields
 
-	* ORDER_NEW: As in ORDER, but replacing each value with one associated with a newer "dateorder" constraint
+* ORDER_NEW: As in ORDER, but replacing each value with one associated with a newer "dateorder" 
+  constraint:
 
-		* MODIFIER: `+` between terms for source and source_date
+  * MODIFIER: `+` between terms for source and source_date
 
-	* ORDER_OLD: As in ORDER, but replacing each value with one associated with an older "dateorder" constraint
+* ORDER_OLD: As in ORDER, but replacing each value with one associated with an older "dateorder" 
+  constraint:
 
-		* MODIFIER: `+` between terms for source and source_date
+  * MODIFIER: `+` between terms for source and source_date
 
-	* CALCULATE: Only if of "type" = "float64" (or which can be forced to float64)
+* CALCULATE: Only if of `type` = `float64` (or which can be forced to float64):
 
-		* MODIFIER: `+` or `-` before each term to define whether add or subtract
+  * MODIFIER: `+` or `-` before each term to define whether add or subtract
 
-	* JOIN: Only if of "type" = "object", join text with " ".join()
+* JOIN: Only if of `type` = `object`, join text with `" ".join()`
 
-	* CATEGORISE: Only if of "type" = "string"; look for associated constraint, "categorise" where `True` = keep a list of categories, `False` = set True if terms found in list
+* CATEGORISE: Only if of `type` = `string`; look for associated constraint, `categorise` where 
+  `True` = keep a list of categories, `False` = set `True` if terms found in list:
 
-		* MODIFIER:
+  * MODIFIER:
 
-			* `+` before terms where column values to be classified as unique
+    * `+` before terms where column values to be classified as unique
 
-			* `-` before terms where column values are treated as boolean
+    * `-` before terms where column values are treated as boolean
 
 This tutorial doesn't require you to do all of these, but it gives you a good flavour of use. You
 can also nest actions, but use common sense to ensure you know what the result is likely to be.
@@ -596,8 +621,11 @@ as a new field. The rest of the data can be derived from our working data in the
 Let's get in to what all of this means:
 
 * `NEW`: is the only case where the term after the action is a `value` not a `field` reference.
-* `ORDER`: is a simple first-out-last-in replacement where the value from the next field will replace the current one, unless it's `nan` or empty.
-* `ORDER_NEW`: is a date-comparison between the listed fields, however, you need to tie the value field to a date field with the `+` modifier (in this case, they're the same, but that isn't assumed). Here's it's `field_to_test_for_newnewss` + `field_with_date_reflecting_field_to_tests_newness`::
+* `ORDER`: is a simple first-out-last-in replacement where the value from the next field will replace 
+  the current one, unless it's `nan` or empty.
+* `ORDER_NEW`: is a date-comparison between the listed fields, however, you need to tie the value 
+  field to a date field with the `+` modifier (in this case, they're the same, but that isn't assumed). 
+  Here's it's `field_to_test_for_newnewss` + `field_with_date_reflecting_field_to_tests_newness`::
 
 		"occupation_state_date": ["ORDER_NEW",
 			"Current Prop Exemption Start Date", "+", "Current Prop Exemption Start Date",
@@ -605,7 +633,8 @@ Let's get in to what all of this means:
 			"Account Start date_x", "+", "Account Start date_x",
 			"Account Start date_y", "+", "Account Start date_y"]
 
-* `CATEGORISE`: is the most complex operation (and has another step) ... there are two important modifiers: `+` and `-`.
+* `CATEGORISE`: is the most complex operation (and has another step) ... there are two important 
+  modifiers: `+` and `-`.
 
 You can think of a column of values you want to use for **categorical** data as having two broad types:
 

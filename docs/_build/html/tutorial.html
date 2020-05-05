@@ -215,7 +215,8 @@ dataset released by <a class="reference external" href="https://www.portsmouth.g
 The data in this tutorial are from January 2020, but follow along with the current download.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>This tutorial does assume familiarity with Python, homeopathic quantities of Pandas, and a little experience with JSON.</p>
+<p>This tutorial does assume familiarity with Python, homeopathic quantities of Pandas, and a
+little experience with JSON.</p>
 </div>
 <div class="section" id="creating-a-schema">
 <h2>Creating a Schema<a class="headerlink" href="#creating-a-schema" title="Permalink to this headline">¶</a></h2>
@@ -251,19 +252,47 @@ and <cite>description</cite> as well, because more information is better. We’r
 <p>We’ll now start to create each of our schema <cite>fields</cite>.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>You can think of a schema <cite>field</cite> as a <cite>column</cite> in a table, or a <cite>field</cite> in a database. Fields have a <cite>type</cite>, such as integer or text.</p>
+<p>You can think of a schema <cite>field</cite> as a <cite>column</cite> in a table, or a <cite>field</cite> in a database.
+Fields have a <cite>type</cite>, such as integer or text.</p>
 </div>
 <p>Each field, unsurprisingly, has a <cite>name</cite>, <cite>title</cite> and <cite>description</cite>, of which only the <cite>name</cite> is required.
 Fields also have a <cite>type</cite>. This describes the data expected and limits the actions which can be performed
 during the wrangling process.</p>
 <p>We want our destination data to conform to the following structure:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">=========</span>  <span class="o">============</span>  <span class="o">=============</span>  <span class="o">========</span>  <span class="o">================</span>  <span class="o">=====================</span>  <span class="o">=============</span>  <span class="o">========================</span>
-  <span class="n">la_code</span>        <span class="n">ba_ref</span>  <span class="n">occupant_name</span>  <span class="n">postcode</span>  <span class="n">occupation_state</span>  <span class="n">occupation_state_date</span>  <span class="n">prop_ba_rates</span>  <span class="n">occupation_state_reliefs</span>
-<span class="o">=========</span>  <span class="o">============</span>  <span class="o">=============</span>  <span class="o">========</span>  <span class="o">================</span>  <span class="o">=====================</span>  <span class="o">=============</span>  <span class="o">========================</span>
-<span class="n">E06000044</span>  <span class="mi">177500080710</span>  <span class="n">A</span> <span class="n">company</span>       <span class="n">PO5</span> <span class="mi">2</span><span class="n">SE</span>              <span class="kc">True</span>             <span class="mi">2019</span><span class="o">-</span><span class="mi">04</span><span class="o">-</span><span class="mi">01</span>          <span class="mi">98530</span>  <span class="p">[</span><span class="n">small_business</span><span class="p">,</span> <span class="n">retail</span><span class="p">]</span>
-<span class="o">=========</span>  <span class="o">============</span>  <span class="o">=============</span>  <span class="o">========</span>  <span class="o">================</span>  <span class="o">=====================</span>  <span class="o">=============</span>  <span class="o">========================</span>
-</pre></div>
-</div>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 8%" />
+<col style="width: 10%" />
+<col style="width: 11%" />
+<col style="width: 7%" />
+<col style="width: 14%" />
+<col style="width: 18%" />
+<col style="width: 11%" />
+<col style="width: 21%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>la_code</p></th>
+<th class="head"><p>ba_ref</p></th>
+<th class="head"><p>occupant_name</p></th>
+<th class="head"><p>postcode</p></th>
+<th class="head"><p>occupation_state</p></th>
+<th class="head"><p>occupation_state_date</p></th>
+<th class="head"><p>prop_ba_rates</p></th>
+<th class="head"><p>occupation_state_reliefs</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>E06000044</p></td>
+<td><p>177500080710</p></td>
+<td><p>A company</p></td>
+<td><p>PO5 2SE</p></td>
+<td><p>True</p></td>
+<td><p>2019-04-01</p></td>
+<td><p>98530</p></td>
+<td><p>[small_business, retail]</p></td>
+</tr>
+</tbody>
+</table>
 <p>Each of these fields is a different <cite>type</cite> of data:</p>
 <ul class="simple">
 <li><p><cite>string</cite>: any text-based string.</p></li>
@@ -273,15 +302,19 @@ during the wrangling process.</p>
 <li><p><cite>object</cite>: any valid JSON data.</p></li>
 <li><p><cite>array</cite>: any valid array-based data.</p></li>
 <li><p><cite>date</cite>: any date without a time. Must be in ISO8601 format, <cite>YYYY-MM-DD</cite>.</p></li>
-<li><p><cite>datetime</cite>: any date with a time. Must be in ISO8601 format, with UTC time specified (optionally) as <cite>YYYY-MM-DD hh:mm:ss Zz</cite>.</p></li>
+<li><p><cite>datetime</cite>: any date with a time. Must be in ISO8601 format, with UTC time specified (optionally) as
+<cite>YYYY-MM-DD hh:mm:ss Zz</cite>.</p></li>
 <li><p><cite>year</cite>: any year, formatted as <cite>YYYY</cite>.</p></li>
 </ul>
 <p>In addition, these data can be <cite>constrained</cite>:</p>
 <ul class="simple">
-<li><p><cite>required</cite>: boolean, indicates whether this field is compulsory (but blank values in the input column are permitted and will be set to the <cite>missing</cite> default)</p></li>
+<li><p><cite>required</cite>: boolean, indicates whether this field is compulsory (but blank values in the input column
+are permitted and will be set to the <cite>missing</cite> default)</p></li>
 <li><p><cite>unique</cite>: boolean, if <cite>true</cite> then all values for that input column must be unique</p></li>
-<li><p><cite>minimum</cite>: <cite>integer</cite> / <cite>number</cite>, as appropriate defining min number of characters in a string, or the min values of numbers or integers</p></li>
-<li><p><cite>maximum</cite>: <cite>integer</cite> / <cite>number</cite>, as appropriate defining max number of characters in a string, or the max values of numbers or integers</p></li>
+<li><p><cite>minimum</cite>: <cite>integer</cite> / <cite>number</cite>, as appropriate defining min number of characters in a string, or
+the min values of numbers or integers</p></li>
+<li><p><cite>maximum</cite>: <cite>integer</cite> / <cite>number</cite>, as appropriate defining max number of characters in a string, or
+the max values of numbers or integers</p></li>
 <li><p><cite>category</cite>: the set of unique category terms permitted in this field</p></li>
 <li><p><cite>filter</cite>: limit a named field by date-limited data</p></li>
 </ul>
@@ -376,7 +409,9 @@ if that field has no data.</p>
 </div>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>These are the official business <a class="reference external" href="https://www.gov.uk/apply-for-business-rate-relief">rates reliefs</a> permitted by the UK government. Unsurprisingly, only by accident do any local authorities actually use these terms when awarding a relief.</p>
+<p>These are the official business <a class="reference external" href="https://www.gov.uk/apply-for-business-rate-relief">rates reliefs</a>
+permitted by the UK government. Unsurprisingly, only by accident do any local authorities actually
+use these terms when awarding a relief.</p>
 </div>
 <p>We could choose to limit the <cite>filter</cite> field for the <cite>occupation_state_date</cite>, but we’re not going to
 bother. Review your schema, then <cite>save</cite> and we’re ready to begin wrangling:</p>
@@ -440,7 +475,8 @@ are readable before proceeding. You’ll be surprised at the number of supposedl
 released with password-protection, fruity formatting, or which are completely corrupted.</p>
 <div class="admonition warning">
 <p class="admonition-title">Warning</p>
-<p>The minimum required to ensure a dataset is machine-readable is that it have a header-row, and that there is no weird spacing or merged-fields (if you’re using Excel).</p>
+<p>The minimum required to ensure a dataset is machine-readable is that it have a header-row,
+and that there is no weird spacing or merged-fields (if you’re using Excel).</p>
 </div>
 <p>In our tutorial example, the data from <a class="reference external" href="https://www.portsmouth.gov.uk/ext/business/running-a-business/business-rates-foi-requests">Portsmouth City Council</a>
 include three Excel (XLS) data files:</p>
@@ -479,7 +515,11 @@ directory you’re calling the function from.</p>
 <p>These data will be copied to your working directory and renamed to a unique hashed <cite>id</cite>.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p><strong>Data probity</strong> - the abilty to audit data and methodology back to source - is critical for research transparency and replication. You may end up with hundreds of similarly-named files in a single directory without much information as to where they come from, or how they were created. Unique ids, referenced in your method file, are a more useful way of ensuring you know what they were for.</p>
+<p><strong>Data probity</strong> - the abilty to audit data and methodology back to source - is critical for
+research transparency and replication. You may end up with hundreds of similarly-named files in a
+single directory without much information as to where they come from, or how they were created.
+Unique ids, referenced in your method file, are a more useful way of ensuring you know what they
+were for.</p>
 </div>
 <p>The method class provides help at each step. Access it like this:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>print(method.help())
@@ -544,38 +584,168 @@ To view your existing `input_data`::
 
 Data id: ab79fc32-51ce-4e9e-80cf-493af94e4177
 Original source: https://www.portsmouth.gov.uk/ext/documents-external/biz-ndr-properties-january-2020.xls
-
-====  =================  =========================================================================  ==========================================  ===============  ====================  ========================
-  ..    Property ref no  Full Property Address                                                      Primary Liable party name                   Analysis Code    Account Start date      Current Rateable Value
-====  =================  =========================================================================  ==========================================  ===============  ====================  ========================
-   0       177200066910  Unit 7b, The Pompey Centre, Dickinson Road, Southsea, Hants, PO4 8SH       City Electrical Factors  Ltd                CW               2003-11-10 00:00:00                      37000
-   1       177209823010  Express By Holiday Inn, The Plaza, Gunwharf Quays, Portsmouth, PO1 3FD     Kew Green Hotels (Portsmouth Lrg1) Limited  CH               2003-11-08 00:00:00                     594000
-   2       177500013310  Unit 2cd, Shawcross Industrial Estate, Ackworth Road, Portsmouth, PO3 5JP  Personal details not supplied               CG1              1994-12-25 00:00:00                      13250
-====  =================  =========================================================================  ==========================================  ===============  ====================  ========================
-
-Data id: 3b2e9893-c04c-4714-b9bb-6dd2bf274db4
-Original source: https://www.portsmouth.gov.uk/ext/documents-external/biz-ndr-reliefs-january-2020.xls
-
-====  ===========================  =============================  =======================================================  =============================  ====================  =================================  ========================
-  ..    Property Reference Number  Primary Liable party name      Full Property Address                                    Current Relief Type            Account Start date    Current Relief Award Start Date      Current Rateable Value
-====  ===========================  =============================  =======================================================  =============================  ====================  =================================  ========================
-   0                 177500080710  Personal details not supplied  Ground Floor, 25, Albert Road, Southsea, Hants, PO5 2SE  Retail Discount                2003-05-14 00:00:00   2019-04-01 00:00:00                                    8600
-   1                 177504942310  Personal details not supplied  Ground Floor, 102, London Road, Portsmouth, PO2 0LZ      Small Business Relief England  2003-07-28 00:00:00   2005-04-01 00:00:00                                    9900
-   2                 177502823510  Personal details not supplied  33, Festing Road, Southsea, Hants, PO4 0NG               Small Business Relief England  2003-07-08 00:00:00   2005-04-01 00:00:00                                    6400
-====  ===========================  =============================  =======================================================  =============================  ====================  =================================  ========================
-
-Data id: 458d7c0b-1481-487e-b120-19ccd2326d24
-Original source: https://www.portsmouth.gov.uk/ext/documents-external/biz-empty-commercial-properties-january-2020.xls
-
-====  ===========================  ================================================================  =================================  ===================================  ===============  =======================================================  ========================
-  ..    Property Reference Number  Full Property Address                                             Current Property Exemption Code    Current Prop Exemption Start Date    Analysis Code    Primary Liable party name                                  Current Rateable Value
-====  ===========================  ================================================================  =================================  ===================================  ===============  =======================================================  ========================
-   0                 177512281010  Advertising Right, 29 Albert Road, Portsmouth, PO5 2SE            LOW RV                             2019-11-08 00:00:00                  CA1              Personal details not supplied                                                 700
-   1                 177590107810  24, Ordnance Court, Ackworth Road, Portsmouth, PO3 5RZ            INDUSTRIAL                         2019-09-23 00:00:00                  IF3              Personal details not supplied                                               11000
-   2                 177500058410  Unit 12, Admiral Park, Airport Service Road, Portsmouth, PO3 5RQ  EPRI                               2019-09-13 00:00:00                  CW               Legal &amp; General Property Partners (Industrial Fund) Ltd                     26500
-====  ===========================  ================================================================  =================================  ===================================  ===============  =======================================================  ========================
-
-Current method status: `Ready to Merge`
+</pre></div>
+</div>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 2%" />
+<col style="width: 9%" />
+<col style="width: 37%" />
+<col style="width: 22%" />
+<col style="width: 8%" />
+<col style="width: 10%" />
+<col style="width: 12%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"></th>
+<th class="head"><p>Property ref no</p></th>
+<th class="head"><p>Full Property Address</p></th>
+<th class="head"><p>Primary Liable party name</p></th>
+<th class="head"><p>Analysis Code</p></th>
+<th class="head"><p>Account Start date</p></th>
+<th class="head"><p>Current Rateable Value</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>0</p></td>
+<td><p>177200066910</p></td>
+<td><p>Unit 7b, The Pompey Centre, Dickinson Road, Southsea, Hants, PO4 8SH</p></td>
+<td><p>City Electrical Factors  Ltd</p></td>
+<td><p>CW</p></td>
+<td><p>2003-11-10 00:00:00</p></td>
+<td><p>37000</p></td>
+</tr>
+<tr class="row-odd"><td><p>1</p></td>
+<td><p>177209823010</p></td>
+<td><p>Express By Holiday Inn, The Plaza, Gunwharf Quays, Portsmouth, PO1 3FD</p></td>
+<td><p>Kew Green Hotels (Portsmouth Lrg1) Limited</p></td>
+<td><p>CH</p></td>
+<td><p>2003-11-08 00:00:00</p></td>
+<td><p>594000</p></td>
+</tr>
+<tr class="row-even"><td><p>2</p></td>
+<td><p>177500013310</p></td>
+<td><p>Unit 2cd, Shawcross Industrial Estate, Ackworth Road, Portsmouth, PO3 5JP</p></td>
+<td><p>Personal details not supplied</p></td>
+<td><p>CG1</p></td>
+<td><p>1994-12-25 00:00:00</p></td>
+<td><p>13250</p></td>
+</tr>
+</tbody>
+</table>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Data</span> <span class="nb">id</span><span class="p">:</span> <span class="mi">3</span><span class="n">b2e9893</span><span class="o">-</span><span class="n">c04c</span><span class="o">-</span><span class="mi">4714</span><span class="o">-</span><span class="n">b9bb</span><span class="o">-</span><span class="mi">6</span><span class="n">dd2bf274db4</span>
+<span class="n">Original</span> <span class="n">source</span><span class="p">:</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">www</span><span class="o">.</span><span class="n">portsmouth</span><span class="o">.</span><span class="n">gov</span><span class="o">.</span><span class="n">uk</span><span class="o">/</span><span class="n">ext</span><span class="o">/</span><span class="n">documents</span><span class="o">-</span><span class="n">external</span><span class="o">/</span><span class="n">biz</span><span class="o">-</span><span class="n">ndr</span><span class="o">-</span><span class="n">reliefs</span><span class="o">-</span><span class="n">january</span><span class="o">-</span><span class="mf">2020.</span><span class="n">xls</span>
+</pre></div>
+</div>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 2%" />
+<col style="width: 12%" />
+<col style="width: 13%" />
+<col style="width: 25%" />
+<col style="width: 13%" />
+<col style="width: 9%" />
+<col style="width: 15%" />
+<col style="width: 11%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"></th>
+<th class="head"><p>Property Reference Number</p></th>
+<th class="head"><p>Primary Liable party name</p></th>
+<th class="head"><p>Full Property Address</p></th>
+<th class="head"><p>Current Relief Type</p></th>
+<th class="head"><p>Account Start date</p></th>
+<th class="head"><p>Current Relief Award Start Date</p></th>
+<th class="head"><p>Current Rateable Value</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>0</p></td>
+<td><p>177500080710</p></td>
+<td><p>Personal details not supplied</p></td>
+<td><p>Ground Floor, 25, Albert Road, Southsea, Hants, PO5 2SE</p></td>
+<td><p>Retail Discount</p></td>
+<td><p>2003-05-14 00:00:00</p></td>
+<td><p>2019-04-01 00:00:00</p></td>
+<td><p>8600</p></td>
+</tr>
+<tr class="row-odd"><td><p>1</p></td>
+<td><p>177504942310</p></td>
+<td><p>Personal details not supplied</p></td>
+<td><p>Ground Floor, 102, London Road, Portsmouth, PO2 0LZ</p></td>
+<td><p>Small Business Relief England</p></td>
+<td><p>2003-07-28 00:00:00</p></td>
+<td><p>2005-04-01 00:00:00</p></td>
+<td><p>9900</p></td>
+</tr>
+<tr class="row-even"><td><p>2</p></td>
+<td><p>177502823510</p></td>
+<td><p>Personal details not supplied</p></td>
+<td><p>33, Festing Road, Southsea, Hants, PO4 0NG</p></td>
+<td><p>Small Business Relief England</p></td>
+<td><p>2003-07-08 00:00:00</p></td>
+<td><p>2005-04-01 00:00:00</p></td>
+<td><p>6400</p></td>
+</tr>
+</tbody>
+</table>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Data</span> <span class="nb">id</span><span class="p">:</span> <span class="mi">458</span><span class="n">d7c0b</span><span class="o">-</span><span class="mi">1481</span><span class="o">-</span><span class="mi">487</span><span class="n">e</span><span class="o">-</span><span class="n">b120</span><span class="o">-</span><span class="mi">19</span><span class="n">ccd2326d24</span>
+<span class="n">Original</span> <span class="n">source</span><span class="p">:</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">www</span><span class="o">.</span><span class="n">portsmouth</span><span class="o">.</span><span class="n">gov</span><span class="o">.</span><span class="n">uk</span><span class="o">/</span><span class="n">ext</span><span class="o">/</span><span class="n">documents</span><span class="o">-</span><span class="n">external</span><span class="o">/</span><span class="n">biz</span><span class="o">-</span><span class="n">empty</span><span class="o">-</span><span class="n">commercial</span><span class="o">-</span><span class="n">properties</span><span class="o">-</span><span class="n">january</span><span class="o">-</span><span class="mf">2020.</span><span class="n">xls</span>
+</pre></div>
+</div>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 2%" />
+<col style="width: 11%" />
+<col style="width: 25%" />
+<col style="width: 13%" />
+<col style="width: 14%" />
+<col style="width: 6%" />
+<col style="width: 21%" />
+<col style="width: 9%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"></th>
+<th class="head"><p>Property Reference Number</p></th>
+<th class="head"><p>Full Property Address</p></th>
+<th class="head"><p>Current Property Exemption Code</p></th>
+<th class="head"><p>Current Prop Exemption Start Date</p></th>
+<th class="head"><p>Analysis Code</p></th>
+<th class="head"><p>Primary Liable party name</p></th>
+<th class="head"><p>Current Rateable Value</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>0</p></td>
+<td><p>177512281010</p></td>
+<td><p>Advertising Right, 29 Albert Road, Portsmouth, PO5 2SE</p></td>
+<td><p>LOW RV</p></td>
+<td><p>2019-11-08 00:00:00</p></td>
+<td><p>CA1</p></td>
+<td><p>Personal details not supplied</p></td>
+<td><p>700</p></td>
+</tr>
+<tr class="row-odd"><td><p>1</p></td>
+<td><p>177590107810</p></td>
+<td><p>24, Ordnance Court, Ackworth Road, Portsmouth, PO3 5RZ</p></td>
+<td><p>INDUSTRIAL</p></td>
+<td><p>2019-09-23 00:00:00</p></td>
+<td><p>IF3</p></td>
+<td><p>Personal details not supplied</p></td>
+<td><p>11000</p></td>
+</tr>
+<tr class="row-even"><td><p>2</p></td>
+<td><p>177500058410</p></td>
+<td><p>Unit 12, Admiral Park, Airport Service Road, Portsmouth, PO3 5RQ</p></td>
+<td><p>EPRI</p></td>
+<td><p>2019-09-13 00:00:00</p></td>
+<td><p>CW</p></td>
+<td><p>Legal &amp; General Property Partners (Industrial Fund) Ltd</p></td>
+<td><p>26500</p></td>
+</tr>
+</tbody>
+</table>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>Current method status: `Ready to Merge`
 </pre></div>
 </div>
 <p>Well, <cite>help</cite> shows us the first few rows of our input data, as well as their unique ids, and tells us
@@ -700,63 +870,165 @@ The columns from your working data:
 
 Data id: a9b99aaf-438d-44cd-bf38-4849edac0c66
 Original source: method.input_data
-
-====  ======================  ======================  =================  =================  ===================================  =================================  ========================  ==========================  ==========================  =================================  =====================  =======================  =========================================================================  =========================================================================  ===========================  ==========================================  =============================  =============================  =============================  =================
-  ..  Account Start date_x    Account Start date_y    Analysis Code_x      Analysis Code_y    Current Prop Exemption Start Date    Current Property Exemption Code    Current Rateable Value    Current Rateable Value_x    Current Rateable Value_y  Current Relief Award Start Date    Current Relief Type      Full Property Address  Full Property Address_x                                                    Full Property Address_y                                                      Primary Liable party name  Primary Liable party name_x                 Primary Liable party name_y      Property Reference Number_x    Property Reference Number_y    Property ref no
-====  ======================  ======================  =================  =================  ===================================  =================================  ========================  ==========================  ==========================  =================================  =====================  =======================  =========================================================================  =========================================================================  ===========================  ==========================================  =============================  =============================  =============================  =================
-   0  2003-11-10 00:00:00     NaT                     CW                               nan                                  nan                                nan                       nan                       37000                         nan  NaT                                nan                                        nan  Unit 7b, The Pompey Centre, Dickinson Road, Southsea, Hants, PO4 8SH       nan                                                                                                nan  City Electrical Factors  Ltd                nan                                              nan                                    nan       177200066910
-   1  2003-11-08 00:00:00     NaT                     CH                               nan                                  nan                                nan                       nan                      594000                         nan  NaT                                nan                                        nan  Express By Holiday Inn, The Plaza, Gunwharf Quays, Portsmouth, PO1 3FD     nan                                                                                                nan  Kew Green Hotels (Portsmouth Lrg1) Limited  nan                                              nan                                    nan       177209823010
-   2  1994-12-25 00:00:00     1994-12-25 00:00:00     CG1                              nan                                  nan                                nan                       nan                       13250                       13250  2019-04-01 00:00:00                Retail Discount                            nan  Unit 2cd, Shawcross Industrial Estate, Ackworth Road, Portsmouth, PO3 5JP  Unit 2cd, Shawcross Industrial Estate, Ackworth Road, Portsmouth, PO3 5JP                          nan  Personal details not supplied               Personal details not supplied                      1.775e+11                            nan       177500013310
-====  ======================  ======================  =================  =================  ===================================  =================================  ========================  ==========================  ==========================  =================================  =====================  =======================  =========================================================================  =========================================================================  ===========================  ==========================================  =============================  =============================  =============================  =================
-
-Current method status: `Ready to Structure`
+</pre></div>
+</div>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 1%" />
+<col style="width: 4%" />
+<col style="width: 4%" />
+<col style="width: 3%" />
+<col style="width: 3%" />
+<col style="width: 6%" />
+<col style="width: 5%" />
+<col style="width: 4%" />
+<col style="width: 4%" />
+<col style="width: 4%" />
+<col style="width: 5%" />
+<col style="width: 3%" />
+<col style="width: 4%" />
+<col style="width: 12%" />
+<col style="width: 12%" />
+<col style="width: 4%" />
+<col style="width: 7%" />
+<col style="width: 5%" />
+<col style="width: 5%" />
+<col style="width: 5%" />
+<col style="width: 3%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"></th>
+<th class="head"><p>Account Start date_x</p></th>
+<th class="head"><p>Account Start date_y</p></th>
+<th class="head"><p>Analysis Code_x</p></th>
+<th class="head"><p>Analysis Code_y</p></th>
+<th class="head"><p>Current Prop Exemption Start Date</p></th>
+<th class="head"><p>Current Property Exemption Code</p></th>
+<th class="head"><p>Current Rateable Value</p></th>
+<th class="head"><p>Current Rateable Value_x</p></th>
+<th class="head"><p>Current Rateable Value_y</p></th>
+<th class="head"><p>Current Relief Award Start Date</p></th>
+<th class="head"><p>Current Relief Type</p></th>
+<th class="head"><p>Full Property Address</p></th>
+<th class="head"><p>Full Property Address_x</p></th>
+<th class="head"><p>Full Property Address_y</p></th>
+<th class="head"><p>Primary Liable party name</p></th>
+<th class="head"><p>Primary Liable party name_x</p></th>
+<th class="head"><p>Primary Liable party name_y</p></th>
+<th class="head"><p>Property Reference Number_x</p></th>
+<th class="head"><p>Property Reference Number_y</p></th>
+<th class="head"><p>Property ref no</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>0</p></td>
+<td><p>2003-11-10 00:00:00</p></td>
+<td><p>NaT</p></td>
+<td><p>CW</p></td>
+<td><p>nan</p></td>
+<td><p>nan</p></td>
+<td><p>nan</p></td>
+<td><p>nan</p></td>
+<td><p>37000</p></td>
+<td><p>nan</p></td>
+<td><p>NaT</p></td>
+<td><p>nan</p></td>
+<td><p>nan</p></td>
+<td><p>Unit 7b, The Pompey Centre, Dickinson Road, Southsea, Hants, PO4 8SH</p></td>
+<td><p>nan</p></td>
+<td><p>nan</p></td>
+<td><p>City Electrical Factors  Ltd</p></td>
+<td><p>nan</p></td>
+<td><p>nan</p></td>
+<td><p>nan</p></td>
+<td><p>177200066910</p></td>
+</tr>
+<tr class="row-odd"><td><p>1</p></td>
+<td><p>2003-11-08 00:00:00</p></td>
+<td><p>NaT</p></td>
+<td><p>CH</p></td>
+<td><p>nan</p></td>
+<td><p>nan</p></td>
+<td><p>nan</p></td>
+<td><p>nan</p></td>
+<td><p>594000</p></td>
+<td><p>nan</p></td>
+<td><p>NaT</p></td>
+<td><p>nan</p></td>
+<td><p>nan</p></td>
+<td><p>Express By Holiday Inn, The Plaza, Gunwharf Quays, Portsmouth, PO1 3FD</p></td>
+<td><p>nan</p></td>
+<td><p>nan</p></td>
+<td><p>Kew Green Hotels (Portsmouth Lrg1) Limited</p></td>
+<td><p>nan</p></td>
+<td><p>nan</p></td>
+<td><p>nan</p></td>
+<td><p>177209823010</p></td>
+</tr>
+<tr class="row-even"><td><p>2</p></td>
+<td><p>1994-12-25 00:00:00</p></td>
+<td><p>1994-12-25 00:00:00</p></td>
+<td><p>CG1</p></td>
+<td><p>nan</p></td>
+<td><p>nan</p></td>
+<td><p>nan</p></td>
+<td><p>nan</p></td>
+<td><p>13250</p></td>
+<td><p>13250</p></td>
+<td><p>2019-04-01 00:00:00</p></td>
+<td><p>Retail Discount</p></td>
+<td><p>nan</p></td>
+<td><p>Unit 2cd, Shawcross Industrial Estate, Ackworth Road, Portsmouth, PO3 5JP</p></td>
+<td><p>Unit 2cd, Shawcross Industrial Estate, Ackworth Road, Portsmouth, PO3 5JP</p></td>
+<td><p>nan</p></td>
+<td><p>Personal details not supplied</p></td>
+<td><p>Personal details not supplied</p></td>
+<td><p>1.775e+11</p></td>
+<td><p>nan</p></td>
+<td><p>177500013310</p></td>
+</tr>
+</tbody>
+</table>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>Current method status: `Ready to Structure`
 </pre></div>
 </div>
 <p>Every task structure must start with an action to describe what to do with the following terms.
 There are several “actions” which can be performed, and some require action modifiers:</p>
-<blockquote>
-<div><ul>
+<ul class="simple">
 <li><p>NEW: Add in a new column, and populate it according to the value in the “new” constraint</p></li>
 <li><p>RENAME: If only 1 item in list of source fields, then rename that field</p></li>
-<li><p>ORDER: If &gt; 1 item in list of source fields, pick the value from the column, replacing each value with one from the next in the order of the provided fields</p></li>
-<li><p>ORDER_NEW: As in ORDER, but replacing each value with one associated with a newer “dateorder” constraint</p>
-<blockquote>
-<div><ul class="simple">
+<li><p>ORDER: If &gt; 1 item in list of source fields, pick the value from the column, replacing each
+value with one from the next in the order of the provided fields</p></li>
+<li><p>ORDER_NEW: As in ORDER, but replacing each value with one associated with a newer “dateorder”
+constraint:</p>
+<ul>
 <li><p>MODIFIER: <cite>+</cite> between terms for source and source_date</p></li>
 </ul>
-</div></blockquote>
 </li>
-<li><p>ORDER_OLD: As in ORDER, but replacing each value with one associated with an older “dateorder” constraint</p>
-<blockquote>
-<div><ul class="simple">
+<li><p>ORDER_OLD: As in ORDER, but replacing each value with one associated with an older “dateorder”
+constraint:</p>
+<ul>
 <li><p>MODIFIER: <cite>+</cite> between terms for source and source_date</p></li>
 </ul>
-</div></blockquote>
 </li>
-<li><p>CALCULATE: Only if of “type” = “float64” (or which can be forced to float64)</p>
-<blockquote>
-<div><ul class="simple">
+<li><p>CALCULATE: Only if of <cite>type</cite> = <cite>float64</cite> (or which can be forced to float64):</p>
+<ul>
 <li><p>MODIFIER: <cite>+</cite> or <cite>-</cite> before each term to define whether add or subtract</p></li>
 </ul>
-</div></blockquote>
 </li>
-<li><p>JOIN: Only if of “type” = “object”, join text with ” “.join()</p></li>
-<li><p>CATEGORISE: Only if of “type” = “string”; look for associated constraint, “categorise” where <cite>True</cite> = keep a list of categories, <cite>False</cite> = set True if terms found in list</p>
-<blockquote>
-<div><ul>
+<li><p>JOIN: Only if of <cite>type</cite> = <cite>object</cite>, join text with <cite>” “.join()</cite></p></li>
+<li><p>CATEGORISE: Only if of <cite>type</cite> = <cite>string</cite>; look for associated constraint, <cite>categorise</cite> where
+<cite>True</cite> = keep a list of categories, <cite>False</cite> = set <cite>True</cite> if terms found in list:</p>
+<ul>
 <li><p>MODIFIER:</p>
-<blockquote>
-<div><ul class="simple">
+<ul>
 <li><p><cite>+</cite> before terms where column values to be classified as unique</p></li>
 <li><p><cite>-</cite> before terms where column values are treated as boolean</p></li>
 </ul>
-</div></blockquote>
 </li>
 </ul>
-</div></blockquote>
 </li>
 </ul>
-</div></blockquote>
 <p>This tutorial doesn’t require you to do all of these, but it gives you a good flavour of use. You
 can also nest actions, but use common sense to ensure you know what the result is likely to be.</p>
 <p>Portsmouth’s unique local authority code (<a class="reference external" href="https://www.ons.gov.uk/geography/local-authority/E06000044">defined by ONS</a>)
@@ -786,8 +1058,11 @@ as a new field. The rest of the data can be derived from our working data in the
 <p>Let’s get in to what all of this means:</p>
 <ul>
 <li><p><cite>NEW</cite>: is the only case where the term after the action is a <cite>value</cite> not a <cite>field</cite> reference.</p></li>
-<li><p><cite>ORDER</cite>: is a simple first-out-last-in replacement where the value from the next field will replace the current one, unless it’s <cite>nan</cite> or empty.</p></li>
-<li><p><cite>ORDER_NEW</cite>: is a date-comparison between the listed fields, however, you need to tie the value field to a date field with the <cite>+</cite> modifier (in this case, they’re the same, but that isn’t assumed). Here’s it’s <cite>field_to_test_for_newnewss</cite> + <cite>field_with_date_reflecting_field_to_tests_newness</cite>:</p>
+<li><p><cite>ORDER</cite>: is a simple first-out-last-in replacement where the value from the next field will replace
+the current one, unless it’s <cite>nan</cite> or empty.</p></li>
+<li><p><cite>ORDER_NEW</cite>: is a date-comparison between the listed fields, however, you need to tie the value
+field to a date field with the <cite>+</cite> modifier (in this case, they’re the same, but that isn’t assumed).
+Here’s it’s <cite>field_to_test_for_newnewss</cite> + <cite>field_with_date_reflecting_field_to_tests_newness</cite>:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="s2">&quot;occupation_state_date&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;ORDER_NEW&quot;</span><span class="p">,</span>
         <span class="s2">&quot;Current Prop Exemption Start Date&quot;</span><span class="p">,</span> <span class="s2">&quot;+&quot;</span><span class="p">,</span> <span class="s2">&quot;Current Prop Exemption Start Date&quot;</span><span class="p">,</span>
         <span class="s2">&quot;Current Relief Award Start Date&quot;</span><span class="p">,</span> <span class="s2">&quot;+&quot;</span><span class="p">,</span> <span class="s2">&quot;Current Relief Award Start Date&quot;</span><span class="p">,</span>
@@ -796,7 +1071,8 @@ as a new field. The rest of the data can be derived from our working data in the
 </pre></div>
 </div>
 </li>
-<li><p><cite>CATEGORISE</cite>: is the most complex operation (and has another step) … there are two important modifiers: <cite>+</cite> and <cite>-</cite>.</p></li>
+<li><p><cite>CATEGORISE</cite>: is the most complex operation (and has another step) … there are two important
+modifiers: <cite>+</cite> and <cite>-</cite>.</p></li>
 </ul>
 <p>You can think of a column of values you want to use for <strong>categorical</strong> data as having two broad types:</p>
 <ul class="simple">
