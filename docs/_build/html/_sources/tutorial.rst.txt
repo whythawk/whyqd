@@ -384,7 +384,7 @@ cross-reference rows in each file and link them together. We start with `help`::
    2       177500013310  Unit 2cd, Shawcross Industrial Estate, Ackworth Road, Portsmouth, PO3 5JP  Personal details not supplied               CG1              1994-12-25 00:00:00                      13250
 ====  =================  =========================================================================  ==========================================  ===============  ====================  ========================
 
-.. code-block::
+.. code-block:: python
 
 	Data id: 3b2e9893-c04c-4714-b9bb-6dd2bf274db4
 	Original source: https://www.portsmouth.gov.uk/ext/documents-external/biz-ndr-reliefs-january-2020.xls
@@ -397,7 +397,7 @@ cross-reference rows in each file and link them together. We start with `help`::
    2                 177502823510  Personal details not supplied  33, Festing Road, Southsea, Hants, PO4 0NG               Small Business Relief England  2003-07-08 00:00:00   2005-04-01 00:00:00                                    6400
 ====  ===========================  =============================  =======================================================  =============================  ====================  =================================  ========================
 
-.. code-block::
+.. code-block:: python
 
 	Data id: 458d7c0b-1481-487e-b120-19ccd2326d24
 	Original source: https://www.portsmouth.gov.uk/ext/documents-external/biz-empty-commercial-properties-january-2020.xls
@@ -410,7 +410,7 @@ cross-reference rows in each file and link them together. We start with `help`::
    2                 177500058410  Unit 12, Admiral Park, Airport Service Road, Portsmouth, PO3 5RQ  EPRI                               2019-09-13 00:00:00                  CW               Legal & General Property Partners (Industrial Fund) Ltd                     26500
 ====  ===========================  ================================================================  =================================  ===================================  ===============  =======================================================  ========================
 
-.. code-block::
+.. code-block:: python
 
 	Current method status: `Ready to Merge`
 
@@ -552,7 +552,7 @@ Let's start with `help`::
    2  1994-12-25 00:00:00     1994-12-25 00:00:00     CG1                              nan                                  nan                                nan                       nan                       13250                       13250  2019-04-01 00:00:00                Retail Discount                            nan  Unit 2cd, Shawcross Industrial Estate, Ackworth Road, Portsmouth, PO3 5JP  Unit 2cd, Shawcross Industrial Estate, Ackworth Road, Portsmouth, PO3 5JP                          nan  Personal details not supplied               Personal details not supplied                      1.775e+11                            nan       177500013310
 ====  ======================  ======================  =================  =================  ===================================  =================================  ========================  ==========================  ==========================  =================================  =====================  =======================  =========================================================================  =========================================================================  ===========================  ==========================================  =============================  =============================  =============================  =================
 
-.. code-block::
+.. code-block:: python
 
 	Current method status: `Ready to Structure`
 
