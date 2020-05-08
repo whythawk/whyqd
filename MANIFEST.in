@@ -1,1 +1,3 @@
 include whyqd/VERSION
+include whyqd/settings/*
+include tests/data/*
