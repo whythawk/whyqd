@@ -1,12 +1,16 @@
+dist: focal
 language: python
 python:
-  - "3.6"      # current default Python on Travis CI
   - "3.7"
   - "3.8"
+  - "3.9"
 # command to install dependencies
+before_install:
+  - sudo apt-get update
+  - pip install poetry
 install:
-  - pip install -r requirements.txt
-  - python setup.py install
+  - poetry install
+  - poetry shell
 # command to run tests
 script:
   - pytest

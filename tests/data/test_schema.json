@@ -51,7 +51,7 @@
 			"type": "array",
 			"description": "Array of the categories of reliefs / exemptions applied.",
 			"constraints": {
-				"category": [
+				"enum": [
 					{
 						"name": "small_business"
 					},

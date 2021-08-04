@@ -2,10 +2,12 @@ import pandas as pd
 
 from whyqd.core import BaseAction
 
+
 class Action(BaseAction):
     """
     Create a new field by iterating over a list of fields and picking the next value in the list.
     """
+
     def __init__(self):
         self.name = "ORDER"
         self.title = "Order"
@@ -24,7 +26,7 @@ class Action(BaseAction):
             Name of the target schema field
         structure: list
             List of fields with restructuring action defined by term 0 (i.e. `this` action)
-        **kwargs: 
+        **kwargs:
             Other fields which may be required in custom transforms
 
         Returns
@@ -33,10 +35,7 @@ class Action(BaseAction):
             Containing the implementation of the Action
         """
         fields = [field["name"] for field in structure]
-        df.rename(index=str, columns= {fields[0]: field_name}, inplace=True)
+        df.rename(index=str, columns={fields[0]: field_name}, inplace=True)
         for field in fields[1:]:
-            df.loc[:, field_name] = df.apply(lambda x: (x[field]
-                                                        if pd.notnull(x[field])
-                                                        else x[field_name]),
-                                            axis=1)
+            df.loc[:, field_name] = df.apply(lambda x: (x[field] if pd.notnull(x[field]) else x[field_name]), axis=1)
         return df

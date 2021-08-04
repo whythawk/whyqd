@@ -5,17 +5,19 @@ import uuid
 from whyqd.core import BaseAction
 from whyqd.core import common as _c
 
+
 class Action(BaseAction):
     """
     Produce categories from terms or headers. There are three categorisation options:
 
-		1. Term-data are categories derived from values in the data,
-		2. Header-data are terms derived from the header name and boolean True for any value,
-		3. "Boolean"-data, the category itself is True/False. Default in a boolean is True.
+                1. Term-data are categories derived from values in the data,
+                2. Header-data are terms derived from the header name and boolean True for any value,
+                3. "Boolean"-data, the category itself is True/False. Default in a boolean is True.
 
-	Categorisation is a special case, requiring both method fields, and method categories, along
-	with the schema field_name field to lookup the required term definitions.
+        Categorisation is a special case, requiring both method fields, and method categories, along
+        with the schema field_name field to lookup the required term definitions.
     """
+
     def __init__(self):
         self.name = "CATEGORISE"
         self.title = "Categorise"
@@ -33,16 +35,8 @@ class Action(BaseAction):
             Dict representation of the modifiers.
         """
         modifiers = [
-            {
-                "name": "+",
-                "title": "Uniques",
-                "type": "modifier"
-            },
-            {
-                "name": "-",
-                "title": "Values",
-                "type": "modifier"
-            }
+            {"name": "+", "title": "Uniques", "type": "modifier"},
+            {"name": "-", "title": "Values", "type": "modifier"},
         ]
         return modifiers
 
@@ -65,7 +59,7 @@ class Action(BaseAction):
             Name of the target schema field
         structure: list
             List of fields with restructuring action defined by term 0 (i.e. `this` action)
-        **kwargs: 
+        **kwargs:
             Requires `category=` & `field_type=` in kwargs, with the appropriate definition.
 
         Returns
@@ -84,11 +78,13 @@ class Action(BaseAction):
         # Sort out boolean term names before they cause further pain, correct later ...
         if is_boolean:
             for c in kwargs["category"]:
-                if c["name"]: c["name"] = "true"
-                else: c["name"] = "false"
+                if c["name"]:
+                    c["name"] = "true"
+                else:
+                    c["name"] = "false"
         default = "None" if is_array else is_boolean
         # Set the field according to the default
-        #https://stackoverflow.com/a/31469249
+        # https://stackoverflow.com/a/31469249
         df[field_name] = [[] for _ in range(len(df))] if is_array else default
         # Develop the terms and conditions to assess membership of a category
         # Requires sets of 2 terms: + or -, field
@@ -109,12 +105,21 @@ class Action(BaseAction):
                                 terms.extend([field_term for t in c["terms"]])
                         break
             if modifier["name"] == "+":
-                conditions = [df[field["name"]].isin([t for subterms in
-                                                    [item["terms"] for category_input in kwargs["category"]
-                                                    for item in category_input["category_input"]
-                                                    if category_input["name"] == field_term]
-                                                    for t in subterms])
-                            for field_term in terms]
+                conditions = [
+                    df[field["name"]].isin(
+                        [
+                            t
+                            for subterms in [
+                                item["terms"]
+                                for category_input in kwargs["category"]
+                                for item in category_input["category_input"]
+                                if category_input["name"] == field_term
+                            ]
+                            for t in subterms
+                        ]
+                    )
+                    for field_term in terms
+                ]
             else:
                 # Modifier is -, so can make certain assumptions
                 # - Terms are categorised as True or False, so choices are only True or False
@@ -128,14 +133,19 @@ class Action(BaseAction):
                     df[tmp] = df[field["name"]].copy()
                 # Ensure any numerical zeros are nan'ed +
                 if df[field["name"]].dtype in ["float64", "int64"]:
-                    df[field["name"]] = df[field["name"]].replace({0:np.nan, 0.0:np.nan})
+                    df[field["name"]] = df[field["name"]].replace(
+                        {0: np.nan, 0.0: np.nan}
+                    )
                 if df[field["name"]].dtype in ["datetime64[ns]"]:
-                    df.loc[:, field["name"]] = df.loc[:, field["name"]].apply(lambda x: pd.to_datetime(_c.parse_dates(x),
-                                                                                                    errors="coerce"))
-                conditions = [pd.notnull(df[field["name"]])
-                            if kwargs["category"]["fields"][field_term]["fields"][0]["name"] else
-                            ~pd.notnull(df[field["name"]])
-                            for field_term in terms]
+                    df.loc[:, field["name"]] = df.loc[:, field["name"]].apply(
+                        lambda x: pd.to_datetime(_c.parse_dates(x), errors="coerce")
+                    )
+                conditions = [
+                    pd.notnull(df[field["name"]])
+                    if kwargs["category"]["fields"][field_term]["fields"][0]["name"]
+                    else ~pd.notnull(df[field["name"]])
+                    for field_term in terms
+                ]
             if is_boolean and modifier["name"] == "-":
                 # if len(terms) == 1 and 'false', do nothing; if 'true', invert;
                 # if len(terms) == 2, use 'false' only
@@ -155,13 +165,16 @@ class Action(BaseAction):
                 df[field_name] = np.select(conditions, terms, default=df[field_name])
             else:
                 if terms and conditions:
-                    new_field.append(np.select(conditions, terms, default="none").tolist())
+                    new_field.append(
+                        np.select(conditions, terms, default="none").tolist()
+                    )
         # If a list of terms, organise the nested lists and then set the new field
         if is_array:
             # Sorted to avoid hashing errors later ...
             new_field = [sorted(list(set(x))) for x in zip(*new_field)]
             for n in new_field:
-                if "none" in n: n.remove("none")
+                if "none" in n:
+                    n.remove("none")
             if new_field:
                 df[field_name] = new_field
         # Finally, fix the artifact columns introduced in the dataframe in case these are used elsewhere

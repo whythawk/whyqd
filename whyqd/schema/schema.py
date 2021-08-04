@@ -27,15 +27,15 @@ Minimum valid requirements
 A minimum valid schema requires a `name` to identify the schema, and a single, minimally-valid
 `field` containing a `name` and `type`::
 
-	{
-	  "name": "A simple name",
-	  "fields": [
-		{
-			"name": "Field name, e.g. 'column_name'",
-			"type": "Valid data type, e.g. 'string', 'number'"
-		}
-	  ]
-	}
+    {
+        "name": "A simple name",
+        "fields": [
+        {
+            "name": "Field name, e.g. 'column_name'",
+            "type": "Valid data type, e.g. 'string', 'number'"
+        }
+        ]
+    }
 
 Everything else is optional, unless specifically required by that field-type.
 
@@ -63,70 +63,70 @@ Field descriptors
 Fields, similarly, contain `name`, `title` and `description`, as well as `type` as compulsory. To
 see the available field types::
 
-	>>> sc = _d.Schema()
-	>>> sc.default_field_types
-	['string',
-	'number',
-	'integer',
-	'boolean',
-	'object',
-	'array',
-	'date',
-	'datetime',
-	'year']
+    >>> sc = _d.Schema()
+    >>> sc.default_field_types
+    ['string',
+    'number',
+    'integer',
+    'boolean',
+    'object',
+    'array',
+    'date',
+    'datetime',
+    'year']
 
 To see further parameter options for each default type::
 
-	>>> sc.default_field_settings('string')
-	{
-		'required': ['name', 'type'],
-		'name': 'field_name',
-		'title': 'A human-readable version of the field name',
-		'description': 'Any text-based string.',
-		'type': 'string',
-		'format': {
-			'description': 'The format keyword options for `string` are `default`, `email`, `uri`, `binary`, and `uuid`.',
-			'category': ['default', 'email', 'uri', 'binary', 'uuid'],
-			'default': 'default'
-			},
-		'foreignKey': {
-			'type': 'boolean',
-			'description': 'Set `foreignKey` `true` if the field is to be treated as an immutable value.'
-			},
-		'constraints': {
-			'description': 'The following constraints are supported.',
-			'properties': {
-				'required': {
-					'type': 'boolean',
-					'description': 'Indicates whether a property must have a value for each instance.'
-				},
-				'unique': {
-					'type': 'boolean',
-					'description': 'When `true`, each value for the property `MUST` be unique.'
-				},
-			'category': {
-				'type': 'array',
-				'minItems': 1,
-				'uniqueItems': True,
-				'terms': {
-					'type': 'string'
-					}
-				},
-			'minimum': {
-				'type': 'integer',
-				'description': 'An integer that specifies the minimum length of a value.'
-				},
-			'maximum': {
-				'type': 'integer',
-				'description': 'An integer that specifies the maximum length of a value.'
-				}
-			}
-		},
-	'missing': {
-		'description': 'Default to be used for missing values.',
-		'default': ''
-		}
-	}
+    >>> sc.default_field_settings('string')
+    {
+        'required': ['name', 'type'],
+        'name': 'field_name',
+        'title': 'A human-readable version of the field name',
+        'description': 'Any text-based string.',
+        'type': 'string',
+        'format': {
+            'description': 'The format keyword options for `string` are `default`, `email`, `uri`, `binary`, and `uuid`.',
+            'category': ['default', 'email', 'uri', 'binary', 'uuid'],
+            'default': 'default'
+            },
+        'foreignKey': {
+            'type': 'boolean',
+            'description': 'Set `foreignKey` `true` if the field is to be treated as an immutable value.'
+            },
+        'constraints': {
+            'description': 'The following constraints are supported.',
+            'properties': {
+                'required': {
+                    'type': 'boolean',
+                    'description': 'Indicates whether a property must have a value for each instance.'
+                },
+                'unique': {
+                    'type': 'boolean',
+                    'description': 'When `true`, each value for the property `MUST` be unique.'
+                },
+            'category': {
+                'type': 'array',
+                'minItems': 1,
+                'uniqueItems': True,
+                'terms': {
+                    'type': 'string'
+                    }
+                },
+            'minimum': {
+                'type': 'integer',
+                'description': 'An integer that specifies the minimum length of a value.'
+                },
+            'maximum': {
+                'type': 'integer',
+                'description': 'An integer that specifies the maximum length of a value.'
+                }
+            }
+        },
+    'missing': {
+        'description': 'Default to be used for missing values.',
+        'default': ''
+        }
+    }
 
 `name`
 ^^^^^^
@@ -147,7 +147,7 @@ future-you.
 This is a boolean term, only required if you need this field to be treated as a foreign-key or
 identifier for your destination data::
 
-	"foreignKey": True
+    "foreignKey": True
 
 Data in this field will not be tested for uniqueness. Instead, these data will remain immutable, not
 being 'forced' into a date or number type to preserve whatever fruity formatting are described in
@@ -190,19 +190,19 @@ will list constraints available to a specific field type.
 
 Define these as part of your schema definition for a specific field::
 
-	{
-	  "name": "A simple name",
-	  "fields": [
-		{
-			"name": "Field name, e.g. 'column_name'",
-			"type": "Valid data type, e.g. 'string', 'number'",
-			"constraints": {
-				"required": True,
-				"unique": True
-			}
-		}
-	  ]
-	}
+    {
+      "name": "A simple name",
+      "fields": [
+        {
+            "name": "Field name, e.g. 'column_name'",
+            "type": "Valid data type, e.g. 'string', 'number'",
+            "constraints": {
+                "required": True,
+                "unique": True
+            }
+        }
+      ]
+    }
 
 All available constraints:
 
@@ -219,18 +219,18 @@ define values which should be assigned to each of these categories.
 
 Define these as part of your schema definition for a specific field::
 
-	{
-	  "name": "A simple name",
-	  "fields": [
-		{
-			"name": "Field name, e.g. 'column_name'",
-			"type": "Valid data type, e.g. 'string', 'number'",
-			"constraints": {
-				"category": ["cheddar", "gouda", "other"]
-			}
-		}
-	  ]
-	}
+    {
+      "name": "A simple name",
+      "fields": [
+        {
+            "name": "Field name, e.g. 'column_name'",
+            "type": "Valid data type, e.g. 'string', 'number'",
+            "constraints": {
+                "category": ["cheddar", "gouda", "other"]
+            }
+        }
+      ]
+    }
 
 Each field `type` will have its own category constraints. For example, boolean categories can use a
 different term than True / False defined by the category, but only permits two terms. Others have
@@ -245,19 +245,19 @@ Field constraints: filter
 
 Define these as part of your schema definition for a valid field::
 
-	{
-	  "name": "A simple name",
-	  "fields": [
-		{
-			"name": "Field name, e.g. 'column_name'",
-			"type": "Valid data type, e.g. 'date', 'datetime'",
-			"filter": {
-				"field": "foreignKey",
-				"modifiers": ["LATEST", "AFTER"]
-			}
-		}
-	  ]
-	}
+    {
+      "name": "A simple name",
+      "fields": [
+        {
+            "name": "Field name, e.g. 'column_name'",
+            "type": "Valid data type, e.g. 'date', 'datetime'",
+            "filter": {
+                "field": "foreignKey",
+                "modifiers": ["LATEST", "AFTER"]
+            }
+        }
+      ]
+    }
 
 There are two compulsory parameters defining a filter:
 
@@ -271,471 +271,236 @@ For example, to filter all foreign keys (which may be duplicated as part of a ti
 more recent than a specified date, include "AFTER" in your list of filter modifiers.
 """
 
-from copy import deepcopy
-import json
+from typing import Optional, Union
+from pydantic import Json
 
-from whyqd.schema import Field
+from .models import SchemaModel, FieldModel, ConstraintModel, VersionModel
 from whyqd.core import common as _c
 
+
 class Schema:
-	"""Create and manage a target schema for a wrangling process.
+    """Create and manage a target schema for a wrangling process.
 
-	Parameters
-	----------
-	source: path to a json file containing a saved schema, default is None
-	kwargs: a schema defined as a dictionary, or default blank dictionary
-	"""
-	def __init__(self, source=None, **kwargs):
-		self.required_field_terms = ["name", "type"]
-		# Get default fields
-		self.default_fields = self.build_default_fields()
-		self.default_filters = _c.get_settings("filter")
-		if source:
-			kwargs = _c.load_json(source)
-		self.schema_settings = deepcopy(kwargs)
-		self.build()
+    Parameters
+    ----------
+    source: str, optional
+        Path to a json file containing a saved schema, default is None.
+    schema: SchemaModel, optional
+        A dictionary conforming to the SchemaModel, default is None.
+    """
 
-	def __repr__(self):
-		"""
-		Returns the string representation of the model.
-		"""
-		if self.schema_settings.get("name"):
-			return "Schema: `{}`".format(self.schema_settings["name"])
-		return "Schema"
+    def __init__(self, source: Optional[str] = None, schema: Optional[SchemaModel] = None):
+        # self.default_filters = _c.get_settings("filter")
+        self._schema = None
+        if source:
+            self._schema = SchemaModel(**_c.load_json(source))
+        if schema:
+            self.set(schema)
 
-	@property
-	def details(self):
-		"""
-		Schema name, title and description.
+    def __repr__(self) -> str:
+        """Returns the string representation of the model."""
+        if self._schema:
+            return f"Schema: `{self._schema.name}`"
+        return "Schema"
 
-		Parameters
-		----------
-		name: string
-			Term used for filename and referencing. Will be lower-cased and spaces replaced with `_`
-		title: string
-			Human-readable term used as name.
-		description: string
-			Detailed description for the schema. Reference its objective and use-case.
+    @property
+    def describe(self) -> dict[str, None]:
+        """Get the schema name, title and description.
 
-		Returns
-		-------
-		dict
-		"""
-		response = {
-			"name": self.schema_settings.get("name"),
-			"title": self.schema_settings.get("title"),
-			"description": self.schema_settings.get("description")
-		}
-		return response
+         - name: Term used for filename and referencing. Will be lower-cased and spaces replaced with `_`
+         - title: Human-readable term used as name.
+         - description: Detailed description for the schema. Reference its objective and use-case.
 
-	def set_details(self, name=None, title=None, description=None):
-		"""
-		Set schema name, title and description. Can also be used to update existing information.
+        Returns
+        -------
+        dict or None
+        """
+        if self._schema:
+            response = {
+                "name": self._schema.name,
+                "title": self._schema.title,
+                "description": self._schema.description,
+            }
+            return response
+        return None
 
-		Parameters
-		----------
-		name: string
-			Term used for filename and referencing. Will be lower-cased and spaces replaced with `_`
-		title: string
-			Human-readable term used as name.
-		description: string
-			Detailed description for the schema. Reference its objective and use-case.
+    @property
+    def get(self) -> Union[SchemaModel, None]:
+        """Get the schema model.
 
-		Raises
-		------
-		KeyError: if missing name
-		"""
-		if "name" not in self.schema_settings and not name:
-			# `name` required
-			e = "`name` not found in target schema"
-			raise KeyError(e)
-		for v in [name, title, description]:
-			if v and not isinstance(v, str):
-				e = "`{}` is not a valid string. Schema details must be strings."
-				raise TypeError(e)
-		self.schema_settings["name"] = "_".join(name.split(" ")).lower()
-		if title: self.schema_settings["title"] = title
-		if description: self.schema_settings["description"] = description
+        Returns
+        -------
+        SchemaModel or None
+        """
+        return self._schema
 
-	@property
-	def default_filter_names(self):
-		"""
-		Default list of filter names available as field constraints for the schema. Returns only a
-		list of types. Details for individual filters can be returned with
-		`default_filter_settings`.
+    @property
+    def get_json(self) -> Union[Json, None]:
+        """Get the json schema model.
 
-		Returns
-		-------
-		list
-		"""
-		return [f["name"] for f in self.default_filters["filter"]["modifiers"]]
+        Returns
+        -------
+        Json or None
+        """
+        if self._schema:
+            return self._schema.json(by_alias=True, exclude_defaults=True, exclude_none=True)
+        return None
 
-	def default_filter_settings(self, filter_name):
-		"""
-		Get the default settings available for a specific filter.
+    def set(self, schema: SchemaModel):
+        """Update or create the schema.
 
-		Parameters
-		----------
-		filter_name: string
-			A specific name for a filter type (as listed in `default_filter_names`).
+        Parameters
+        ----------
+        schema: SchemaModel
+            A dictionary conforming to the SchemaModel.
+        """
+        # Create a temporary SchemaModel
+        updated_schema = SchemaModel(**schema)
+        # And update the original data
+        # https://fastapi.tiangolo.com/tutorial/body-updates/#partial-updates-with-patch
+        if self._schema:
+            self._schema = self._schema.copy(update=updated_schema.dict(exclude_unset=True))
+        else:
+            self._schema = updated_schema
 
-		Returns
-		-------
-		dict, or empty dict if no such `filter_name`
-		"""
-		for filter in self.default_filters["filter"]["modifiers"]:
-			if filter["name"] == filter_name:
-				return deepcopy(filter)
-		return {}
+    def get_field(self, name: str) -> Union[FieldModel, None]:
+        """Get a specific field from the list of fields defining this schema, called by a unique `name`.
 
-	@property
-	def default_field_types(self):
-		"""
-		Default list of field names available to define fields for the schema. Returns only a list
-		of types. Details for individual default fields can be returned with
-		`default_field_settings`.
+        Parameters
+        ----------
+        name: string
+            Field names must be unique, so a valid `name` in the field list will have no collisions.
 
-		Returns
-		-------
-		list
-		"""
-		return [f.type for f in self.default_fields]
+        Returns
+        -------
+        FieldModel, or None if no such `name`
+        """
+        if self._schema:
+            # https://stackoverflow.com/a/31988734/295606
+            return next((f for f in self._schema.fields if f.name == name), None)
+        return None
 
-	def default_field_settings(self, field_type):
-		"""
-		Get the default settings available for a specific field type.
+    def add_field(self, field: FieldModel):
+        """Add the parameters for a specific field, called by a unique `name`.
+        If the `name` already exists, then this will raise a ValueError.
 
-		Parameters
-		----------
-		field_type: string
-			A specific term for a field type (as listed in `default_field_types`).
+        Parameters
+        ----------
+        field: FieldModel
+            A dictionary conforming to the FieldModel.
 
-		Returns
-		-------
-		dict, or empty dict if no such `field_type`
-		"""
-		for f in self.default_fields:
-			if f.type == field_type:
-				return deepcopy(f.settings)
-		return {}
+        Raises
+        ------
+        ValueError: if field already exists.
+        """
+        new_field = FieldModel(**field)
+        if self.get_field(new_field.name):
+            raise ValueError(f"FieldModel {new_field.name} already exists in the schema.")
+        self._schema.fields.append(new_field)
 
-	@property
-	def all_fields(self):
-		"""
-		Get dictionary of fields, where key: `field_name` and value: `type`.
+    def remove_field(self, name: str):
+        """Remove a specific field, called by a unique `name`.
 
-		Returns
-		-------
-		dict, or empty dict if no fields
-		"""
-		return {f.name: f.type for f in self.schema_settings.get("fields", [])}
+        Parameters
+        ----------
+        kwargs: FieldModel
+            A dictionary conforming to the FieldModel.
+        """
+        # https://stackoverflow.com/a/1235631/295606
+        self._schema.fields[:] = [f for f in self._schema.fields if f.name != name]
 
-	@property
-	def all_field_names(self):
-		"""
-		Get list of field names,.
+    def set_field(self, field: FieldModel):
+        """Update the parameters for a specific field, called by a unique `name`.
+        If the `name` does not exist, then this will raise a ValueError.
 
-		Returns
-		-------
-		list
-		"""
-		return [f.name for f in self.schema_settings.get("fields", [])]
+        Parameters
+        ----------
+        field: FieldModel
+            A dictionary conforming to the FieldModel.
 
-	def field(self, name):
-		"""
-		A specific field from the list of fields defining this schema, called by a unique `name`.
+        Raises
+        ------
+        ValueError: if field does not exist
+        """
+        # Create a temporary FieldModel
+        new_field = FieldModel(**field)
+        old_field = self.get_field(new_field.name)
+        if not old_field:
+            raise ValueError(f"FieldModel {new_field.name} does not exist in the schema.")
+        # And update the original data
+        # https://fastapi.tiangolo.com/tutorial/body-updates/#partial-updates-with-patch
+        old_field = old_field.copy(update=new_field.dict(exclude_unset=True))
+        self.remove_field(new_field.name)
+        self.add_field(old_field.dict(by_alias=True, exclude_defaults=True, exclude_none=True))
 
-		Parameters
-		----------
-		name: string
-			Field names must be unique, so a valid `name` in the field list will have no collisions.
+    def get_field_constraints(self, name: str) -> Union[ConstraintModel, None]:
+        """Get the constraint parameters for a specific field defined in this schema, called by a unique
+        `name` already in the schema.
 
-		Returns
-		-------
-		dict, or empty dict if no such `name`
-		"""
-		for field in self.schema_settings.get("fields", []):
-			if field.name == name:
-				return deepcopy(field.settings)
-		e = "`{}` not found in Schema fields.".format(name)
-		raise ValueError(e)
+        Parameters
+        ----------
+        name: string
+                Specific name for a field already in the Schema
 
-	def set_field(self, **kwargs):
-		"""
-		Set the parameters for a specific field to define this schema, called by a unique `name`.
-		If the `name` is already in the schema, then this will update that field.
+        Returns
+        -------
+        ConstraintModel or None
+        """
+        field = self.get_field(name)
+        if not field:
+            raise ValueError(f"FieldModel {name} does not exist in the schema.")
+        return field.constraints
 
-		Parameters
-		----------
-		kwargs: dict
-			Parameters will be validated against the type requirements, so check carefully with
-			`default_field_settings`.
-		"""
-		kwargs = deepcopy(kwargs)
-		if "name" not in kwargs:
-			e = "No valid `name` provided for Field."
-			raise ValueError(e)
-		self.schema_settings.get("fields", [])[:] = [f for f in self.schema_settings.get("fields", [])
-													 if f.name != kwargs["name"]]
-		kwargs["name"] = "_".join(kwargs["name"].split(" ")).lower()
-		field = self.build_field(**kwargs)
-		self.schema_settings["fields"].append(field)
+    def set_field_constraints(self, name: str, constraints: Union[ConstraintModel, None]):
+        """Set the constraint parameters for a specific field to define this schema, called by a unique
+        `name` already in the schema.
 
-	def set_field_constraints(self, name, **constraints):
-		"""
-		Set the constraint parameters for a specific field to define this schema, called by a unique
-		`name` already in the schema.
+        Parameters
+        ----------
+        name: string
+            Specific name for a field already in the Schema
+        constraints: ConstraintModel or None
+            A dictionary conforming to the ConstraintModel, or None. If None, then constraints are deleted.
+        """
+        old_constraints = self.get_field_constraints(name)
+        if not constraints:
+            old_constraints = None
+        else:
+            new_constraints = ConstraintModel(**constraints)
+            if old_constraints:
+                old_constraints = old_constraints.copy(update=new_constraints.dict(exclude_unset=True))
+            else:
+                old_constraints = new_constraints
+        self.get_field(name).constraints = old_constraints
 
-		The structure of the constraints is defined as follows::
+    def save(
+        self,
+        directory: str,
+        filename: Optional[str] = None,
+        overwrite: Optional[bool] = False,
+        created_by: Optional[str] = None,
+    ) -> bool:
+        """Save schema as a json file.
 
-			{
-				"key": "value",
-				"key": "value"
-			}
+        Parameters
+        ----------
+        directory: strthe destination directory
+        filename: defaults to schema name
+        overwrite: bool, True if overwrite existing file
+        created_by: string, or None, to define the schema creator/updater
 
-		`category` is a special constraint that can be defined as e.g.::
-
-			{
-				"category": ["term1", "term2"]
-			}
-
-		All that is required is a list, and the function will take care of the formal structure.
-		`filter` are managed in the Method part of the process (since this are defined in respect
-		to the data being structured).
-
-		Parameters
-		----------
-		name: string
-			Specific name for a field already in the Schema
-		constraints: dict
-			A set of key:value pairs defining constraints as described in `default_field_settings`.
-		"""
-		field = self.field(name)
-		valid_constraints = self.default_field_settings(field["type"]).get("constraints", {}).keys()
-		if not valid_constraints:
-			e = "Field `{}` has no permitted constraints.".format(name)
-			raise ValueError(e)
-		for constraint in constraints:
-			if constraint not in valid_constraints:
-				e = "Constraint `{}` is not permitted in field `{}`.".format(constraint, name)
-				raise KeyError(e)
-		category = constraints.pop("category", None)
-		if not field.get("constraints"):
-			field["constraints"] = {}
-		if constraints:
-			field["constraints"] = {**field["constraints"], **constraints}
-			self.set_field(**field)
-		if category: self.set_field_category(name, *category["category"])
-
-	def set_field_category(self, name, *categories, overwrite=True):
-		"""
-		Set the category constraint parameters for a specific field. `categories` is defined as e.g.::
-
-			["term1", "term2"]
-
-		All that is required is a list, and the function will take care of the formal structure.
-
-		Parameters
-		----------
-		name: string
-			Specific name for a field already in the Schema
-		categories: list
-			A list of string terms defining target categories.
-		overwrite: bool
-			If field has existing category constraints, then overwrite with this new list.
-		"""
-		field = self.field(name)
-		if not overwrite:
-			original = [c["name"] for c in field.get("constraints", {}).get("category", [])]
-			categories.extend(original)
-			categories = set(categories)
-		category = [{"name": c} for c in categories]
-		if not field.get("constraints"):
-			field["constraints"] = {}
-		field["constraints"]["category"] = category
-		self.set_field(**field)
-
-	def set_field_filters(self, name, *filters):
-		"""
-		Set the filter parameters for a specific field to define this schema, called by a unique
-		`name` already in the schema.
-
-		Parameters
-		----------
-		name: string
-			Specific name for a field already in the Schema
-		filters: list of strings
-			A list of filter names as described in `default_filter_names`.
-		"""
-		field = self.field(name)
-		self.schema_settings["fields"][:] = [f for f in self.schema_settings["fields"]
-											 if f.name != field.name]
-		# update field
-		filters = deepcopy(filters)
-		modifiers = [f for f in self.default_filters["filter"]["modifiers"]
-					 if f["name"] in filters]
-		if modifiers:
-			filters = {
-				"field": self.default_filters["filter"]["field"],
-				"modifiers": modifiers
-			}
-			field["constraints"]["properties"]["filter"] = filters
-			field = self.build_field(**field)
-			self.schema_settings["fields"].append(field)
-
-	def build_field(self, **field):
-		"""
-		For a list of fields, defined as dictionaries, create and return Field objects.
-
-		Parameters
-		----------
-		field: dictionary of Field parameters
-
-		Raises
-		------
-		ValueError: if field fails validation
-
-		Returns
-		-------
-		Field
-		"""
-		field = deepcopy(field)
-		if not isinstance(field, dict) or not all(key in field for key in self.required_field_terms):
-			e = "Field is not a valid dictionary"
-			raise ValueError(e)
-		_name = field["name"]
-		del field["name"]
-		_type = field["type"]
-		del field["type"]
-		field = Field(_name, _type, **field)
-		if not field.validates:
-			e = "Field `{}` of type `{}` does not validate".format(_name, _type)
-			raise ValueError(e)
-		return field
-
-	def build(self):
-		"""
-		Build and validate the Schema.
-		"""
-		self.schema_settings["fields"] = [self.build_field(**field) for field in
-										  self.schema_settings.get("fields", [])]
-
-	def build_default_fields(self):
-		"""
-		Build the default fields for presentation to the user as options.
-
-		Returns
-		-------
-		list of Fields
-		"""
-		default_fields = _c.get_settings("schema")
-		default_fields = [{**default_fields["common"], **f}
-						  for f in default_fields["fields"]]
-		response = []
-		for field in default_fields:
-			_name = field["name"]
-			del field["name"]
-			_type = field["type"]
-			del field["type"]
-			response.append(Field(_name, _type, validate=False, **field))
-		return response
-
-	@property
-	def validates(self):
-		"""
-		Schema validates with all fields unique and required terms.
-
-		Raises
-		------
-		ValueError on field failure.
-
-		Returns
-		-------
-		bool: True for validates
-		"""
-		if not all([field.validates for field in self.schema_settings.get("fields", [])]):
-			e = "Individual `fields` in schema are not valid."
-			raise ValueError(e)
-		fields = [field.name for field in self.schema_settings.get("fields", [])]
-		if not fields:
-			e = "No `fields` in schema. Need at least one."
-			raise ValueError(e)
-		if len(fields) != len(set(fields)):
-			e = "Schema `field` names not unique: `{}`.".format(fields)
-			raise ValueError(e)
-		if not "name" in self.schema_settings:
-			e = "Schema `name` not present."
-			raise ValueError(e)
-		return True
-
-	@property
-	def settings(self):
-		"""
-		Schema settings returned as a dictionary.
-
-		Returns
-		-------
-		dict: settings
-		"""
-		schema_dict = deepcopy(self.schema_settings)
-		schema_dict["fields"] = [field.settings for field in self.schema_settings.get("fields", [])]
-		return schema_dict
-
-	@property
-	def schema_validation_settings(self):
-		"""
-		Schema settings for validation of output data and schema, returned as a dictionary.
-
-		Based on `Frictionless Data Table Schema <https://specs.frictionlessdata.io/table-schema/>`_.
-
-		Returns
-		-------
-		dict: settings
-		"""
-		schema_dict = self.settings
-		fields = []
-		for f in schema_dict["fields"]:
-			for unneeded in f.keys():
-				if unneeded not in ["name", "title", "type", "description", "constraints"]:
-					del f[unneeded]
-			if f.get("constraints", {}).get("category"):
-				f["constraints"]["enum"] = [c["name"] for c in f["constraints"].pop("category")]
-			fields.append(f)
-		schema_dict["fields"] = fields
-		return json.dumps(schema_dict)
-
-	def save(self, directory, filename=None, overwrite=False, created_by=None):
-		"""
-		Schema settings returned as a dictionary.
-
-		Parameters
-		----------
-		directory: the destination directory
-		filename: default to schema name
-		overwrite: bool, True if overwrite existing file
-		created_by: string, or None, to define the schema creator/updater
-
-		Raises
-		------
-		ValueError if no `filename`
-
-		Returns
-		-------
-		bool True if saved
-		"""
-		if not filename: filename = self.schema_settings.get("name")
-		if not filename:
-			e = "Schema save requires a valid filename"
-			raise ValueError(e)
-		if filename.split(".")[-1] != "json":
-			filename += ".json"
-		data = self.settings
-		now = _c.get_now()
-		if "created" not in data:
-			data["created"] = now
-		data["updated"] = now
-		if created_by and isinstance(created_by, str):
-			if "created_by" not in data:
-				data["created_by"] = created_by
-			data["updated_by"] = created_by
-		return _c.save_json(data, directory + filename, overwrite)
+        Returns
+        -------
+        bool True if saved
+        """
+        if not self._schema:
+            raise ValueError("Schema does not exist.")
+        if not filename and self._schema:
+            filename = self._schema.name
+        if filename.split(".")[-1] != "json":
+            filename += ".json"
+        update = VersionModel()
+        if created_by:
+            update.name = created_by
+        self._schema.version.append(update)
+        return _c.save_file(self.get_json, directory + filename, overwrite)
