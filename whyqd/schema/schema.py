@@ -271,11 +271,13 @@ For example, to filter all foreign keys (which may be duplicated as part of a ti
 more recent than a specified date, include "AFTER" in your list of filter modifiers.
 """
 
-from typing import Optional, Union
+from __future__ import annotations
+from typing import List, Optional, Union, Dict
 from pydantic import Json
+from uuid import UUID
 
-from .models import SchemaModel, FieldModel, ConstraintModel, VersionModel
-from whyqd.core import common as _c
+from ..models import VersionModel, ConstraintsModel, FieldModel, SchemaModel, CategoryModel
+from ..parsers import CoreScript
 
 
 class Schema:
@@ -289,11 +291,12 @@ class Schema:
         A dictionary conforming to the SchemaModel, default is None.
     """
 
-    def __init__(self, source: Optional[str] = None, schema: Optional[SchemaModel] = None):
-        # self.default_filters = _c.get_settings("filter")
+    def __init__(self, source: Optional[str] = None, schema: Optional[SchemaModel] = None) -> None:
+        # self.default_filters = self.core.get_settings("filter")
+        self.core = CoreScript()
         self._schema = None
         if source:
-            self._schema = SchemaModel(**_c.load_json(source))
+            self._schema = SchemaModel(**self.core.load_json(source))
         if schema:
             self.set(schema)
 
@@ -304,7 +307,7 @@ class Schema:
         return "Schema"
 
     @property
-    def describe(self) -> dict[str, None]:
+    def describe(self) -> Union[Dict[str, None], None]:
         """Get the schema name, title and description.
 
          - name: Term used for filename and referencing. Will be lower-cased and spaces replaced with `_`
@@ -334,19 +337,7 @@ class Schema:
         """
         return self._schema
 
-    @property
-    def get_json(self) -> Union[Json, None]:
-        """Get the json schema model.
-
-        Returns
-        -------
-        Json or None
-        """
-        if self._schema:
-            return self._schema.json(by_alias=True, exclude_defaults=True, exclude_none=True)
-        return None
-
-    def set(self, schema: SchemaModel):
+    def set(self, schema: SchemaModel) -> None:
         """Update or create the schema.
 
         Parameters
@@ -380,7 +371,7 @@ class Schema:
             return next((f for f in self._schema.fields if f.name == name), None)
         return None
 
-    def add_field(self, field: FieldModel):
+    def add_field(self, field: FieldModel) -> None:
         """Add the parameters for a specific field, called by a unique `name`.
         If the `name` already exists, then this will raise a ValueError.
 
@@ -398,18 +389,7 @@ class Schema:
             raise ValueError(f"FieldModel {new_field.name} already exists in the schema.")
         self._schema.fields.append(new_field)
 
-    def remove_field(self, name: str):
-        """Remove a specific field, called by a unique `name`.
-
-        Parameters
-        ----------
-        kwargs: FieldModel
-            A dictionary conforming to the FieldModel.
-        """
-        # https://stackoverflow.com/a/1235631/295606
-        self._schema.fields[:] = [f for f in self._schema.fields if f.name != name]
-
-    def set_field(self, field: FieldModel):
+    def update_field(self, field: FieldModel) -> None:
         """Update the parameters for a specific field, called by a unique `name`.
         If the `name` does not exist, then this will raise a ValueError.
 
@@ -433,7 +413,34 @@ class Schema:
         self.remove_field(new_field.name)
         self.add_field(old_field.dict(by_alias=True, exclude_defaults=True, exclude_none=True))
 
-    def get_field_constraints(self, name: str) -> Union[ConstraintModel, None]:
+    def remove_field(self, name: str) -> None:
+        """Remove a specific field, called by a unique `name`.
+
+        Parameters
+        ----------
+        kwargs: FieldModel
+            A dictionary conforming to the FieldModel.
+        """
+        # https://stackoverflow.com/a/1235631/295606
+        self._schema.fields[:] = [f for f in self._schema.fields if f.name != name]
+
+    def reorder_fields(self, order: List[UUID]) -> None:
+        """Reorder a list of fields.
+
+        Parameters
+        ----------
+        order: list of UUID
+
+        Raises
+        ------
+        ValueError if the list of uuid4s doesn't conform to that in the list of fields.
+        """
+        if set([f.uuid for f in self._schema.fields]).difference(set([UUID(o) for o in order])):
+            raise ValueError("List of reordered field ids isn't the same as that in the provided list of Fields.")
+        if self._schema.fields:
+            self._schema.fields = sorted(self._schema.fields, key=lambda item: order.index(item.uuid))
+
+    def get_field_constraints(self, name: str) -> Union[ConstraintsModel, None]:
         """Get the constraint parameters for a specific field defined in this schema, called by a unique
         `name` already in the schema.
 
@@ -444,14 +451,14 @@ class Schema:
 
         Returns
         -------
-        ConstraintModel or None
+        ConstraintsModel or None
         """
         field = self.get_field(name)
         if not field:
             raise ValueError(f"FieldModel {name} does not exist in the schema.")
         return field.constraints
 
-    def set_field_constraints(self, name: str, constraints: Union[ConstraintModel, None]):
+    def set_field_constraints(self, name: str, constraints: Union[ConstraintsModel, None]) -> None:
         """Set the constraint parameters for a specific field to define this schema, called by a unique
         `name` already in the schema.
 
@@ -459,26 +466,103 @@ class Schema:
         ----------
         name: string
             Specific name for a field already in the Schema
-        constraints: ConstraintModel or None
-            A dictionary conforming to the ConstraintModel, or None. If None, then constraints are deleted.
+        constraints: ConstraintsModel or None
+            A dictionary conforming to the ConstraintsModel, or None. If None, then constraints are deleted.
         """
         old_constraints = self.get_field_constraints(name)
         if not constraints:
             old_constraints = None
         else:
-            new_constraints = ConstraintModel(**constraints)
+            new_constraints = ConstraintsModel(**constraints)
             if old_constraints:
                 old_constraints = old_constraints.copy(update=new_constraints.dict(exclude_unset=True))
             else:
                 old_constraints = new_constraints
         self.get_field(name).constraints = old_constraints
 
+    def get_field_category(self, field: str, category: Union[bool, str]) -> Union[CategoryModel, None]:
+        """Get a specific field from the list of fields defining this schema, called by a unique `name`.
+
+        Parameters
+        ----------
+        field: str
+            Field names must be unique, so a valid `name` in the field list will have no collisions.
+        category: str
+            Category name for a destination category term from the schema.
+
+        Raises
+        ------
+        ValueError if `FieldModel` has not `category` in `ConstraintModel`.
+
+        Returns
+        -------
+        List of , or None if no such `name`
+        """
+        if self._schema:
+            field_categories = self.get_field_constraints(field)
+            if not field_categories and isinstance(category, bool):
+                # Bools have default True, False categories
+                # Create them now if they don't exist
+                # TODO: put this somewhere more useful, and where the user can set default is True/False
+                true = CategoryModel(**{"name": True})
+                false = CategoryModel(**{"name": False})
+                fld = self.get_field(field)
+                fld.constraints = ConstraintsModel(**{"default": true, "enum": [true, false]})
+            field_categories = self.get_field_constraints(field).category
+            if not field_categories:
+                raise ValueError(f"Field ({field}) has no `category` constraints.")
+            # https://stackoverflow.com/a/31988734/295606
+            return next((f for f in field_categories if f.name == category), None)
+        return None
+
+    #########################################################################################
+    # SAVE AND EXPORT UTILITIES
+    #########################################################################################
+
+    def get_json(self, hide_uuid: Optional[bool] = False) -> Union[Json, None]:
+        """Get the json schema model.
+
+        Parameters
+        ----------
+        hide_uuid: str, default False
+            Hide all UUIDs in the nested JSON output.
+
+        Returns
+        -------
+        Json or None
+        """
+        if self._schema and not hide_uuid:
+            return self._schema.json(by_alias=True, exclude_defaults=True, exclude_none=True)
+        elif self._schema and hide_uuid:
+            # https://github.com/samuelcolvin/pydantic/issues/1283#issuecomment-594041870
+            # foo_excludes = {idx: {"id"} for idx in range(len(my_bar.foos))}
+            # my_bar.dict(exclude={"foos": foo_excludes})
+            # https://pydantic-docs.helpmanual.io/usage/exporting_models/#advanced-include-and-exclude
+            schema_exclude = {
+                f_idx: (
+                    {
+                        "uuid": ...,
+                        "constraints": {"category": {c_idx: {"uuid"} for c_idx in range(len(f.constraints.category))}},
+                    }
+                    if f.constraints
+                    else {"uuid"}
+                )
+                for f_idx, f in enumerate(self._schema.fields)
+            }
+            return self._schema.json(
+                by_alias=True,
+                exclude_defaults=True,
+                exclude_none=True,
+                exclude={"uuid": ..., "fields": schema_exclude},
+            )
+        return None
+
     def save(
         self,
         directory: str,
         filename: Optional[str] = None,
-        overwrite: Optional[bool] = False,
         created_by: Optional[str] = None,
+        hide_uuid: Optional[bool] = False,
     ) -> bool:
         """Save schema as a json file.
 
@@ -488,6 +572,8 @@ class Schema:
         filename: defaults to schema name
         overwrite: bool, True if overwrite existing file
         created_by: string, or None, to define the schema creator/updater
+        hide_uuid: str, default False
+            Hide all UUIDs in the nested JSON output.
 
         Returns
         -------
@@ -503,4 +589,4 @@ class Schema:
         if created_by:
             update.name = created_by
         self._schema.version.append(update)
-        return _c.save_file(self.get_json, directory + filename, overwrite)
+        return self.core.save_file(self.get_json(hide_uuid=hide_uuid), directory + filename)

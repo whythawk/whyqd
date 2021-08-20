@@ -3,7 +3,7 @@ Actions
 -------
 
 Definitions and validation for actions anchoring structures in methods. Describes how an Action performs its roll. 
-New transforms inherit from the core.BaseAction class and are automatically available as a plugin.
+New transforms inherit from the core.BaseSchemaAction class and are automatically available as a plugin.
 
 Key functions are:
 
@@ -36,17 +36,12 @@ must conform to the structure defined in the action's structure, but with a form
 instead of a `name`.
 """
 import pkgutil
-from whyqd.core import common as _c
-__action_path__ = str(_c.get_path()) + "/action"
+from pathlib import Path
+
+__action_path__ = str(Path(__file__).resolve().parent)
 
 actions = {
     name.upper(): finder.find_module(name).load_module().Action
-    for finder, name, ispkg
-    in pkgutil.iter_modules([__action_path__])
+    for finder, name, _ispkg in pkgutil.iter_modules([__action_path__])
 }
-
-default_actions = {
-    "fields": [
-        actn().settings for actn in actions.values()
-    ]
-}
+default_actions = [a for a in [actn().settings for actn in actions.values()]]

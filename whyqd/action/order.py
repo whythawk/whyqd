@@ -1,20 +1,39 @@
+from __future__ import annotations
+from typing import List, Union, TYPE_CHECKING
 import pandas as pd
+import numpy as np
 
-from whyqd.core import BaseAction
+from whyqd.base import BaseSchemaAction
+
+if TYPE_CHECKING:
+    from ..models import FieldModel, ColumnModel
 
 
-class Action(BaseAction):
+class Action(BaseSchemaAction):
     """
     Create a new field by iterating over a list of fields and picking the next value in the list.
+
+    Script::
+
+        "ORDER > 'destination_field' < ['source_column', 'source_column', etc.]"
+
+    Where order of `source_column` is important, each successive column in the list has priority over the ones before
+    it (e.g. for columns A, B & C, values in C will have precedence over values in B and A).
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
+        super().__init__()
         self.name = "ORDER"
         self.title = "Order"
         self.description = "Use sparse data from a list of fields to populate a new field. Order is important, each successive field in the list have priority over the ones before it (e.g. for columns A, B & C, values in C will have precedence over values in B and A)."
         self.structure = ["field"]
 
-    def transform(self, df, field_name, structure, **kwargs):
+    def transform(
+        self,
+        df: pd.DataFrame,
+        destination: Union[FieldModel, ColumnModel],
+        source: List[ColumnModel],
+    ) -> pd.DataFrame:
         """
         Create a new field by iterating over a list of fields and picking the next value in the list.
 
@@ -22,20 +41,18 @@ class Action(BaseAction):
         ----------
         df: DataFrame
             Working data to be transformed
-        field_name: str
-            Name of the target schema field
-        structure: list
-            List of fields with restructuring action defined by term 0 (i.e. `this` action)
-        **kwargs:
-            Other fields which may be required in custom transforms
+        destination: FieldModel
+            Destination FieldModel for the result of the Action. Must have category fields or will raise ValueError.
+        source: list of ColumnModel
+            List of source columns for the action.
 
         Returns
         -------
         Dataframe
             Containing the implementation of the Action
         """
-        fields = [field["name"] for field in structure]
-        df.rename(index=str, columns={fields[0]: field_name}, inplace=True)
-        for field in fields[1:]:
-            df.loc[:, field_name] = df.apply(lambda x: (x[field] if pd.notnull(x[field]) else x[field_name]), axis=1)
+        if destination.name not in df.columns:
+            df.loc[:, destination.name] = None
+        for field in source:
+            df.loc[:, destination.name] = np.where(df[field.name].notnull(), df[field.name], df[destination.name])
         return df
