@@ -299,7 +299,6 @@ from typing import Optional, Union, List, Dict, Tuple, Type
 from pydantic import Json
 from uuid import UUID
 import pandas as pd
-import numpy as np
 
 from ..models import (
     DataSourceModel,
@@ -442,8 +441,8 @@ class Method:
             df_sample = self.wrangle.get_dataframe(
                 self.directory / data.source,
                 filetype=data.mime,
-                names=data.names,
-                preserve=data.preserve,
+                names=[d.name for d in data.names],
+                preserve=[d.name for d in data.preserve],
                 nrows=self._nrows,
             )
             if not isinstance(df_sample, dict):
@@ -474,7 +473,9 @@ class Method:
         if self._method.input_data:
             if sheet_name:
                 self._method.input_data = [
-                    ds for ds in self._method.input_data if ds.uuid != UUID(uid) and ds.sheet_name != sheet_name
+                    ds
+                    for ds in self._method.input_data
+                    if ds.uuid != UUID(uid) or (ds.uuid == UUID(uid) and ds.sheet_name != sheet_name)
                 ]
             else:
                 self._method.input_data = [ds for ds in self._method.input_data if ds.uuid != UUID(uid)]
@@ -523,6 +524,7 @@ class Method:
         Parameters
         ----------
         order: list of UUID or tuples of UUID, str
+            Either a list of UUIDs, or tuples of hexed UUIDs and sheet_names, e.g. ('uuid.hex', 'sheet_name')
 
         Raises
         ------
@@ -538,7 +540,7 @@ class Method:
     def add_actions(self, actions: Union[str, List[str]], uid: UUID, sheet_name: Optional[str] = None) -> None:
         """Add an action script to a data source specified by its uid and optional sheet name.
 
-        .. warning:: Morph-type ACTIONS (such as 'REBASE', 'PIVOT_LONG', and 'PIVOT_WIDE') change the header-row
+        .. warning:: Morph-type ACTIONS (such as 'REBASE', 'PIVOT_LONGER', and 'PIVOT_WIDER') change the header-row
             column names, and - with that - any of your subsequent referencing that relies on these names. It is
             best to run your morphs first, then your schema ACTIONS, that way you won't get any weird referencing
             errors. If column errors do arise, check your ACTION ordering.
@@ -561,19 +563,14 @@ class Method:
             params = self.mthdprsr.parse_action_script(source_data, a)
             source_data.actions.append(a)
             if isinstance(params["action"], MorphActionModel):
+                # Ensure source_data.columns reflects the last action table state
                 if pre_df.empty:
-                    pre_df = self.wrangle.get_dataframe(
-                        self.directory / source_data.source,
-                        filetype=source_data.mime,
-                        names=source_data.names,
-                        preserve=source_data.preserve,
-                    )
-                    if isinstance(pre_df, dict):
-                        pre_df = pre_df[source_data.sheet_name]
+                    # Need to run the entire transform to check what the state of the table will be at this point
+                    pre_df = self.transform(source_data)
+                else:
+                    pre_df = self.mthdprsr.transform_df_from_source(pre_df, source_data, **params)
+                    # And update the columns
                     source_data.columns = self.wrangle.get_dataframe_columns(pre_df)
-                pre_df = self.mthdprsr.transform_df_from_source(pre_df, source_data, **params)
-                # And update the columns
-                source_data.columns = self.wrangle.get_dataframe_columns(pre_df)
 
     def remove_action(self, uid: UUID, action_uid: UUID, sheet_name: Optional[str] = None) -> None:
         """Remove an action from a data source defined by its source uuid4. Raises an exception of sheet_name
@@ -673,15 +670,18 @@ class Method:
                 f"working_{'_'.join([m.lower() for m in self._method.name.split()])}_{self._method.uuid.hex}.xlsx"
             )
             working_path = self.directory / working_file
-        merge_list = self.mthdprsr.parse_merge(script, self._method.input_data)
+        actions = [ActionScriptModel(**{"script": script})]
+        merge_list = self.mthdprsr.parse_merge(actions[0], self._method.input_data)
         # Perform the merge
         df = self._merge_dataframes(merge_list)
         # Establish the WORKING DATA term in method
         df.to_excel(working_path, index=False)
-        working_data = DataSourceModel(**{"path": working_path})
+        working_data = DataSourceModel(**{"path": str(working_path)})
         working_data.columns = self.wrangle.get_dataframe_columns(df)
         working_data.preserve = [c for c in working_data.columns if c.type_field == "string"]
-        working_data.actions = [ActionScriptModel(**{"script": script})]
+        working_data.actions = actions
+        # Load file again to calculate checksum
+        df = self._get_dataframe(working_data)
         working_data.checksum = self.core.get_data_checksum(df)
         self._method.working_data = working_data
         # Update the method with this change-event
@@ -715,14 +715,7 @@ class Method:
             data_actions = data.actions[1:].copy()
         # 2. Morph ACTIONS change reference columns ... this causes the chaos you would expect ...
         # Reset column references BEFORE starting transform so that scripts run properly
-        df = self.wrangle.get_dataframe(
-            self.directory / data.source,
-            filetype=data.mime,
-            names=data.names,
-            preserve=data.preserve,
-        )
-        if isinstance(df, dict):
-            df = df[data.sheet_name]
+        df = self._get_dataframe(data)
         data.columns = self.wrangle.get_dataframe_columns(df)
         # 1. Parse all category assignment scripts
         category_assignments = []
@@ -794,10 +787,14 @@ class Method:
                 f"restructured_{'_'.join([m.lower() for m in self._method.name.split()])}_{self._method.uuid.hex}.xlsx"
             )
             restructured_path = self.directory / restructured_file
-        df_restructured.to_excel(restructured_path, index=False)
-        restructured_data = DataSourceModel(**{"path": restructured_path})
+        # Try for a Schema order
+        header_order = [c.name for c in self._schema.get.fields if c.name in df_restructured.columns]
+        df_restructured[header_order].to_excel(restructured_path, index=False)
+        restructured_data = DataSourceModel(**{"path": str(restructured_path)})
         restructured_data.columns = self.wrangle.get_dataframe_columns(df_restructured)
         restructured_data.preserve = [c for c in restructured_data.columns if c.type_field == "string"]
+        # Load file again to calculate checksum
+        df_restructured = self._get_dataframe(restructured_data)
         restructured_data.checksum = self.core.get_data_checksum(df_restructured)
         self._method.restructured_data = restructured_data
         # Update the method with this change-event
@@ -823,10 +820,25 @@ class Method:
             raise ValueError("Method build restructuring is not complete.")
         # Validate and restructure source data
         df_restructured = self._restructure_dataframes()
+        # Create and save a temporary working file
+        temporary_file = f"temporary_{self._method.uuid.hex}.xlsx"
+        temporary_path = self.directory / temporary_file
+        # Force the same header order
+        header_order = [c.name for c in self._schema.get.fields if c.name in df_restructured.columns]
+        df_restructured[header_order].to_excel(temporary_path, index=False)
+        temporary_data = DataSourceModel(**{"path": str(temporary_path)})
+        temporary_data.columns = self.wrangle.get_dataframe_columns(df_restructured)
+        temporary_data.preserve = [c for c in temporary_data.columns if c.type_field == "string"]
+        # Load file again to calculate checksum
+        df_restructured = self._get_dataframe(temporary_data)
         # Validate RESTRUCTURED DATA checksums
         df_checksum = self.core.get_data_checksum(df_restructured)
+        # Delete the temporary file. Before crashing.
+        self.core.delete_file(temporary_path)
         if self._method.restructured_data.checksum != df_checksum:
-            raise ValueError("Method build of restructured source data does not validate.")
+            raise ValueError(
+                f"Method build of restructured source data does not validate. (provided:{df_checksum} != method:{self._method.restructured_data.checksum})"
+            )
         return True
 
     #########################################################################################
@@ -863,7 +875,7 @@ class Method:
                                 "category": {c_idx: {"uuid"} for c_idx in range(len(f.constraints.category))}
                             },
                         }
-                        if f.constraints
+                        if f.constraints and f.constraints.category
                         else {"uuid"}
                     )
                     for f_idx, f in enumerate(self._method.schema_fields)
@@ -973,23 +985,68 @@ class Method:
         if created_by:
             update.name = created_by
         self._method.version.append(update)
+        # Reset all the source data columns
+        for data in self._method.input_data:
+            df = self._get_dataframe(data)
+            data.columns = self.wrangle.get_dataframe_columns(df)
+        if self._method.working_data:
+            df = self._get_dataframe(self._method.working_data)
+            self._method.working_data.columns = self.wrangle.get_dataframe_columns(df)
+        if self._method.restructured_data:
+            df = self._get_dataframe(self._method.restructured_data)
+            self._method.restructured_data.columns = self.wrangle.get_dataframe_columns(df)
         return self.core.save_file(self.get_json(hide_uuid=hide_uuid), path)
 
     #########################################################################################
     # OTHER UTILITIES
     #########################################################################################
 
+    def _get_dataframe(self, data: DataSourceModel, path: Optional[str] = None) -> pd.DataFrame:
+        """Return the dataframe for a data source. Used in transforms.
+
+        Parameters
+        ----------
+        data: DataSourceModel
+        path: str
+            Alternative path. Used if checking a received file against the method.
+
+        Returns
+        -------
+        pd.DataFrame
+        """
+        if path:
+            self.core.check_source(path)
+        else:
+            path = data.path
+            try:
+                self.core.check_source(path)
+            except FileNotFoundError:
+                path = str(self.directory / data.source)
+                self.core.check_source(path)
+        df_columns = [d.name for d in data.columns]
+        names = [d.name for d in data.names] if data.names else None
+        df = self.wrangle.get_dataframe(
+            path,
+            filetype=data.mime,
+            names=names,
+            preserve=[d.name for d in data.preserve if d.name in df_columns],
+        )
+        if isinstance(df, dict):
+            if df:
+                df = df[data.sheet_name]
+            else:
+                # It's an empty df for some reason. Maybe excessive filtering.
+                df = pd.DataFrame()
+        if df.empty:
+            raise ValueError(
+                f"Data source contains no data ({data.path}). Review actions to see if any were more destructive than expected."
+            )
+        return df
+
     def _rebuild_actions(self, data: DataSourceModel) -> None:
         """Rebuild all actions for any changes to the list of actions since they can have unexpected interactions."""
         actions = [d.script for d in data.actions]
-        df = self.wrangle.get_dataframe(
-            self.directory / data.source,
-            filetype=data.mime,
-            names=data.names,
-            preserve=data.preserve,
-        )
-        if isinstance(df, dict):
-            df = df[data.sheet_name]
+        df = self._get_dataframe(data)
         data.columns = self.wrangle.get_dataframe_columns(df)
         data.actions = []
         data.actions = self.add_actions(actions, data.uuid.hex, data.sheet_name)
@@ -1006,26 +1063,22 @@ class Method:
         pd.DataFrame
         """
         df_base = pd.DataFrame()
-        missing_keys = []
         for input_data in merge_list:
             # Perform all input data transforms and return the dataframe
-            df = self.transform(input_data)
+            if input_data.actions:
+                df = self.transform(input_data)
+            else:
+                df = self._get_dataframe(input_data)
             if df_base.empty:
                 df_base = df.copy()
                 data_base = input_data.copy()
             else:
-                df_base = pd.merge(
-                    df_base, df, how="outer", left_on=data_base.key, right_on=input_data.key, indicator=False
-                )
-                missing_keys.append(input_data.key)
-        # Deal with missing key values, and with duplicated columns ...
-        # Where left key values null, copy any values in the right join-field (i.e. no key match)
-        for key in missing_keys:
-            df_base.loc[:, data_base.key] = np.where(
-                df_base[data_base.key].isnull(), df_base[key], df_base[data_base.key]
-            )
-        # Deduplicate any columns after merge (and deduplicate the deduplicate in case of artifacts)
-        df_base.columns = self.wrangle.deduplicate_columns(self.wrangle.deduplicate_columns(df_base.columns))
+                # Rename and merge on the common key... {'from': 'too'}
+                # This avoids any hassles with missing keys after the merge.
+                df.rename(index=str, columns={input_data.key.name: data_base.key.name}, inplace=True)
+                df_base = pd.merge(df_base, df, how="outer", on=data_base.key.name, indicator=False)
+        # Deduplicate any columns after merge
+        df_base.columns = self.wrangle.deduplicate_columns(df_base, self._schema)
         return df_base
 
     def _restructure_dataframes(self) -> pd.DataFrame:
@@ -1054,11 +1107,22 @@ class Method:
             merge_list = self.mthdprsr.parse_merge(merge_script, self._method.input_data)
             # Perform the merge and validate the merged DataFrame's checksum
             df_working = self._merge_dataframes(merge_list)
+            # Create and save a temporary working file
+            temporary_file = f"temporary_{self._method.uuid.hex}.xlsx"
+            temporary_path = self.directory / temporary_file
+            df_working.to_excel(temporary_path, index=False)
+            temporary_data = DataSourceModel(**{"path": str(temporary_path)})
+            temporary_data.columns = self.wrangle.get_dataframe_columns(df_working)
+            temporary_data.preserve = [c for c in temporary_data.columns if c.type_field == "string"]
+            # Load file again to calculate checksum
+            df_working = self._get_dataframe(temporary_data)
             df_checksum = self.core.get_data_checksum(df_working)
             if self._method.working_data.checksum != df_checksum:
                 raise ValueError(
                     "Method build of merged source data does not validate. Check whether you added additional source data action scripts after your last merge."
                 )
+            # Delete the temporary file
+            self.core.delete_file(temporary_path)
             # Create the restructured dataframe.
             df_restructured = self.transform(self._method.working_data)
         # Validate against the SCHEMA

@@ -14,6 +14,7 @@ if TYPE_CHECKING:
         FieldModel,
     )
     from ..base import BaseSchemaAction, BaseMorphAction, BaseCategoryAction
+    from ..schema import Schema
 
 
 class ParserScript:
@@ -96,16 +97,45 @@ class ParserScript:
 
         Parameters
         ----------
-        script: str
+        name: str
         fields: list of ColumnModel, CategoryModel, FieldModel
 
         Returns
         -------
-        str
+        Union[ColumnModel, CategoryModel, FieldModel]
         """
         # It is statistically almost impossible to have a field name that matches a randomly-generated UUID
         # Can be used to recover fields from hex
         return next((f for f in fields if f.name == name or f.uuid.hex == name), None)
+
+    def get_field_from_script(
+        self, name: str, fields: List[Union[ColumnModel, FieldModel]], schema: Type[Schema]
+    ) -> Union[ColumnModel, FieldModel]:
+        """Recover a field model from a string.
+
+        Parameters
+        ----------
+        name: str
+        fields: list of ColumnModel, FieldModel
+        schema: schema
+
+        Raises
+        ------
+
+        Returns
+        -------
+        Union[ColumnModel, CategoryModel, FieldModel]
+        """
+        # Is it a ColumnModel?
+        field = self.get_field_model(name, fields)
+        if not field:
+            # Is it in the schema?
+            field = schema.get_field(name)
+        if not field:
+            raise ValueError(
+                f"Field name is not recognised from either of the table columns, or the schema fields ({name})."
+            )
+        return field
 
     ###################################################################################################
     ### SCRIPT PARSING UTILITIES

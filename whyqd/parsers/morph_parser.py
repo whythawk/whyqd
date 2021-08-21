@@ -74,30 +74,33 @@ class MorphScript:
             Parsed dictionary of an initialised morph action script.
         """
         first_action = self.parser.get_anchor_action(script)
+        param = None
         rename_all = first_action.name == "RENAME_ALL"
         if not rename_all:
             script = self.parser.get_normalised_script(script, self.source_columns)
         columns, rows = None, None
         root = self.parser.get_split_terms(script, "<")
         if len(root) == 2:
+            # Parsing "< [rows]"
             # Must all be of type `int`
             rows = [int(i) for i in self.get_morph_struts(root[1])]
         root = self.parser.get_split_terms(root[0], ">")
         if len(root) == 2:
+            # Parsing "> 'param'::[columns]" - this is a term some morphs can request
+            optional = self.parser.get_split_terms(root[1], "::")
+            if len(optional) == 2:
+                # Must be a string
+                param = self.parser.get_literal(optional[0])
             morph_terms = self.get_morph_struts(root[1])
             # These must all be of ColumnModel, unless ACTION is RENAME_ALL
             columns = []
-            missing_columns = []
             for m in morph_terms:
                 c = self.parser.get_literal(m)
                 if rename_all:
                     columns.append(c)
                 else:
-                    c = self.parser.get_field_model(c, self.source_columns)
-                    if not c:
-                        missing_columns.append(m)
-                    else:
-                        columns.append(c)
+                    c = self.parser.get_field_from_script(c, self.source_columns, self.schema)
+                    columns.append(c)
             if rename_all and first_action.name == "RENAME_ALL":
                 if len(columns) != len(self.source_columns):
                     raise ValueError(
@@ -107,11 +110,8 @@ class MorphScript:
         if not action:
             raise ValueError("Morph action not found.")
         # Validate structure
-        if columns:
-            if "columns" not in action.structure:
-                raise ValueError(f"Script error for {action.name} Morph. Columns are not a valid input.")
-            elif missing_columns:
-                raise ValueError(f"Columns ({missing_columns}) not found in source data.")
+        if columns and "columns" not in action.structure:
+            raise ValueError(f"Script error for {action.name} Morph. Columns are not a valid input.")
         if not columns and "columns" in action.structure:
             raise ValueError(f"Script error for {action.name} Morph. No valid input columns provided.")
         if rows:
@@ -122,6 +122,13 @@ class MorphScript:
         else:
             if "rows" in action.structure:
                 raise ValueError(f"Script error for {action.name} Morph. No valid input rows provided.")
+        if param:
+            return {
+                "action": action,
+                "columns": columns,
+                "rows": rows,
+                "param": param,
+            }
         return {
             "action": action,
             "columns": columns,
@@ -133,7 +140,11 @@ class MorphScript:
     ###################################################################################################
 
     def transform(
-        self, action: MorphActionModel, columns: Optional[List[ColumnModel]] = None, rows: Optional[List[int]] = None
+        self,
+        action: MorphActionModel,
+        columns: Optional[List[ColumnModel]] = None,
+        rows: Optional[List[int]] = None,
+        param: Optional[str] = None,
     ) -> pd.DataFrame:
         """Transform a dataframe according to a morph script.
 
@@ -153,6 +164,8 @@ class MorphScript:
         """
         action: Type[BaseMorphAction]
         action = self.parser.get_action_class(action)()
+        if param:
+            return action.transform(self.df, columns=columns, rows=rows, param=param)
         return action.transform(self.df, columns=columns, rows=rows)
 
     ###################################################################################################

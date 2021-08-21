@@ -13,15 +13,15 @@ class Action(BaseFilterAction):
 
     Script is::
 
-        "FILTER_BEFORE > 'filter_column'::'date'"
+        "FILTER_AFTER > 'filter_column'::'date'"
 
     Where `date` is the specific date reference, in ISO `YYYY-MM-DD` format.
     """
 
     def __init__(self) -> None:
-        self.name = "FILTER_BEFORE"
-        self.title = "Filter before"
-        self.description = "Filter a table by a date column after to a specified date."
+        self.name = "FILTER_AFTER"
+        self.title = "Filter after"
+        self.description = "Filter a table by a date column after a specified date."
         self.structure = ["date"]
 
     def transform(
@@ -35,7 +35,7 @@ class Action(BaseFilterAction):
 
         Script is::
 
-            "FILTER_BEFORE > 'filter_column'::'date'"
+            "FILTER_AFTER > 'filter_column'::'date'"
 
         Where `date` is the specific date reference, in ISO `YYYY-MM-DD` format.
 

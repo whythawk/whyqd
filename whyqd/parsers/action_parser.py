@@ -4,10 +4,10 @@ from uuid import uuid4
 
 from . import CoreScript, ParserScript
 from ..action import default_actions
-from ..models import ConstraintsModel
+from ..models import ConstraintsModel, FieldModel
 
 if TYPE_CHECKING:
-    from ..models import ColumnModel, SchemaActionModel, FieldModel, ModifierModel, CategoryActionModel, CategoryModel
+    from ..models import ColumnModel, SchemaActionModel, ModifierModel, CategoryActionModel, CategoryModel
     from ..schema import Schema
     from ..base import BaseSchemaAction
     import pandas as pd
@@ -73,17 +73,8 @@ class ActionScript:
         if len(split_terms) == 2:
             destination = self.parser.get_literal(split_terms[1])
             # Check if 'destination' is a column or schema field
-            is_column = self.parser.get_field_model(destination, self.source_columns)
-            if is_column:
-                destination = is_column
-            else:
-                # If not, it's part of the Schema
-                is_field = self.schema.get_field(destination)
-                if not is_field:
-                    raise ValueError(
-                        f"Action destination field ({destination}) is not found in either of the Schema or source data."
-                    )
-                destination = is_field
+            destination = self.parser.get_field_from_script(destination, self.source_columns, self.schema)
+            is_field = isinstance(destination, FieldModel)
         source = None
         if len(root) > 1:
             source = "<".join(root[1:])
@@ -264,19 +255,14 @@ class ActionScript:
             if isinstance(term, str) and term in self.modifier_names:
                 recovered = self.source_modifiers[term]
             elif isinstance(term, str):
-                recovered = self.parser.get_field_model(term, self.source_columns)
+                recovered = self.parser.get_field_from_script(term, self.source_columns, self.schema)
             elif isinstance(term, list):
                 recovered = self._get_recovered_source_columns(term)
             elif isinstance(term, dict):
                 # Check if 'destination' is a column or schema field
                 destination = term.get("destination")
                 if destination:
-                    is_column = self.parser.get_field_model(destination, self.source_columns)
-                    if is_column:
-                        destination = is_column
-                    else:
-                        # If not, it's part of the Schema
-                        destination = self.schema.get_field(destination)
+                    destination = self.parser.get_field_from_script(destination, self.source_columns, self.schema)
                 recovered = {
                     "action": term.get("action"),
                     "destination": destination,

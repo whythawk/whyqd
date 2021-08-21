@@ -53,13 +53,13 @@ class Action(BaseMorphAction):
         if len(root) != 2:
             raise ValueError(f"`MERGE` action script has no source terms ({script}).")
         # Extract source terms
-        source_term = list(self.parser.generate_contents(root[1]))
+        source_term = list(parser.generate_contents(root[1]))
         if len(source_term) != 1:
             raise ValueError(f"MERGE action source terms must not be nested. ({source_term}).")
-        source_term = self.parser.get_split_terms(source_term[0][1], ",")
+        source_term = parser.get_split_terms(source_term[0][1], ",")
         for s in source_term:
-            s = self.parser.get_split_terms(s, "::")
-            s = [self.parser.get_literal(t) for t in s]
+            s = parser.get_split_terms(s, "::")
+            s = [parser.get_literal(t) for t in s]
             key, uid, sheet_name = None, None, None
             if len(s) == 3:
                 key, uid, sheet_name = s

@@ -4,9 +4,10 @@ import pandas as pd
 from datetime import date
 
 from . import CoreScript, ParserScript, WranglingScript
+from ..models import FilterActionModel
 
 if TYPE_CHECKING:
-    from ..models import ColumnModel, FieldModel, FilterActionModel
+    from ..models import ColumnModel, FieldModel, DataSourceModel
     from ..schema import Schema
     from ..base import BaseFilterAction
 
@@ -20,18 +21,18 @@ class FilterScript:
 
     Parameters
     ----------
-    source_columns: list of ColumnModel
-        Source columns upon which the script will be applied.
+    data: DataSourceModel
     schema: Schema
         Destination Schema
     """
 
-    def __init__(self, source_columns: List[ColumnModel], schema: Schema) -> None:
+    def __init__(self, data: DataSourceModel, schema: Schema) -> None:
         self.core = CoreScript()
         self.parser = ParserScript()
         self.wrangle = WranglingScript()
-        self.source_columns = source_columns
+        self.data = data
         self.schema = schema
+        self.source_columns = data.columns
 
     ###################################################################################################
     ### PARSE TRANSFORM SCRIPT
@@ -62,16 +63,12 @@ class FilterScript:
         parsed = self.parser.get_action_class(action_model)().parse(script)
         # Filter column
         filter_column = self.parser.get_literal(parsed["filter"])
-        filter_column = self.parser.get_field_model(filter_column, self.source_columns)
-        if not filter_column:
-            raise ValueError(f"Filter column is not recognised ({parsed['filter']}).")
+        filter_column = self.parser.get_field_from_script(filter_column, self.source_columns, self.schema)
         # Column
         column = None
         if parsed.get("column"):
             column = self.parser.get_literal(parsed["column"])
-            column = self.parser.get_field_model(column, self.source_columns)
-            if not column:
-                raise ValueError(f"Grouped filter column is not recognised ({parsed['column']}).")
+            column = self.parser.get_field_from_script(column, self.source_columns, self.schema)
         # Date term
         date_term = None
         if parsed.get("date"):
@@ -81,8 +78,8 @@ class FilterScript:
                 raise ValueError(f"Filter date is not recognised ({parsed['date']}).")
         return {
             "action": action_model,
-            "filter": filter_column,
-            "date": date_term,
+            "filter_column": filter_column,
+            "date_term": date_term,
             "column": column,
         }
 
@@ -118,4 +115,4 @@ class FilterScript:
         """
         action: Type[BaseFilterAction]
         action = self.parser.get_action_class(action)()
-        return action.transform(df, filter_column, column, date_term)
+        return action.transform(df, filter_column, date_term, column)

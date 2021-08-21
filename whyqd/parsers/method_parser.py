@@ -105,7 +105,9 @@ class MethodScript:
             raise ValueError("List of reordered model ids isn't the same as that in the provided list of Models.")
         return sorted(
             model_list,
-            key=lambda item: order.index((item.uuid, item.sheet_name)) if item.sheet_name else order.index(item.uuid),
+            key=lambda item: order.index((item.uuid.hex, item.sheet_name))
+            if item.sheet_name
+            else order.index(item.uuid.hex),
         )
 
     ###################################################################################################
@@ -240,12 +242,12 @@ class MethodScript:
         list of DataSourceModel
             Parsed list of updated input source data DataSourceModels.
         """
-        action_model = self.parser.get_anchor_action(script)
+        action_model = self.parser.get_anchor_action(script.script)
         if action_model.name != "MERGE":
             raise ValueError(f"Invalid action ({action_model.name}) for this parser.")
         # Validate the MERGE script and get the required input data sources
         MERGE = self.parser.get_action_class(action_model)
-        merge_terms = MERGE().parse(script)
+        merge_terms = MERGE().parse(script.script)
         merge_list = []
         # Check if the source data exist
         for key, uid, sheet_name in merge_terms:

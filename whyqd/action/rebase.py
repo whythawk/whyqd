@@ -24,7 +24,9 @@ class Action(BaseMorphAction):
         self.description = "Rebase the header row at an indexed row and drop rows above that point."
         self.structure = ["rows"]
 
-    def transform(self, df: pd.DataFrame, rows: List[int], columns: Optional[None] = None) -> pd.DataFrame:
+    def transform(
+        self, df: pd.DataFrame, columns: Optional[None] = None, rows: Optional[List[int]] = None
+    ) -> pd.DataFrame:
         """
         Rebase the header row at an indexed row and drop rows above that point.
 

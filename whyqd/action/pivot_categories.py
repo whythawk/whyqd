@@ -61,7 +61,7 @@ class Action(BaseMorphAction):
         self.description = "Convert row-level categories into column categorisations."
         self.structure = ["rows", "columns"]
 
-    def transform(self, df: pd.DataFrame, rows: List[int], columns: List[ColumnModel]) -> pd.DataFrame:
+    def transform(self, df: pd.DataFrame, columns: List[ColumnModel], rows: List[int]) -> pd.DataFrame:
         """
         Convert row-level categories into column categorisations.
 

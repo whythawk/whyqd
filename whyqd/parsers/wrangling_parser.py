@@ -1,12 +1,10 @@
 from __future__ import annotations
-from typing import Optional, List, Union, Dict
+from typing import Optional, Dict, List, Union, Type, TYPE_CHECKING
 from datetime import date, datetime
 import pandas as pd
 import numpy as np
 import re
 import locale
-
-from ..models import ColumnModel
 
 try:
     locale.setlocale(locale.LC_ALL, "en_US.UTF-8")
@@ -15,7 +13,11 @@ except locale.Error:
     locale.setlocale(locale.LC_ALL, "")
 
 from . import CoreScript
+from ..models import ColumnModel
 from ..types import MimeType
+
+if TYPE_CHECKING:
+    from ..schema import Schema
 
 
 class WranglingScript:
@@ -127,40 +129,37 @@ class WranglingScript:
         ]
         return [ColumnModel(**c) for c in columns]
 
-    def deduplicate_columns(
-        self, idx: pd.Index, fmt: Optional[str] = None, ignoreFirst: Optional[bool] = True
-    ) -> pd.Index:
+    def deduplicate_columns(self, df: pd.DataFrame, schema: Type[Schema]) -> pd.Index:
         """
+        Source: https://stackoverflow.com/a/65254771/295606
         Source: https://stackoverflow.com/a/55405151
         Returns a new column list permitting deduplication of dataframes which may result from merge.
 
         Parameters
         ----------
-        idx: Pandas Index
-            df.columns (i.e. the indexed column list)
-        fmt: str
-            A string format that receives two arguments: name and a counter. By default: fmt='%s.%03d'
-        ignoreFirst: bool
-            Disable/enable postfixing of first element.
+        df: pd.DataFrame
+        fields: list of FieldModel
+            Destination Schema fields
 
         Returns
         -------
-        Pandas Index
+        pd.Index
             Updated column names
         """
-        idx = pd.Series(idx)
-        duplicates = idx[idx.duplicated()].unique()
-        fmt = "%s_%03d" if fmt is None else fmt
-        for name in duplicates:
-            dups = idx == name
-            ret = [fmt % (name, i) if (i != 0 or not ignoreFirst) else name for i in range(dups.sum())]
-            idx.loc[dups] = ret
+        column_index = pd.Series(df.columns.tolist())
+        if df.columns.has_duplicates:
+            duplicates = column_index[column_index.duplicated()].unique()
+            for name in duplicates:
+                dups = column_index == name
+                replacements = [f"{name}{i}" if i != 0 else name for i in range(dups.sum())]
+                column_index.loc[dups] = replacements
         # Fix any fields with the same name as any of the target fields
-        for name in self.all_field_names:
-            dups = idx == name
-            ret = [f"{name}__dd" for i in range(dups.sum())]
-            idx.loc[dups] = ret
-        return pd.Index(idx)
+        # Do this to 'force' schema assignment
+        for name in [f.name for f in schema.get.fields]:
+            dups = column_index == name
+            replacements = [f"{name}{i}__dd" if i != 0 else f"{name}__dd" for i in range(dups.sum())]
+            column_index.loc[dups] = replacements
+        return pd.Index(column_index)
 
     def check_column_unique(self, source: str, key: str) -> bool:
         """
@@ -252,7 +251,7 @@ class WranglingScript:
             return float(x)
         except ValueError:
             re_float = re.compile(
-                """(?x)
+                r"""(?x)
             ^
                 \D*     		# first, match an optional sign *and space*
                 (             # then match integers or f.p. mantissas:

@@ -30,8 +30,8 @@ class Action(BaseFilterAction):
         self,
         df: pd.DataFrame,
         filter_column: Union[FieldModel, ColumnModel],
-        column: Optional[Union[FieldModel, ColumnModel]] = None,
         date_term: Optional[None] = None,
+        column: Optional[Union[FieldModel, ColumnModel]] = None,
     ) -> pd.DataFrame:
         """Filter a table for the latest row in a specified filter column, and within an optional set of groups.
 

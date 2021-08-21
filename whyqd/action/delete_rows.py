@@ -22,7 +22,9 @@ class Action(BaseMorphAction):
         self.description = "Delete rows provided in a list. They don't have to be contiguous."
         self.structure = ["rows"]
 
-    def transform(self, df: pd.DataFrame, rows: List[int], columns: Optional[None] = None) -> pd.DataFrame:
+    def transform(
+        self, df: pd.DataFrame, columns: Optional[None] = None, rows: Optional[List[int]] = None
+    ) -> pd.DataFrame:
         """
         Delete rows provided in a list. They don't have to be contiguous.
 
