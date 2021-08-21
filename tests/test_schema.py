@@ -1,17 +1,17 @@
 from pathlib import Path
 
-import whyqd as _w
-from whyqd.core import common as _c
+import whyqd
+from whyqd.parsers import CoreScript
 
 filename = "/data/test_schema.json"
 source = str(Path(__file__).resolve().parent) + filename
-data = _c.load_json(source)
+data = CoreScript().load_json(source)
 
 
 class TestSchema:
     def test_create(self):
-        s = _w.Schema()
-        field: _w.FieldModel = {
+        s = whyqd.Schema()
+        field: whyqd.FieldModel = {
             "name": "test_field",
             "type": "string",
             "constraints": {
@@ -23,24 +23,39 @@ class TestSchema:
                 ],
             },
         }
-        schema: _w.SchemaModel = {
+        schema: whyqd.SchemaModel = {
             "name": "test_schema",
         }
         s.set(schema)
         s.add_field(field)
 
     def test_load(self):
-        s = _w.Schema(source=source)
-        d = s.get.dict(by_alias=True, exclude_defaults=True, exclude_none=True)
-        d.pop("uuid", None)
+        s = whyqd.Schema(source=source)
+        d = s.get.dict(by_alias=True, exclude_defaults=True, exclude_none=True, exclude_unset=True)
         assert d == data
 
     def test_build(self):
-        s = _w.Schema()
+        s = whyqd.Schema()
         details = {"name": data["name"], "title": data["title"], "description": data["description"]}
         s.set(schema=details)
         for field in data["fields"]:
             s.add_field(field=field)
-        d = s.get.dict(by_alias=True, exclude_defaults=True, exclude_none=True)
-        d.pop("uuid", None)
+        # also this https://github.com/samuelcolvin/pydantic/issues/1283#issuecomment-594041870
+        # foo_excludes = {idx: {"id"} for idx in range(len(my_bar.foos))}
+        # my_bar.dict(exclude={"foos": foo_excludes})
+        # https://pydantic-docs.helpmanual.io/usage/exporting_models/#advanced-include-and-exclude
+        schema_exclude = {
+            f_idx: (
+                {
+                    "uuid": ...,
+                    "constraints": {"category": {c_idx: {"uuid"} for c_idx in range(len(f.constraints.category))}},
+                }
+                if f.constraints
+                else {"uuid"}
+            )
+            for f_idx, f in enumerate(s.get.fields)
+        }
+        d = s.get.dict(
+            by_alias=True, exclude_defaults=True, exclude_none=True, exclude={"uuid": ..., "fields": schema_exclude}
+        )
         assert d == data

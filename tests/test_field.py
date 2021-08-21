@@ -32,7 +32,7 @@ class TestField:
         s.set(schema)
         f = {"name": "test_name", "type": "string"}
         s.add_field(f)
-        c: _w.ConstraintModel = {"required": True}
+        c: _w.ConstraintsModel = {"required": True}
         s.set_field_constraints("test_name", constraints=c)
         f = s.get_field("test_name")
         assert f.constraints.required
@@ -41,7 +41,7 @@ class TestField:
             {"name": "cat", "description": "A different type of mammal"},
             {"name": "mouse", "description": "A small type of mammal"},
         ]
-        c: _w.ConstraintModel = {"enum": category}
+        c: _w.ConstraintsModel = {"enum": category}
         s.set_field_constraints("test_name", c)
         f = s.get_field_constraints("test_name")
         assert f.category == category
