@@ -12,7 +12,7 @@ metadata target for your wrangling process. This is not the format your input da
 it is what you require it to look like when you're done.
 
 Your schema sets the requirements, constraints and sensible defaults available for creating each
-`method` that will describe the process for wrangling input data into the fields defined by the
+:doc:`method` that will describe the process for wrangling input data into the fields defined by the
 schema. It can be reused to create multiple `methods`. Once complete, automated scripts can perform
 further cleaning and validation.
 
@@ -60,72 +60,56 @@ helpful as possible to 'future-you'. You'll thank yourself later.
 Field descriptors
 -----------------
 
-Fields, similarly, contain `name`, `title` and `description`, as well as `type` as compulsory. To
-see the available field types::
+Fields, similarly, contain `name`, `title` and `description`, as well as `type` as compulsory. The available types are:
 
-    >>> sc = _d.Schema()
-    >>> sc.default_field_types
-    ['string',
-    'number',
-    'integer',
-    'boolean',
-    'object',
-    'array',
-    'date',
-    'datetime',
-    'year']
+* `string`: Any text-based string (this is the default),
+* `number`: Any number-based value, including integers and floats,
+* `integer`: Any integer-based value,
+* `boolean`: A boolean [true, false] value. Can set category constraints to fix term used,
+* `object`: Any valid JSON data,
+* `array`: Any valid array-based data,
+* `date`: Any date without a time. Must be in ISO8601 format, YYYY-MM-DD,
+* `datetime`: Any date with a time. Must be in ISO8601 format, with UTC time specified (optionally) as YYYY-MM-DD hh:mm:ss Zz,
+* `year`: Any year, formatted as YYYY.
 
-To see further parameter options for each default type::
+To see all the parameter options for the `SchemaModel`::
 
-    >>> sc.default_field_settings('string')
-    {
-        'required': ['name', 'type'],
-        'name': 'field_name',
-        'title': 'A human-readable version of the field name',
-        'description': 'Any text-based string.',
+    >>> import whyqd
+    >>> whyqd.models.SchemaModel.schema()
+
+       {'title': 'SchemaModel',
+        'type': 'object',
+        'properties': {'uuid': {'title': 'Uuid',
+        'description': 'Automatically generated unique identity for the schema.',
         'type': 'string',
-        'format': {
-            'description': 'The format keyword options for `string` are `default`, `email`, `uri`, `binary`, and `uuid`.',
-            'category': ['default', 'email', 'uri', 'binary', 'uuid'],
-            'default': 'default'
-            },
-        'foreignKey': {
-            'type': 'boolean',
-            'description': 'Set `foreignKey` `true` if the field is to be treated as an immutable value.'
-            },
-        'constraints': {
-            'description': 'The following constraints are supported.',
-            'properties': {
-                'required': {
-                    'type': 'boolean',
-                    'description': 'Indicates whether a property must have a value for each instance.'
-                },
-                'unique': {
-                    'type': 'boolean',
-                    'description': 'When `true`, each value for the property `MUST` be unique.'
-                },
-            'category': {
-                'type': 'array',
-                'minItems': 1,
-                'uniqueItems': True,
-                'terms': {
-                    'type': 'string'
-                    }
-                },
-            'minimum': {
-                'type': 'integer',
-                'description': 'An integer that specifies the minimum length of a value.'
-                },
-            'maximum': {
-                'type': 'integer',
-                'description': 'An integer that specifies the maximum length of a value.'
-                }
-            }
-        },
-    'missing': {
-        'description': 'Default to be used for missing values.',
-        'default': ''
-        }
+        'format': 'uuid'},
+        'name': {'title': 'Name',
+        'description': 'Machine-readable term to uniquely address this schema. Cannot have spaces. CamelCase or snake_case.',
+        'type': 'string'},
+        'title': {'title': 'Title',
+        'description': 'A human-readable version of the schema name.',
+        'type': 'string'},
+        'description': {'title': 'Description',
+        'description': "A complete description of the schema. Depending on how complex your work becomes, try and be as helpful as possible to 'future-you'. You'll thank yourself later.",
+        'type': 'string'},
+        'fields': {'title': 'Fields',
+        'description': 'A list of fields which define the schema. Fields, similarly, contain `name`, `title` and `description`, as well as `type` as compulsory.',
+        'default': [],
+        'type': 'array',
+        'items': {'$ref': '#/definitions/FieldModel'}},
+        'version': {'title': 'Version',
+        'description': 'Version and update history for the schema.',
+        'default': [],
+        'type': 'array',
+        'items': {'$ref': '#/definitions/VersionModel'}}},
+        'required': ['name'], ...
+
+Allowing you to declare your initial `schema`::
+
+    {
+        "name": "urban_population",
+        "title": "Urban population",
+        "description": "Urban population refers to people living in urban areas as defined by national statistical offices. It is calculated using World Bank population estimates and urban ratios from the United Nations World Urbanization Prospects. Aggregation of urban and rural population may not add up to total population because of different country coverages.",
     }
 
 `name`
@@ -156,25 +140,19 @@ your input data.
 During the wrangling process, this field can be used for merging with other input
 data, ensuring consistency between sources.
 
-`type` and `format`
-^^^^^^^^^^^^^^^^^^^
-`type` defines the data-type of the field, while `format` - which is currently unsupported in
-wrangling - further refines the specific `type` properties. The core supported types, with indents
-for formats:
+`type`
+^^^^^^
+`type` defines the data-type of the field. The core supported types:
 
 * `string`: any text-based string.
-
-  * `default`: any string
-  * `email`: an email address
-  * `uri`: any web address / URI
-
 * `number`: any number-based value, including integers and floats.
 * `integer`: any integer-based value.
 * `boolean`: a boolean [`true`, `false`] value. Can set category constraints to fix term used.
 * `object`: any valid JSON data.
 * `array`: any valid array-based data.
 * `date`: any date without a time. Must be in ISO8601 format, `YYYY-MM-DD`.
-* `datetime`: any date with a time. Must be in ISO8601 format, with UTC time specified (optionally) as `YYYY-MM-DD hh:mm:ss Zz`.
+* `datetime`: any date with a time. Must be in ISO8601 format, with UTC time specified (optionally) as
+    `YYYY-MM-DD hh:mm:ss Zz`.
 * `year`: any year, formatted as `YYYY`.
 
 `missing`
@@ -191,84 +169,57 @@ will list constraints available to a specific field type.
 Define these as part of your schema definition for a specific field::
 
     {
-      "name": "A simple name",
-      "fields": [
-        {
-            "name": "Field name, e.g. 'column_name'",
-            "type": "Valid data type, e.g. 'string', 'number'",
-            "constraints": {
-                "required": True,
-                "unique": True
-            }
-        }
-      ]
+        "name": "Indicator Code",
+        "title": "Indicator Code",
+        "type": "string",
+        "description": "World Bank code reference for Indicator Name.",
+        "constraints": {"required": True, "unique": True},
     }
 
 All available constraints:
 
-* `required`: boolean, indicates whether this field is compulsory (but blank values in the input column are permitted and will be set to the `missing` default)
+* `required`: boolean, indicates whether this field is compulsory (but blank values in the input column are permitted
+    and will be set to the `missing` default)
 * `unique`: boolean, if `true` then all values for that input column must be unique
-* `minimum`: `integer` / `number`, as appropriate defining min number of characters in a string, or the min values of numbers or integers
-* `maximum`: `integer` / `number`, as appropriate defining max number of characters in a string, or the max values of numbers or integers
+* `minimum`: `integer` / `number`, as appropriate defining min number of characters in a string, or the min values of
+    numbers or integers
+* `maximum`: `integer` / `number`, as appropriate defining max number of characters in a string, or the max values of
+    numbers or integers
+
+There are two others, `category` and `default`.
 
 Field constraints: category
 ---------------------------
-In FrictionlessData.io, this is called `enum`, which isn't particularly meaningful. `Category` data
-are the set of unique category terms permitted in this field. During wrangling you will be able to
+`Category` data are the set of unique category terms permitted in this field. During wrangling you will be able to
 define values which should be assigned to each of these categories.
+
+In `JSON Schema <https://json-schema.org/>`_, this is called `enum`, which isn't particularly meaningful. In the
+`whyqd` API, you will refer to `.category` to reference the list of categories. However, in `.json` output files,
+these will be referenced as `enum` for compliance with the standard.
 
 Define these as part of your schema definition for a specific field::
 
     {
-      "name": "A simple name",
-      "fields": [
-        {
-            "name": "Field name, e.g. 'column_name'",
-            "type": "Valid data type, e.g. 'string', 'number'",
-            "constraints": {
-                "category": ["cheddar", "gouda", "other"]
-            }
-        }
-      ]
+        "name": "test_field",
+        "type": "string",
+        "constraints": {
+            "required": True,
+            "category": [
+                {"name": "dog", "description": "A type of mammal"},
+                {"name": "cat", "description": "A different type of mammal"},
+                {"name": "mouse", "description": "A small type of mammal"},
+            ],
+            "default": {"name": "dog", "description": "A type of mammal"},
+        },
     }
+
+Each `category` can have a `name`, and a `description`, but the minimum is a `name`. You can also define a `default` to
+be used where source data are not defined.
 
 Each field `type` will have its own category constraints. For example, boolean categories can use a
 different term than True / False defined by the category, but only permits two terms. Others have
 a minimum of one term in a category, but require the list member type to be `string`, `number`, etc.
 Ordinarily, `category` terms must be unique.
-
-Review the `default_field_settings(type)` for that field's specific category constraints.
-
-Field constraints: filter
---------------------------
-`Filters` are a constraint that filter a named field, or the `foreignKey`, by date-limited data.
-
-Define these as part of your schema definition for a valid field::
-
-    {
-      "name": "A simple name",
-      "fields": [
-        {
-            "name": "Field name, e.g. 'column_name'",
-            "type": "Valid data type, e.g. 'date', 'datetime'",
-            "filter": {
-                "field": "foreignKey",
-                "modifiers": ["LATEST", "AFTER"]
-            }
-        }
-      ]
-    }
-
-There are two compulsory parameters defining a filter:
-
-* `field`: another field which is the subject of this filter, or by default the 'foreignKey'.
-* `modifiers`: an array of permitted filter terms, including any of ["LATEST", "AFTER", "BEFORE", "ALL"].
-
-call `default_filter_names()` to get a list, and `default_filter_settings(filter_name)` to get a
-definition
-
-For example, to filter all foreign keys (which may be duplicated as part of a time-series) to be
-more recent than a specified date, include "AFTER" in your list of filter modifiers.
 """
 
 from __future__ import annotations
@@ -418,8 +369,8 @@ class Schema:
 
         Parameters
         ----------
-        kwargs: FieldModel
-            A dictionary conforming to the FieldModel.
+        name: str
+            Unique schema field name.
         """
         # https://stackoverflow.com/a/1235631/295606
         self._schema.fields[:] = [f for f in self._schema.fields if f.name != name]
@@ -447,7 +398,7 @@ class Schema:
         Parameters
         ----------
         name: string
-                Specific name for a field already in the Schema
+            Specific name for a field already in the Schema
 
         Returns
         -------

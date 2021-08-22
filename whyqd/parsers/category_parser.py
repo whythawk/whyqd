@@ -23,7 +23,7 @@ class CategoryScript:
 
     Scripts must be 'flat' and are of the form::
 
-        "ASSIGN_CATEGORY_UNIQUES > FieldModel::CategoryModel < ColumnModel::[CategoryModel....]"
+        "ASSIGN_CATEGORY_UNIQUES > FieldModel::CategoryModel < ColumnModel::[CategoryModel.etc.]"
 
     Or::
 

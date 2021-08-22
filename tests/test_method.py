@@ -58,7 +58,7 @@ class TestMethod:
         method.set({"name": "test_method"})
         input_data = [{"path": d} for d in INPUT_DATA]
         method.add_data(source=input_data)
-        # "MERGE < ['key_column'::'source_hex'::'sheet_name', ...]"
+        # "MERGE < ['key_column'::'source_hex'::'sheet_name', etc.]"
         merge_reference = [
             {"source_hex": method.get.input_data[2].uuid.hex, "key_column": "Property ref no"},
             {"source_hex": method.get.input_data[1].uuid.hex, "key_column": "Property Reference Number"},
@@ -74,13 +74,3 @@ class TestMethod:
         method.add_actions(schema_scripts, source_data.uuid.hex)
         method.build()
         method.save(created_by="Gavin Chait", hide_uuid=True)
-
-    def test_validate(self, tmp_path):
-        DIRECTORY = str(tmp_path) + "/"
-        CoreScript().check_path(DIRECTORY)
-        METHOD = CoreScript().load_json(SOURCE_DIRECTORY + METHOD_FILE)
-        method = whyqd.Method(directory=DIRECTORY, schema=SCHEMA, method=METHOD)
-        df = method._get_dataframe(method.get.restructured_data, RESTRUCTURED_DATA)
-        checksum = CoreScript().get_data_checksum(df)
-        assert method.get.restructured_data.checksum == checksum
-        assert method.validate()

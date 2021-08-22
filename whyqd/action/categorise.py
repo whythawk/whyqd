@@ -29,7 +29,7 @@ class Action(BaseSchemaAction):
 
     or::
 
-        "ASSIGN_CATEGORY_UNIQUES > 'destination_field'::'destination_category' < 'source_column'::['unique_source_term', 'unique_source_term', ...]"
+        "ASSIGN_CATEGORY_UNIQUES > 'destination_field'::'destination_category' < 'source_column'::['unique_source_term', 'unique_source_term', etc.]"
 
     .. note:: Categorisation requires that the destination `schema` `field` is assigned appropriate `category` `constraints`.
     """
@@ -134,9 +134,9 @@ class Action(BaseSchemaAction):
             # GENERATE: np.selection(conditions, category_terms, default)
             # GENERATE CATEGORY TERMS
             # With list of category action assignment scripts::
-            #     ["ASSIGN_CATEGORY_UNIQUES > 'schema_field'::'schema_category1' < 'source_column1'::['source_category_term1',...]",
-            #      "ASSIGN_CATEGORY_UNIQUES > 'schema_field'::'schema_category2' < 'source_column1'::['source_category_term2',...]",
-            #      "ASSIGN_CATEGORY_UNIQUES > 'schema_field'::'schema_category1' < 'source_column2'::['source_category_term3',...]"
+            #     ["ASSIGN_CATEGORY_UNIQUES > 'schema_field'::'schema_category1' < 'source_column1'::['source_category_term1',etc.]",
+            #      "ASSIGN_CATEGORY_UNIQUES > 'schema_field'::'schema_category2' < 'source_column1'::['source_category_term2',etc.]",
+            #      "ASSIGN_CATEGORY_UNIQUES > 'schema_field'::'schema_category1' < 'source_column2'::['source_category_term3',etc.]"
             #      ...]
             category_terms = []
             # for schema_category in list of all schema_categories for this field
@@ -259,7 +259,7 @@ class Action(BaseSchemaAction):
                         source_category_assignment["assigned"]
                         # 2. for each source_category_assignment from the assigned source_categories
                         # for this source_column
-                        # i.e. "ASSIGN_CATEGORY_UNIQUES > 'schema_field'::'schema_category1' < 'source_column2'::['source_category_term3',...]"
+                        # i.e. "ASSIGN_CATEGORY_UNIQUES > 'schema_field'::'schema_category1' < 'source_column2'::['source_category_term3',etc.]"
                         for source_category_assignment in assigned
                         # 3. if the schema_category the source_category_term is assigned is
                         # the same as the schema_category

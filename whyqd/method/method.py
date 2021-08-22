@@ -7,289 +7,388 @@
 Method
 ======
 
-Once you have created your `Schema` it can be imported and used to develop a wrangling `method`, a
+`Whyqd <https://whyqd.com>`_ supports trust in research by ensuring complete and unambiquous probity in the curation of
+all source data.
+
+**Data probity** refers to the following criteria:
+
+* Identifiable input source data,
+* Transparent methods for restructuring of that source data into the data used to support research analysis,
+* Accessible restructured data used to support research conclusions,
+* A repeatable, auditable curation process which produces the same data.
+
+Researchers may disagree on conclusions derived from analytical results. What they should not have cause for
+disagreement on is the probity of the underlying data used to produce those analytical results.
+
+Once you have created your :doc:`schema` it can be imported and used to develop a wrangling `method`, a
 complete, structured JSON file which describes all aspects of the wrangling process. There is no
 'magic'. Only what is defined in the method will be executed during transformation.
 
-A method file can be shared, along with your input data, and anyone can import **whyqd** and
-validate your method to verify that your output data is the product of these inputs::
+A method file can be shared, along with your input data, and anyone can then import `whyqd` and
+:doc:`validate` your method to verify that your output data is the product of these inputs.
 
-    import whyqd as _w
-    method = _w.Method(source, directory=DIRECTORY, input_data=INPUT_DATA)
+There are three worked tutorials to demonstrate how you can use `whyqd` to support source data curation transparency.
 
-`source` is the full path to the schema you wish to use, and `DIRECTORY` will be your working
-directory for saved data, imports, working data and output.
+* :doc:`local_government_data_tutorial`
+* :doc:`world_bank_data_tutorial`
+* :doc:`cthulu_data_tutorial`
 
-`INPUT_DATA` is a list of filenames or file sources. This is optional at this stage, and you can
-add and edit your sources later. File sources can include URI's.
+The first step in the process is simply to declare a method, and assign a `schema` which it must conform to::
 
-Help
-----
+    >>> import whyqd
+    >>> SCHEMA = whyqd.Schema(source=SCHEMA_SOURCE)
+    >>> method = whyqd.Method(directory=DIRECTORY, schema=SCHEMA)
+    >>> method_details = {
+        "name": "urban_population_method",
+        "title": "Urban population method",
+        "description": "Methods converting World Bank Urban Population source data into our analytical input data.",
+    }
+    >>> method.set(method_details)
 
-To get help, type::
+Where:
 
-    method.help()
-    # or
-    method.help(option)
+ * `DIRECTORY` is your working directory to create your method and manage data files,
+ * `SCHEMA_SOURCE` is the path to the `schema.json` file,
 
-Where `option` can be any of::
+Greater detail can be found in the complete API reference. What follows are the high-level steps required to develop
+your `method`.
 
-    "status"
-    "merge"
-    "structure"
-    "category"
-    "filter"
+Import source data
+------------------
 
-`status` will return the current method status, and your mostly likely next steps. The other options
-will return methodology, and output of that option's result (if appropriate).
+Assuming you have a list of input source data you wish to restructure::
 
-These are the steps to create a complete method:
+    >>> INPUT_DATA = [
+        SOURCE_DIRECTORY + "raw_E06000044_014_0.XLSX",
+        SOURCE_DIRECTORY + "raw_E06000044_014_1.XLSX",
+        SOURCE_DIRECTORY + "raw_E06000044_014_2.XLSX",
+    ]
+
+Data must conform to the `DataSourceModel`, which requires a minimum of a `path` field declaration::
+
+    >>> input_data = [{"path": d} for d in INPUT_DATA]
+    >>> method.add_data(source=input_data)
+
+These data will be imported to your working `DIRECTORY` and a unique `checksum` assigned to each data. The checksum is
+a hash based on `BLAKE2b <https://en.wikipedia.org/wiki/BLAKE_(hash_function)>`_. These input data are never changed
+during the restructuring process, and the hash is based on the entire file. If anyone opens these files and resaves
+them - even if they make no further changes - metadata and file structure will change, and a later hash generated on
+the changed file will be different from the original.
+
+You now have two options:
+
+* **Merge**: since you have multiple data sources, you can merge these into one so that you only need to develop one**
+    set of restructuring actions,
+* **Add actions**: or you can add individual actions, and then merge.
+
+.. warning:: **Whyqd** ensures **unambiguous** data curation. There are no "stranded" assets in a `method`. If you
+    import an Excel spreadsheet which happens to have multiple sheets, each of these sheets as added as a separate
+    `input_data` reference. It is up to you to delete input data you have no intention of using.
 
 Merge
 -----
-`merge` will join, in order from right to left, your input data on a common column. You can modify
-your input data at any time. Note, however, that this will reset your status and require
-revalidation of all subsequent steps.
+`merge` will join, in order from right to left, your input data on a `key` column. Merging will generate a `working_data`
+reference.
 
-To add input data, where `input_data` is a filename / source, or list of filenames / sources::
+.. note:: If you only have one input source file, you don't need to merge. However, if you have multiple sources, then
+    a merge is **mandatory** or your build will fail.
 
-    method.add_input_data(input_data)
+During import, each data source was assigned a unique reference
+`UUID <https://en.wikipedia.org/wiki/Universally_unique_identifier>`>_. If a single Excel source file had multiple
+sheets, then uniquely-identifying each is a combination of the `UUID` and its `sheet_name`.
 
-To remove input data, where `id` is the unique id for that input data:
+To merge, you create a special MERGE `action`::
 
-    method.remove_input_data(id)
+    "MERGE < ['key_column'::'source_hex'::'sheet_name', etc.]"
 
-To display a nicely-formatted output for review::
+Where, for each input data source:
 
-    # Permits horizontal scroll-bar in Jupyter Notebook
-    from IPython.core.display import HTML
-    display(HTML("<style>pre { white-space: pre !important; }</style>"))
+ * `key_column` is the data column used to uniquely link each row of each data source,
+ * `source_hex` is unique reference UUID for each data source,
+ * `sheet_name` is sheet name within a multi-sheet Excel source file, if such exist (otherwise `None`).
 
-    print(method.print_input_data())
+You should know your own source data, and you can get the references as follows::
 
-    Data id: c8944fed-4e8c-4cbd-807d-53fcc96b7018
+    >>> merge_reference = [
+            {"source_hex": method.get.input_data[2].uuid.hex, "key_column": "Property ref no"},
+            {"source_hex": method.get.input_data[1].uuid.hex, "key_column": "Property Reference Number"},
+            {"source_hex": method.get.input_data[0].uuid.hex, "key_column": "Property Reference Number"},
+        ]
 
-    ====  ====================  ========================  =================================  =============================  =======================================================  =============================  ===========================
-    ..  Account Start date      Current Rateable Value  Current Relief Award Start Date    Current Relief Type            Full Property Address                                    Primary Liable party name        Property Reference Number
-    ====  ====================  ========================  =================================  =============================  =======================================================  =============================  ===========================
-    0  2003-05-14 00:00:00                       8600  2019-04-01 00:00:00                Retail Discount                Ground Floor, 25, Albert Road, Southsea, Hants, PO5 2SE  Personal details not supplied                 177500080710
-    1  2003-07-28 00:00:00                       9900  2005-04-01 00:00:00                Small Business Relief England  Ground Floor, 102, London Road, Portsmouth, PO2 0LZ      Personal details not supplied                 177504942310
-    2  2003-07-08 00:00:00                       6400  2005-04-01 00:00:00                Small Business Relief England  33, Festing Road, Southsea, Hants, PO4 0NG               Personal details not supplied                 177502823510
-    ====  ====================  ========================  =================================  =============================  =======================================================  =============================  ===========================
+In this example, there is no `sheet_name`. Generate and add your merge script as follows::
 
-    Data id: a9ad7716-f777-4752-8627-dd6206bede65
+    >>> merge_terms = ", ".join([f"'{m['key_column']}'::'{m['source_hex']}'" for m in merge_reference])
+    >>> merge_script = f"MERGE < [{merge_terms}]"
+    >>> method.merge(merge_script)
 
-    ====  ===================================  =================================  ========================  ================================================================  =======================================================  ===========================
-    ..  Current Prop Exemption Start Date    Current Property Exemption Code      Current Rateable Value  Full Property Address                                             Primary Liable party name                                  Property Reference Number
-    ====  ===================================  =================================  ========================  ================================================================  =======================================================  ===========================
-    0  2019-11-08 00:00:00                  LOW RV                                                  700  Advertising Right, 29 Albert Road, Portsmouth, PO5 2SE            Personal details not supplied                                           177512281010
-    1  2019-09-23 00:00:00                  INDUSTRIAL                                            11000  24, Ordnance Court, Ackworth Road, Portsmouth, PO3 5RZ            Personal details not supplied                                           177590107810
-    2  2019-09-13 00:00:00                  EPRI                                                  26500  Unit 12, Admiral Park, Airport Service Road, Portsmouth, PO3 5RQ  Legal & General Property Partners (Industrial Fund) Ltd                 177500058410
-    ====  ===================================  =================================  ========================  ================================================================  =======================================================  ===========================
+`whyqd` will automatically process the merge, validate the merge works, and assign a UUID to the `working_data`.
 
-    Data id: 1e5a165d-5e83-4eec-9781-d450a1d3f5f1
+Whether you needed to `merge` or not, you're now ready to assign restructuring actions.
 
-    ====  ====================  ========================  =========================================================================  ==========================================  =================
-    ..  Account Start date      Current Rateable Value  Full Property Address                                                      Primary Liable party name                     Property ref no
-    ====  ====================  ========================  =========================================================================  ==========================================  =================
-    0  2003-11-10 00:00:00                      37000  Unit 7b, The Pompey Centre, Dickinson Road, Southsea, Hants, PO4 8SH       City Electrical Factors  Ltd                     177200066910
-    1  2003-11-08 00:00:00                     594000  Express By Holiday Inn, The Plaza, Gunwharf Quays, Portsmouth, PO1 3FD     Kew Green Hotels (Portsmouth Lrg1) Limited       177209823010
-    2  1994-12-25 00:00:00                      13250  Unit 2cd, Shawcross Industrial Estate, Ackworth Road, Portsmouth, PO3 5JP  Personal details not supplied                    177500013310
-    ====  ====================  ========================  =========================================================================  ==========================================  =================
+Restructure with Actions
+------------------------
+:doc:`actions` are the core of the wrangling process and is the step where you define individual steps which must be
+performed to restructure your data.
 
-Once you're satisfied with your `input_data`, prepare an `order_and_key` list to define the merge
-order, and a unique key for merging. Each input data file needs to be defined in a list as a dict::
+There are two main types of restructuring actions:
 
-    {id: input_data id, key: column_name for merge}
+* **Schema-based** where the result of the action is to restructure source data columns into schema columns,
+* **Morph-based** where you physically, and destructively, manipulate your source data to make it useable.
 
-Run the merge by calling (and, optionally - if you need to overwrite an existing merge - setting
-`overwrite_working=True`)::
+Morphs include actions like deletion, or rebasing the header row. These will lose information from your source. These
+two actions have a slightly different structure, but the process by which you add them to your method is the same.
 
-    method.merge(order_and_key, overwrite_working=True)
+Schema-based actions
+^^^^^^^^^^^^^^^^^^^^
+A template schema-based script::
 
-To view your existing `input_data` as a JSON output (or the `print_input_data` as above)::
+    "ACTION > 'destination_column' < [modifier 'source_column', {action_script}]"
 
-    method.input_data
+Where, for each input data source:
 
-Structure
----------
-`structure` is the core of the wrangling process and is the step where you define the actions
-which must be performed to restructure your working data.
+ * `destination_column` is the schema field, or existing column, you wish to direct the results of your action,
+ * `source_column` is the existing column you wish to restructure,
+ * `modifier` are special characters, defined by the ACTION, which modify the way the values in the `source_colum`
+    are interpreted.
+ * `{action_script}` is a nested action.
 
-Create a list of methods of the form::
+Schema-based actions can be nested. You can embed other schema-based actions inside them. In the case of `CALCULATE`,
+this may be necessary if you need to change the sign of a column of negative values::
 
-    {
-        "schema_field1": ["action", "column_name1", ["action", "column_name2"]],
-        "schema_field2": ["action", "column_name1", "modifier", ["action", "column_name2"]],
-    }
+    "CALCULATE > 'destination_field' < [modifier 'source_column', modifier CALCULATE < [- 'source_column']"
 
-The format for defining a `structure` is as follows, and - yes - this does permit you to create
-nested wrangling tasks::
+Morph-based actions
+^^^^^^^^^^^^^^^^^^^
+A template morph-based script::
 
-    [action, column_name, [action, column_name]]
+    "ACTION > [columns] < [rows]"
 
-e.g.::
+Where:
 
-    ["CATEGORISE", "+", ["ORDER", "column_1", "column_2"]]
+ * `rows` are the specific rows effected by the morph, a `list` of `int`,
+ * `columns` are the specific columns effected by the morph, a `list` of `source_column`.
 
-This permits the creation of quite expressive wrangling structures from simple building blocks.
+Morph-based actions are not permitted to be nested, i.e. they are stand-alone actions.
 
-Every task structure must start with an action to describe what to do with the following terms.
-There are several "actions" which can be performed, and some require action modifiers:
+.. note:: It is assumed that you're not working 'blind', that you're actually looking at your data while assigning
+    actions - *especially* row-level actions - otherwise you are going to get extremely erratic results. **Whyqd** is
+    built on `Pandas <https://pandas.pydata.org/>`_ and these examples lean heavily on that package.
 
-    * NEW: Add in a new column, and populate it according to the value in the "new" constraint
+Reviw :doc:`actions`, and each action's documentation in the API to know how to work with them.
 
-    * RENAME: If only 1 item in list of source fields, then rename that field
+Assigning actions
+^^^^^^^^^^^^^^^^^
+Once you have reviewed your data, and worked through the script you need to produce, they can be assigned::
 
-    * ORDER: If > 1 item in list of source fields, pick the value from the column, replacing each value with one from the next in the order of the provided fields
+    >>> schema_scripts = [
+            "DEBLANK",
+            "DEDUPE",
+            "REBASE < [2]",
+        ]
+    >>> source_data = method.get.input_data[0]
+    >>> method.add_actions(schema_scripts, source_data.uuid.hex, sheet_name = "Data")
 
-    * ORDER_NEW: As in ORDER, but replacing each value with one associated with a newer "dateorder" constraint
+Note, though, that `"REBASE < [2]"` changed the header-row column labels. Any further actions need to reference these
+names or the action will fail. You can review your progress at any point by running the transform and getting a
+`Pandas DataFrame <https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.html>`_::
 
-        * MODIFIER: `+` between terms for source and source_date
+    >>> df = method.transform(source_data)
 
-    * ORDER_OLD: As in ORDER, but replacing each value with one associated with an older "dateorder" constraint
+|    | Country Name   | Country Code   | Indicator Name   | Indicator Code   |   1960.0 |   1961.0 |   1962.0 |   1963.0 |   1964.0 |   1965.0 |           1966.0 |           1967.0 |           1968.0 |           1969.0 |           1970.0 |           1971.0 |           1972.0 |           1973.0 |           1974.0 |           1975.0 |           1976.0 |           1977.0 |           1978.0 |           1979.0 |           1980.0 |           1981.0 |           1982.0 |           1983.0 |          1984.0 |          1985.0 |          1986.0 |          1987.0 |          1988.0 |          1989.0 |          1990.0 |          1991.0 |          1992.0 |          1993.0 |          1994.0 |          1995.0 |          1996.0 |          1997.0 |          1998.0 |          1999.0 |          2000.0 |          2001.0 |          2002.0 |          2003.0 |          2004.0 |          2005.0 |          2006.0 |          2007.0 |          2008.0 |          2009.0 |          2010.0 |          2011.0 |          2012.0 |          2013.0 |          2014.0 |          2015.0 |          2016.0 |          2017.0 |          2018.0 |   2019.0 |
+|---:|:---------------|:---------------|:-----------------|:-----------------|---------:|---------:|---------:|---------:|---------:|---------:|-----------------:|-----------------:|-----------------:|-----------------:|-----------------:|-----------------:|-----------------:|-----------------:|-----------------:|-----------------:|-----------------:|-----------------:|-----------------:|-----------------:|-----------------:|-----------------:|-----------------:|-----------------:|----------------:|----------------:|----------------:|----------------:|----------------:|----------------:|----------------:|----------------:|----------------:|----------------:|----------------:|----------------:|----------------:|----------------:|----------------:|----------------:|----------------:|----------------:|----------------:|----------------:|----------------:|----------------:|----------------:|----------------:|----------------:|----------------:|----------------:|----------------:|----------------:|----------------:|----------------:|----------------:|----------------:|----------------:|----------------:|---------:|
+|  3 | Aruba          | ABW            | Urban population | SP.URB.TOTL      |    27526 |    28141 |    28532 |    28761 |    28924 |    29082 |  29253           |  29416           |  29575           |  29738           |  29900           |  30082           |  30275           |  30470           |  30605           |  30661           |  30615           |  30495           |  30353           |  30282           |  30332           |  30560           |  30943           |  31365           | 31676           | 31762           | 31560           | 31142           | 30753           | 30720           | 31273           | 32507           | 34116           | 35953           | 37719           | 39172           | 40232           | 40970           | 41488           | 41945           | 42444           | 43048           | 43670           | 44246           | 44669           | 44889           | 44882           | 44686           | 44378           | 44053           | 43778           | 43819           | 44057           | 44348           | 44665           | 44979           | 45296           | 45616           | 45948           |      nan |
+|  4 | Afghanistan    | AFG            | Urban population | SP.URB.TOTL      |   755836 |   796272 |   839385 |   885228 |   934135 |   986074 |      1.04119e+06 |      1.09927e+06 |      1.16136e+06 |      1.22827e+06 |      1.30095e+06 |      1.37946e+06 |      1.46329e+06 |      1.55104e+06 |      1.64087e+06 |      1.73093e+06 |      1.82161e+06 |      1.91208e+06 |      1.99758e+06 |      2.07094e+06 |      2.13637e+06 |      2.18149e+06 |      2.20897e+06 |      2.22507e+06 |     2.24132e+06 |     2.2679e+06  |     2.30581e+06 |     2.35734e+06 |     2.43955e+06 |     2.50291e+06 |     2.62855e+06 |     2.82817e+06 |     3.09339e+06 |     3.39171e+06 |     3.67709e+06 |     3.91625e+06 |     4.09384e+06 |     4.22082e+06 |     4.32158e+06 |     4.43476e+06 |     4.5878e+06  |     4.79005e+06 |     5.03116e+06 |     5.29338e+06 |     5.5635e+06  |     5.82429e+06 |     6.05502e+06 |     6.26375e+06 |     6.46484e+06 |     6.68073e+06 |     6.92776e+06 |     7.21252e+06 |     7.52859e+06 |     7.86507e+06 |     8.20488e+06 |     8.53561e+06 |     8.85286e+06 |     9.16484e+06 |     9.4771e+06  |      nan |
+|  5 | Angola         | AGO            | Urban population | SP.URB.TOTL      |   569222 |   597288 |   628381 |   660180 |   691532 |   721552 | 749534           | 776116           | 804107           | 837758           | 881022           | 944294           |      1.0282e+06  |      1.12462e+06 |      1.23071e+06 |      1.34355e+06 |      1.4626e+06  |      1.58871e+06 |      1.72346e+06 |      1.86883e+06 |      2.02677e+06 |      2.19787e+06 |      2.38256e+06 |      2.58126e+06 |     2.79453e+06 |     3.02227e+06 |     3.26559e+06 |     3.5251e+06  |     3.8011e+06  |     4.09291e+06 |     4.40096e+06 |     4.72563e+06 |     5.06788e+06 |     5.42758e+06 |     5.80661e+06 |     6.15946e+06 |     6.53015e+06 |     6.919e+06   |     7.32807e+06 |     7.75842e+06 |     8.212e+06   |     8.68876e+06 |     9.19086e+06 |     9.72127e+06 |     1.02845e+07 |     1.08828e+07 |     1.14379e+07 |     1.20256e+07 |     1.26446e+07 |     1.32911e+07 |     1.39631e+07 |     1.46603e+07 |     1.53831e+07 |     1.61303e+07 |     1.69008e+07 |     1.76915e+07 |     1.85022e+07 |     1.93329e+07 |     2.01847e+07 |      nan |
+|  6 | Albania        | ALB            | Urban population | SP.URB.TOTL      |   493982 |   513592 |   530766 |   547928 |   565248 |   582374 | 599300           | 616687           | 635924           | 656733           | 677801           | 698647           | 720649           | 742333           | 764166           | 786668           | 809052           | 832109           | 854618           | 876974           | 902120           | 927513           | 954645           | 982645           |     1.01124e+06 |     1.04013e+06 |     1.0685e+06  |     1.09835e+06 |     1.12772e+06 |     1.16716e+06 |     1.19722e+06 |     1.19891e+06 |     1.20949e+06 |     1.21988e+06 |     1.23022e+06 |     1.2404e+06  |     1.25052e+06 |     1.26041e+06 |     1.27021e+06 |     1.27985e+06 |     1.28939e+06 |     1.29858e+06 |     1.32722e+06 |     1.35485e+06 |     1.38183e+06 |     1.4073e+06  |     1.43089e+06 |     1.4524e+06  |     1.47339e+06 |     1.49526e+06 |     1.51952e+06 |     1.54693e+06 |     1.57579e+06 |     1.6035e+06  |     1.63012e+06 |     1.6545e+06  |     1.68025e+06 |     1.70634e+06 |     1.72897e+06 |      nan |
 
-        * MODIFIER: `+` between terms for source and source_date
+Wide format is not exactly helpful, so we'll modify this::
 
-    * CALCULATE: Only if of "type" = "float64" (or which can be forced to float64)
+    >>> source_data = method.get.input_data[0]
+    >>> source_columns = [c.name for c in source_data.columns]
+    >>> schema_script = f"PIVOT_LONGER > {source_columns[4:]}"
+    >>> method.add_actions(schema_script, source_data.uuid.hex, sheet_name = "Data")
+    >>> df = method.transform(source_data)
 
-        * MODIFIER: `+` or `-` before each term to define whether add or subtract
+|    | Country Name   | Indicator Name   | Country Code   | Indicator Code   |   PIVOT_LONGER_names_idx_4 |   PIVOT_LONGER_values_idx_5 |
+|---:|:---------------|:-----------------|:---------------|:-----------------|---------------------------:|----------------------------:|
+|  0 | Aruba          | Urban population | ABW            | SP.URB.TOTL      |                       1960 |                       27526 |
+|  1 | Afghanistan    | Urban population | AFG            | SP.URB.TOTL      |                       1960 |                      755836 |
+|  2 | Angola         | Urban population | AGO            | SP.URB.TOTL      |                       1960 |                      569222 |
+|  3 | Albania        | Urban population | ALB            | SP.URB.TOTL      |                       1960 |                      493982 |
 
-    * JOIN: Only if of "type" = "object", join text with " ".join()
+It may seem daunting at first, but the actions are designed to give you all the power of `pandas` while allowing you
+to focus on the complexities of restructuring your data.
 
-    * CATEGORISE: Only if of "type" = "string"; look for associated constraint, "categorise" where `True` = keep a list of categories, `False` = set True if terms found in list
+Assigning categories
+^^^^^^^^^^^^^^^^^^^^
+One of the problems with having a schema is that not everyone will agree to use it. Your source data can have a variety
+of terms - with a variety of different spellings - to refer to the same things. This can make an already-intimidating
+restructuring process a hair-tearing experience.
 
-        * MODIFIER:
+It takes two separate sets of actions to categorise and restructure categories.
 
-            * `+` before terms where column values to be classified as unique
+* First, identify the columns which contain values you wish to categories, and specify how to treat those values,
+* Second, assign the values in each column to the schema-defined categories.
 
-            * `-` before terms where column values are treated as boolean
+The template script to extract unique terms in columns is::
 
-Category
---------
+    "CATEGORISE > 'destination_field' < [modifier 'source_column', modifier 'source_column', etc.]"
 
-Provide a list of categories of the form::
+Where there are two `modifier` terms:
 
-    {
-        "schema_field1": {
-            "category_1": ["term1", "term2", "term3"],
-            "category_2": ["term4", "term5", "term6"]
-        }
-    }
+ * `-` indicates that the presence or absence of values in the column are coerced to `boolean`, and
+ * `+` indicates that specific values in the column are to be assigned to a defined `schema` `category`.
 
-The format for defining a `category` term as follows::
+Once complete, you can get a list of the unique terms and assign them using one of the two assignment actions::
 
-    term_name::column_name
+    "ASSIGN_CATEGORY_BOOLEANS > 'destination_field'::bool < 'source_column'"
 
-Get a list of available terms, and the categories for assignment, by calling::
+or::
 
-    method.category(field_name)
+    "ASSIGN_CATEGORY_UNIQUES > 'destination_field'::'destination_category' < 'source_column'::['unique_source_term', 'unique_source_term', etc.]"
 
-Once your data are prepared as above::
+Where assignment terms include:
 
-    method.set_category(**category)
+ * `destination_field` is a `FieldModel` and is the destination column. The `::` linked `CategoryModel` defines what
+    term the source values are to be assigned.
+ * `list` of `CategoryModel` - unique values from `ColumnModel` - will be assigned `::CategoryModel`.
+ * Values from the `source_column` `ColumnModel` are treated as boolean `True` or `False`, defined by `::bool`.
 
-Filter
-------
-Set date filters on any date-type fields. **whyqd** offers only rudimentary post-
-wrangling functionality. Filters are there to, for example, facilitate importing data
-outside the bounds of a previous import.
+The way to think about assigning a `boolean` column is that these are columns with values and nulls. The presence or
+absence of values can be all you need to know, not the values themselves. For example, if you want to know who - in a
+list of employees - has taken leave but all you have is a date column of *when* they took leave, an absence of a date
+in that column indicates they haven't yet taken any.
 
-This is also an optional step. By default, if no filters are present, the transformed output
-will include `ALL` data. Parameters for filtering:
+Getting a list of the unique terms in a column so you can assign them goes like this::
 
-    * `field_name`: Name of field on which filters to be set
-    * `filter_name`: Name of filter type from the list of valid filter names
-    * `filter_date`: A date in the format specified by the field type
-    * `foreign_field`: Name of field to which filter will be applied. Defaults to `field_name`
+    >>> df = method.transform(method.get.working_data)
+    >>> list(df["Current Relief Type"].unique())
+    [<NA>,
+    'Retail Discount',
+    'Small Business Relief England',
+    'Supporting Small Business Relief',
+    'Sbre Extension For 12 Months',
+    'Empty Property Rate Industrial',
+    'Empty Property Rate Non-Industrial',
+    'Mandatory',
+    'Sports Club (Registered CASC)',
+    'Empty Property Rate Charitable']
 
-There are four filter_names:
+.. note:: You can assign unique values to a `boolean` category term (e.g. 'Empty Property Rate Industrial' and
+    'Empty Property Rate Non-Industrial' could be assigned to a `occupation_status` schema field, where `True` is
+    occupied, and `False` is vacant). You can also assign booleans to a schema requiring unique fields. Use your
+    intuiation and it'll probably work the way you expect.
 
-    * `ALL`: default, import all data
-    * `LATEST`: only the latest date
-    * `BEFORE`: before a specified date
-    * `AFTER`: after a specified date
+Here's an example script to assign column values to a boolean schema field::
 
-`BEFORE` and `AFTER` take an optional `foreign_field` term for filtering on that column. e.g::
+    "CATEGORISE > 'occupation_state' < [+ 'Current Property Exemption Code', + 'Current Relief Type']"
+    "ASSIGN_CATEGORY_UNIQUES > 'occupation_state'::False < 'Current Relief Type'::['Empty Property Rate Non-Industrial', 'Empty Property Rate Industrial', 'Empty Property Rate Charitable']"
 
-    method.set_filter("occupation_state_date", "AFTER", "2019-09-01", "ba_ref")
+Adding these scripts works as above::
 
-Filters references in column `ba_ref` by dates in column `occupation_state_date` after `2019-09-01`.
+    >>> source_data = method.get.working_data
+    >>> method.add_actions(schema_scripts, source_data.uuid.hex)
+
+Assigning filters
+^^^^^^^^^^^^^^^^^
+Filtering is inherently destructive, reducing the number of rows in your source data. This can make your data more
+manageable, or help ensure only the latest data since a previous release, are included in an ongoing data series.
+
+A standard script is::
+
+    "ACTION > 'filter_column'::'date' < 'source_column'"
+
+Where:
+
+ * `filter_column`: the specific column for filtering,
+ * `source_column`: a group-by column for filtering the latest data only of a data series,
+ * `date`: a specific date reference, in ISO `YYYY-MM-DD` format. Times are not filtered, so treat with caution if your
+    filter requirements are time-based.
+
+There are three filters: before a specified date, after a specified date, or latest for a specified group.
+
+As example::
+
+    >>> filter_script = "FILTER_AFTER > 'occupation_state_date'::'2010-01-01'"
+    >>> method.add_actions(filter_script, source_data.uuid.hex)
+
+Or you could do latest:
+
+    >>> filter_script = "FILTER_LATEST > 'occupation_state_date' < 'ba_ref'"
+    >>> method.add_actions(filter_script, source_data.uuid.hex)
+
+
+Build
+-----
+Performing the build is straightforward::
+
+    >>> method.build()
+    >>> method.save(created_by="Gavin Chait")
+
+`Build` will automatically save your restructured output data as an Excel file (to preserve source field types). You
+can save your method as a `json` file by calling `save`. A `version` data update will automatically be added to the
+method, and you can add an optional `created_by` reference as well.
 
 Validation
 ----------
-Each step can be validated and, once all steps validate, you can move to transformation of your data::
+At each step of the transformation process - whether it be adding input data, merging or adding actions - `whyqd`
+performs validation, both for individual steps, and for the entire build process. This validation step exists only
+for the truly paranoid (as you rightly should be with input data you do not control).
 
-    method.validate_input_data
-    method.validate_merge_data
-    method.validate_merge
-    method.validate_structure
-    method.validate_category
-    method.validate_filter
-
-Or, to run all the above and complete the method (setting status to 'Ready to Transform')::
-
-    method.validate
-
-Transform
----------
-
-Transformation requires only the following::
-
-    method.transform()
-    method.save(DIRECTORY, filename=FILENAME, overwrite=True)
-
-With one little permutation ... if you've ever created a transform before, you'll need to deliberately
-tell the function to overwrite your original::
-
-    method.transform(overwrite_output=True)
+    >>> method.validate()
+    True
 
 Citation
 --------
 
-**whyqd** is designed for sharing. Add information you wish to be cited to a `constructor` field in the `method`.
-
-The `constructor` field is there to store any metadata you wish to add. Whether it be `Dublin Core <https://dublincore.org/>`_
-or `SDMX <https://sdmx.org/>`_, add that metadata by creating a dictionary and placing it in the
-`constructor`.
+**whyqd** is designed to support a research process and ensure citation of the incredible work done by research-based
+data scientists.
 
 A citation is a special set of fields, with options for:
 
-* **authors**: a list of author names in the format, and order, you wish to reference them
-* **date**: publication date
-* **title**: a text field for the full study title
-* **repository**: the organisation, or distributor, responsible for hosting your data (and your method file)
-* **doi**: the persistent `DOI <http://www.doi.org/>`_ for your repository
+* **author**: The name(s) of the author(s) (in the case of more than one author, separated by `and`),
+* **title**: The title of the work,
+* **url**: The URL field is used to store the URL of a web page or FTP download. It is a non-standard BibTeX field,
+* **publisher**: The publisher's name,
+* **institution**: The institution that was involved in the publishing, but not necessarily the publisher,
+* **doi**: The doi field is used to store the digital object identifier (DOI) of a journal article, conference paper,
+    book chapter or book. It is a non-standard BibTeX field. It's recommended to simply use the DOI, and not a DOI link,
+* **month**: The month of publication (or, if unpublished, the month of creation). Use three-letter abbreviation,
+* **year**: The year of publication (or, if unpublished, the year of creation),
+* **note**: Miscellaneous extra information.
 
 Those of you familiar with Dataverse's `universal numerical fingerprint <http://guides.dataverse.org/en/latest/developers/unf/index.html>`_
 may be wondering where it is? **whyqd**, similarly, produces a unique hash for each datasource,
 including inputs, working data, and outputs. Ours is based on `BLAKE2b <https://en.wikipedia.org/wiki/BLAKE_(hash_function)>`_
-and is sufficiently universally available as to ensure you can run this as required.
+and is included in the citation output.
 
 As an example::
 
-    citation = {
-        "authors": ["Gavin Chait"],
-        "date": "2020-02-18",
-        "title": "Portsmouth City Council normalised database of commercial ratepayers",
-        "repository": "Github.com"
-    }
-    method.set_constructors({"citation": citation})
-    method.save(DIRECTORY, filename=FILENAME, overwrite=True)
+    >>> citation = {
+            "author": "Gavin Chait",
+            "month": "feb",
+            "year": 2020,
+            "title": "Portsmouth City Council normalised database of commercial ratepayers",
+            "url": "https://github.com/whythawk/whyqd/tree/master/tests/data"
+        }
+    >>> method.set_citation(citation)
 
 You can then get your citation report::
 
-    method.citation
-
-    Gavin Chait, 2020-02-18, Portsmouth City Council normalised database of commercial ratepayers,
-    Github.com, 1367d4f02c99030f6645389141b85a93d54c226b435fb1b5a6cbccd7f703687e442a011f62c1381793a2d3fbf13cc52c176e0c5c573008991134658759eef948,
-    [input sources:
-    https://www.portsmouth.gov.uk/ext/documents-external/biz-ndr-properties-january-2020.xls,
-    476089d8f37581613344873068d6e94f8cd63a1a64b421edf374a2b341bc7563aff03b86db4d3fec8ca90ce150ba1e531e3ff0d374f932d13fc103fd709e01bd;
-    https://www.portsmouth.gov.uk/ext/documents-external/biz-ndr-reliefs-january-2020.xls,
-    892ec5b6e9b1f68e0b371bbaed8d93095d57f2b656753af2b279aee17b5854c5e9d731b2795aac285d7f7d9f5991311bc8fae0cfe5446a47163f30f0314cac06;
-    https://www.portsmouth.gov.uk/ext/documents-external/biz-empty-commercial-properties-january-2020.xls,
-    a41b4eb629c249fd59e6816d10d113bf2b9594c7dd7f9a61a82333a8a41bf07e59f9104eb3c1dc4269607de5a4a12eaf3215d0afc7545fdb1dfe7fe1bf5e0d29]
+    >>> method.get_citation()
+        {'author': 'Gavin Chait',
+        'title': 'Portsmouth City Council normalised database of commercial ratepayers',
+        'url': AnyUrl('https://github.com/whythawk/whyqd/tree/master/tests/data', scheme='https', host='github.com', tld='com', host_type='domain', path='/whythawk/whyqd/tree/master/tests/data'),
+        'month': 'feb',
+        'year': 2020,
+        'input_sources': [{'path': 'https://www.portsmouth.gov.uk/ext/documents-external/biz-ndr-properties-january-2020.xls',
+        'checksum': 'b180bd9fe8c3b1025f433e0b3377fb9a738523b9c33eac5d62ed83c51883e1f64a3895edf0fc9e96a85a4130df3392177dff262963338971114aa4f5d1b0a70e'},
+        {'path': 'https://www.portsmouth.gov.uk/ext/documents-external/biz-ndr-reliefs-january-2020.xls',
+        'checksum': '98e23e4eac6782873492181d6e4f3fcf308f1bb0fc47dc582c3fdf031c020a651d9f06f6510b21405c3f63b8d576a93a27bd2f3cc5b053d8d9022c884b57d3a3'},
+        {'path': 'https://www.portsmouth.gov.uk/ext/documents-external/biz-empty-commercial-properties-january-2020.xls',
+        'checksum': '9fd3d0df6cc1e0e58ab481ca9d46b68150b3b8d0c97148a00417af16025ba066e29a35994d0e4526edb1deda4c10b703df8f0dbcc23421dd6c0c0fd1a4c6b01c'}],
+        'restructured_data': {'path': 'https://github.com/whythawk/whyqd/tree/master/tests/data',
+        'checksum': '25591827b9b5ad69780dc1eea6121b4ec79f10b62f21268368c7faa5ca473ef3f613c72fea723875669d0fe8aa57c9e7890f1df5b13f922fc525c82c1239eb42'}}
 """
 from __future__ import annotations
 from shutil import copyfile, SameFileError
@@ -307,6 +406,7 @@ from ..models import (
     CategoryActionModel,
     VersionModel,
     MorphActionModel,
+    CitationModel,
 )
 from ..parsers import CoreScript, WranglingScript, MethodScript, ParserScript
 from ..schema import Schema
@@ -317,13 +417,18 @@ class Method:
 
     Parameters
     ----------
-        directory: str
-                Working path for creating methods, interim data files and final output
+    directory: str
+        Working path for creating methods, interim data files and final output
     source: str
-                Path to a json file containing a saved schema, default is None
+        Path to a json file containing a saved schema, default is None
     """
 
-    def __init__(self, directory: str, schema: Type[Schema], method: Optional[MethodModel] = None) -> None:
+    def __init__(
+        self,
+        directory: str,
+        schema: Type[Schema],
+        method: Optional[MethodModel] = None,
+    ) -> None:
         # Default number of rows in a DataFrame to return from summaries
         self._nrows = 50
         if not isinstance(schema, Schema):
@@ -480,7 +585,7 @@ class Method:
             else:
                 self._method.input_data = [ds for ds in self._method.input_data if ds.uuid != UUID(uid)]
 
-    def update_data(self, uid: UUID, source: DataSourceModel, sheet_name: Optional[str] = None) -> None:
+    def update_data(self, source: DataSourceModel, uid: UUID, sheet_name: Optional[str] = None) -> None:
         """Update an existing data source.
 
         Can be used to modify which columns are to be preserved, or other specific changes.
@@ -490,12 +595,12 @@ class Method:
 
         Parameters
         ----------
+        source: DataSourceModel
+            A dictionary conforming to the DataSourceModel. Each path can be to a filename, or a url.
         uid: UUID
             Unique uuid4 for an input data source. View all input data from method `input_data`.
         sheet_name: str, default None
             If the data source has multiple sheets, provide the specific sheet to update.
-        source: DataSourceModel
-            A dictionary conforming to the DataSourceModel. Each path can be to a filename, or a url.
 
         Raises
         ------
@@ -653,7 +758,7 @@ class Method:
 
         Merge script is of the form::
 
-            "MERGE < ['key_column'::'source_hex'::'sheet_name', ...]"
+            "MERGE < ['key_column'::'source_hex'::'sheet_name', etc.]"
 
         Where the source terms are in order for merging.
 
@@ -842,6 +947,51 @@ class Method:
         return True
 
     #########################################################################################
+    # MANAGE CITATION
+    #########################################################################################
+
+    def get_citation(self) -> Dict[str, Union[str, Dict[str, str]]]:
+        """Get the citation as a dictionary.
+
+        Raises
+        ------
+        ValueError if no citation has been declared or the build is incomplete.
+
+        Returns
+        -------
+        dict
+        """
+        if not self._method.citation:
+            raise ValueError("No citation has been declared yet.")
+        if not isinstance(self._method.restructured_data, DataSourceModel):
+            raise ValueError("Method build restructuring is not complete.")
+        citation = self._method.citation.dict(by_alias=True, exclude_defaults=True, exclude_none=True)
+        input_sources = []
+        for input_data in self._method.input_data:
+            input_sources.append({"path": input_data.path, "checksum": input_data.checksum})
+        citation["input_sources"] = input_sources
+        citation["restructured_data"] = {
+            "path": self._method.restructured_data.path,
+            "checksum": self._method.restructured_data.checksum,
+        }
+        return citation
+
+    def set_citation(self, citation: CitationModel) -> None:
+        """Update or create the citation.
+
+        Parameters
+        ----------
+        citation: CitationModel
+            A dictionary conforming to the CitationModel.
+        """
+        # Create a temporary CitationModel
+        updated_citation = CitationModel(**citation)
+        if self._method.citation:
+            self._method.citation = self._method.citation.copy(update=updated_citation.dict(exclude_unset=True))
+        else:
+            self._method.citation = updated_citation
+
+    #########################################################################################
     # SAVE UTILITIES
     #########################################################################################
 
@@ -1001,28 +1151,23 @@ class Method:
     # OTHER UTILITIES
     #########################################################################################
 
-    def _get_dataframe(self, data: DataSourceModel, path: Optional[str] = None) -> pd.DataFrame:
+    def _get_dataframe(self, data: DataSourceModel) -> pd.DataFrame:
         """Return the dataframe for a data source. Used in transforms.
 
         Parameters
         ----------
         data: DataSourceModel
-        path: str
-            Alternative path. Used if checking a received file against the method.
 
         Returns
         -------
         pd.DataFrame
         """
-        if path:
+        path = data.path
+        try:
             self.core.check_source(path)
-        else:
-            path = data.path
-            try:
-                self.core.check_source(path)
-            except FileNotFoundError:
-                path = str(self.directory / data.source)
-                self.core.check_source(path)
+        except FileNotFoundError:
+            path = str(self.directory / data.source)
+            self.core.check_source(path)
         df_columns = [d.name for d in data.columns]
         names = [d.name for d in data.names] if data.names else None
         df = self.wrangle.get_dataframe(

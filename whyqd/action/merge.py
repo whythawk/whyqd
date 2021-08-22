@@ -9,7 +9,7 @@ class Action(BaseMorphAction):
 
     Script::
 
-        "MERGE < ['key_column'::'source_hex'::'sheet_name', ...]"
+        "MERGE < ['key_column'::'source_hex'::'sheet_name', etc.]"
 
     Where the first source term of the list will be the base DataFrame.
     """

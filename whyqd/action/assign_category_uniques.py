@@ -12,7 +12,7 @@ class Action(BaseCategoryAction):
 
     Scripts must be 'flat' and are of the form::
 
-        "ASSIGN_CATEGORY_UNIQUES > 'destination_field'::'destination_category' < 'source_column'::['unique_source_term', 'unique_source_term', ...]"
+        "ASSIGN_CATEGORY_UNIQUES > 'destination_field'::'destination_category' < 'source_column'::['unique_source_term', 'unique_source_term', etc.]"
 
     Where:
 

@@ -28,7 +28,7 @@ class TestMethod:
         input_order = [m.uuid.hex for m in method.get.input_data]
         input_order.reverse()
         method.reorder_data(order=input_order)
-        # "MERGE < ['key_column'::'source_hex'::'sheet_name', ...]"
+        # "MERGE < ['key_column'::'source_hex'::'sheet_name', etc.]"
         merge_reference = [
             {"source_hex": method.get.input_data[0].uuid.hex, "key_column": "Property ref no"},
             {"source_hex": method.get.input_data[1].uuid.hex, "key_column": "Property Reference Number"},

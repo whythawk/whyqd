@@ -221,7 +221,7 @@ class MethodScript:
 
         Script is of the form::
 
-            "MERGE < ['key_column'::'source_hex'::'sheet_name', ...]"
+            "MERGE < ['key_column'::'source_hex'::'sheet_name', etc.]"
 
         .. note:: There can only be *one* interim data source, and only *one* `MERGE` script, which must also be
             *first* in the list of `ACTIONs` for that data source.

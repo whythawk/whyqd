@@ -19,7 +19,7 @@ class BaseCategoryAction:
 
     A standard script is::
 
-        "ACTION > 'destination_column::destination_category' < ['unique_term', 'unique_term', ...]"
+        "ACTION > 'destination_column::destination_category' < ['unique_term', 'unique_term', etc.]"
 
     Where the structure of the source array is defined by the ACTION.
     """
