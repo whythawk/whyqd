@@ -126,11 +126,12 @@ class ParserScript:
         -------
         Union[ColumnModel, CategoryModel, FieldModel]
         """
-        # Is it a ColumnModel?
-        field = self.get_field_model(name, fields)
+        # If a column name is the same as a schema name, it's probably best to get the schema first...
+        # Is it in the schema?
+        field = schema.get_field(name)
         if not field:
-            # Is it in the schema?
-            field = schema.get_field(name)
+            # Is it a ColumnModel?
+            field = self.get_field_model(name, fields)
         if not field:
             raise ValueError(
                 f"Field name is not recognised from either of the table columns, or the schema fields ({name})."
@@ -198,7 +199,9 @@ class ParserScript:
         -------
         str
         """
-        for f in fields:
+        # Going to sort these so the longest is first to avoid replacing partial matches
+        # https://docs.python.org/3/howto/sorting.html
+        for f in sorted(fields, key=lambda f: len(f.name), reverse=True):
             if f.name in script:
                 script = script.replace(f.name, f.uuid.hex)
         return script

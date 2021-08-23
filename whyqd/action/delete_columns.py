@@ -40,4 +40,4 @@ class Action(BaseMorphAction):
         Dataframe
             Containing the implementation of the Morph
         """
-        return df.drop(columns=[columns])
+        return df.drop(columns=[c.name for c in columns])
