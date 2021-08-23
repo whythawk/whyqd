@@ -1,0 +1,927 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>Tutorial: Local government data &mdash; whyqd 0.5.0 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Tutorial: Cthulhu data" href="tutorial_cthulhu_data.html" />
+    <link rel="prev" title="Dependencies, installation &amp; importing" href="installation.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> whyqd
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption" role="heading"><span class="caption-text">Getting started</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Dependencies, installation &amp; importing</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Tutorial: Local government data</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#creating-a-schema">Creating a Schema</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#creating-a-method">Creating a Method</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#initialise-a-method-and-import-input-data">Initialise a Method and import input data</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#organise-and-merge-input-data">Organise and Merge input data</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#create-wrangling-actions">Create wrangling actions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#filtering-is-optional">Filtering is optional</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#transform-your-data">Transform your data</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#method-validation">Method Validation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#preparing-a-citation">Preparing a Citation</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial_cthulhu_data.html">Tutorial: Cthulhu data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="citation.html">Distribution &amp; Citation of methods and data</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Creating and managing Schemas</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="schema.html">Schema</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Wrangling with Methods</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="method.html">Method</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Validate an existing Method</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="validate.html">Validate</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">What next?</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="roadmap.html">Roadmap</a></li>
+<li class="toctree-l1"><a class="reference internal" href="contributing.html">Background and Contributing</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Reference API</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="schema_api.html">Schema</a></li>
+<li class="toctree-l1"><a class="reference internal" href="method_api.html">Method</a></li>
+<li class="toctree-l1"><a class="reference internal" href="action_api.html">Actions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="validate_api.html">Validate</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">whyqd</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+        
+      <li>Tutorial: Local government data</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="_sources/tutorial_local_government_data.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="tutorial-local-government-data">
+<h1>Tutorial: Local government data<a class="headerlink" href="#tutorial-local-government-data" title="Permalink to this headline">¶</a></h1>
+<p><strong>whyqd</strong> was developed to solve a daily, grinding need in our <a class="reference external" href="https://sqwyre.com">Sqwyre.com</a>
+project. <em>Sqwyre</em> is an online market intelligence service helping you assess opportunities and risks
+for every commercial property in England and Wales. Every quarter, we import about 300 very messy
+spreadsheets from local authorities across the UK. These need to be restructured to conform to a
+single schema, including redefining whatever weird terms they use to describe categorical data, and
+only then can we begin the automated process of cleaning and validation. It’s a mostly free
+service, so you can see it in action at <a class="reference external" href="https://sqwyre.com">Sqwyre.com</a>.</p>
+<p>When we started, this was a purely manual process but, gradually, we developed what has become
+<strong>whyqd</strong>. The process, at a high level, is as follows:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>Create, update or import a data schema which defines the destination data structure,</p></li>
+<li><p>Create a new method and associate it with your schema and input data source/s,</p></li>
+<li><p>Assign a foreign key column and (if required) merge input data sources,</p></li>
+<li><p>Define actions to restructure and assign categorical definitions,</p></li>
+<li><p>Filter and transofrm input data to produce a final restructured data file.</p></li>
+</ul>
+</div></blockquote>
+<p>You are more likely to create your schema at the beginning of a project, and then spend most of your
+time using that schema as the base for creating new methods for each new data source. If you’re really
+lucky, your data source won’t change their methods from release-to-release and you can reuse your
+own. In our experience that is like searching for unicorns.</p>
+<p>The example in our worked tutorial is derived directly from our workflow at Sqwyre.com and is from a
+dataset released by <a class="reference external" href="https://www.portsmouth.gov.uk/ext/business/running-a-business/business-rates-foi-requests">Portsmouth City Council</a>.
+The data in this tutorial are from January 2020, but follow along with the current download.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This tutorial does assume familiarity with Python and Pandas, and Pydantic for type annotations.</p>
+</div>
+<div class="section" id="creating-a-schema">
+<h2>Creating a Schema<a class="headerlink" href="#creating-a-schema" title="Permalink to this headline">¶</a></h2>
+<p>Review the <a class="reference internal" href="schema.html"><span class="doc">Schema</span></a> documentation for more details. We’ll start by importing <strong>whyqd</strong>
+and defining a new schema:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">whyqd</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">schema</span> <span class="o">=</span> <span class="n">whyqd</span><span class="o">.</span><span class="n">Schema</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>The objective of your schema is not only to define a structure for your data, but also provide
+reference and contextual information for anyone using it. In a research context, definitions are
+critical to avoid ambiguity, ensure replication, and build trust.</p>
+<p>The minimum requirement for a schema is that it have a <cite>name</cite>, but we’re going to give it a <cite>title</cite>
+and <cite>description</cite> as well, because more information is better. We’re not barbarians:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">details</span> <span class="o">=</span> <span class="p">{</span>
+<span class="go">                    &quot;name&quot;: &quot;rates_data_schema&quot;,</span>
+<span class="go">                    &quot;title&quot;: &quot;UK Ratepayer data schema&quot;,</span>
+<span class="go">                    &quot;description&quot;: &quot;Structural metadata target for imported messy data from the 348 local authorities in England &amp; Wales.&quot;</span>
+<span class="go">            }</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">schema</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">details</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>We can also save our schema to a specified <cite>directory</cite>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">directory</span> <span class="o">=</span> <span class="s2">&quot;/path/to/directory&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">filename</span> <span class="o">=</span> <span class="s2">&quot;2020_rates_data_schema&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">schema</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">directory</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="n">filename</span><span class="p">,</span> <span class="n">created_by</span><span class="o">=</span><span class="s2">&quot;Gavin Chait&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>‘filename’ is optional, and the name you specified in the <cite>details</cite> dictionary will be used instead. A version history
+will be automatically created, and you can add your name as <cite>created_by</cite>.</p>
+<p>We’ll now start to create each of our schema <cite>fields</cite>.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>You can think of a schema <cite>field</cite> as a <cite>column</cite> in a table, or a <cite>field</cite> in a database.
+Fields have a <cite>type</cite>, such as integer or text.</p>
+</div>
+<p>Each field, unsurprisingly, has a <cite>name</cite>, <cite>title</cite> and <cite>description</cite>, of which only the <cite>name</cite> is required.
+Fields also have a <cite>type</cite>. This describes the data expected and limits the actions which can be performed
+during the wrangling process.</p>
+<p>We want our destination data to conform to the following structure:</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 8%" />
+<col style="width: 10%" />
+<col style="width: 11%" />
+<col style="width: 7%" />
+<col style="width: 14%" />
+<col style="width: 18%" />
+<col style="width: 11%" />
+<col style="width: 21%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>la_code</p></th>
+<th class="head"><p>ba_ref</p></th>
+<th class="head"><p>occupant_name</p></th>
+<th class="head"><p>postcode</p></th>
+<th class="head"><p>occupation_state</p></th>
+<th class="head"><p>occupation_state_date</p></th>
+<th class="head"><p>prop_ba_rates</p></th>
+<th class="head"><p>occupation_state_reliefs</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>E06000044</p></td>
+<td><p>177500080710</p></td>
+<td><p>A company</p></td>
+<td><p>PO5 2SE</p></td>
+<td><p>True</p></td>
+<td><p>2019-04-01</p></td>
+<td><p>98530</p></td>
+<td><p>[small_business, retail]</p></td>
+</tr>
+</tbody>
+</table>
+<p>Each of these fields is a different <cite>type</cite> of data:</p>
+<ul class="simple">
+<li><p><cite>string</cite>: any text-based string.</p></li>
+<li><p><cite>number</cite>: any number-based value, including integers and floats.</p></li>
+<li><p><cite>integer</cite>: any integer-based value.</p></li>
+<li><p><cite>boolean</cite>: a boolean [<cite>true</cite>, <cite>false</cite>] value. Can set category constraints to fix term used.</p></li>
+<li><p><cite>object</cite>: any valid JSON data.</p></li>
+<li><p><cite>array</cite>: any valid array-based data.</p></li>
+<li><p><cite>date</cite>: any date without a time. Must be in ISO8601 format, <cite>YYYY-MM-DD</cite>.</p></li>
+<li><p><cite>datetime</cite>: any date with a time. Must be in ISO8601 format, with UTC time specified (optionally) as
+<cite>YYYY-MM-DD hh:mm:ss Zz</cite>.</p></li>
+<li><p><cite>year</cite>: any year, formatted as <cite>YYYY</cite>.</p></li>
+</ul>
+<p>In addition, these data can be <cite>constrained</cite>:</p>
+<ul class="simple">
+<li><p><cite>required</cite>: boolean, indicates whether this field is compulsory (but blank values in the input column
+are permitted and will be set to the <cite>missing</cite> default),</p></li>
+<li><p><cite>unique</cite>: boolean, if <cite>true</cite> then all values for that input column must be unique,</p></li>
+<li><p><cite>minimum</cite>: <cite>integer</cite> / <cite>number</cite>, as appropriate defining min number of characters in a string, or
+the min values of numbers or integers,</p></li>
+<li><p><cite>maximum</cite>: <cite>integer</cite> / <cite>number</cite>, as appropriate defining max number of characters in a string, or
+the max values of numbers or integers,</p></li>
+<li><p><cite>category</cite>: the set of unique category terms permitted in this field,</p></li>
+<li><p><cite>default</cite>:  a default category term to use where no information is given.</p></li>
+</ul>
+<p>We’ll go through most of these in the tutorial. Note that some of these are only there to support
+post-wrangling (such as <cite>minimum</cite> or <cite>maximum</cite>). <cite>required</cite> means that a method won’t be validated
+if that field has no data.</p>
+<p>We’ll build a single dictionary and then iterate over the list to add each field:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">fields</span> <span class="o">=</span> <span class="p">[</span>
+<span class="go">            {</span>
+<span class="go">                    &quot;name&quot;: &quot;la_code&quot;,</span>
+<span class="go">                    &quot;title&quot;: &quot;Local authority code&quot;,</span>
+<span class="go">                    &quot;type&quot;: &quot;string&quot;,</span>
+<span class="go">                    &quot;description&quot;: &quot;Standard code for local authority.&quot;</span>
+<span class="go">            },</span>
+<span class="go">            {</span>
+<span class="go">                    &quot;name&quot;: &quot;ba_ref&quot;,</span>
+<span class="go">                    &quot;title&quot;: &quot;Billing reference&quot;,</span>
+<span class="go">                    &quot;type&quot;: &quot;string&quot;,</span>
+<span class="go">                    &quot;description&quot;: &quot;Unique code for a specific hereditament. May be multiple rows for history.&quot;</span>
+<span class="go">            },</span>
+<span class="go">            {</span>
+<span class="go">                    &quot;name&quot;: &quot;prop_ba_rates&quot;,</span>
+<span class="go">                    &quot;title&quot;: &quot;Property billing rates&quot;,</span>
+<span class="go">                    &quot;type&quot;: &quot;number&quot;,</span>
+<span class="go">                    &quot;description&quot;: &quot;Actual rates paid by a specific ratepayer.&quot;</span>
+<span class="go">            },</span>
+<span class="go">            {</span>
+<span class="go">                    &quot;name&quot;: &quot;occupant_name&quot;,</span>
+<span class="go">                    &quot;title&quot;: &quot;Occupier name&quot;,</span>
+<span class="go">                    &quot;type&quot;: &quot;string&quot;,</span>
+<span class="go">                    &quot;description&quot;: &quot;Name of the ratepayer.&quot;</span>
+<span class="go">            },</span>
+<span class="go">            {</span>
+<span class="go">                    &quot;name&quot;: &quot;postcode&quot;,</span>
+<span class="go">                    &quot;title&quot;: &quot;Postcode&quot;,</span>
+<span class="go">                    &quot;type&quot;: &quot;string&quot;,</span>
+<span class="go">                    &quot;description&quot;: &quot;Full address or postcode of ratepayer.&quot;</span>
+<span class="go">            },</span>
+<span class="go">            {</span>
+<span class="go">                    &quot;name&quot;: &quot;occupation_state&quot;,</span>
+<span class="go">                    &quot;title&quot;: &quot;Occupation state&quot;,</span>
+<span class="go">                    &quot;type&quot;: &quot;boolean&quot;,</span>
+<span class="go">                    &quot;description&quot;: &quot;Occupation status, void or occupied.&quot;</span>
+<span class="go">            },</span>
+<span class="go">            {</span>
+<span class="go">                    &quot;name&quot;: &quot;occupation_state_date&quot;,</span>
+<span class="go">                    &quot;title&quot;: &quot;Date of occupation state&quot;,</span>
+<span class="go">                    &quot;type&quot;: &quot;date&quot;,</span>
+<span class="go">                    &quot;description&quot;: &quot;Date of the start of status in occupation_state.&quot;</span>
+<span class="go">            },</span>
+<span class="go">            {</span>
+<span class="go">                    &quot;name&quot;: &quot;occupation_state_reliefs&quot;,</span>
+<span class="go">                    &quot;title&quot;: &quot;Occupation state reliefs&quot;,</span>
+<span class="go">                    &quot;type&quot;: &quot;array&quot;,</span>
+<span class="go">                    &quot;description&quot;: &quot;Array of the categories of reliefs / exemptions applied.&quot;</span>
+<span class="go">            }</span>
+<span class="go">    ]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">field</span> <span class="ow">in</span> <span class="n">fields</span><span class="p">:</span>
+<span class="go">    ...             schema.add_field(field)</span>
+</pre></div>
+</div>
+<p>From here on we can access any <cite>field</cite> by calling it by <cite>name</cite> and then updating it as required:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">schema</span><span class="o">.</span><span class="n">get_field</span><span class="p">(</span><span class="s2">&quot;occupation_state_reliefs&quot;</span><span class="p">)</span>
+<span class="go">    {&#39;name&#39;: &#39;occupation_state_reliefs&#39;,</span>
+<span class="go">     &#39;type&#39;: &#39;array&#39;,</span>
+<span class="go">     &#39;title&#39;: &#39;Occupation state reliefs&#39;,</span>
+<span class="go">     &#39;description&#39;: &#39;Array of the categories of reliefs / exemptions applied.&#39;}</span>
+</pre></div>
+</div>
+<p>Let’s add a list of <cite>category</cite> terms as a constraint for <cite>occupation_state_reliefs</cite>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">categories</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;small_business&quot;</span><span class="p">,</span> <span class="s2">&quot;rural&quot;</span><span class="p">,</span> <span class="s2">&quot;charity&quot;</span><span class="p">,</span> <span class="s2">&quot;enterprise_zone&quot;</span><span class="p">,</span> <span class="s2">&quot;vacancy&quot;</span><span class="p">,</span> <span class="s2">&quot;hardship&quot;</span><span class="p">,</span> <span class="s2">&quot;retail&quot;</span><span class="p">,</span> <span class="s2">&quot;discretionary&quot;</span><span class="p">,</span> <span class="s2">&quot;exempt&quot;</span><span class="p">,</span> <span class="s2">&quot;transitional&quot;</span><span class="p">,</span> <span class="s2">&quot;other&quot;</span><span class="p">]</span>
+<span class="go">    &gt;&gt;&gt; constraints = {</span>
+<span class="go">                    &quot;categories&quot;: [{</span>
+<span class="go">                            &quot;name&quot;: category for category in categories</span>
+<span class="go">                    }]</span>
+<span class="go">            }</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">schema</span><span class="o">.</span><span class="n">set_field_constraints</span><span class="p">(</span><span class="s2">&quot;occupation_state_reliefs&quot;</span><span class="p">,</span> <span class="n">constraints</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">schema</span><span class="o">.</span><span class="n">get_field</span><span class="p">(</span><span class="s2">&quot;occupation_state_reliefs&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">dict</span><span class="p">(</span><span class="n">by_alias</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exclude_defaults</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exclude_none</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="go">            {&#39;uuid&#39;: UUID(&#39;cf4d066e-22a8-4b76-8956-f6120eec4c52&#39;),</span>
+<span class="go">            &#39;name&#39;: &#39;occupation_state_reliefs&#39;,</span>
+<span class="go">            &#39;title&#39;: &#39;Occupation state reliefs&#39;,</span>
+<span class="go">            &#39;description&#39;: &#39;Array of the categories of reliefs / exemptions applied.&#39;,</span>
+<span class="go">            &#39;type&#39;: &#39;array&#39;,</span>
+<span class="go">            &#39;constraints&#39;: {&#39;enum&#39;: [{&#39;uuid&#39;: UUID(&#39;daa206a9-ac8c-41a9-a504-06410780ee50&#39;),</span>
+<span class="go">                    &#39;name&#39;: &#39;small_business&#39;},</span>
+<span class="go">            {&#39;uuid&#39;: UUID(&#39;5964e9fc-dd50-4856-acdc-2326ea48ef1d&#39;), &#39;name&#39;: &#39;rural&#39;},</span>
+<span class="go">            {&#39;uuid&#39;: UUID(&#39;498654f9-8825-4f3d-a573-0c110726fba4&#39;), &#39;name&#39;: &#39;charity&#39;},</span>
+<span class="go">            {&#39;uuid&#39;: UUID(&#39;f94353ce-a489-4fb1-ad78-5435b3dd54a4&#39;),</span>
+<span class="go">                    &#39;name&#39;: &#39;enterprise_zone&#39;},</span>
+<span class="go">            {&#39;uuid&#39;: UUID(&#39;41285fc0-2321-4542-b7f1-e8e535588559&#39;), &#39;name&#39;: &#39;vacancy&#39;},</span>
+<span class="go">            {&#39;uuid&#39;: UUID(&#39;28068ff2-15ff-409a-9a8f-f97c39407812&#39;), &#39;name&#39;: &#39;hardship&#39;},</span>
+<span class="go">            {&#39;uuid&#39;: UUID(&#39;b8041d21-f8ca-47b9-b3fe-7b9077388459&#39;), &#39;name&#39;: &#39;retail&#39;},</span>
+<span class="go">            {&#39;uuid&#39;: UUID(&#39;83bda0d4-3d94-4738-a580-cfe0881c8e4d&#39;),</span>
+<span class="go">                    &#39;name&#39;: &#39;discretionary&#39;},</span>
+<span class="go">            {&#39;uuid&#39;: UUID(&#39;ff2cbc0c-839b-430c-bdca-ac4238634f05&#39;), &#39;name&#39;: &#39;exempt&#39;},</span>
+<span class="go">            {&#39;uuid&#39;: UUID(&#39;f4300571-c04b-4cbf-b835-16c5ae3343b0&#39;),</span>
+<span class="go">                    &#39;name&#39;: &#39;transitional&#39;},</span>
+<span class="go">            {&#39;uuid&#39;: UUID(&#39;8a3af6f4-f48c-4614-83f2-ba472b2129e9&#39;), &#39;name&#39;: &#39;other&#39;}]}}</span>
+</pre></div>
+</div>
+<p>The term <cite>.dict(by_alias=True, exclude_defaults=True, exclude_none=True)</cite> is used to extract a dictionary format from
+the underlying <a class="reference external" href="https://pydantic-docs.helpmanual.io/">Pydantic</a> model used by <cite>whyqd</cite>.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>These are the official business <a class="reference external" href="https://www.gov.uk/apply-for-business-rate-relief">rates reliefs</a>
+permitted by the UK government. Unsurprisingly, only by accident do any local authorities actually
+use these terms when awarding a relief.</p>
+</div>
+<p>We could choose to limit the <cite>filter</cite> field for the <cite>occupation_state_date</cite>, but we’re not going to
+bother. Review your schema, then <cite>save</cite> and we’re ready to begin wrangling:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">schema</span><span class="o">.</span><span class="n">get</span><span class="o">.</span><span class="n">dict</span><span class="p">(</span><span class="n">by_alias</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exclude_defaults</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exclude_none</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="go">    {&#39;uuid&#39;: UUID(&#39;19692345-2caf-46b1-9a8f-276491520c6b&#39;),</span>
+<span class="go">    &#39;name&#39;: &#39;test_schema&#39;,</span>
+<span class="go">    &#39;title&#39;: &#39;Test Schema&#39;,</span>
+<span class="go">    &#39;description&#39;: &#39;A test Schema&#39;,</span>
+<span class="go">    &#39;fields&#39;: [{&#39;uuid&#39;: UUID(&#39;615d2cd0-f8b6-4449-b3d2-642fa4836888&#39;),</span>
+<span class="go">    &#39;name&#39;: &#39;la_code&#39;,</span>
+<span class="go">    &#39;title&#39;: &#39;Local authority code&#39;,</span>
+<span class="go">    &#39;description&#39;: &#39;Standard code for local authority.&#39;,</span>
+<span class="go">    &#39;type&#39;: &#39;string&#39;,</span>
+<span class="go">    &#39;constraints&#39;: {&#39;default&#39;: {&#39;uuid&#39;: UUID(&#39;579342cd-bba8-41cd-bf45-3c517b8cd75e&#39;),</span>
+<span class="go">            &#39;name&#39;: &#39;E06000044&#39;}}},</span>
+<span class="go">    {&#39;uuid&#39;: UUID(&#39;95f5c53c-59e1-4bb7-917d-7177b01d2d3c&#39;),</span>
+<span class="go">    &#39;name&#39;: &#39;ba_ref&#39;,</span>
+<span class="go">    &#39;title&#39;: &#39;Billing reference&#39;,</span>
+<span class="go">    &#39;description&#39;: &#39;Unique code for a specific hereditament. May be multiple rows for history.&#39;,</span>
+<span class="go">    &#39;type&#39;: &#39;string&#39;},</span>
+<span class="go">    {&#39;uuid&#39;: UUID(&#39;7572ae3e-d725-4897-84fb-5c5b45bd4edb&#39;),</span>
+<span class="go">    &#39;name&#39;: &#39;prop_ba_rates&#39;,</span>
+<span class="go">    &#39;title&#39;: &#39;Property billing rates&#39;,</span>
+<span class="go">    &#39;description&#39;: &#39;Actual rates paid by a specific ratepayer.&#39;,</span>
+<span class="go">    &#39;type&#39;: &#39;number&#39;},</span>
+<span class="go">    {&#39;uuid&#39;: UUID(&#39;ac76c3ab-5ef8-4641-99ec-aab2c5b7414c&#39;),</span>
+<span class="go">    &#39;name&#39;: &#39;occupant_name&#39;,</span>
+<span class="go">    &#39;title&#39;: &#39;Occupier name&#39;,</span>
+<span class="go">    &#39;description&#39;: &#39;Name of the ratepayer.&#39;,</span>
+<span class="go">    &#39;type&#39;: &#39;string&#39;},</span>
+<span class="go">    {&#39;uuid&#39;: UUID(&#39;26440eba-fd1d-40af-a52c-a9351fad2fd9&#39;),</span>
+<span class="go">    &#39;name&#39;: &#39;postcode&#39;,</span>
+<span class="go">    &#39;title&#39;: &#39;Postcode&#39;,</span>
+<span class="go">    &#39;description&#39;: &#39;Full address or postcode of ratepayer.&#39;,</span>
+<span class="go">    &#39;type&#39;: &#39;string&#39;},</span>
+<span class="go">    {&#39;uuid&#39;: UUID(&#39;28d7863b-22fa-4bd5-a221-0607643f0111&#39;),</span>
+<span class="go">    &#39;name&#39;: &#39;occupation_state&#39;,</span>
+<span class="go">    &#39;title&#39;: &#39;Occupation state&#39;,</span>
+<span class="go">    &#39;description&#39;: &#39;Occupation status, void or occupied.&#39;,</span>
+<span class="go">    &#39;type&#39;: &#39;boolean&#39;,</span>
+<span class="go">    &#39;constraints&#39;: {&#39;enum&#39;: [{&#39;uuid&#39;: UUID(&#39;353bd4ac-d677-47c4-af40-6f651af2cc5e&#39;),</span>
+<span class="go">            &#39;name&#39;: True},</span>
+<span class="go">            {&#39;uuid&#39;: UUID(&#39;33f8b2f8-9ac5-412a-9507-879bb7f845ce&#39;), &#39;name&#39;: False}],</span>
+<span class="go">            &#39;default&#39;: {&#39;uuid&#39;: UUID(&#39;353bd4ac-d677-47c4-af40-6f651af2cc5e&#39;),</span>
+<span class="go">            &#39;name&#39;: True}}},</span>
+<span class="go">    {&#39;uuid&#39;: UUID(&#39;79a70822-4e24-4a68-9036-992def200cd6&#39;),</span>
+<span class="go">    &#39;name&#39;: &#39;occupation_state_date&#39;,</span>
+<span class="go">    &#39;title&#39;: &#39;Date of occupation state&#39;,</span>
+<span class="go">    &#39;description&#39;: &#39;Date of the start of status in occupation_state.&#39;,</span>
+<span class="go">    &#39;type&#39;: &#39;date&#39;},</span>
+<span class="go">    {&#39;uuid&#39;: UUID(&#39;cf4d066e-22a8-4b76-8956-f6120eec4c52&#39;),</span>
+<span class="go">    &#39;name&#39;: &#39;occupation_state_reliefs&#39;,</span>
+<span class="go">    &#39;title&#39;: &#39;Occupation state reliefs&#39;,</span>
+<span class="go">    &#39;description&#39;: &#39;Array of the categories of reliefs / exemptions applied.&#39;,</span>
+<span class="go">    &#39;type&#39;: &#39;array&#39;,</span>
+<span class="go">    &#39;constraints&#39;: {&#39;enum&#39;: [{&#39;uuid&#39;: UUID(&#39;daa206a9-ac8c-41a9-a504-06410780ee50&#39;),</span>
+<span class="go">            &#39;name&#39;: &#39;small_business&#39;},</span>
+<span class="go">            {&#39;uuid&#39;: UUID(&#39;5964e9fc-dd50-4856-acdc-2326ea48ef1d&#39;), &#39;name&#39;: &#39;rural&#39;},</span>
+<span class="go">            {&#39;uuid&#39;: UUID(&#39;498654f9-8825-4f3d-a573-0c110726fba4&#39;), &#39;name&#39;: &#39;charity&#39;},</span>
+<span class="go">            {&#39;uuid&#39;: UUID(&#39;f94353ce-a489-4fb1-ad78-5435b3dd54a4&#39;),</span>
+<span class="go">            &#39;name&#39;: &#39;enterprise_zone&#39;},</span>
+<span class="go">            {&#39;uuid&#39;: UUID(&#39;41285fc0-2321-4542-b7f1-e8e535588559&#39;), &#39;name&#39;: &#39;vacancy&#39;},</span>
+<span class="go">            {&#39;uuid&#39;: UUID(&#39;28068ff2-15ff-409a-9a8f-f97c39407812&#39;),</span>
+<span class="go">            &#39;name&#39;: &#39;hardship&#39;},</span>
+<span class="go">            {&#39;uuid&#39;: UUID(&#39;b8041d21-f8ca-47b9-b3fe-7b9077388459&#39;), &#39;name&#39;: &#39;retail&#39;},</span>
+<span class="go">            {&#39;uuid&#39;: UUID(&#39;83bda0d4-3d94-4738-a580-cfe0881c8e4d&#39;),</span>
+<span class="go">            &#39;name&#39;: &#39;discretionary&#39;},</span>
+<span class="go">            {&#39;uuid&#39;: UUID(&#39;ff2cbc0c-839b-430c-bdca-ac4238634f05&#39;), &#39;name&#39;: &#39;exempt&#39;},</span>
+<span class="go">            {&#39;uuid&#39;: UUID(&#39;f4300571-c04b-4cbf-b835-16c5ae3343b0&#39;),</span>
+<span class="go">            &#39;name&#39;: &#39;transitional&#39;},</span>
+<span class="go">            {&#39;uuid&#39;: UUID(&#39;8a3af6f4-f48c-4614-83f2-ba472b2129e9&#39;),</span>
+<span class="go">            &#39;name&#39;: &#39;other&#39;}]}}]}</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="n">schema</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">directory</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="n">filename</span><span class="p">,</span> <span class="n">created_by</span><span class="o">=</span><span class="s2">&quot;Gavin Chait&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="creating-a-method">
+<h2>Creating a Method<a class="headerlink" href="#creating-a-method" title="Permalink to this headline">¶</a></h2>
+<p><strong>whyqd</strong> can import any of CSV, XLS or XLSX files, but do check that these files actually open and
+are readable before proceeding. You’ll be surprised at the number of supposedly open datasets
+released with password-protection, fruity formatting, or which are completely corrupted.</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>The minimum required to ensure a dataset is machine-readable is that it opens in <cite>pandas</cite>.</p>
+</div>
+<p>In our tutorial example, the data from <a class="reference external" href="https://www.portsmouth.gov.uk/ext/business/running-a-business/business-rates-foi-requests">Portsmouth City Council</a>
+include three Excel (XLS) data files:</p>
+<ul class="simple">
+<li><p><cite>NDR properties January 2020</cite></p></li>
+<li><p><cite>NDR reliefs January 2020</cite></p></li>
+<li><p><cite>Empty commercial properties January 2020</cite></p></li>
+</ul>
+<p>Apologies for not linking, but these are not persistent URIs. Keep that in mind in the code that
+follows.</p>
+<div class="section" id="initialise-a-method-and-import-input-data">
+<h3>Initialise a Method and import input data<a class="headerlink" href="#initialise-a-method-and-import-input-data" title="Permalink to this headline">¶</a></h3>
+<p>The only compulsory parameter needed when creating a method, is a reference to our source schema
+(the one we created above). We may also offer a working directory. During the process, <strong>whyqd</strong> will
+create a number of interim working data files, as well as your JSON method file, and your wrangled
+output data. You need to tell it where to work, or it will simply drop everything into the
+directory you’re calling the function from.</p>
+<p>We can also provide the list of data sources:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">whyqd</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">SCHEMA_SOURCE</span> <span class="o">=</span> <span class="s2">&quot;/full/path_to/2020_rates_data_schema.json&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">DIRECTORY</span> <span class="o">=</span> <span class="s2">&quot;/path_to/working/directory/&quot;</span>
+<span class="go">    # Note: these links may no longer work when you follow this tutorial. Get the latest ones...</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">INPUT_DATA</span> <span class="o">=</span> <span class="p">[</span>
+<span class="go">            &quot;https://www.portsmouth.gov.uk/ext/documents-external/biz-ndr-properties-january-2020.xls&quot;,</span>
+<span class="go">            &quot;https://www.portsmouth.gov.uk/ext/documents-external/biz-ndr-reliefs-january-2020.xls&quot;,</span>
+<span class="go">            &quot;https://www.portsmouth.gov.uk/ext/documents-external/biz-empty-commercial-properties-january-2020.xls&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">method</span> <span class="o">=</span> <span class="n">whyqd</span><span class="o">.</span><span class="n">Method</span><span class="p">(</span><span class="n">directory</span><span class="o">=</span><span class="n">DIRECTORY</span><span class="p">,</span> <span class="n">schema</span><span class="o">=</span><span class="n">SCHEMA</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">method</span><span class="o">.</span><span class="n">add_data</span><span class="p">(</span><span class="n">source</span><span class="o">=</span><span class="n">INPUT_DATA</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>These data will be copied to your working directory and renamed to a unique <cite>uuid</cite> and assigned a unique hashed
+<cite>checksum</cite>.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p><strong>Data probity</strong> - the abilty to audit data and methodology back to source - is critical for
+research transparency and replication. You may end up with hundreds of similarly-named files in a
+single directory without much information as to where they come from, or how they were created.
+Unique ids, referenced in your method file, are a more useful way of ensuring you know what they
+were for.</p>
+</div>
+</div>
+<div class="section" id="organise-and-merge-input-data">
+<h3>Organise and Merge input data<a class="headerlink" href="#organise-and-merge-input-data" title="Permalink to this headline">¶</a></h3>
+<p>We have three input data files. These need to be consolidated into a single working data file via a
+merge. <strong>whyqd</strong> will iteratively join files in a list, adding the 2nd to the 1st, then the 3rd, etc.</p>
+<p>What we need to do is decide on the order, and identify a column that can be used to uniquely
+cross-reference rows in each file and link them together.</p>
+<p>Remember the original source file names:</p>
+<ul class="simple">
+<li><p><cite>NDR properties January 2020</cite></p></li>
+<li><p><cite>NDR reliefs January 2020</cite></p></li>
+<li><p><cite>Empty commercial properties January 2020</cite></p></li>
+</ul>
+<p>You’ll have to take my word for it, but that is a reasonable order, so we’re good. We do need to
+identify the merge columns. Each property has a unique (for a given order of “unique” … local
+government, mutter mutter) id, usually called some variation of “Property Reference”. Let’s create
+our <cite>order_and_key</cite> dict and then merge (and your reference ids will be different):</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">merge_reference</span> <span class="o">=</span> <span class="p">[</span>
+<span class="go">            {&quot;source_hex&quot;: method.get.input_data[0].uuid.hex, &quot;key_column&quot;: &quot;Property ref no&quot;},</span>
+<span class="go">            {&quot;source_hex&quot;: method.get.input_data[1].uuid.hex, &quot;key_column&quot;: &quot;Property Reference Number&quot;},</span>
+<span class="go">            {&quot;source_hex&quot;: method.get.input_data[2].uuid.hex, &quot;key_column&quot;: &quot;Property Reference Number&quot;},</span>
+<span class="go">    ]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">merge_terms</span> <span class="o">=</span> <span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="sa">f</span><span class="s2">&quot;&#39;</span><span class="si">{</span><span class="n">m</span><span class="p">[</span><span class="s1">&#39;key_column&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&#39;::&#39;</span><span class="si">{</span><span class="n">m</span><span class="p">[</span><span class="s1">&#39;source_hex&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&#39;&quot;</span> <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">merge_reference</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">merge_script</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;MERGE &lt; [</span><span class="si">{</span><span class="n">merge_terms</span><span class="si">}</span><span class="s2">]&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">method</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">merge_script</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Since this is <cite>pandas</cite> underneath, you may get a <cite>UserWarning</cite> like this:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>UserWarning: &#39;3b2e9893-c04c-4714-b9bb-6dd2bf274db4.xls&#39; contains non-unique rows in column `Property Reference Number`
+UserWarning: &#39;458d7c0b-1481-487e-b120-19ccd2326d24.xls&#39; contains non-unique rows in column `Property Reference Number`
+</pre></div>
+</div>
+<p>OK, what does that <cite>warning</cite> mean?</p>
+<p>This is where we need a brief digression into the use of <a class="reference external" href="https://github.com/whythawk/data-as-a-science/">data as a science</a>.</p>
+<p>Underneath <strong>whyqd</strong> is <a class="reference external" href="https://pandas.pydata.org/">pandas</a>. A merge in a pandas dataframe will
+join the first of two rows. Any subsequent rows with a similar unique id will be added at the bottom
+(either ‘left’ or ‘right’, depending on the merge source), but orphaned. We can deal with this
+problem in a number of ways, but let’s go back and look at the source data.</p>
+<p>Each of our sources comes with most of the fields we want to populate our target schema. We can ‘fix’
+these orphaned rows in post. However, what happens if we couldn’t? That depends and requires you to
+have an indepth knowledge of your data source and research requirements. You may want to filter
+your source data in advance (i.e. create an interim schema and wrangle these data in as well).</p>
+<p>Wrangling your input data sounds like you needed an interim schema and method. Your objective is a
+readable, auditable method. Don’t try and do too much in one go. Work methodically to ensure you’re
+clear on what you’re doing at each step rather than getting all recursive in your methods.</p>
+</div>
+<div class="section" id="create-wrangling-actions">
+<h3>Create wrangling actions<a class="headerlink" href="#create-wrangling-actions" title="Permalink to this headline">¶</a></h3>
+<p>This is the part of the wrangling process where, depending on the scale of what you’re up to, you
+reach for Excel, <a class="reference external" href="https://openrefine.org/">OpenRefine</a> or some commercial alternative. These are
+sometimes outside of your workflow, or introduce (hello Excel) the potential for human error.</p>
+<p>Options like OpenRefine are great, but are quite heavy. They’re useful if you’re performing all
+your wrangling in one place (including dealing with row-level value errors), but it’s a fairly
+heavy investment in that system’s language and approach. On the other hand, if you’re already used
+to using pandas and Python for dealing with these post-wrangling validation errors, then <strong>whyqd</strong>
+offers:</p>
+<ul class="simple">
+<li><p>Simplicity: you already know Python, and - as you’ll see - not much is required to wire up a munge.</p></li>
+<li><p>Transparency: you’ll get a full audit trail in a readable JSON file.</p></li>
+<li><p>Speed: hopefully you’ll get a sense of that through this tutorial.</p></li>
+</ul>
+<p>Critically, <strong>whyqd</strong> is for <em>repeatable</em> and <strong>auditable</strong> processing. Next quarter, Portsmouth will update their data
+and we want to import it again. However, it probably won’t be in the same format as this quarter
+since a human being prepared and uploaded these data. That person doesn’t know about your use-case
+and probably doesn’t care (at least they haven’t accused you of <a class="reference external" href="http://informationrights.decisions.tribunals.gov.uk/DBFiles/Decision/i2557/Westminster%20City%20Council%20EA-2018-0033%20(04.12.19).pdf">promoting terrorism</a>
+with these data). Maybe they change some column names. The URI will definitely be different, and maybe
+so will the file order. These are simple changes and all that’s required is a minor adjustment to the
+method to run this process again.</p>
+<p>Every task structure must start with an action to describe what to do with the following terms.
+There are several “actions” which can be performed, and some require action modifiers:</p>
+<ul class="simple">
+<li><p>NEW: Add in a new column, and populate it according to the value in the “new” constraint</p></li>
+<li><p>RENAME: If only 1 item in list of source fields, then rename that field</p></li>
+<li><p>ORDER: If &gt; 1 item in list of source fields, pick the value from the column, replacing each
+value with one from the next in the order of the provided fields</p></li>
+<li><p>ORDER_NEW: As in ORDER, but replacing each value with one associated with a newer “dateorder”
+constraint:</p>
+<ul>
+<li><p>MODIFIER: <cite>+</cite> between terms for source and source_date</p></li>
+</ul>
+</li>
+<li><p>ORDER_OLD: As in ORDER, but replacing each value with one associated with an older “dateorder”
+constraint:</p>
+<ul>
+<li><p>MODIFIER: <cite>+</cite> between terms for source and source_date</p></li>
+</ul>
+</li>
+<li><p>CALCULATE: Only if of <cite>type</cite> = <cite>float64</cite> (or which can be forced to float64):</p>
+<ul>
+<li><p>MODIFIER: <cite>+</cite> or <cite>-</cite> before each term to define whether add or subtract</p></li>
+</ul>
+</li>
+<li><p>JOIN: Only if of <cite>type</cite> = <cite>object</cite>, join text with <cite>” “.join()</cite></p></li>
+<li><p>CATEGORISE: Only if of <cite>type</cite> = <cite>string</cite>; look for associated constraint, <cite>categorise</cite> where
+<cite>True</cite> = keep a list of categories, <cite>False</cite> = set <cite>True</cite> if terms found in list:</p>
+<ul>
+<li><p>MODIFIER:</p>
+<ul>
+<li><p><cite>+</cite> before terms where column values to be classified as unique</p></li>
+<li><p><cite>-</cite> before terms where column values are treated as boolean</p></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p>This tutorial doesn’t require you to do all of these, but it gives you a good flavour of use. You
+can also nest actions, but use common sense to ensure you know what the result is likely to be.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>if you’re not quite sure what a set of actions will do, run it and see. <strong>whyqd</strong> is non-destructive, so you
+don’t risk losing your source data, or getting tangled. If an action doesn’t work as expected, delete it or
+update it.</p>
+</div>
+<p>Portsmouth’s unique local authority code (<a class="reference external" href="https://www.ons.gov.uk/geography/local-authority/E06000044">defined by ONS</a>)
+is “E06000044”. We need that to patch our output data into our database, and we’re going to add that
+as a new field. By reviewing our data we can decide on a set of actions to perform:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">schema_scripts</span> <span class="o">=</span> <span class="p">[</span>
+<span class="go">        &quot;NEW &gt; &#39;la_code&#39; &lt; [&#39;E06000044&#39;]&quot;,</span>
+<span class="go">        &quot;RENAME &gt; &#39;ba_ref&#39; &lt; [&#39;Property ref no&#39;]&quot;,</span>
+<span class="go">        &quot;ORDER &gt; &#39;prop_ba_rates&#39; &lt; [&#39;Current Rateable Value_x&#39;, &#39;Current Rateable Value_y&#39;, &#39;Current Rateable Value&#39;]&quot;,</span>
+<span class="go">        &quot;ORDER &gt; &#39;occupant_name&#39; &lt; [&#39;Primary Liable party name_x&#39;, &#39;Primary Liable party name_y&#39;, &#39;Primary Liable party name&#39;]&quot;,</span>
+<span class="go">        &quot;ORDER &gt; &#39;postcode&#39; &lt; [&#39;Full Property Address_x&#39;, &#39;Full Property Address_y&#39;, &#39;Full Property Address&#39;]&quot;,</span>
+<span class="go">        &quot;CATEGORISE &gt; &#39;occupation_state&#39; &lt; [+ &#39;Current Property Exemption Code&#39;, + &#39;Current Relief Type&#39;]&quot;,</span>
+<span class="go">        &quot;ASSIGN_CATEGORY_UNIQUES &gt; &#39;occupation_state&#39;::False &lt; &#39;Current Property Exemption Code&#39;::[&#39;EPRN&#39;, &#39;EPRI&#39;, &#39;VOID&#39;, &#39;EPCH&#39;, &#39;LIQUIDATE&#39;, &#39;DECEASED&#39;, &#39;PROHIBITED&#39;, &#39;BANKRUPT&#39;]&quot;,</span>
+<span class="go">        &quot;ASSIGN_CATEGORY_UNIQUES &gt; &#39;occupation_state&#39;::False &lt; &#39;Current Relief Type&#39;::[&#39;Empty Property Rate Non-Industrial&#39;, &#39;Empty Property Rate Industrial&#39;, &#39;Empty Property Rate Charitable&#39;]&quot;,</span>
+<span class="go">        &quot;CATEGORISE &gt; &#39;occupation_state_reliefs&#39; &lt; [+ &#39;Current Property Exemption Code&#39;, + &#39;Current Relief Type&#39;]&quot;,</span>
+<span class="go">        &quot;ASSIGN_CATEGORY_UNIQUES &gt; &#39;occupation_state_reliefs&#39;::&#39;small_business&#39; &lt; &#39;Current Relief Type&#39;::[&#39;Small Business Relief England&#39;, &#39;Sbre Extension For 12 Months&#39;, &#39;Supporting Small Business Relief&#39;]&quot;,</span>
+<span class="go">        &quot;ASSIGN_CATEGORY_UNIQUES &gt; &#39;occupation_state_reliefs&#39;::&#39;enterprise_zone&#39; &lt; &#39;Current Property Exemption Code&#39;::[&#39;INDUSTRIAL&#39;]&quot;,</span>
+<span class="go">        &quot;ASSIGN_CATEGORY_UNIQUES &gt; &#39;occupation_state_reliefs&#39;::&#39;vacancy&#39; &lt; &#39;Current Property Exemption Code&#39;::[&#39;EPRN&#39;, &#39;EPRI&#39;, &#39;VOID&#39;, &#39;EPCH&#39;, &#39;LIQUIDATE&#39;, &#39;DECEASED&#39;, &#39;PROHIBITED&#39;, &#39;BANKRUPT&#39;]&quot;,</span>
+<span class="go">        &quot;ASSIGN_CATEGORY_UNIQUES &gt; &#39;occupation_state_reliefs&#39;::&#39;vacancy&#39; &lt; &#39;Current Relief Type&#39;::[&#39;Empty Property Rate Non-Industrial&#39;, &#39;Empty Property Rate Industrial&#39;, &#39;Empty Property Rate Charitable&#39;]&quot;,</span>
+<span class="go">        &quot;ASSIGN_CATEGORY_UNIQUES &gt; &#39;occupation_state_reliefs&#39;::&#39;retail&#39; &lt; &#39;Current Relief Type&#39;::[&#39;Retail Discount&#39;]&quot;,</span>
+<span class="go">        &quot;ASSIGN_CATEGORY_UNIQUES &gt; &#39;occupation_state_reliefs&#39;::&#39;exempt&#39; &lt; &#39;Current Property Exemption Code&#39;::[&#39;C&#39;, &#39;LOW RV&#39;, &#39;LAND&#39;]&quot;,</span>
+<span class="go">        &quot;ASSIGN_CATEGORY_UNIQUES &gt; &#39;occupation_state_reliefs&#39;::&#39;other&#39; &lt; &#39;Current Relief Type&#39;::[&#39;Sports Club (Registered CASC)&#39;, &#39;Mandatory&#39;]&quot;,</span>
+<span class="go">        &quot;ORDER_NEW &gt; &#39;occupation_state_date&#39; &lt; [&#39;Current Prop Exemption Start Date&#39; + &#39;Current Prop Exemption Start Date&#39;, &#39;Current Relief Award Start Date&#39; + &#39;Current Relief Award Start Date&#39;, &#39;Account Start date_x&#39; + &#39;Account Start date_x&#39;, &#39;Account Start date_y&#39; + &#39;Account Start date_y&#39;]&quot;,</span>
+<span class="go">    ]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">source_data</span> <span class="o">=</span> <span class="n">method</span><span class="o">.</span><span class="n">get</span><span class="o">.</span><span class="n">working_data</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">method</span><span class="o">.</span><span class="n">add_actions</span><span class="p">(</span><span class="n">schema_scripts</span><span class="p">,</span> <span class="n">source_data</span><span class="o">.</span><span class="n">uuid</span><span class="o">.</span><span class="n">hex</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Let’s get in to what all of this means:</p>
+<ul>
+<li><p><cite>NEW</cite>: is the only case where the term after the action is a <cite>value</cite> not a <cite>field</cite> reference.</p></li>
+<li><p><cite>ORDER</cite>: is a simple first-out-last-in replacement where the value from the next field will replace
+the current one, unless it’s <cite>nan</cite> or empty.</p></li>
+<li><p><cite>ORDER_NEW</cite>: is a date-comparison between the listed fields, however, you need to tie the value
+field to a date field with the <cite>+</cite> modifier (in this case, they’re the same, but that isn’t assumed).
+Here’s it’s <cite>field_to_test_for_newnewss</cite> + <cite>field_with_date_reflecting_field_to_tests_newness</cite>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="sd">&quot;&quot;&quot;ORDER_NEW &gt; &#39;occupation_state_date&#39; &lt; [&#39;Current Prop Exemption Start Date&#39; + &#39;Current Prop Exemption Start Date&#39;,</span>
+<span class="sd">&#39;Current Relief Award Start Date&#39; + &#39;Current Relief Award Start Date&#39;, &#39;Account Start date_x&#39; +</span>
+<span class="sd">&#39;Account Start date_x&#39;, &#39;Account Start date_y&#39; + &#39;Account Start date_y&#39;]&quot;&quot;&quot;</span>
+</pre></div>
+</div>
+</li>
+<li><p><cite>CATEGORISE</cite>: is the most complex operation … there are two important modifiers: <cite>+</cite> and <cite>-</cite>.</p></li>
+</ul>
+<p>You can think of a column of values you want to use for <strong>categorical</strong> data as having two broad types:</p>
+<ul class="simple">
+<li><p>The presence or absence of a value in a column is of interest (i.e. boolean True or False)</p></li>
+<li><p>The terms present in a column need to be categorised into more appropriate terms</p></li>
+</ul>
+<p>In our tutorial data, we want to know whether a particular address is occupied or vacant. There is no
+common way to present this. Some authorities are kind enough to state “true”/”false” (which is
+actually the latter type of value, since they’re <cite>strings</cite> … make sure that’s clear ;p ). Others provide a date
+when the site when vacant (so the presence of a date is an indication of vacancy). In this case, we’d modify
+the field with a <cite>-</cite>, since the dates are not of interest for <cite>occupation_state</cite>, although they are
+of interest for <cite>occupation_state_date</cite>.</p>
+<p>In this particular case, Portsmouth have not provided any of this type of information, but instead
+have indicated the category of relief that a business receives - none of which are the official
+categories of relief. (<em>You see why people hate wrangling?</em>)</p>
+<p>We need to extract those relief terms and assign them to the appropriate categories we actually want.</p>
+<p>All of that achieved in this script:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="s2">&quot;CATEGORISE &gt; &#39;occupation_state&#39; &lt; [+ &#39;Current Property Exemption Code&#39;, + &#39;Current Relief Type&#39;]&quot;</span><span class="p">,</span>
+</pre></div>
+</div>
+<p>Which is quite efficient, when you think about how long it took to explain.</p>
+<p>Categorisation can be quite frustrating. Given that our data sources haven’t published their own
+schema, we don’t know what the definitions are for any of the terms they use. Experience can help
+you with what is most likely, but sometimes the only thing to do is go back to your source and ask.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>If your source data isn’t clear, it’s always best not to overfit your data and simply ignore categories that
+are not defined rather than get false positives. Be as conservative as possible in your process and <strong>set sensible
+defaults</strong>.</p>
+</div>
+<p>We need to assign unique values from the columns we’ve listed to the categorisation script. First, though, we need to
+find out what terms are available to us:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">df</span> <span class="o">=</span> <span class="n">method</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">method</span><span class="o">.</span><span class="n">get</span><span class="o">.</span><span class="n">working_data</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">list</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="s2">&quot;Current Relief Type&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">unique</span><span class="p">())</span>
+<span class="go">[&lt;NA&gt;,</span>
+<span class="go">&#39;Retail Discount&#39;,</span>
+<span class="go">&#39;Small Business Relief England&#39;,</span>
+<span class="go">&#39;Supporting Small Business Relief&#39;,</span>
+<span class="go">&#39;Sbre Extension For 12 Months&#39;,</span>
+<span class="go">&#39;Empty Property Rate Industrial&#39;,</span>
+<span class="go">&#39;Empty Property Rate Non-Industrial&#39;,</span>
+<span class="go">&#39;Mandatory&#39;,</span>
+<span class="go">&#39;Sports Club (Registered CASC)&#39;,</span>
+<span class="go">&#39;Empty Property Rate Charitable&#39;]</span>
+</pre></div>
+</div>
+<p>And we can do the same for the other column ‘Current Property Exemption Code’. Once you know what terms you want to
+assign where, the following scripts should be more obvious:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="sd">&quot;&quot;&quot;ASSIGN_CATEGORY_UNIQUES &gt; &#39;occupation_state&#39;::False &lt; &#39;Current Property Exemption Code&#39;::[&#39;EPRN&#39;, &#39;EPRI&#39;,</span>
+<span class="sd">&#39;VOID&#39;, &#39;EPCH&#39;, &#39;LIQUIDATE&#39;, &#39;DECEASED&#39;, &#39;PROHIBITED&#39;, &#39;BANKRUPT&#39;]&quot;&quot;&quot;</span>
+<span class="sd">&quot;&quot;&quot;ASSIGN_CATEGORY_UNIQUES &gt; &#39;occupation_state&#39;::False &lt; &#39;Current Relief Type&#39;::[&#39;Empty Property Rate</span>
+<span class="sd">Non-Industrial&#39;, &#39;Empty Property Rate Industrial&#39;, &#39;Empty Property Rate Charitable&#39;]&quot;&quot;&quot;</span>
+</pre></div>
+</div>
+<p>Get yourself a cup of coffee. The hard part is now done.</p>
+<p>Let’s also save our method:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">DIRECTORY</span> <span class="o">=</span> <span class="s2">&quot;/path_to/working/directory/&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">FILENAME</span> <span class="o">=</span> <span class="s2">&quot;2020_q1_portsmouth.json&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">method</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">DIRECTORY</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="n">FILENAME</span><span class="p">,</span> <span class="n">created_by</span><span class="o">=</span><span class="s2">&quot;Gavin Chait&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="filtering-is-optional">
+<h3>Filtering is optional<a class="headerlink" href="#filtering-is-optional" title="Permalink to this headline">¶</a></h3>
+<p>Sometimes data are bulky. Sometimes processing data you’ve already imported because an updated
+data source adds new rows at the bottom makes for time-consuming workflows. Filtering is not
+meant to replace post-wrangling validation and processing, but to support it by importing only
+the data you need.</p>
+<p>This is an optional step. Let’s set a filter to import only data released after <cite>2010-01-01</cite> and set the filter for our
+reference column <cite>ba_ref</cite>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">filter_script</span> <span class="o">=</span> <span class="s2">&quot;FILTER_AFTER &gt; &#39;occupation_state_date&#39;::&#39;2010-01-01&#39;&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">source_data</span> <span class="o">=</span> <span class="n">method</span><span class="o">.</span><span class="n">get</span><span class="o">.</span><span class="n">working_data</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">method</span><span class="o">.</span><span class="n">add_actions</span><span class="p">(</span><span class="n">filter_script</span><span class="p">,</span> <span class="n">source_data</span><span class="o">.</span><span class="n">uuid</span><span class="o">.</span><span class="n">hex</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="transform-your-data">
+<h3>Transform your data<a class="headerlink" href="#transform-your-data" title="Permalink to this headline">¶</a></h3>
+<p>After all that, you’ll be relieved (possibly) to know that there’s not a lot left to do. One line:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">method</span><span class="o">.</span><span class="n">build</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">method</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">DIRECTORY</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="n">FILENAME</span><span class="p">,</span> <span class="n">created_by</span><span class="o">=</span><span class="s2">&quot;Gavin Chait&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>You will end up with a saved restructured Excel file, and a method <cite>json</cite> file. The source data are saved as Excel
+for one major reason … we often need to preserve numeric identifiers as strings. CSV is non-standard and these
+identifiers are often automatically converted to numbers when opened by some programs. That can destroy identifiers
+by removing leading zeros. There is no perfect way to archive data. Let me know if you have a better idea.</p>
+</div>
+<div class="section" id="method-validation">
+<h3>Method Validation<a class="headerlink" href="#method-validation" title="Permalink to this headline">¶</a></h3>
+<p>There’s a fair amount of activity behind the scenes, mostly related to validation. Every step has
+an equivalent validation step, testing the method to ensure that it will execute once your run
+your transformation.</p>
+<p>Despite all this coding and activity, you’ve actually made no changes to the source data. Everything you’ve done has
+been about documenting a process. This process is the only thing that will eventually execute and produce your output.</p>
+<p>We can do a few things at this point:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">method</span><span class="o">.</span><span class="n">validates</span><span class="p">()</span>
+<span class="go">    True</span>
+</pre></div>
+</div>
+<p>Since you’re a sensible person, you’re probably running this tutorial in a Jupyter Notebook and are interested in why it
+takes a bit of time to validate:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="o">%</span><span class="n">time</span> <span class="k">assert</span> <span class="n">method</span><span class="o">.</span><span class="n">validates</span><span class="p">()</span>
+<span class="go">    CPU times: user 53.5 s, sys: 169 ms, total: 53.6 s</span>
+<span class="go">    Wall time: 58.1 s</span>
+</pre></div>
+</div>
+<p>That’s because validation actually runs your code. It will create a new <cite>working_data</cite> file and perform
+all the structure and categorisation steps. None of this should make you want to lose your mind, but
+- if this sort of thing is irritating - you could look into running the transformation tasks
+asynchronously in the background.</p>
+</div>
+<div class="section" id="preparing-a-citation">
+<h3>Preparing a Citation<a class="headerlink" href="#preparing-a-citation" title="Permalink to this headline">¶</a></h3>
+<p>Research-based data scientists are not always treated well in the research community. Data are hoarded by researchers,
+which also means that the people who produced that data don’t get referenced or recognised.</p>
+<p><strong>whyqd</strong> is designed to support a research process and ensure citation of the incredible work done by research-based
+data scientists.</p>
+<p>A citation is a special set of fields, with options for:</p>
+<ul class="simple">
+<li><p><strong>author</strong>: The name(s) of the author(s) (in the case of more than one author, separated by <cite>and</cite>),</p></li>
+<li><p><strong>title</strong>: The title of the work,</p></li>
+<li><p><strong>url</strong>: The URL field is used to store the URL of a web page or FTP download. It is a non-standard BibTeX field,</p></li>
+<li><p><strong>publisher</strong>: The publisher’s name,</p></li>
+<li><p><strong>institution</strong>: The institution that was involved in the publishing, but not necessarily the publisher,</p></li>
+<li><p><strong>doi</strong>: The doi field is used to store the digital object identifier (DOI) of a journal article, conference paper,
+book chapter or book. It is a non-standard BibTeX field. It’s recommended to simply use the DOI, and not a DOI link,</p></li>
+<li><p><strong>month</strong>: The month of publication (or, if unpublished, the month of creation). Use three-letter abbreviation,</p></li>
+<li><p><strong>year</strong>: The year of publication (or, if unpublished, the year of creation),</p></li>
+<li><p><strong>note</strong>: Miscellaneous extra information.</p></li>
+</ul>
+<p>Those of you familiar with Dataverse’s <a class="reference external" href="http://guides.dataverse.org/en/latest/developers/unf/index.html">universal numerical fingerprint</a>
+may be wondering where it is? <strong>whyqd</strong>, similarly, produces a unique hash for each datasource,
+including inputs, working data, and outputs. Ours is based on <a class="reference external" href="https://en.wikipedia.org/wiki/BLAKE_(hash_function)">BLAKE2b</a>
+and is included in the citation output.</p>
+<p>Let’s set up a citation for this tutorial:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">citation</span> <span class="o">=</span> <span class="p">{</span>
+<span class="go">        &quot;author&quot;: &quot;Gavin Chait&quot;,</span>
+<span class="go">        &quot;month&quot;: &quot;feb&quot;,</span>
+<span class="go">        &quot;year&quot;: 2020,</span>
+<span class="go">        &quot;title&quot;: &quot;Portsmouth City Council normalised database of commercial ratepayers&quot;,</span>
+<span class="go">        &quot;url&quot;: &quot;https://github.com/whythawk/whyqd/tree/master/tests/data&quot;</span>
+<span class="go">    }</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">method</span><span class="o">.</span><span class="n">set_citation</span><span class="p">(</span><span class="n">citation</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>You can then get your citation report:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">method</span><span class="o">.</span><span class="n">get_citation</span><span class="p">()</span>
+<span class="go">    {&#39;author&#39;: &#39;Gavin Chait&#39;,</span>
+<span class="go">    &#39;title&#39;: &#39;Portsmouth City Council normalised database of commercial ratepayers&#39;,</span>
+<span class="go">    &#39;url&#39;: AnyUrl(&#39;https://github.com/whythawk/whyqd/tree/master/tests/data&#39;, scheme=&#39;https&#39;, host=&#39;github.com&#39;, tld=&#39;com&#39;, host_type=&#39;domain&#39;, path=&#39;/whythawk/whyqd/tree/master/tests/data&#39;),</span>
+<span class="go">    &#39;month&#39;: &#39;feb&#39;,</span>
+<span class="go">    &#39;year&#39;: 2020,</span>
+<span class="go">    &#39;input_sources&#39;: [{&#39;path&#39;: &#39;https://www.portsmouth.gov.uk/ext/documents-external/biz-ndr-properties-january-2020.xls&#39;,</span>
+<span class="go">    &#39;checksum&#39;: &#39;b180bd9fe8c3b1025f433e0b3377fb9a738523b9c33eac5d62ed83c51883e1f64a3895edf0fc9e96a85a4130df3392177dff262963338971114aa4f5d1b0a70e&#39;},</span>
+<span class="go">    {&#39;path&#39;: &#39;https://www.portsmouth.gov.uk/ext/documents-external/biz-ndr-reliefs-january-2020.xls&#39;,</span>
+<span class="go">    &#39;checksum&#39;: &#39;98e23e4eac6782873492181d6e4f3fcf308f1bb0fc47dc582c3fdf031c020a651d9f06f6510b21405c3f63b8d576a93a27bd2f3cc5b053d8d9022c884b57d3a3&#39;},</span>
+<span class="go">    {&#39;path&#39;: &#39;https://www.portsmouth.gov.uk/ext/documents-external/biz-empty-commercial-properties-january-2020.xls&#39;,</span>
+<span class="go">    &#39;checksum&#39;: &#39;9fd3d0df6cc1e0e58ab481ca9d46b68150b3b8d0c97148a00417af16025ba066e29a35994d0e4526edb1deda4c10b703df8f0dbcc23421dd6c0c0fd1a4c6b01c&#39;}],</span>
+<span class="go">    &#39;restructured_data&#39;: {&#39;path&#39;: &#39;https://github.com/whythawk/whyqd/tree/master/tests/data&#39;,</span>
+<span class="go">    &#39;checksum&#39;: &#39;25591827b9b5ad69780dc1eea6121b4ec79f10b62f21268368c7faa5ca473ef3f613c72fea723875669d0fe8aa57c9e7890f1df5b13f922fc525c82c1239eb42&#39;}}</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+        <a href="tutorial_cthulhu_data.html" class="btn btn-neutral float-right" title="Tutorial: Cthulhu data" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="installation.html" class="btn btn-neutral float-left" title="Dependencies, installation &amp; importing" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright 2020, Gavin Chait.
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

@@ -1,41 +1,48 @@
 
 
 <!DOCTYPE html>
-<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8">
+  <meta charset="utf-8" />
   
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>Method &mdash; whyqd 0.1.0 documentation</title>
+  <title>Method &mdash; whyqd 0.5.0 documentation</title>
   
-
-  
-  
-  
-  
-
-  
-  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
-  
-    
-      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
-        <script src="_static/jquery.js"></script>
-        <script src="_static/underscore.js"></script>
-        <script src="_static/doctools.js"></script>
-        <script src="_static/language_data.js"></script>
-    
-    <script type="text/javascript" src="_static/js/theme.js"></script>
-
-    
 
   
   <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
   <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="prev" title="Morph" href="morph_api.html" /> 
+    <link rel="next" title="Actions" href="action_api.html" />
+    <link rel="prev" title="Schema" href="schema_api.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -72,6 +79,7 @@
           
         </div>
 
+        
         <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
           
             
@@ -79,38 +87,42 @@
               
             
             
-              <p class="caption"><span class="caption-text">Getting started</span></p>
+              <p class="caption" role="heading"><span class="caption-text">Getting started</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="installation.html">Dependencies, installation &amp; importing</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tutorial.html">Full worked tutorial</a></li>
-<li class="toctree-l1"><a class="reference internal" href="morph_tutorial.html">Table morph tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial_local_government_data.html">Tutorial: Local government data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial_cthulhu_data.html">Tutorial: Cthulhu data</a></li>
 <li class="toctree-l1"><a class="reference internal" href="citation.html">Distribution &amp; Citation of methods and data</a></li>
 </ul>
-<p class="caption"><span class="caption-text">Creating and managing Schemas</span></p>
+<p class="caption" role="heading"><span class="caption-text">Creating and managing Schemas</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="schema.html">Schema</a></li>
 </ul>
-<p class="caption"><span class="caption-text">Wrangling with Methods</span></p>
+<p class="caption" role="heading"><span class="caption-text">Wrangling with Methods</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="method.html">Method</a></li>
 </ul>
-<p class="caption"><span class="caption-text">What next?</span></p>
+<p class="caption" role="heading"><span class="caption-text">Validate an existing Method</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="validate.html">Validate</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">What next?</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="roadmap.html">Roadmap</a></li>
 <li class="toctree-l1"><a class="reference internal" href="contributing.html">Background and Contributing</a></li>
 </ul>
-<p class="caption"><span class="caption-text">Reference API</span></p>
+<p class="caption" role="heading"><span class="caption-text">Reference API</span></p>
 <ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="field_api.html">Field</a></li>
 <li class="toctree-l1"><a class="reference internal" href="schema_api.html">Schema</a></li>
-<li class="toctree-l1"><a class="reference internal" href="action_api.html">Action</a></li>
-<li class="toctree-l1"><a class="reference internal" href="morph_api.html">Morph</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Method</a></li>
+<li class="toctree-l1"><a class="reference internal" href="action_api.html">Actions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="validate_api.html">Validate</a></li>
 </ul>
 
             
           
         </div>
+        
       </div>
     </nav>
 
@@ -145,18 +157,20 @@
 
 
 
+
+
 <div role="navigation" aria-label="breadcrumbs navigation">
 
   <ul class="wy-breadcrumbs">
     
-      <li><a href="index.html">Docs</a> &raquo;</li>
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
         
       <li>Method</li>
     
     
       <li class="wy-breadcrumbs-aside">
         
-            
+          
             <a href="_sources/method_api.rst.txt" rel="nofollow"> View page source</a>
           
         
@@ -173,1000 +187,311 @@
   <div class="section" id="method">
 <h1>Method<a class="headerlink" href="#method" title="Permalink to this headline">¶</a></h1>
 <p>The <cite>Method</cite> class defines a wrangling process to restructure input data into a format defined by a <a class="reference internal" href="schema.html"><span class="doc">Schema</span></a>.</p>
-<dl class="class">
-<dt id="method.Method">
-<em class="property">class </em><code class="sig-prename descclassname">method.</code><code class="sig-name descname">Method</code><span class="sig-paren">(</span><em class="sig-param">source=None</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#method.Method" title="Permalink to this definition">¶</a></dt>
+<dl class="py class">
+<dt class="sig sig-object py" id="whyqd.method.method.Method">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">whyqd.method.method.</span></span><span class="sig-name descname"><span class="pre">Method</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">directory</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">schema</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Type</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="schema_api.html#whyqd.schema.schema.Schema" title="whyqd.schema.schema.Schema"><span class="pre">whyqd.schema.schema.Schema</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">whyqd.models.method_model.MethodModel</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#whyqd.method.method.Method" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create and manage a method to perform a wrangling process.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>source</strong> (<em>path to a json file containing a saved schema</em><em>, </em><em>default is None</em>) – </p></li>
-<li><p><strong>directory</strong> (<em>working path for creating methods</em><em>, </em><em>interim data files and final output</em>) – </p></li>
-<li><p><strong>kwargs</strong> (<em>a schema defined as a dictionary</em><em>, or </em><em>default blank dictionary</em>) – </p></li>
+<li><p><strong>directory</strong> (<em>str</em>) – Working path for creating methods, interim data files and final output</p></li>
+<li><p><strong>source</strong> (<em>str</em>) – Path to a json file containing a saved schema, default is None</p></li>
 </ul>
 </dd>
 </dl>
-<dl class="method">
-<dt id="method.Method.merge">
-<code class="sig-name descname">merge</code><span class="sig-paren">(</span><em class="sig-param">order_and_key=None</em>, <em class="sig-param">overwrite_working=False</em><span class="sig-paren">)</span><a class="headerlink" href="#method.Method.merge" title="Permalink to this definition">¶</a></dt>
-<dd><p>Merge input data on a key column.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>order_and_key</strong> (<em>list</em>) – List of dictionaries specifying <cite>input_data</cite> order and key for merge. Can also use
-<cite>order_and_key_input_data</cite> directly. Each dict in the list has
-<cite>{id: input_data id, key: column_name for merge}</cite></p></li>
-<li><p><strong>overwrite_working</strong> (<em>bool</em>) – Permission to overwrite existing working data</p></li>
-<li><p><strong>TO_DO</strong> – </p></li>
-<li><p><strong>-----</strong> – </p></li>
-<li><p><strong>merge validates column uniqueness prior to merge</strong><strong>, </strong><strong>if the column is not unique there</strong> (<em>While</em>) – </p></li>
-<li><p><strong>nothing the user can do about it</strong><strong> (</strong><strong>without manually going and refixing the input data</strong><strong>)</strong><strong></strong> (<em>is</em>) – </p></li>
-<li><p><strong>sort of uniqueness fix required</strong><strong> (</strong><strong>probably using the filters</strong><strong>)</strong><strong></strong> (<em>Some</em>) – </p></li>
-</ul>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="method">
-<dt id="method.Method.structure">
-<code class="sig-name descname">structure</code><span class="sig-paren">(</span><em class="sig-param">name</em><span class="sig-paren">)</span><a class="headerlink" href="#method.Method.structure" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return a ‘markdown’ version of the formal structure for a specific <cite>name</cite> field.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>(nested) strings in structure format</p>
-</dd>
-<dt class="field-even">Return type</dt>
-<dd class="field-even"><p>list</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="method">
-<dt id="method.Method.set_structure">
-<code class="sig-name descname">set_structure</code><span class="sig-paren">(</span><em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#method.Method.set_structure" title="Permalink to this definition">¶</a></dt>
-<dd><p>Receive a list of methods of the form:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
-        <span class="s2">&quot;schema_field1&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;action&quot;</span><span class="p">,</span> <span class="s2">&quot;column_name1&quot;</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;action&quot;</span><span class="p">,</span> <span class="s2">&quot;column_name2&quot;</span><span class="p">]],</span>
-        <span class="s2">&quot;schema_field2&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;action&quot;</span><span class="p">,</span> <span class="s2">&quot;column_name1&quot;</span><span class="p">,</span> <span class="s2">&quot;modifier&quot;</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;action&quot;</span><span class="p">,</span> <span class="s2">&quot;column_name2&quot;</span><span class="p">]],</span>
-<span class="p">}</span>
-</pre></div>
-</div>
-<p>The format for defining a <cite>structure</cite> is as follows:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">[</span><span class="n">action</span><span class="p">,</span> <span class="n">column_name</span><span class="p">,</span> <span class="p">[</span><span class="n">action</span><span class="p">,</span> <span class="n">column_name</span><span class="p">]]</span>
-</pre></div>
-</div>
-<p>e.g.:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">[</span><span class="s2">&quot;CATEGORISE&quot;</span><span class="p">,</span> <span class="s2">&quot;+&quot;</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;ORDER&quot;</span><span class="p">,</span> <span class="s2">&quot;column_1&quot;</span><span class="p">,</span> <span class="s2">&quot;column_2&quot;</span><span class="p">]]</span>
-</pre></div>
-</div>
-<p>This permits the creation of quite expressive wrangling structures from simple building
-blocks.</p>
-<p>Every task structure must start with an action to describe what to do with the following
-terms. There are several “actions” which can be performed, and some require action
-modifiers:</p>
-<blockquote>
-<div><ul>
-<li><p>NEW: Add in a new column, and populate it according to the value in the “new” constraint</p></li>
-<li><p>RENAME: If only 1 item in list of source fields, then rename that field</p></li>
-<li><p>ORDER: If &gt; 1 item in list of source fields, pick the value from the column, replacing each value with one from the next in the order of the provided fields</p></li>
-<li><p>ORDER_NEW: As in ORDER, but replacing each value with one associated with a newer “dateorder” constraint</p>
+<dl class="py property">
+<dt class="sig sig-object py" id="whyqd.method.method.Method.describe">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">describe</span></span><em class="property"><span class="pre">:</span> <span class="pre">Optional[Dict[str,</span> <span class="pre">None]]</span></em><a class="headerlink" href="#whyqd.method.method.Method.describe" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the method name, title and description.</p>
 <blockquote>
 <div><ul class="simple">
-<li><p>MODIFIER: <cite>+</cite> between terms for source and source_date</p></li>
+<li><p>name: Term used for filename and referencing. Will be lower-cased and spaces replaced with <cite>_</cite></p></li>
+<li><p>title: Human-readable term used as name.</p></li>
+<li><p>description: Detailed description for the method. Reference its objective and use-case.</p></li>
 </ul>
 </div></blockquote>
-</li>
-<li><p>ORDER_OLD: As in ORDER, but replacing each value with one associated with an older “dateorder” constraint</p>
-<blockquote>
-<div><ul class="simple">
-<li><p>MODIFIER: <cite>+</cite> between terms for source and source_date</p></li>
-</ul>
-</div></blockquote>
-</li>
-<li><p>CALCULATE: Only if of “type” = “float64” (or which can be forced to float64)</p>
-<blockquote>
-<div><ul class="simple">
-<li><p>MODIFIER: <cite>+</cite> or <cite>-</cite> before each term to define whether add or subtract</p></li>
-</ul>
-</div></blockquote>
-</li>
-<li><p>JOIN: Only if of “type” = “object”, join text with ” “.join()</p></li>
-<li><p>CATEGORISE: Only if of “type” = “string”; look for associated constraint, “categorise” where <cite>True</cite> = keep a list of categories, <cite>False</cite> = set True if terms found in list</p>
-<blockquote>
-<div><ul>
-<li><p>MODIFIER:</p>
-<blockquote>
-<div><ul class="simple">
-<li><p><cite>+</cite> before terms where column values to be classified as unique</p></li>
-<li><p><cite>-</cite> before terms where column values are treated as boolean</p></li>
-</ul>
-</div></blockquote>
-</li>
-</ul>
-</div></blockquote>
-</li>
-</ul>
-</div></blockquote>
-<dl class="simple">
-<dt>kwargs: dict</dt><dd><p>Where key is schema target field and value is list defining the structure action</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="method">
-<dt id="method.Method.category">
-<code class="sig-name descname">category</code><span class="sig-paren">(</span><em class="sig-param">name</em><span class="sig-paren">)</span><a class="headerlink" href="#method.Method.category" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return a ‘markdown’ version of assigned and unassigned category inputs for a named field
-of the form:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
-        <span class="s2">&quot;categories&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;category_1&quot;</span><span class="p">,</span> <span class="s2">&quot;category_2&quot;</span><span class="p">]</span>
-        <span class="s2">&quot;assigned&quot;</span><span class="p">:</span> <span class="p">{</span>
-                <span class="s2">&quot;category_1&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;term1&quot;</span><span class="p">,</span> <span class="s2">&quot;term2&quot;</span><span class="p">,</span> <span class="s2">&quot;term3&quot;</span><span class="p">],</span>
-                <span class="s2">&quot;category_2&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;term4&quot;</span><span class="p">,</span> <span class="s2">&quot;term5&quot;</span><span class="p">,</span> <span class="s2">&quot;term6&quot;</span><span class="p">]</span>
-        <span class="p">},</span>
-        <span class="s2">&quot;unassigned&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;term1&quot;</span><span class="p">,</span> <span class="s2">&quot;term2&quot;</span><span class="p">,</span> <span class="s2">&quot;term3&quot;</span><span class="p">]</span>
-<span class="p">}</span>
-</pre></div>
-</div>
-<p>The format for defining a <cite>category</cite> term as follows:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>`term_name::column_name`
-</pre></div>
-</div>
 <dl class="field-list simple">
 <dt class="field-odd">Returns</dt>
 <dd class="field-odd"><p></p>
 </dd>
 <dt class="field-even">Return type</dt>
-<dd class="field-even"><p>list of (nested) strings in structure format</p>
+<dd class="field-even"><p>dict or None</p>
 </dd>
 </dl>
 </dd></dl>
 
-<dl class="method">
-<dt id="method.Method.set_category">
-<code class="sig-name descname">set_category</code><span class="sig-paren">(</span><em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#method.Method.set_category" title="Permalink to this definition">¶</a></dt>
-<dd><p>Receive a list of categories of the form:</p>
+<dl class="py property">
+<dt class="sig sig-object py" id="whyqd.method.method.Method.get">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">get</span></span><em class="property"><span class="pre">:</span> <span class="pre">Optional[whyqd.models.method_model.MethodModel]</span></em><a class="headerlink" href="#whyqd.method.method.Method.get" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the method model.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p></p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>MethodModel or None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="whyqd.method.method.Method.set">
+<span class="sig-name descname"><span class="pre">set</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">whyqd.models.method_model.MethodModel</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#whyqd.method.method.Method.set" title="Permalink to this definition">¶</a></dt>
+<dd><p>Update or create the method.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>method</strong> (<em>MethodModel</em>) – A dictionary conforming to the MethodModel.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="whyqd.method.method.Method.add_data">
+<span class="sig-name descname"><span class="pre">add_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">source</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span> </span><span class="pre">whyqd.models.datasource_model.DataSourceModel</span><span class="p"><span class="pre">,</span> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">whyqd.models.datasource_model.DataSourceModel</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#whyqd.method.method.Method.add_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Provide either a path string, list of path strings, or a dictionary conforming to the DataSourceModel data
+for wrangling.</p>
+<p>If conforming to the DataSourceModel, each source dictionary requires the minimum of:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
-        <span class="s2">&quot;schema_field1&quot;</span><span class="p">:</span> <span class="p">{</span>
-                <span class="s2">&quot;category_1&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;term1&quot;</span><span class="p">,</span> <span class="s2">&quot;term2&quot;</span><span class="p">,</span> <span class="s2">&quot;term3&quot;</span><span class="p">],</span>
-                <span class="s2">&quot;category_2&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;term4&quot;</span><span class="p">,</span> <span class="s2">&quot;term5&quot;</span><span class="p">,</span> <span class="s2">&quot;term6&quot;</span><span class="p">]</span>
-        <span class="p">}</span>
+    <span class="s2">&quot;path&quot;</span><span class="p">:</span> <span class="s2">&quot;path/to/source/file&quot;</span>
 <span class="p">}</span>
 </pre></div>
 </div>
-<p>The format for defining a <cite>category</cite> term as follows:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>`term_name::column_name`
-</pre></div>
-</div>
-</dd></dl>
-
-<dl class="method">
-<dt id="method.Method.filter">
-<code class="sig-name descname">filter</code><span class="sig-paren">(</span><em class="sig-param">name</em><span class="sig-paren">)</span><a class="headerlink" href="#method.Method.filter" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return the filter settings for a named field. If there are no filter settings, return None.</p>
+<p>An optional <cite>citation</cite> conforming to <cite>CitationModel</cite> can also be provided.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Raises</dt>
-<dd class="field-odd"><p><strong>TypeError if setting a filter on this field type is not permitted.</strong> – </p>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p></p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>dict of filter settings, or None</p>
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>source</strong> (<em>str</em><em>, </em><em>list of str</em><em>, </em><em>DataSourceModel</em><em>, or </em><em>list of DataSourceModel</em>) – A dictionary conforming to the DataSourceModel. Each path can be to a filename, or a url.</p>
 </dd>
 </dl>
 </dd></dl>
 
-<dl class="method">
-<dt id="method.Method.set_filter">
-<code class="sig-name descname">set_filter</code><span class="sig-paren">(</span><em class="sig-param">field_name</em>, <em class="sig-param">filter_name</em>, <em class="sig-param">filter_date=None</em>, <em class="sig-param">foreign_field=None</em><span class="sig-paren">)</span><a class="headerlink" href="#method.Method.set_filter" title="Permalink to this definition">¶</a></dt>
-<dd><p>Sets the filter settings for a named field after validating all parameters.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="whyqd.method.method.Method.remove_data">
+<span class="sig-name descname"><span class="pre">remove_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">uid</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">uuid.UUID</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sheet_name</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#whyqd.method.method.Method.remove_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Remove an input data source defined by its source uuid4.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>filters can only be set on date-type fields. <strong>whyqd</strong> offers only rudimentary post-</p>
+<p>You can remove references to individual sheets of a data source if you provide <cite>sheet_name</cite>. If not,
+the entire data source will be removed.</p>
 </div>
-<p>wrangling functionality. Filters are there to, for example, facilitate importing data
-outside the bounds of a previous import.</p>
-<p>This is also an optional step. By default, if no filters are present, the transformed output
-will include <cite>ALL</cite> data.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>field_name</strong> (<em>str</em>) – Name of field on which filters to be set</p></li>
-<li><p><strong>filter_name</strong> (<em>str</em>) – Name of filter type from the list of valid filter names</p></li>
-<li><p><strong>filter_date</strong> (<em>str</em><em> (</em><em>optional</em><em>)</em>) – A date in the format specified by the field type</p></li>
-<li><p><strong>foreign_field</strong> (<em>str</em><em> (</em><em>optional</em><em>)</em>) – Name of field to which filter will be applied. Defaults to <cite>field_name</cite></p></li>
+<li><p><strong>uid</strong> (<em>UUID</em>) – Unique uuid4 for an input data source. View all input data from method <cite>input_data</cite>.</p></li>
+<li><p><strong>sheet_name</strong> (<em>str</em><em>, </em><em>default None</em>) – If the data source has multiple sheets, provide the specific sheet to remove, or - by default - the entire
+data source will be removed.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="whyqd.method.method.Method.update_data">
+<span class="sig-name descname"><span class="pre">update_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">source</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">whyqd.models.datasource_model.DataSourceModel</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">uid</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">uuid.UUID</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sheet_name</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#whyqd.method.method.Method.update_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Update an existing data source.</p>
+<p>Can be used to modify which columns are to be preserved, or other specific changes.</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>You can only modify the following definitions: <cite>names</cite>, <cite>preserve</cite>, <cite>citation</cite>. Attempting to
+change any other definitions will raise an exception. Remove the source data instead.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>source</strong> (<em>DataSourceModel</em>) – A dictionary conforming to the DataSourceModel. Each path can be to a filename, or a url.</p></li>
+<li><p><strong>uid</strong> (<em>UUID</em>) – Unique uuid4 for an input data source. View all input data from method <cite>input_data</cite>.</p></li>
+<li><p><strong>sheet_name</strong> (<em>str</em><em>, </em><em>default None</em>) – If the data source has multiple sheets, provide the specific sheet to update.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Raises</dt>
-<dd class="field-even"><ul class="simple">
-<li><p><strong>TypeError if setting a filter on this field type is not permitted.</strong> – </p></li>
-<li><p><strong>ValueError for any validation failures.</strong> – </p></li>
-</ul>
+<dd class="field-even"><p><strong>ValueError if a sheet_name exists without a sheet_name being provided.</strong> – </p>
 </dd>
 </dl>
 </dd></dl>
 
-<dl class="method">
-<dt id="method.Method.transform">
-<code class="sig-name descname">transform</code><span class="sig-paren">(</span><em class="sig-param">overwrite_output=False</em>, <em class="sig-param">filetype='csv'</em><span class="sig-paren">)</span><a class="headerlink" href="#method.Method.transform" title="Permalink to this definition">¶</a></dt>
-<dd><p>Implement the method to transform input data into output data.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="whyqd.method.method.Method.reorder_data">
+<span class="sig-name descname"><span class="pre">reorder_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">order</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">uuid.UUID</span><span class="p"><span class="pre">,</span> </span><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">uuid.UUID</span><span class="p"><span class="pre">,</span> </span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#whyqd.method.method.Method.reorder_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reorder a list of source data prior to merging them.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>order</strong> (<em>list of UUID</em><em> or </em><em>tuples of UUID</em><em>, </em><em>str</em>) – Either a list of UUIDs, or tuples of hexed UUIDs and sheet_names, e.g. (‘uuid.hex’, ‘sheet_name’)</p>
+</dd>
+<dt class="field-even">Raises</dt>
+<dd class="field-even"><p><strong>ValueError if the list of uuid4s doesn't conform to that in the list of source data.</strong> – </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="whyqd.method.method.Method.add_actions">
+<span class="sig-name descname"><span class="pre">add_actions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">actions</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">uid</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">uuid.UUID</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sheet_name</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#whyqd.method.method.Method.add_actions" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add an action script to a data source specified by its uid and optional sheet name.</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>Morph-type ACTIONS (such as ‘REBASE’, ‘PIVOT_LONGER’, and ‘PIVOT_WIDER’) change the header-row
+column names, and - with that - any of your subsequent referencing that relies on these names. It is
+best to run your morphs first, then your schema ACTIONS, that way you won’t get any weird referencing
+errors. If column errors do arise, check your ACTION ordering.</p>
+</div>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>overwrite_output</strong> (<em>bool</em>) – Permission to overwrite existing output data</p></li>
-<li><p><strong>filetype</strong> (<em>str</em>) – Must be in ‘xlsx’ or ‘csv’. Default, ‘csv’.</p></li>
+<li><p><strong>actions</strong> (<em>str</em><em> or </em><em>list of str</em>) – An action script.</p></li>
+<li><p><strong>uid</strong> (<em>UUID</em>) – Unique uuid4 for a either an input or interim data source.</p></li>
+<li><p><strong>sheet_name</strong> (<em>str</em><em>, </em><em>default None</em>) – If the data source has multiple sheets, provide the specific sheet to update.</p></li>
 </ul>
 </dd>
 </dl>
 </dd></dl>
 
-<dl class="method">
-<dt id="method.Method.citation">
-<em class="property">property </em><code class="sig-name descname">citation</code><a class="headerlink" href="#method.Method.citation" title="Permalink to this definition">¶</a></dt>
-<dd><p>Present a citation and validation report for this method. If citation data has been included
-in the <cite>constructor</cite> then that will be included.</p>
-<p>A citation is a special set of fields, with options for:</p>
-<ul class="simple">
-<li><p><strong>authors</strong>: a list of author names in the format, and order, you wish to reference them</p></li>
-<li><p><strong>date</strong>: publication date (uses transformation date, if not provided)</p></li>
-<li><p><strong>title</strong>: a text field for the full study title</p></li>
-<li><p><strong>repository</strong>: the organisation, or distributor, responsible for hosting your data (and your method file)</p></li>
-<li><p><strong>doi</strong>: the persistent <a class="reference external" href="http://www.doi.org/">DOI</a> for your repository</p></li>
-</ul>
-<p>Format for citation is:</p>
-<blockquote>
-<div><p>author/s, date, title, repository, doi, hash (for output data), [input sources: URI, hash]</p>
-</div></blockquote>
-<dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>Text ready for citation.</p>
-</dd>
-<dt class="field-even">Return type</dt>
-<dd class="field-even"><p>str</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="method">
-<dt id="method.Method.constructors">
-<em class="property">property </em><code class="sig-name descname">constructors</code><a class="headerlink" href="#method.Method.constructors" title="Permalink to this definition">¶</a></dt>
-<dd><p>Constructors are additional metadata to be included with the <cite>method</cite>. Ordinarily, this is
-a dictionary of key:value pairs defining any metadata that may be used post-wrangling and
-need to be maintained with the target data.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="method.Method.set_constructors">
-<code class="sig-name descname">set_constructors</code><span class="sig-paren">(</span><em class="sig-param">constructors</em>, <em class="sig-param">overwrite=False</em><span class="sig-paren">)</span><a class="headerlink" href="#method.Method.set_constructors" title="Permalink to this definition">¶</a></dt>
-<dd><p>Define additional metadata to be included with the <cite>method</cite>.</p>
-<p>Citation data must be specifically included as:</p>
-<blockquote>
-<div><dl>
-<dt>{</dt><dd><dl class="simple">
-<dt>“citation”: {</dt><dd><p>“authors”: [“Author Name 1”, “Author Name 2”],
-“title”: “Citation Title”,
-“repository”: “Data distributor”,
-“doi”: “Persistent URI”</p>
-</dd>
-</dl>
-<p>}</p>
-</dd>
-</dl>
-<p>}</p>
-</div></blockquote>
+<dl class="py method">
+<dt class="sig sig-object py" id="whyqd.method.method.Method.remove_action">
+<span class="sig-name descname"><span class="pre">remove_action</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">uid</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">uuid.UUID</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">action_uid</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">uuid.UUID</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sheet_name</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#whyqd.method.method.Method.remove_action" title="Permalink to this definition">¶</a></dt>
+<dd><p>Remove an action from a data source defined by its source uuid4. Raises an exception of sheet_name
+applies to that data source.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>constructors</strong> (<em>dict</em>) – A set of key:value pairs. These will not be validated, or used during transformation.</p></li>
-<li><p><strong>overwrite</strong> (<em>boolean</em>) – To overwrite any existing data in the constructor, set to True</p></li>
+<li><p><strong>uid</strong> (<em>UUID</em>) – Unique uuid4 for a either an input or interim data source.</p></li>
+<li><p><strong>action_uid</strong> (<em>UUID</em>) – Unique uuid4 for an action.</p></li>
+<li><p><strong>sheet_name</strong> (<em>str</em><em>, </em><em>default None</em>) – If the data source has multiple sheets, provide the specific sheet to update.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Raises</dt>
-<dd class="field-even"><p><strong>TypeError if not a dict.</strong> – </p>
+<dd class="field-even"><p><strong>ValueError if a sheet_name exists without a sheet_name being provided.</strong> – </p>
 </dd>
 </dl>
 </dd></dl>
 
-<dl class="method">
-<dt id="method.Method.reset_data_checksums">
-<code class="sig-name descname">reset_data_checksums</code><span class="sig-paren">(</span><em class="sig-param">reset_status=False</em>, <em class="sig-param">reset_output_only=False</em><span class="sig-paren">)</span><a class="headerlink" href="#method.Method.reset_data_checksums" title="Permalink to this definition">¶</a></dt>
-<dd><p>If input or working data are modified, then the checksums for working and output data
-must be deleted (i.e. they’re no longer valid and everything else must be re-run).</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="whyqd.method.method.Method.update_action">
+<span class="sig-name descname"><span class="pre">update_action</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">uid</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">uuid.UUID</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">action_uid</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">uuid.UUID</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">action</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sheet_name</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#whyqd.method.method.Method.update_action" title="Permalink to this definition">¶</a></dt>
+<dd><p>Update an action from a list of actions.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>reset_status</strong> (<em>bool</em>) – Requires a deliberate choice. Default False.</p></li>
-<li><p><strong>reset_output_only</strong> (<em>bool</em>) – Requires a deliberate choice. Default False. Only resets output data.</p></li>
+<li><p><strong>uid</strong> (<em>UUID</em>) – Unique uuid4 for a either an input or interim data source.</p></li>
+<li><p><strong>action_uid</strong> (<em>UUID</em>) – Unique uuid4 for an action.</p></li>
+<li><p><strong>action</strong> (<em>str</em>) – An updated action script.</p></li>
+<li><p><strong>sheet_name</strong> (<em>str</em><em>, </em><em>default None</em>) – If the data source has multiple sheets, provide the specific sheet to update.</p></li>
 </ul>
 </dd>
 </dl>
 </dd></dl>
 
-<dl class="method">
-<dt id="method.Method.input_dataframe">
-<code class="sig-name descname">input_dataframe</code><span class="sig-paren">(</span><em class="sig-param">_id</em>, <em class="sig-param">do_morph=True</em><span class="sig-paren">)</span><a class="headerlink" href="#method.Method.input_dataframe" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return dataframe of a specified <cite>input_data</cite> source. Perform the current morph method.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="whyqd.method.method.Method.reorder_actions">
+<span class="sig-name descname"><span class="pre">reorder_actions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">uid</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">uuid.UUID</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">order</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">uuid.UUID</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sheet_name</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#whyqd.method.method.Method.reorder_actions" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reorder a list of actions.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>_id</strong> (<em>str</em>) – Unique id for an input data source. View all input data from <cite>input_data</cite></p></li>
-<li><p><strong>do_morph</strong> (<em>boolean</em><em>, </em><em>default True</em>) – Perform the current morph method.</p></li>
+<li><p><strong>uid</strong> (<em>UUID</em>) – Unique uuid4 for a either an input or interim data source.</p></li>
+<li><p><strong>sheet_name</strong> (<em>str</em><em>, </em><em>default None</em>) – If the data source has multiple sheets, provide the specific sheet to update.</p></li>
+<li><p><strong>order</strong> (<em>list of UUID</em>) – List of uuid4 action strings.</p></li>
 </ul>
+</dd>
+<dt class="field-even">Raises</dt>
+<dd class="field-even"><p><strong>ValueError if the list of uuid4s doesn't conform to that in the list of actions.</strong> – </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="whyqd.method.method.Method.merge">
+<span class="sig-name descname"><span class="pre">merge</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">script</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#whyqd.method.method.Method.merge" title="Permalink to this definition">¶</a></dt>
+<dd><p>Merge input data to generate any required interim data. Will perform all actions on each interim data source.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Merging, or an interim data source, are not required to produce a schema-defined destination data
+output.</p>
+</div>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>There is only so much hand-holding possible:
+* If an interim data source already exists, and has existing actions, this function will reset the
+action list, placing this <cite>script</cite> first.
+* If further actions are added to input data, this function must be run again.
+* The first two points are, obviously, detrimental to each other.
+* And then there are ‘filters’ which are intrinsically destructive.</p>
+</div>
+<p>Merge script is of the form:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="s2">&quot;MERGE &lt; [&#39;key_column&#39;::&#39;source_hex&#39;::&#39;sheet_name&#39;, etc.]&quot;</span>
+</pre></div>
+</div>
+<p>Where the source terms are in order for merging.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>script</strong> (<em>str</em>) – Merge script, as defined.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="whyqd.method.method.Method.transform">
+<span class="sig-name descname"><span class="pre">transform</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">whyqd.models.datasource_model.DataSourceModel</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">pandas.core.frame.DataFrame</span></span></span><a class="headerlink" href="#whyqd.method.method.Method.transform" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a transformed DataFrame after performing assigned action scripts, in order, to transform
+a data source.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>data</strong> (<em>DataSourceModel</em>) – </p>
 </dd>
 <dt class="field-even">Returns</dt>
 <dd class="field-even"><p></p>
 </dd>
 <dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>DataFrame</p>
+<dd class="field-odd"><p>Pandas DataFrame</p>
 </dd>
 </dl>
 </dd></dl>
 
-<dl class="method">
-<dt id="method.Method.add_input_data">
-<code class="sig-name descname">add_input_data</code><span class="sig-paren">(</span><em class="sig-param">input_data</em>, <em class="sig-param">reset_status=False</em><span class="sig-paren">)</span><a class="headerlink" href="#method.Method.add_input_data" title="Permalink to this definition">¶</a></dt>
-<dd><p>Provide a list of strings, each the filename of input data for wrangling.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>input_data</strong> (<em>str</em><em> or </em><em>list of str</em>) – Each input data can be a filename, or a file_source (where filename is remote)</p></li>
-<li><p><strong>reset_status</strong> (<em>bool</em>) – Requires a deliberate choice. Default False.</p></li>
-</ul>
-</dd>
-<dt class="field-even">Raises</dt>
-<dd class="field-even"><p><strong>TypeError if not a list of str.</strong> – </p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="method">
-<dt id="method.Method.remove_input_data">
-<code class="sig-name descname">remove_input_data</code><span class="sig-paren">(</span><em class="sig-param">_id</em>, <em class="sig-param">reset_status=False</em><span class="sig-paren">)</span><a class="headerlink" href="#method.Method.remove_input_data" title="Permalink to this definition">¶</a></dt>
-<dd><p>Remove an input data source defined by a source _id. If data have already been merged,
-reset data processing, or raise an error.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>_id</strong> (<em>str</em>) – Unique id for an input data source. View all input data from <cite>input_data</cite></p></li>
-<li><p><strong>reset_status</strong> (<em>bool</em>) – Requires a deliberate choice. Default False.</p></li>
-</ul>
-</dd>
-<dt class="field-even">Raises</dt>
-<dd class="field-even"><p><strong>TypeError if not a list of str.</strong> – </p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="method">
-<dt id="method.Method.reset_input_data_morph">
-<code class="sig-name descname">reset_input_data_morph</code><span class="sig-paren">(</span><em class="sig-param">_id</em>, <em class="sig-param">empty=False</em><span class="sig-paren">)</span><a class="headerlink" href="#method.Method.reset_input_data_morph" title="Permalink to this definition">¶</a></dt>
-<dd><p>Wrapper around <cite>reset_morph</cite>. Reset list of morph methods to base. Automatically adds <cite>DEBLANK</cite> and <cite>DEDUPE</cite>
-unless <cite>empty=True</cite>.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>_id</strong> (<em>str</em>) – Unique id for an input data source. View all input data from <cite>input_data</cite></p></li>
-<li><p><strong>empty</strong> (<em>boolean</em>) – Start with an empty morph method. Default <cite>False</cite>.</p></li>
-</ul>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="method">
-<dt id="method.Method.add_input_data_morph">
-<code class="sig-name descname">add_input_data_morph</code><span class="sig-paren">(</span><em class="sig-param">_id</em>, <em class="sig-param">new_morph=None</em><span class="sig-paren">)</span><a class="headerlink" href="#method.Method.add_input_data_morph" title="Permalink to this definition">¶</a></dt>
-<dd><p>Wrapper around <cite>add_morph</cite>. Append a new morph method defined by <cite>new_morph</cite> to <cite>morph_methods</cite>,
-ensuring that the first term is a <cite>morph</cite>, and that the subsequent terms conform to that morph’s
-validation requirements.</p>
-<p>The format for defining a <cite>new_morph</cite> is as follows:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">[</span><span class="n">morph</span><span class="p">,</span> <span class="n">rows</span><span class="p">,</span> <span class="n">columns</span><span class="p">,</span> <span class="n">column_names</span><span class="p">]</span>
-</pre></div>
+<dl class="py method">
+<dt class="sig sig-object py" id="whyqd.method.method.Method.build">
+<span class="sig-name descname"><span class="pre">build</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#whyqd.method.method.Method.build" title="Permalink to this definition">¶</a></dt>
+<dd><p>Merge input data to generate any required interim data. Will perform all actions on each interim data source.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Merging, or an interim data source, are not required to produce a schema-defined destination data
+output.</p>
 </div>
-<p>e.g.:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">[</span><span class="s2">&quot;REBASE&quot;</span><span class="p">,</span> <span class="p">[</span><span class="mi">2</span><span class="p">]]</span>
-</pre></div>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>There is only so much hand-holding possible:
+* If an interim data source already exists, and has existing actions, this function will reset the
+action list, placing this <cite>script</cite> first.
+* If further actions are added to input data, this function must be run again.
+* The first two points are, obviously, detrimental to each other.
+* And then there are ‘filters’ which are intrinsically destructive.</p>
 </div>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>_id</strong> (<em>str</em>) – Unique id for an input data source. View all input data from <cite>input_data</cite></p></li>
-<li><p><strong>new_morph</strong> (<em>list</em>) – Each parameter list must start with a <cite>morph</cite>, with subsequent terms conforming to the
-requirements for that morph.</p></li>
-</ul>
-</dd>
-</dl>
 </dd></dl>
 
-<dl class="method">
-<dt id="method.Method.delete_input_data_morph">
-<code class="sig-name descname">delete_input_data_morph</code><span class="sig-paren">(</span><em class="sig-param">_id</em>, <em class="sig-param">morph_id</em><span class="sig-paren">)</span><a class="headerlink" href="#method.Method.delete_input_data_morph" title="Permalink to this definition">¶</a></dt>
-<dd><p>Wrapper around <cite>delete_morph</cite>. Delete morph method defined by <cite>morph_id</cite>.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="whyqd.method.method.Method.validate">
+<span class="sig-name descname"><span class="pre">validate</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="headerlink" href="#whyqd.method.method.Method.validate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Validate the build process and all data checksums. Will perform all actions on each interim data source.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>_id</strong> (<em>str</em>) – Unique id for an input data source. View all input data from <cite>input_data</cite></p></li>
-<li><p><strong>morph_id</strong> (<em>str</em>) – Unique id for morph method. View all morph methods from <cite>input_data_morphs</cite>.</p></li>
-</ul>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="method">
-<dt id="method.Method.reorder_input_data_morph">
-<code class="sig-name descname">reorder_input_data_morph</code><span class="sig-paren">(</span><em class="sig-param">_id</em>, <em class="sig-param">order</em><span class="sig-paren">)</span><a class="headerlink" href="#method.Method.reorder_input_data_morph" title="Permalink to this definition">¶</a></dt>
-<dd><p>Wrapper around <cite>reorder_morph</cite>. Reorder morph methods defined by <cite>order</cite>.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>_id</strong> (<em>str</em>) – Unique id for an input data source. View all input data from <cite>input_data</cite></p></li>
-<li><p><strong>order</strong> (<em>list</em>) – List of id strings.</p></li>
-</ul>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="method">
-<dt id="method.Method.input_data_morphs">
-<code class="sig-name descname">input_data_morphs</code><span class="sig-paren">(</span><em class="sig-param">_id</em><span class="sig-paren">)</span><a class="headerlink" href="#method.Method.input_data_morphs" title="Permalink to this definition">¶</a></dt>
-<dd><p>Wrapper around <cite>get_morph_markup</cite>. Return a markup version of a formal morph method.
-Useful for re-ordering methods.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>_id</strong> (<em>str</em>) – Unique id for an input data source. View all input data from <cite>input_data</cite></p>
+<dt class="field-odd">Raises</dt>
+<dd class="field-odd"><p><strong>ValueError if any steps fail to validate.</strong> – </p>
 </dd>
 <dt class="field-even">Returns</dt>
 <dd class="field-even"><p></p>
 </dd>
 <dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>list of dicts</p>
+<dd class="field-odd"><p>bool</p>
 </dd>
 </dl>
 </dd></dl>
 
-<dl class="method">
-<dt id="method.Method.default_morph_types">
-<em class="property">property </em><code class="sig-name descname">default_morph_types</code><a class="headerlink" href="#method.Method.default_morph_types" title="Permalink to this definition">¶</a></dt>
-<dd><p>Default list of morphs available to transform tabular data. Returns only a list
-of types. Details for individual default morphs can be returned with
-<cite>default_morph_settings</cite>.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="whyqd.method.method.Method.get_citation">
+<span class="sig-name descname"><span class="pre">get_citation</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#whyqd.method.method.Method.get_citation" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the citation as a dictionary.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p></p>
-</dd>
-<dt class="field-even">Return type</dt>
-<dd class="field-even"><p>list</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="method">
-<dt id="method.Method.default_morph_settings">
-<code class="sig-name descname">default_morph_settings</code><span class="sig-paren">(</span><em class="sig-param">morph</em><span class="sig-paren">)</span><a class="headerlink" href="#method.Method.default_morph_settings" title="Permalink to this definition">¶</a></dt>
-<dd><p>Get the default settings available for a specific morph type.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>morph</strong> (<em>string</em>) – A specific term for an morph type (as listed in <cite>default_morph_types</cite>).</p>
+<dt class="field-odd">Raises</dt>
+<dd class="field-odd"><p><strong>ValueError if no citation has been declared</strong><strong> or </strong><strong>the build is incomplete.</strong> – </p>
 </dd>
 <dt class="field-even">Returns</dt>
 <dd class="field-even"><p></p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>dict, or empty dict if no such <cite>morph_type</cite></p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="method">
-<dt id="method.Method.add_morph">
-<code class="sig-name descname">add_morph</code><span class="sig-paren">(</span><em class="sig-param">df=Empty DataFrame Columns: [] Index: []</em>, <em class="sig-param">new_morph=None</em>, <em class="sig-param">morph_methods=None</em><span class="sig-paren">)</span><a class="headerlink" href="#method.Method.add_morph" title="Permalink to this definition">¶</a></dt>
-<dd><p>Append a new morph method defined by <cite>new_morph</cite> to <cite>morph_methods</cite>, ensuring that the first
-term is a <cite>morph</cite>, and that the subsequent terms conform to that morph’s validation requirements.</p>
-<p>The format for defining a <cite>new_morph</cite> is as follows:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">[</span><span class="n">morph</span><span class="p">,</span> <span class="n">rows</span><span class="p">,</span> <span class="n">columns</span><span class="p">,</span> <span class="n">column_names</span><span class="p">]</span>
-</pre></div>
-</div>
-<p>e.g.:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">[</span><span class="s2">&quot;REBASE&quot;</span><span class="p">,</span> <span class="p">[</span><span class="mi">2</span><span class="p">]]</span>
-</pre></div>
-</div>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>df</strong> (<em>dataframe</em>) – DataFrame must be explicitly provided.</p></li>
-<li><p><strong>new_morph</strong> (<em>list</em>) – Each parameter list must start with a <cite>morph</cite>, with subsequent terms conforming to the
-requirements for that morph.</p></li>
-<li><p><strong>morph_methods</strong> (<em>list of morphs</em>) – Existing morph methods. If <cite>None</cite> provided, creates a new list.</p></li>
-</ul>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="method">
-<dt id="method.Method.delete_morph_id">
-<code class="sig-name descname">delete_morph_id</code><span class="sig-paren">(</span><em class="sig-param">_id</em>, <em class="sig-param">morph_methods</em><span class="sig-paren">)</span><a class="headerlink" href="#method.Method.delete_morph_id" title="Permalink to this definition">¶</a></dt>
-<dd><p>Delete morph method by id.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>morph_methods</strong> (<em>list of dicts of morphs</em>) – Existing morph methods.</p></li>
-<li><p><strong>_id</strong> (<em>string</em>) – </p></li>
-</ul>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="method">
-<dt id="method.Method.reset_morph">
-<code class="sig-name descname">reset_morph</code><span class="sig-paren">(</span><em class="sig-param">empty=False</em><span class="sig-paren">)</span><a class="headerlink" href="#method.Method.reset_morph" title="Permalink to this definition">¶</a></dt>
-<dd><p>Reset list of morph methods to base. Automatically adds <cite>DEBLANK</cite> and <cite>DEDUPE</cite> unless <cite>empty=True</cite>.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>empty</strong> (<em>boolean</em>) – Start with an empty morph method. Default <cite>False</cite>.</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="method">
-<dt id="method.Method.reorder_morph">
-<code class="sig-name descname">reorder_morph</code><span class="sig-paren">(</span><em class="sig-param">morph_methods</em>, <em class="sig-param">order</em><span class="sig-paren">)</span><a class="headerlink" href="#method.Method.reorder_morph" title="Permalink to this definition">¶</a></dt>
-<dd><p>Reorder morph methods.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>order</strong> (<em>list</em>) – List of id strings.</p>
-</dd>
-<dt class="field-even">Raises</dt>
-<dd class="field-even"><p><strong>ValueError if not all ids in list</strong><strong>, or </strong><strong>duplicates in list.</strong> – </p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="method">
-<dt id="method.Method.get_morph_markup">
-<code class="sig-name descname">get_morph_markup</code><span class="sig-paren">(</span><em class="sig-param">morph_methods</em><span class="sig-paren">)</span><a class="headerlink" href="#method.Method.get_morph_markup" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return a markup version of a formal morph method. Useful for re-ordering methods.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p></p>
-</dd>
-<dt class="field-even">Return type</dt>
-<dd class="field-even"><p>list of dicts</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="method">
-<dt id="method.Method.perform_merge">
-<em class="property">property </em><code class="sig-name descname">perform_merge</code><a class="headerlink" href="#method.Method.perform_merge" title="Permalink to this definition">¶</a></dt>
-<dd><p>Helper function to perform the merge. Also used by merge_validation step.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>Merged dataframe derived from input_data</p>
-</dd>
-<dt class="field-even">Return type</dt>
-<dd class="field-even"><p>DataFrame</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="method">
-<dt id="method.Method.order_and_key_input_data">
-<code class="sig-name descname">order_and_key_input_data</code><span class="sig-paren">(</span><em class="sig-param">*order_and_key</em><span class="sig-paren">)</span><a class="headerlink" href="#method.Method.order_and_key_input_data" title="Permalink to this definition">¶</a></dt>
-<dd><p>Reorder a list of input_data prior to merging, and add in the merge keys.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>order_and_key</strong> (<em>list of dicts</em>) – Each dict in the list has {id: input_data id, key: column_name for merge}</p>
-</dd>
-<dt class="field-even">Raises</dt>
-<dd class="field-even"><p><strong>ValueError not all input_data are assigned an order and key.</strong> – </p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="method">
-<dt id="method.Method.deduplicate_columns">
-<code class="sig-name descname">deduplicate_columns</code><span class="sig-paren">(</span><em class="sig-param">idx</em>, <em class="sig-param">fmt=None</em>, <em class="sig-param">ignoreFirst=True</em><span class="sig-paren">)</span><a class="headerlink" href="#method.Method.deduplicate_columns" title="Permalink to this definition">¶</a></dt>
-<dd><p>Source: <a class="reference external" href="https://stackoverflow.com/a/55405151">https://stackoverflow.com/a/55405151</a>
-Returns a new column list permitting deduplication of dataframes which may result from merge.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>idx</strong> (<em>df.columns</em><em> (</em><em>i.e. the indexed column list</em><em>)</em>) – </p></li>
-<li><p><strong>fmt</strong> (<em>A string format that receives two arguments: name and a counter. By default: fmt='%s.%03d'</em>) – </p></li>
-<li><p><strong>ignoreFirst</strong> (<em>Disable/enable postfixing of first element.</em>) – </p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>Updated column names</p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>list of strings</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="method">
-<dt id="method.Method.add_working_data_morph">
-<code class="sig-name descname">add_working_data_morph</code><span class="sig-paren">(</span><em class="sig-param">new_morph=None</em><span class="sig-paren">)</span><a class="headerlink" href="#method.Method.add_working_data_morph" title="Permalink to this definition">¶</a></dt>
-<dd><p>Wrapper around <cite>add_morph</cite>. Append a new morph method defined by <cite>new_morph</cite> to <cite>morph_methods</cite>,
-ensuring that the first term is a <cite>morph</cite>, and that the subsequent terms conform to that morph’s
-validation requirements.</p>
-<p>The format for defining a <cite>new_morph</cite> is as follows:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">[</span><span class="n">morph</span><span class="p">,</span> <span class="n">rows</span><span class="p">,</span> <span class="n">columns</span><span class="p">,</span> <span class="n">column_names</span><span class="p">]</span>
-</pre></div>
-</div>
-<p>e.g.:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">[</span><span class="s2">&quot;REBASE&quot;</span><span class="p">,</span> <span class="p">[</span><span class="mi">2</span><span class="p">]]</span>
-</pre></div>
-</div>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>new_morph</strong> (<em>list</em>) – Each parameter list must start with a <cite>morph</cite>, with subsequent terms conforming to the
-requirements for that morph.</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="method">
-<dt id="method.Method.delete_working_data_morph">
-<code class="sig-name descname">delete_working_data_morph</code><span class="sig-paren">(</span><em class="sig-param">_id</em><span class="sig-paren">)</span><a class="headerlink" href="#method.Method.delete_working_data_morph" title="Permalink to this definition">¶</a></dt>
-<dd><p>Wrapper around <cite>delete_morph</cite>. Delete morph method defined by <cite>morph_id</cite>.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>_id</strong> (<em>str</em>) – Unique id for morph method. View all morph methods from <cite>working_data_morphs</cite>.</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="method">
-<dt id="method.Method.reorder_working_data_morph">
-<code class="sig-name descname">reorder_working_data_morph</code><span class="sig-paren">(</span><em class="sig-param">order</em><span class="sig-paren">)</span><a class="headerlink" href="#method.Method.reorder_working_data_morph" title="Permalink to this definition">¶</a></dt>
-<dd><p>Wrapper around <cite>reorder_morph</cite>. Reorder morph methods defined by <cite>order</cite>.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>order</strong> (<em>list</em>) – List of id strings.</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="method">
-<dt id="method.Method.working_data_morphs">
-<code class="sig-name descname">working_data_morphs</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#method.Method.working_data_morphs" title="Permalink to this definition">¶</a></dt>
-<dd><p>Wrapper around <cite>get_morph_markup</cite>. Return a markup version of a formal morph method.
-Useful for re-ordering methods.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>_id</strong> (<em>str</em>) – Unique id for an input data source. View all input data from <cite>input_data</cite></p>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p></p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>list of dicts</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="method">
-<dt id="method.Method.set_field_structure_categories">
-<code class="sig-name descname">set_field_structure_categories</code><span class="sig-paren">(</span><em class="sig-param">modifier</em>, <em class="sig-param">column</em><span class="sig-paren">)</span><a class="headerlink" href="#method.Method.set_field_structure_categories" title="Permalink to this definition">¶</a></dt>
-<dd><p>If a structure <cite>action</cite> is <cite>CATEGORISE</cite>, then specify the terms available for
-categorisation. Each field must have a modifier, including the first (e.g. +A -B +C).</p>
-<p>The <cite>modifier</cite> is one of:</p>
-<blockquote>
-<div><ul class="simple">
-<li><p><cite>-</cite>: presence/absence of column values as true/false for a specific term</p></li>
-<li><p><cite>+</cite>:  unique terms in the field must be matched to the unique terms defined by the</p></li>
-</ul>
-<p><cite>field</cite> <cite>constraints</cite></p>
-</div></blockquote>
-<p>As with <cite>set_structure</cite>, the recursive step of managing nested structures is left to the
-calling function.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>modifier</strong> (<em>str</em>) – One of <cite>-</cite> or <cite>+</cite></p></li>
-<li><p><strong>column</strong> (<em>str</em>) – Must be a valid column from <cite>working_column_list</cite></p></li>
-</ul>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="method">
-<dt id="method.Method.set_field_structure">
-<code class="sig-name descname">set_field_structure</code><span class="sig-paren">(</span><em class="sig-param">structure_list</em><span class="sig-paren">)</span><a class="headerlink" href="#method.Method.set_field_structure" title="Permalink to this definition">¶</a></dt>
-<dd><p>A recursive function which traverses a list defined by <cite>*structure</cite>, ensuring that the first
-term is an <cite>action</cite>, and that the subsequent terms conform to that action’s requirements.
-Nested structures are permitted.</p>
-<p>The format for defining a <cite>structure</cite> is as follows:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">[</span><span class="n">action</span><span class="p">,</span> <span class="n">column_name</span><span class="p">,</span> <span class="p">[</span><span class="n">action</span><span class="p">,</span> <span class="n">column_name</span><span class="p">]]</span>
-</pre></div>
-</div>
-<p>e.g.:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">[</span><span class="s2">&quot;CATEGORISE&quot;</span><span class="p">,</span> <span class="s2">&quot;+&quot;</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;ORDER&quot;</span><span class="p">,</span> <span class="s2">&quot;column_1&quot;</span><span class="p">,</span> <span class="s2">&quot;column_2&quot;</span><span class="p">]]</span>
-</pre></div>
-</div>
-<p>This permits the creation of quite expressive wrangling structures from simple building
-blocks.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>structure_list</strong> (<em>list</em>) – Each structure list must start with an <cite>action</cite>, with subsequent terms conforming to the
-requirements for that action. Nested actions defined by nested lists.</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="method">
-<dt id="method.Method.default_action_types">
-<em class="property">property </em><code class="sig-name descname">default_action_types</code><a class="headerlink" href="#method.Method.default_action_types" title="Permalink to this definition">¶</a></dt>
-<dd><p>Default list of actions available to define methods. Returns only a list
-of types. Details for individual default actions can be returned with
-<cite>default_action_settings</cite>.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p></p>
-</dd>
-<dt class="field-even">Return type</dt>
-<dd class="field-even"><p>list</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="method">
-<dt id="method.Method.default_action_settings">
-<code class="sig-name descname">default_action_settings</code><span class="sig-paren">(</span><em class="sig-param">action</em><span class="sig-paren">)</span><a class="headerlink" href="#method.Method.default_action_settings" title="Permalink to this definition">¶</a></dt>
-<dd><p>Get the default settings available for a specific action type.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>action</strong> (<em>string</em>) – A specific term for an action type (as listed in <cite>default_action_types</cite>).</p>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p></p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>dict, or empty dict if no such <cite>action_type</cite></p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="method">
-<dt id="method.Method.build_structure_markdown">
-<code class="sig-name descname">build_structure_markdown</code><span class="sig-paren">(</span><em class="sig-param">structure</em><span class="sig-paren">)</span><a class="headerlink" href="#method.Method.build_structure_markdown" title="Permalink to this definition">¶</a></dt>
-<dd><p>Recursive function that iteratively builds a markdown version of a formal field structure.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p></p>
-</dd>
-<dt class="field-even">Return type</dt>
-<dd class="field-even"><p>list</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="method">
-<dt id="method.Method.build_category_markdown">
-<code class="sig-name descname">build_category_markdown</code><span class="sig-paren">(</span><em class="sig-param">category_input</em><span class="sig-paren">)</span><a class="headerlink" href="#method.Method.build_category_markdown" title="Permalink to this definition">¶</a></dt>
-<dd><p>Converts category_terms dict into a markdown format:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">[</span><span class="s2">&quot;term1&quot;</span><span class="p">,</span> <span class="s2">&quot;term2&quot;</span><span class="p">,</span> <span class="s2">&quot;term3&quot;</span><span class="p">]</span>
-</pre></div>
-</div>
-<p>Where the format for defining a <cite>category</cite> term as follows:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>`term_name::column_name`
-</pre></div>
-</div>
-<p>From:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
-        <span class="s2">&quot;column&quot;</span><span class="p">:</span> <span class="s2">&quot;column_name&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;terms&quot;</span><span class="p">:</span> <span class="p">[</span>
-                <span class="s2">&quot;term_1&quot;</span><span class="p">,</span>
-                <span class="s2">&quot;term_2&quot;</span><span class="p">,</span>
-                <span class="s2">&quot;term_3&quot;</span>
-        <span class="p">]</span>
-<span class="p">}</span>
-</pre></div>
-</div>
-</dd></dl>
-
-<dl class="method">
-<dt id="method.Method.morph_transform">
-<code class="sig-name descname">morph_transform</code><span class="sig-paren">(</span><em class="sig-param">df</em>, <em class="sig-param">morph_methods=None</em><span class="sig-paren">)</span><a class="headerlink" href="#method.Method.morph_transform" title="Permalink to this definition">¶</a></dt>
-<dd><p>Performs the morph transforms on a DataFrame. Assumes parameters have been validated.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>df</strong> (<em>dataframe</em>) – DataFrame must be explicitly provided.</p></li>
-<li><p><strong>morph_methods</strong> (<em>list of morphs</em>) – Existing morph methods.</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>Containing the implementation of all morph transformations</p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>Dataframe</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="method">
-<dt id="method.Method.action_transform">
-<code class="sig-name descname">action_transform</code><span class="sig-paren">(</span><em class="sig-param">df</em>, <em class="sig-param">field_name</em>, <em class="sig-param">structure</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#method.Method.action_transform" title="Permalink to this definition">¶</a></dt>
-<dd><p>A recursive transformation. A method should be a list fields upon which actions are applied, but
-each field may have nested sub-fields requiring their own actions. Before the action on the
-current field can be completed, it is necessary to perform the actions on each sub-field.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>df</strong> (<em>DataFrame</em>) – Working data to be transformed</p></li>
-<li><p><strong>field_name</strong> (<em>str</em>) – Name of the target schema field</p></li>
-<li><p><strong>structure</strong> (<em>list</em>) – List of fields with restructuring action defined by term 0 (i.e. <cite>this</cite> action)</p></li>
-<li><p><strong>**kwargs</strong> – Other fields which may be required in custom transforms</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>Containing the implementation of all nested transformations</p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>Dataframe</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="method">
-<dt id="method.Method.perform_transform">
-<em class="property">property </em><code class="sig-name descname">perform_transform</code><a class="headerlink" href="#method.Method.perform_transform" title="Permalink to this definition">¶</a></dt>
-<dd><p>Helper function to perform the transformation. Also used by validate_transform step.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>Transformed dataframe derived from method</p>
-</dd>
-<dt class="field-even">Return type</dt>
-<dd class="field-even"><p>DataFrame</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="method">
-<dt id="method.Method.validate_input_data">
-<em class="property">property </em><code class="sig-name descname">validate_input_data</code><a class="headerlink" href="#method.Method.validate_input_data" title="Permalink to this definition">¶</a></dt>
-<dd><p>Test input data for checksum errors.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Raises</dt>
-<dd class="field-odd"><p><strong>ValueError on checksum failure.</strong> – </p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="method">
-<dt id="method.Method.validate_merge_data">
-<em class="property">property </em><code class="sig-name descname">validate_merge_data</code><a class="headerlink" href="#method.Method.validate_merge_data" title="Permalink to this definition">¶</a></dt>
-<dd><p>Test input data ready to merge; that it has a merge key, and that the data in that column
-are unique. Only required if there is more than one <cite>input_data</cite> source.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Raises</dt>
-<dd class="field-odd"><p><strong>ValueError on uniqueness failure.</strong> – </p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="method">
-<dt id="method.Method.validate_merge">
-<em class="property">property </em><code class="sig-name descname">validate_merge</code><a class="headerlink" href="#method.Method.validate_merge" title="Permalink to this definition">¶</a></dt>
-<dd><p>Validate merge output.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Raises</dt>
-<dd class="field-odd"><p><strong>ValueError on checksum failure.</strong> – </p>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p><strong>bool</strong></p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>True for validates</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="method">
-<dt id="method.Method.validate_structure">
-<em class="property">property </em><code class="sig-name descname">validate_structure</code><a class="headerlink" href="#method.Method.validate_structure" title="Permalink to this definition">¶</a></dt>
-<dd><p>Method validates structure formats.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Raises</dt>
-<dd class="field-odd"><p><strong>ValueError on structure failure.</strong> – </p>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p><strong>bool</strong></p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>True for validates</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="method">
-<dt id="method.Method.validate_category">
-<em class="property">property </em><code class="sig-name descname">validate_category</code><a class="headerlink" href="#method.Method.validate_category" title="Permalink to this definition">¶</a></dt>
-<dd><p>Method validates category terms.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Raises</dt>
-<dd class="field-odd"><p><strong>ValueError on category failure.</strong> – </p>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p><strong>bool</strong></p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>True for validates</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="method">
-<dt id="method.Method.validate_filter">
-<em class="property">property </em><code class="sig-name descname">validate_filter</code><a class="headerlink" href="#method.Method.validate_filter" title="Permalink to this definition">¶</a></dt>
-<dd><p>Method validates filter terms.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Raises</dt>
-<dd class="field-odd"><p><strong>ValueError on filter failure.</strong> – </p>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p><strong>bool</strong></p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>True for validates</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="method">
-<dt id="method.Method.validate_transform">
-<em class="property">property </em><code class="sig-name descname">validate_transform</code><a class="headerlink" href="#method.Method.validate_transform" title="Permalink to this definition">¶</a></dt>
-<dd><p>Validate output data.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Raises</dt>
-<dd class="field-odd"><p><strong>ValueError on checksum failure.</strong> – </p>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p><strong>bool</strong></p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>True for validates</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="method">
-<dt id="method.Method.validates">
-<em class="property">property </em><code class="sig-name descname">validates</code><a class="headerlink" href="#method.Method.validates" title="Permalink to this definition">¶</a></dt>
-<dd><p>Method validates all steps. Sets <cite>READY_TRANSFORM</cite> if all pass.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p><strong>bool</strong></p>
-</dd>
-<dt class="field-even">Return type</dt>
-<dd class="field-even"><p>True for validates</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="method">
-<dt id="method.Method.build">
-<code class="sig-name descname">build</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#method.Method.build" title="Permalink to this definition">¶</a></dt>
-<dd><p>Build and validate the Method. Note, this replaces the Schema base-class.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="method.Method.save_data">
-<code class="sig-name descname">save_data</code><span class="sig-paren">(</span><em class="sig-param">df</em>, <em class="sig-param">filetype='xlsx'</em>, <em class="sig-param">prefix=None</em><span class="sig-paren">)</span><a class="headerlink" href="#method.Method.save_data" title="Permalink to this definition">¶</a></dt>
-<dd><p>Generate a unique filename for a dataframe, save to the working directory, and return the
-unique filename and data summary.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>df</strong> (<em>Pandas DataFrame</em>) – </p></li>
-<li><p><strong>filetype</strong> (<em>Save the dataframe as a particular type. Default is &quot;CSV&quot;.</em>) – </p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>Keys include: id, filename, checksum, df header, columns</p>
 </dd>
 <dt class="field-odd">Return type</dt>
 <dd class="field-odd"><p>dict</p>
@@ -1174,45 +499,52 @@ unique filename and data summary.</p>
 </dl>
 </dd></dl>
 
-<dl class="method">
-<dt id="method.Method.save">
-<code class="sig-name descname">save</code><span class="sig-paren">(</span><em class="sig-param">directory=None</em>, <em class="sig-param">filename=None</em>, <em class="sig-param">overwrite=False</em>, <em class="sig-param">created_by=None</em><span class="sig-paren">)</span><a class="headerlink" href="#method.Method.save" title="Permalink to this definition">¶</a></dt>
-<dd><p>Schema settings returned as a dictionary.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="whyqd.method.method.Method.set_citation">
+<span class="sig-name descname"><span class="pre">set_citation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">citation</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">whyqd.models.citation_model.CitationModel</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#whyqd.method.method.Method.set_citation" title="Permalink to this definition">¶</a></dt>
+<dd><p>Update or create the citation.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>directory</strong> (<em>the destination directory</em>) – </p></li>
-<li><p><strong>filename</strong> (<em>default to schema name</em>) – </p></li>
-<li><p><strong>overwrite</strong> (<em>bool</em><em>, </em><em>True if overwrite existing file</em>) – </p></li>
-<li><p><strong>created_by</strong> (<em>string</em><em>, or </em><em>None</em><em>, </em><em>to define the schema creator/updater</em>) – </p></li>
-</ul>
-</dd>
-<dt class="field-even">Raises</dt>
-<dd class="field-even"><p><strong>ValueError if no filename</strong> – </p>
-</dd>
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p></p>
-</dd>
-<dt class="field-even">Return type</dt>
-<dd class="field-even"><p>bool True if saved</p>
+<dd class="field-odd"><p><strong>citation</strong> (<em>CitationModel</em>) – A dictionary conforming to the CitationModel.</p>
 </dd>
 </dl>
 </dd></dl>
 
-<dl class="method">
-<dt id="method.Method.help">
-<code class="sig-name descname">help</code><span class="sig-paren">(</span><em class="sig-param">option=None</em><span class="sig-paren">)</span><a class="headerlink" href="#method.Method.help" title="Permalink to this definition">¶</a></dt>
-<dd><p>Get generic help, or help on a specific method.</p>
-<dl class="simple">
-<dt>option: str</dt><dd><p>Any of None, ‘status’, ‘merge’, ‘structure’, ‘category’, ‘filter’, ‘transform’, ‘error’.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="whyqd.method.method.Method.get_json">
+<span class="sig-name descname"><span class="pre">get_json</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">hide_uuid</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">bool</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">pydantic.types.Json</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#whyqd.method.method.Method.get_json" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the json method model.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>hide_uuid</strong> (<em>str</em><em>, </em><em>default False</em>) – Hide all UUIDs in the nested JSON output.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>Json or None</p>
 </dd>
 </dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="whyqd.method.method.Method.save">
+<span class="sig-name descname"><span class="pre">save</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">directory</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">created_by</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hide_uuid</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">bool</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="headerlink" href="#whyqd.method.method.Method.save" title="Permalink to this definition">¶</a></dt>
+<dd><p>Save schema as a json file.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p></p>
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>directory</strong> (<em>str</em>) – Defaults to working directory</p></li>
+<li><p><strong>filename</strong> (<em>str</em>) – Defaults to schema name</p></li>
+<li><p><strong>created_by</strong> (<em>string</em><em>, </em><em>default is None</em>) – Declare the schema creator/updater</p></li>
+<li><p><strong>hide_uuid</strong> (<em>str</em><em>, </em><em>default False</em>) – Hide all UUIDs in the nested JSON output.</p></li>
+</ul>
 </dd>
-<dt class="field-even">Return type</dt>
-<dd class="field-even"><p>Help</p>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>bool True if saved</p>
 </dd>
 </dl>
 </dd></dl>
@@ -1226,27 +558,29 @@ unique filename and data summary.</p>
            
           </div>
           <footer>
-  
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-      
-      
-        <a href="morph_api.html" class="btn btn-neutral float-left" title="Morph" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
-      
+        <a href="action_api.html" class="btn btn-neutral float-right" title="Actions" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="schema_api.html" class="btn btn-neutral float-left" title="Schema" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
     </div>
-  
 
   <hr/>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2020, Gavin Chait
+        &#169; Copyright 2020, Gavin Chait.
 
     </p>
   </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
 
 </footer>
-
         </div>
       </div>
 
@@ -1254,7 +588,6 @@ unique filename and data summary.</p>
 
   </div>
   
-
 
   <script type="text/javascript">
       jQuery(function () {

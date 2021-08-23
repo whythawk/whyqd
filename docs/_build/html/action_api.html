@@ -1,42 +1,48 @@
 
 
 <!DOCTYPE html>
-<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8">
+  <meta charset="utf-8" />
   
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>Action &mdash; whyqd 0.1.0 documentation</title>
+  <title>Actions &mdash; whyqd 0.5.0 documentation</title>
   
-
-  
-  
-  
-  
-
-  
-  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
-  
-    
-      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
-        <script src="_static/jquery.js"></script>
-        <script src="_static/underscore.js"></script>
-        <script src="_static/doctools.js"></script>
-        <script src="_static/language_data.js"></script>
-    
-    <script type="text/javascript" src="_static/js/theme.js"></script>
-
-    
 
   
   <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
   <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Morph" href="morph_api.html" />
-    <link rel="prev" title="Schema" href="schema_api.html" /> 
+    <link rel="next" title="Validate" href="validate_api.html" />
+    <link rel="prev" title="Method" href="method_api.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -73,6 +79,7 @@
           
         </div>
 
+        
         <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
           
             
@@ -80,38 +87,42 @@
               
             
             
-              <p class="caption"><span class="caption-text">Getting started</span></p>
+              <p class="caption" role="heading"><span class="caption-text">Getting started</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="installation.html">Dependencies, installation &amp; importing</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tutorial.html">Full worked tutorial</a></li>
-<li class="toctree-l1"><a class="reference internal" href="morph_tutorial.html">Table morph tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial_local_government_data.html">Tutorial: Local government data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial_cthulhu_data.html">Tutorial: Cthulhu data</a></li>
 <li class="toctree-l1"><a class="reference internal" href="citation.html">Distribution &amp; Citation of methods and data</a></li>
 </ul>
-<p class="caption"><span class="caption-text">Creating and managing Schemas</span></p>
+<p class="caption" role="heading"><span class="caption-text">Creating and managing Schemas</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="schema.html">Schema</a></li>
 </ul>
-<p class="caption"><span class="caption-text">Wrangling with Methods</span></p>
+<p class="caption" role="heading"><span class="caption-text">Wrangling with Methods</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="method.html">Method</a></li>
 </ul>
-<p class="caption"><span class="caption-text">What next?</span></p>
+<p class="caption" role="heading"><span class="caption-text">Validate an existing Method</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="validate.html">Validate</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">What next?</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="roadmap.html">Roadmap</a></li>
 <li class="toctree-l1"><a class="reference internal" href="contributing.html">Background and Contributing</a></li>
 </ul>
-<p class="caption"><span class="caption-text">Reference API</span></p>
+<p class="caption" role="heading"><span class="caption-text">Reference API</span></p>
 <ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="field_api.html">Field</a></li>
 <li class="toctree-l1"><a class="reference internal" href="schema_api.html">Schema</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">Action</a></li>
-<li class="toctree-l1"><a class="reference internal" href="morph_api.html">Morph</a></li>
 <li class="toctree-l1"><a class="reference internal" href="method_api.html">Method</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Actions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="validate_api.html">Validate</a></li>
 </ul>
 
             
           
         </div>
+        
       </div>
     </nav>
 
@@ -146,18 +157,20 @@
 
 
 
+
+
 <div role="navigation" aria-label="breadcrumbs navigation">
 
   <ul class="wy-breadcrumbs">
     
-      <li><a href="index.html">Docs</a> &raquo;</li>
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
         
-      <li>Action</li>
+      <li>Actions</li>
     
     
       <li class="wy-breadcrumbs-aside">
         
-            
+          
             <a href="_sources/action_api.rst.txt" rel="nofollow"> View page source</a>
           
         
@@ -171,21 +184,72 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="action">
-<h1>Action<a class="headerlink" href="#action" title="Permalink to this headline">¶</a></h1>
-<p>The <cite>Action</cite> class defines the restructuring actions performed in a <a class="reference internal" href="method.html"><span class="doc">Method</span></a>. <cite>BaseAction</cite> is the main definition
-for an action and is inherited by child classes in the <cite>/action</cite> folder.</p>
-<dl class="class">
-<dt id="core.BaseAction">
-<em class="property">class </em><code class="sig-prename descclassname">core.</code><code class="sig-name descname">BaseAction</code><a class="headerlink" href="#core.BaseAction" title="Permalink to this definition">¶</a></dt>
-<dd><p>Custom Actions inherit from this base class which describes the core functions and methodology for an Action.</p>
+  <div class="section" id="actions">
+<h1>Actions<a class="headerlink" href="#actions" title="Permalink to this headline">¶</a></h1>
+<p>The <cite>Action</cite> class defines the restructuring actions performed in a <a class="reference internal" href="method.html"><span class="doc">Method</span></a>. <cite>BaseAction</cite> classes are the main
+definitions for an action and are inherited by child classes in the <cite>/action</cite> folder.</p>
+<p>The current list of actions are:</p>
+<ul class="simple">
+<li><p><strong>ASSIGN_CATEGORY_BOOLEANS</strong> - Assign values in a source data column as categorical boolean terms based on whether
+values are present, or are null.</p></li>
+<li><p><strong>ASSIGN_CATEGORY_UNIQUES</strong> - Assign unique values in a source data column as categorical unique terms defined in the
+Schema.</p></li>
+<li><p><strong>CALCULATE</strong> - Derive a calculation from a list of fields. Each field must have a modifier, including the first
+(e.g. +A -B +C).</p></li>
+<li><p><strong>CATEGORISE</strong> - Apply categories to a list of columns. Each field must have a modifier, including the first
+(e.g. +A -B +C). ‘-‘ modifier indicates presence/absence of values as true/false for a specific term. ‘+’ modifier
+indicates that the unique terms in the field must be matched to the unique terms defined in the schema. This is a
+two-step process, first requiring listing the columns effected, then applying the terms.</p></li>
+<li><p><strong>DEBLANK</strong> - Remove all blank columns and rows from a DataFrame.</p></li>
+<li><p><strong>DEDUPE</strong> - Remove all duplicated rows from a DataFrame.</p></li>
+<li><p><strong>DELETE_COLUMNS</strong> - Delete columns provided in a list.</p></li>
+<li><p><strong>DELETE_ROWS</strong> - Delete rows provided in a list. They don’t have to be contiguous.</p></li>
+<li><p><strong>FILTER_AFTER</strong> - Filter a table by a date column after a specified date.</p></li>
+<li><p><strong>FILTER_BEFORE</strong> - Filter a table by a date column prior to a specified date.</p></li>
+<li><p><strong>FILTER_LATEST</strong> - Filter a table for the latest row in a specified filter column, and within an optional set of
+groups.</p></li>
+<li><p><strong>JOIN</strong> - Join values in different fields to create a new concatenated value. Each value will be converted to a
+string (e.g. A: ‘Word 1’ B: ‘Word 2’ =&gt; ‘Word 1 Word 2’).</p></li>
+<li><p><strong>MERGE</strong> - Merge a list of Pandas DataFrames into a single, new DataFrame, on a key column.</p></li>
+<li><p><strong>NEW</strong> - Create a new field and assign a set value.</p></li>
+<li><p><strong>ORDER</strong> - Use sparse data from a list of fields to populate a new field. Order is important, each successive field
+in the list have priority over the ones before it (e.g. for columns A, B &amp; C, values in C will have precedence over
+values in B and A).</p></li>
+<li><p><strong>ORDER_NEW</strong> - Use sparse data from a list of fields to populate a new field order by most recent value. Field-pairs
+required, with the first containing the values, and the second the dates for comparison, linked by a ‘+’ modifier
+(e.g. A+dA, B+dB, C+dC, values with the most recent associated date will have precedence over other values).</p></li>
+<li><p><strong>ORDER_OLD</strong> - Use sparse data from a list of fields to populate a new field order by the oldest value. Field-pairs
+required, with the first containing the values, and the second the dates for comparison, linked by a ‘+’ modifier
+(e.g. A+dA, B+dB, C+dC, values with the oldest associated date will have precedence over other values).</p></li>
+<li><p><strong>PIVOT_CATEGORIES</strong> - Convert row-level categories into column categorisations.</p></li>
+<li><p><strong>PIVOT_LONGER</strong> - Transform a DataFrame from wide to long format.</p></li>
+<li><p><strong>REBASE</strong> - Rebase the header row at an indexed row and drop rows above that point.</p></li>
+<li><p><strong>RENAME</strong> - Rename an existing field to conform to a schema name. Only valid where a single field is provided.</p></li>
+<li><p><strong>RENAME_ALL</strong> - Rename header columns listed in a dict.</p></li>
+<li><p><strong>RENAME_NEW</strong> - Rename a column outside of the schema or existing column definitions. To be used with caution.</p></li>
+<li><p><strong>SPLIT</strong> - Split the string values in a single column into any number of new columns on a specified key.</p></li>
+</ul>
+<dl class="py class">
+<dt class="sig sig-object py" id="whyqd.base.action_base.BaseSchemaAction">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">whyqd.base.action_base.</span></span><span class="sig-name descname"><span class="pre">BaseSchemaAction</span></span><a class="headerlink" href="#whyqd.base.action_base.BaseSchemaAction" title="Permalink to this definition">¶</a></dt>
+<dd><p>Actions inherit from this base class which describes the core functions and methodology for an Action.</p>
 <p>Actions should redefine <cite>name</cite>, <cite>title</cite>, <cite>description</cite>, <cite>modifiers</cite> and <cite>structure</cite>, as well as produce a
 <cite>transform</cite> function. Everything else will probably remain as defined, but particularly complex Actions should
 modify as required.</p>
-<dl class="method">
-<dt id="core.BaseAction.modifiers">
-<em class="property">property </em><code class="sig-name descname">modifiers</code><a class="headerlink" href="#core.BaseAction.modifiers" title="Permalink to this definition">¶</a></dt>
-<dd><p>Describes the modifiers for the Action. Typical modifiers are <cite>+</cite> or <cite>-</cite> but the Action can implement any
+<p><cite>structure</cite> can be an empty list, but an Action may be defined by these parameters:</p>
+<ul class="simple">
+<li><p><cite>modifier</cite>: modifiers, of type <cite>ModifierModel</cite> defined by the ACTION and defining a <cite>transform</cite>.</p></li>
+<li><p><cite>field</cite>: the specific columns effected by the morph, a <cite>list</cite> of <cite>ColumnModel</cite> or, rarely, <cite>FieldModel</cite>.</p></li>
+</ul>
+<p>A standard script is:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="s2">&quot;ACTION &gt; &#39;destination_column&#39; &lt; [modifier &#39;source_column&#39;, modifier &#39;source_column&#39;]&quot;</span>
+</pre></div>
+</div>
+<p>Where the structure of the source array is defined by the ACTION.</p>
+<dl class="py property">
+<dt class="sig sig-object py" id="whyqd.base.action_base.BaseSchemaAction.modifiers">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">modifiers</span></span><em class="property"><span class="pre">:</span> <span class="pre">Union[None,</span> <span class="pre">List[ModifierModel]]</span></em><a class="headerlink" href="#whyqd.base.action_base.BaseSchemaAction.modifiers" title="Permalink to this definition">¶</a></dt>
+<dd><p>Describes the ModifierModels for the Action. Typical modifiers are <cite>+</cite> or <cite>-</cite> but the Action can implement any
 type of modifier as part of the <cite>transform</cite> function.</p>
 <p>As an example:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">[</span>
@@ -204,52 +268,34 @@ type of modifier as part of the <cite>transform</cite> function.</p>
 </div>
 <dl class="field-list simple">
 <dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>Dict representation of the modifiers.</p>
+<dd class="field-odd"><p>ModifierModel representation of the modifiers.</p>
 </dd>
 <dt class="field-even">Return type</dt>
-<dd class="field-even"><p>None or dict</p>
+<dd class="field-even"><p>None or ModifierModel</p>
 </dd>
 </dl>
 </dd></dl>
 
-<dl class="method">
-<dt id="core.BaseAction.validates">
-<code class="sig-name descname">validates</code><span class="sig-paren">(</span><em class="sig-param">structure</em>, <em class="sig-param">working_columns=[]</em><span class="sig-paren">)</span><a class="headerlink" href="#core.BaseAction.validates" title="Permalink to this definition">¶</a></dt>
-<dd><p>Traverses a list defined by <cite>*structure</cite>, ensuring that the terms conform to that action’s
-default structural requirements. Nested structures are permitted. Note that the
-responsibility for digging in to the nested structures lies with the calling function.</p>
-<p>The format for defining a <cite>structure</cite> is as follows:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">[</span><span class="n">action</span><span class="p">,</span> <span class="n">column_name</span><span class="p">,</span> <span class="p">[</span><span class="n">action</span><span class="p">,</span> <span class="n">column_name</span><span class="p">]]</span>
-</pre></div>
-</div>
-<p>e.g.:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">[</span><span class="s2">&quot;CATEGORISE&quot;</span><span class="p">,</span> <span class="s2">&quot;+&quot;</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;ORDER&quot;</span><span class="p">,</span> <span class="s2">&quot;column_1&quot;</span><span class="p">,</span> <span class="s2">&quot;column_2&quot;</span><span class="p">]]</span>
-</pre></div>
-</div>
-<p>A calling function would specify:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Action</span><span class="o">.</span><span class="n">validates</span><span class="p">(</span><span class="n">structure</span><span class="p">[</span><span class="mi">1</span><span class="p">:],</span> <span class="n">working_columns</span><span class="p">)</span>
-</pre></div>
-</div>
+<dl class="py method">
+<dt class="sig sig-object py" id="whyqd.base.action_base.BaseSchemaAction.get_modifier">
+<span class="sig-name descname"><span class="pre">get_modifier</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">modifier</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">ModifierModel</span><span class="p"><span class="pre">,</span> </span><span class="pre">None</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#whyqd.base.action_base.BaseSchemaAction.get_modifier" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a specific set of Modifier definitions in response to an Modifier name.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>structure</strong> (<em>list</em>) – Each structure list must conform to the requirements for that action. Nested actions
-defined by nested lists.</p></li>
-<li><p><strong>working_columns</strong> (<em>list</em>) – List of valid field names from the working data columns.</p></li>
-</ul>
+<dd class="field-odd"><p><strong>modifier</strong> (<em>str</em>) – A Modifier name.</p>
 </dd>
 <dt class="field-even">Returns</dt>
-<dd class="field-even"><p>True if valid</p>
+<dd class="field-even"><p>For the requested Modifier name. Or None, if it doesn’t exist.</p>
 </dd>
 <dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>bool</p>
+<dd class="field-odd"><p>ModifierModel, or None</p>
 </dd>
 </dl>
 </dd></dl>
 
-<dl class="method">
-<dt id="core.BaseAction.settings">
-<em class="property">property </em><code class="sig-name descname">settings</code><a class="headerlink" href="#core.BaseAction.settings" title="Permalink to this definition">¶</a></dt>
+<dl class="py property">
+<dt class="sig sig-object py" id="whyqd.base.action_base.BaseSchemaAction.settings">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">settings</span></span><em class="property"><span class="pre">:</span> <span class="pre">SchemaActionModel</span></em><a class="headerlink" href="#whyqd.base.action_base.BaseSchemaAction.settings" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns the dict representation of the Action.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns</dt>
@@ -261,10 +307,81 @@ defined by nested lists.</p></li>
 </dl>
 </dd></dl>
 
-<dl class="method">
-<dt id="core.BaseAction.transform">
-<code class="sig-name descname">transform</code><span class="sig-paren">(</span><em class="sig-param">df</em>, <em class="sig-param">field_name</em>, <em class="sig-param">structure</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#core.BaseAction.transform" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="whyqd.base.action_base.BaseSchemaAction.transform">
+<span class="sig-name descname"><span class="pre">transform</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">pd.DataFrame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">destination</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">FieldModel</span><span class="p"><span class="pre">,</span> </span><span class="pre">ColumnModel</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">source</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">ColumnModel</span><span class="p"><span class="pre">,</span> </span><span class="pre">ModifierModel</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">pd.DataFrame</span></span></span><a class="headerlink" href="#whyqd.base.action_base.BaseSchemaAction.transform" title="Permalink to this definition">¶</a></dt>
 <dd><p>Perform a transformation. This function must be overridden by child Actions and describe a unique
+new method.</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>Assumes that is a valid call. Will raise exceptions from inside Pandas if not.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>df</strong> (<em>DataFrame</em>) – Working data to be transformed</p></li>
+<li><p><strong>destination</strong> (<em>FieldModel</em><em> or </em><em>ColumnModel</em><em>, </em><em>default None</em>) – Destination column for the result of the Action. If required.</p></li>
+<li><p><strong>source</strong> (<em>list of ColumnModel and /</em><em> or </em><em>ModifierModel</em>) – List of source columns and modifiers for the action. If required.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Containing the implementation of the Action</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>Dataframe</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="whyqd.base.morph_base.BaseMorphAction">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">whyqd.base.morph_base.</span></span><span class="sig-name descname"><span class="pre">BaseMorphAction</span></span><a class="headerlink" href="#whyqd.base.morph_base.BaseMorphAction" title="Permalink to this definition">¶</a></dt>
+<dd><p>Morphs differ from Actions in that they normally act to reshape entire tables rather than manipulate columns.</p>
+<ul class="simple">
+<li><p>Morph actions are not permitted to be nested, i.e. they are stand-alone ActionScripts.</p></li>
+<li><p>May result in changes to column or row references that must be accounted for in other actions.</p></li>
+</ul>
+<p>Morphs inherit from this base class which describes the core functions and methodology for a Morph. They
+should redefine <cite>name</cite>, <cite>title</cite>, <cite>description</cite>, and <cite>structure</cite>, as well as produce a <cite>transform</cite> function.
+Everything else will probably remain as defined, but particularly complex Morphs should modify as required.</p>
+<p><cite>structure</cite> can be an empty list, but a morph may be defined by these parameters:</p>
+<ul class="simple">
+<li><p><cite>rows</cite>: the specific rows effected by the morph, a <cite>list</cite> of <cite>int</cite></p></li>
+<li><p><cite>columns</cite>: the specific columns effected by the morph, a <cite>list</cite> of <cite>ColumnModel</cite> or <cite>FieldModel</cite>.</p></li>
+</ul>
+<p>A standard script is:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="s2">&quot;ACTION &gt; [columns] &lt; [rows]&quot;</span>
+</pre></div>
+</div>
+<p>Where:</p>
+<ul class="simple">
+<li><p>the presence and order of the arrays is set by <cite>structure</cite>,</p></li>
+<li><p><cite>columns</cite> are indicated by <cite>&gt;</cite>, and</p></li>
+<li><p><cite>rows</cite> are indicated by <cite>&lt;</cite>.</p></li>
+</ul>
+<dl class="py property">
+<dt class="sig sig-object py" id="whyqd.base.morph_base.BaseMorphAction.settings">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">settings</span></span><em class="property"><span class="pre">:</span> <span class="pre">whyqd.models.action_morph_model.MorphActionModel</span></em><a class="headerlink" href="#whyqd.base.morph_base.BaseMorphAction.settings" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the dict representation of the Morph.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Raises</dt>
+<dd class="field-odd"><p><strong>NameError if parameters don't yet exist.</strong> – </p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Dict representation of a Morph.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="whyqd.base.morph_base.BaseMorphAction.transform">
+<span class="sig-name descname"><span class="pre">transform</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">pd.DataFrame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rows</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">columns</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">ColumnModel</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">pd.DataFrame</span></span></span><a class="headerlink" href="#whyqd.base.morph_base.BaseMorphAction.transform" title="Permalink to this definition">¶</a></dt>
+<dd><p>Perform a transformation. This function must be overridden by child Morphs and describe a unique
 new method.</p>
 <div class="admonition warning">
 <p class="admonition-title">Warning</p>
@@ -274,9 +391,170 @@ new method.</p>
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>df</strong> (<em>DataFrame</em>) – Working data to be transformed</p></li>
-<li><p><strong>field_name</strong> (<em>str</em>) – Name of the target schema field</p></li>
-<li><p><strong>structure</strong> (<em>list</em>) – List of fields with restructuring action defined by term 0 (i.e. <cite>this</cite> action)</p></li>
 <li><p><strong>**kwargs</strong> – Other fields which may be required in custom transforms</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Containing the implementation of the Morph</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>Dataframe</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="whyqd.base.category_base.BaseCategoryAction">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">whyqd.base.category_base.</span></span><span class="sig-name descname"><span class="pre">BaseCategoryAction</span></span><a class="headerlink" href="#whyqd.base.category_base.BaseCategoryAction" title="Permalink to this definition">¶</a></dt>
+<dd><p>Category Actions are support utilities for CATEGORY actions. These inherit from this base class which describes
+the core functions and methodology for this support Action.</p>
+<p>Actions should redefine <cite>name</cite>, <cite>title</cite>, <cite>description</cite>, and <cite>structure</cite>. There is no transform function.</p>
+<p><cite>structure</cite> is defined by these parameters:</p>
+<ul class="simple">
+<li><p><cite>boolean</cite>: terms will be unique.</p></li>
+<li><p><cite>unique</cite>: the specific columns effected by the morph, a <cite>list</cite> of <cite>ColumnModel</cite> or, rarely, <cite>FieldModel</cite>.</p></li>
+</ul>
+<p>A standard script is:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="s2">&quot;ACTION &gt; &#39;destination_column::destination_category&#39; &lt; [&#39;unique_term&#39;, &#39;unique_term&#39;, etc.]&quot;</span>
+</pre></div>
+</div>
+<p>Where the structure of the source array is defined by the ACTION.</p>
+<dl class="py property">
+<dt class="sig sig-object py" id="whyqd.base.category_base.BaseCategoryAction.settings">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">settings</span></span><em class="property"><span class="pre">:</span> <span class="pre">CategoryActionModel</span></em><a class="headerlink" href="#whyqd.base.category_base.BaseCategoryAction.settings" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the CategoryActionModel representation of the Action.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>CategoryActionModel representation of an Action.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>CategoryActionModel</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="whyqd.base.category_base.BaseCategoryAction.parse">
+<span class="sig-name descname"><span class="pre">parse</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">script</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#whyqd.base.category_base.BaseCategoryAction.parse" title="Permalink to this definition">¶</a></dt>
+<dd><p>Base parser for the CategoryAction script. Produces required terms and validates against this
+CategoryAction’s structure requirements.</p>
+<p>Script is of the form:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="s2">&quot;ACTION &gt; &#39;destination_column&#39;::term &lt; &#39;source_column&#39;::[term]&quot;</span>
+</pre></div>
+</div>
+<p>Which is inherited as:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+    <span class="s2">&quot;action&quot;</span><span class="p">:</span> <span class="n">ACTION</span><span class="p">,</span>
+    <span class="s2">&quot;destination&quot;</span><span class="p">:</span> <span class="s1">&#39;destination_column&#39;</span><span class="p">,</span>
+    <span class="s2">&quot;category&quot;</span><span class="p">:</span> <span class="n">term</span><span class="p">,</span>
+    <span class="s2">&quot;source&quot;</span><span class="p">:</span> <span class="s1">&#39;source_column&#39;</span><span class="p">,</span>
+    <span class="s2">&quot;source_category&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">term</span><span class="p">]</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>script</strong> (<em>str</em>) – An action script.</p>
+</dd>
+<dt class="field-even">Raises</dt>
+<dd class="field-even"><p><strong>ValueError for any parsing errors.</strong> – </p>
+</dd>
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Parsed dictionary of validated split strings for further processing.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="whyqd.base.filter_base.BaseFilterAction">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">whyqd.base.filter_base.</span></span><span class="sig-name descname"><span class="pre">BaseFilterAction</span></span><a class="headerlink" href="#whyqd.base.filter_base.BaseFilterAction" title="Permalink to this definition">¶</a></dt>
+<dd><p>Filter ACTIONS act to filter a table by a date column, while preserving information referenced in specific
+columns.</p>
+<p>Actions should redefine <cite>name</cite>, <cite>title</cite>, <cite>description</cite>, and <cite>structure</cite>. There is no transform function.</p>
+<p><cite>structure</cite> is defined by these parameters:</p>
+<ul class="simple">
+<li><p><cite>column</cite>: a specific column for grouped-by filtering, can be <cite>ColumnModel</cite> or <cite>FieldModel</cite>.</p></li>
+<li><dl class="simple">
+<dt><cite>date</cite>: a specific date reference, in ISO <cite>YYYY-MM-DD</cite> format. Times are not filtered and would need to be</dt><dd><p>added to this feature.</p>
+</dd>
+</dl>
+</li>
+</ul>
+<p>A standard script is:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="s2">&quot;FILTER_LATEST &gt; &#39;filter_column&#39; &lt; &#39;source_column&#39;&quot;</span>
+</pre></div>
+</div>
+<dl class="py property">
+<dt class="sig sig-object py" id="whyqd.base.filter_base.BaseFilterAction.settings">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">settings</span></span><em class="property"><span class="pre">:</span> <span class="pre">FilterActionModel</span></em><a class="headerlink" href="#whyqd.base.filter_base.BaseFilterAction.settings" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the FilterActionModel representation of the Action.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>FilterActionModel representation of an Action.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>FilterActionModel</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="whyqd.base.filter_base.BaseFilterAction.parse">
+<span class="sig-name descname"><span class="pre">parse</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">script</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#whyqd.base.filter_base.BaseFilterAction.parse" title="Permalink to this definition">¶</a></dt>
+<dd><p>Base parser for the FilterAction script. Produces required terms and validates against this
+FilterAction’s structure requirements.</p>
+<p>Script is of the form:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="s2">&quot;FILTER_LATEST &gt; &#39;filter_column&#39; &lt; &#39;source_column&#39;&quot;</span>
+</pre></div>
+</div>
+<p>Which is inherited as:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+    <span class="s2">&quot;action&quot;</span><span class="p">:</span> <span class="n">ACTION</span><span class="p">,</span>
+    <span class="s2">&quot;filter&quot;</span><span class="p">:</span> <span class="s1">&#39;filter_column&#39;</span><span class="p">,</span>
+    <span class="s2">&quot;date&quot;</span><span class="p">:</span> <span class="n">date</span><span class="p">,</span>
+    <span class="s2">&quot;column&quot;</span><span class="p">:</span> <span class="s1">&#39;source_column&#39;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>script</strong> (<em>str</em>) – An action script.</p>
+</dd>
+<dt class="field-even">Raises</dt>
+<dd class="field-even"><p><strong>ValueError for any parsing errors.</strong> – </p>
+</dd>
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Parsed dictionary of validated split strings for further processing.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="whyqd.base.filter_base.BaseFilterAction.transform">
+<span class="sig-name descname"><span class="pre">transform</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">pd.DataFrame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filter_column</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">FieldModel</span><span class="p"><span class="pre">,</span> </span><span class="pre">ColumnModel</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">column</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">FieldModel</span><span class="p"><span class="pre">,</span> </span><span class="pre">ColumnModel</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">date_term</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">date</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">pd.DataFrame</span></span></span><a class="headerlink" href="#whyqd.base.filter_base.BaseFilterAction.transform" title="Permalink to this definition">¶</a></dt>
+<dd><p>Perform a transformation. This function must be overridden by child Actions and describe a unique
+new method.</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>Assumes that is a valid call. Will raise exceptions from inside Pandas if not.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>df</strong> (<em>DataFrame</em>) – Working data to be transformed</p></li>
+<li><p><strong>filter_column</strong> (<em>FieldModel</em><em> or </em><em>ColumnModel</em>) – A date-field column to use to filter the table. Column values will be coerced to date-type.</p></li>
+<li><p><strong>column</strong> (<em>FieldModel</em><em> or </em><em>ColumnModel</em><em>, </em><em>default None</em>) – A column which defines the groups from which to extract the latest row.</p></li>
+<li><p><strong>date_term</strong> (<em>date</em><em>, </em><em>default None</em>) – A specific date for filtering.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
@@ -297,29 +575,29 @@ new method.</p>
            
           </div>
           <footer>
-  
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-      
-        <a href="morph_api.html" class="btn btn-neutral float-right" title="Morph" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
-      
-      
-        <a href="schema_api.html" class="btn btn-neutral float-left" title="Schema" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
-      
+        <a href="validate_api.html" class="btn btn-neutral float-right" title="Validate" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="method_api.html" class="btn btn-neutral float-left" title="Method" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
     </div>
-  
 
   <hr/>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2020, Gavin Chait
+        &#169; Copyright 2020, Gavin Chait.
 
     </p>
   </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
 
 </footer>
-
         </div>
       </div>
 
@@ -327,7 +605,6 @@ new method.</p>
 
   </div>
   
-
 
   <script type="text/javascript">
       jQuery(function () {

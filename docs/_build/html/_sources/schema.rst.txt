@@ -1,1 +1,1 @@
-.. automodule:: schema.schema
+.. automodule:: whyqd.schema.schema

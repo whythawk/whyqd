@@ -1,16 +1,39 @@
-from whyqd.core import BaseAction
+from __future__ import annotations
+from typing import List, Union, TYPE_CHECKING
+import pandas as pd
 
-class Action(BaseAction):
+from whyqd.base import BaseSchemaAction
+
+if TYPE_CHECKING:
+    from ..models import FieldModel, ColumnModel
+
+
+class Action(BaseSchemaAction):
     """
     Rename the field to the schema field.
+
+    Script::
+
+        "RENAME > 'destination_field' < ['source_column']"
+
+    Where only the first `source_column` will be used.
     """
-    def __init__(self):
+
+    def __init__(self) -> None:
+        super().__init__()
         self.name = "RENAME"
         self.title = "Rename"
-        self.description = "Rename an existing field to conform to a schema name. Only valid where a single field is provided."
+        self.description = (
+            "Rename an existing field to conform to a schema name. Only valid where a single field is provided."
+        )
         self.structure = ["field"]
 
-    def transform(self, df, field_name, structure, **kwargs):
+    def transform(
+        self,
+        df: pd.DataFrame,
+        destination: Union[FieldModel, ColumnModel],
+        source: List[ColumnModel],
+    ) -> pd.DataFrame:
         """
         Rename the field to the schema field.
 
@@ -18,12 +41,11 @@ class Action(BaseAction):
         ----------
         df: DataFrame
             Working data to be transformed
-        field_name: str
-            Name of the target schema field
-        structure: list
-            List of fields with restructuring action defined by term 0 (i.e. `this` action)
-        **kwargs: 
-            Other fields which may be required in custom transforms
+        destination: FieldModel or ColumnModel, default None
+            Destination column for the result of the Action.
+        source: list of ColumnModel
+            List of source columns for the action. If there are more than one, only the first will be
+            used.
 
         Returns
         -------
@@ -33,7 +55,4 @@ class Action(BaseAction):
         # Rename, note, can only be one field if a rename ...
         # https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.rename.html
         # {'from': 'too'}
-        df.rename(index=str,
-                columns= {structure[0]["name"]: field_name},
-                inplace=True)
-        return df
+        return df.rename(index=str, columns={source[0].name: destination.name})

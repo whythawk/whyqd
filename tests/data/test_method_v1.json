@@ -1,0 +1,1053 @@
+{
+    "created": "2020-02-18",
+    "description": "A test Method",
+    "fields": [
+        {
+            "description": "Standard code for local authority.",
+            "name": "la_code",
+            "structure": [
+                {
+                    "description": "Create a new field and assign a set value.",
+                    "name": "NEW",
+                    "structure": [
+                        "value"
+                    ],
+                    "title": "New",
+                    "type": "action"
+                },
+                {
+                    "type": "string",
+                    "value": "E06000044"
+                }
+            ],
+            "title": "Local authority code",
+            "type": "string"
+        },
+        {
+            "description": "Unique code for a specific hereditament. May be multiple rows for history.",
+            "name": "ba_ref",
+            "structure": [
+                {
+                    "description": "Rename an existing field to conform to a schema name. Only valid where a single field is provided.",
+                    "name": "RENAME",
+                    "structure": [
+                        "field"
+                    ],
+                    "title": "Rename",
+                    "type": "action"
+                },
+                {
+                    "name": "Property ref no",
+                    "type": "number"
+                }
+            ],
+            "title": "Billing reference",
+            "type": "string"
+        },
+        {
+            "description": "Actual rates paid by a specific ratepayer.",
+            "name": "prop_ba_rates",
+            "structure": [
+                {
+                    "description": "Use sparse data from a list of fields to populate a new field. Order is important, each successive field in the list have priority over the ones before it (e.g. for columns A, B & C, values in C will have precedence over values in B and A).",
+                    "name": "ORDER",
+                    "structure": [
+                        "field"
+                    ],
+                    "title": "Order",
+                    "type": "action"
+                },
+                {
+                    "name": "Current Rateable Value_x",
+                    "type": "number"
+                },
+                {
+                    "name": "Current Rateable Value_y",
+                    "type": "number"
+                },
+                {
+                    "name": "Current Rateable Value",
+                    "type": "number"
+                }
+            ],
+            "title": "Property billing rates",
+            "type": "number"
+        },
+        {
+            "description": "Name of the ratepayer.",
+            "name": "occupant_name",
+            "structure": [
+                {
+                    "description": "Use sparse data from a list of fields to populate a new field. Order is important, each successive field in the list have priority over the ones before it (e.g. for columns A, B & C, values in C will have precedence over values in B and A).",
+                    "name": "ORDER",
+                    "structure": [
+                        "field"
+                    ],
+                    "title": "Order",
+                    "type": "action"
+                },
+                {
+                    "name": "Primary Liable party name_x",
+                    "type": "string"
+                },
+                {
+                    "name": "Primary Liable party name_y",
+                    "type": "number"
+                },
+                {
+                    "name": "Primary Liable party name",
+                    "type": "string"
+                }
+            ],
+            "title": "Occupier name",
+            "type": "string"
+        },
+        {
+            "description": "Full address or postcode of ratepayer.",
+            "name": "postcode",
+            "structure": [
+                {
+                    "description": "Use sparse data from a list of fields to populate a new field. Order is important, each successive field in the list have priority over the ones before it (e.g. for columns A, B & C, values in C will have precedence over values in B and A).",
+                    "name": "ORDER",
+                    "structure": [
+                        "field"
+                    ],
+                    "title": "Order",
+                    "type": "action"
+                },
+                {
+                    "name": "Full Property Address_x",
+                    "type": "string"
+                },
+                {
+                    "name": "Full Property Address_y",
+                    "type": "number"
+                },
+                {
+                    "name": "Full Property Address",
+                    "type": "string"
+                }
+            ],
+            "title": "Postcode",
+            "type": "string"
+        },
+        {
+            "category": {
+                "assigned": [
+                    {
+                        "category_input": [
+                            {
+                                "column": "Current Property Exemption Code",
+                                "terms": [
+                                    "EPRN",
+                                    "EPRI",
+                                    "VOID",
+                                    "EPCH",
+                                    "LIQUIDATE",
+                                    "DECEASED",
+                                    "PROHIBITED",
+                                    "BANKRUPT"
+                                ]
+                            },
+                            {
+                                "column": "Current Relief Type",
+                                "terms": [
+                                    "Empty Property Rate Non-Industrial",
+                                    "Empty Property Rate Industrial",
+                                    "Empty Property Rate Charitable"
+                                ]
+                            }
+                        ],
+                        "name": false
+                    }
+                ],
+                "unassigned": [
+                    {
+                        "column": "Current Relief Type",
+                        "terms": [
+                            "Small Business Relief England",
+                            "Mandatory",
+                            "Retail Discount",
+                            "Sports Club (Registered CASC)",
+                            "Supporting Small Business Relief",
+                            "Sbre Extension For 12 Months"
+                        ]
+                    },
+                    {
+                        "column": "Current Property Exemption Code",
+                        "terms": [
+                            "LISTED",
+                            "ANCIENT",
+                            "C",
+                            "LOW RV",
+                            "ADMIN",
+                            "LAND",
+                            "INDUSTRIAL",
+                            "LA ACTION"
+                        ]
+                    }
+                ]
+            },
+            "constraints": {
+                "category": [
+                    {
+                        "name": true
+                    },
+                    {
+                        "name": false
+                    }
+                ],
+                "category_input": [
+                    {
+                        "column": "Current Relief Type",
+                        "terms": [
+                            "Retail Discount",
+                            "Small Business Relief England",
+                            "Supporting Small Business Relief",
+                            "Sbre Extension For 12 Months",
+                            "Empty Property Rate Industrial",
+                            "Empty Property Rate Non-Industrial",
+                            "Mandatory",
+                            "Sports Club (Registered CASC)",
+                            "Empty Property Rate Charitable"
+                        ]
+                    },
+                    {
+                        "column": "Current Property Exemption Code",
+                        "terms": [
+                            "EPRI",
+                            "ANCIENT",
+                            "LISTED",
+                            "EPRN",
+                            "VOID",
+                            "LIQUIDATE",
+                            "LAND",
+                            "LOW RV",
+                            "INDUSTRIAL",
+                            "ADMIN",
+                            "LA ACTION",
+                            "C",
+                            "DECEASED",
+                            "PROHIBITED",
+                            "BANKRUPT",
+                            "EPCH"
+                        ]
+                    }
+                ]
+            },
+            "description": "Occupation status, void or occupied.",
+            "name": "occupation_state",
+            "structure": [
+                {
+                    "description": "Apply categories to a list of columns. Each field must have a modifier, including the first (e.g. +A -B +C). '-' modifier indicates presence/absence of values as true/false for a specific term. '+' modifier indicates that the unique terms in the field must be matched to the unique terms defined in the schema. This is a two-step process, first requiring listing the columns effected, then applying the terms.",
+                    "modifiers": [
+                        {
+                            "name": "+",
+                            "title": "Uniques",
+                            "type": "modifier"
+                        },
+                        {
+                            "name": "-",
+                            "title": "Values",
+                            "type": "modifier"
+                        }
+                    ],
+                    "name": "CATEGORISE",
+                    "structure": [
+                        "modifier",
+                        "field"
+                    ],
+                    "title": "Categorise",
+                    "type": "action"
+                },
+                {
+                    "name": "+",
+                    "title": "Uniques",
+                    "type": "modifier"
+                },
+                {
+                    "name": "Current Property Exemption Code",
+                    "type": "number"
+                },
+                {
+                    "name": "+",
+                    "title": "Uniques",
+                    "type": "modifier"
+                },
+                {
+                    "name": "Current Relief Type",
+                    "type": "string"
+                }
+            ],
+            "title": "Occupation state",
+            "type": "boolean"
+        },
+        {
+            "category": {
+                "assigned": [
+                    {
+                        "category_input": [
+                            {
+                                "column": "Current Relief Type",
+                                "terms": [
+                                    "Small Business Relief England",
+                                    "Sbre Extension For 12 Months",
+                                    "Supporting Small Business Relief"
+                                ]
+                            }
+                        ],
+                        "name": "small_business"
+                    },
+                    {
+                        "category_input": [
+                            {
+                                "column": "Current Property Exemption Code",
+                                "terms": [
+                                    "INDUSTRIAL"
+                                ]
+                            }
+                        ],
+                        "name": "enterprise_zone"
+                    },
+                    {
+                        "category_input": [
+                            {
+                                "column": "Current Property Exemption Code",
+                                "terms": [
+                                    "EPRN",
+                                    "EPRI",
+                                    "VOID",
+                                    "EPCH",
+                                    "LIQUIDATE",
+                                    "DECEASED",
+                                    "PROHIBITED",
+                                    "BANKRUPT"
+                                ]
+                            },
+                            {
+                                "column": "Current Relief Type",
+                                "terms": [
+                                    "Empty Property Rate Non-Industrial",
+                                    "Empty Property Rate Industrial",
+                                    "Empty Property Rate Charitable"
+                                ]
+                            }
+                        ],
+                        "name": "vacancy"
+                    },
+                    {
+                        "category_input": [
+                            {
+                                "column": "Current Relief Type",
+                                "terms": [
+                                    "Retail Discount"
+                                ]
+                            }
+                        ],
+                        "name": "retail"
+                    },
+                    {
+                        "category_input": [
+                            {
+                                "column": "Current Property Exemption Code",
+                                "terms": [
+                                    "C",
+                                    "LOW RV",
+                                    "LAND"
+                                ]
+                            }
+                        ],
+                        "name": "exempt"
+                    },
+                    {
+                        "category_input": [
+                            {
+                                "column": "Current Relief Type",
+                                "terms": [
+                                    "Sports Club (Registered CASC)",
+                                    "Mandatory"
+                                ]
+                            }
+                        ],
+                        "name": "other"
+                    }
+                ],
+                "unassigned": [
+                    {
+                        "column": "Current Relief Type",
+                        "terms": []
+                    },
+                    {
+                        "column": "Current Property Exemption Code",
+                        "terms": [
+                            "ADMIN",
+                            "LISTED",
+                            "ANCIENT",
+                            "LA ACTION"
+                        ]
+                    }
+                ]
+            },
+            "constraints": {
+                "category": [
+                    {
+                        "name": "small_business"
+                    },
+                    {
+                        "name": "rural"
+                    },
+                    {
+                        "name": "charity"
+                    },
+                    {
+                        "name": "enterprise_zone"
+                    },
+                    {
+                        "name": "vacancy"
+                    },
+                    {
+                        "name": "hardship"
+                    },
+                    {
+                        "name": "retail"
+                    },
+                    {
+                        "name": "discretionary"
+                    },
+                    {
+                        "name": "exempt"
+                    },
+                    {
+                        "name": "transitional"
+                    },
+                    {
+                        "name": "other"
+                    }
+                ],
+                "category_input": [
+                    {
+                        "column": "Current Relief Type",
+                        "terms": [
+                            "Retail Discount",
+                            "Small Business Relief England",
+                            "Supporting Small Business Relief",
+                            "Sbre Extension For 12 Months",
+                            "Empty Property Rate Industrial",
+                            "Empty Property Rate Non-Industrial",
+                            "Mandatory",
+                            "Sports Club (Registered CASC)",
+                            "Empty Property Rate Charitable"
+                        ]
+                    },
+                    {
+                        "column": "Current Property Exemption Code",
+                        "terms": [
+                            "EPRI",
+                            "ANCIENT",
+                            "LISTED",
+                            "EPRN",
+                            "VOID",
+                            "LIQUIDATE",
+                            "LAND",
+                            "LOW RV",
+                            "INDUSTRIAL",
+                            "ADMIN",
+                            "LA ACTION",
+                            "C",
+                            "DECEASED",
+                            "PROHIBITED",
+                            "BANKRUPT",
+                            "EPCH"
+                        ]
+                    }
+                ]
+            },
+            "description": "Array of the categories of reliefs / exemptions applied.",
+            "name": "occupation_state_reliefs",
+            "structure": [
+                {
+                    "description": "Apply categories to a list of columns. Each field must have a modifier, including the first (e.g. +A -B +C). '-' modifier indicates presence/absence of values as true/false for a specific term. '+' modifier indicates that the unique terms in the field must be matched to the unique terms defined in the schema. This is a two-step process, first requiring listing the columns effected, then applying the terms.",
+                    "modifiers": [
+                        {
+                            "name": "+",
+                            "title": "Uniques",
+                            "type": "modifier"
+                        },
+                        {
+                            "name": "-",
+                            "title": "Values",
+                            "type": "modifier"
+                        }
+                    ],
+                    "name": "CATEGORISE",
+                    "structure": [
+                        "modifier",
+                        "field"
+                    ],
+                    "title": "Categorise",
+                    "type": "action"
+                },
+                {
+                    "name": "+",
+                    "title": "Uniques",
+                    "type": "modifier"
+                },
+                {
+                    "name": "Current Property Exemption Code",
+                    "type": "number"
+                },
+                {
+                    "name": "+",
+                    "title": "Uniques",
+                    "type": "modifier"
+                },
+                {
+                    "name": "Current Relief Type",
+                    "type": "string"
+                }
+            ],
+            "title": "Occupation state reliefs",
+            "type": "array"
+        },
+        {
+            "description": "Date of the start of status in occupation_state.",
+            "filter": {
+                "date": "2020-04-01 00:00:00",
+                "field": "ba_ref",
+                "modifiers": {
+                    "date": "2010-01-01",
+                    "name": "AFTER"
+                }
+            },
+            "name": "occupation_state_date",
+            "structure": [
+                {
+                    "description": "Use sparse data from a list of fields to populate a new field order by most recent value. Field-pairs required, with the first containing the values, and the second the dates for comparison, linked by a '+' modifier (e.g. A+dA, B+dB, C+dC, values with the most recent associated date will have precedence over other values).",
+                    "modifiers": [
+                        {
+                            "name": "+",
+                            "title": "Links",
+                            "type": "modifier"
+                        }
+                    ],
+                    "name": "ORDER_NEW",
+                    "structure": [
+                        "field",
+                        "modifier",
+                        "field"
+                    ],
+                    "title": "Order by newest",
+                    "type": "action"
+                },
+                {
+                    "name": "Current Prop Exemption Start Date",
+                    "type": "number"
+                },
+                {
+                    "name": "+",
+                    "title": "Links",
+                    "type": "modifier"
+                },
+                {
+                    "name": "Current Prop Exemption Start Date",
+                    "type": "number"
+                },
+                {
+                    "name": "Current Relief Award Start Date",
+                    "type": "date"
+                },
+                {
+                    "name": "+",
+                    "title": "Links",
+                    "type": "modifier"
+                },
+                {
+                    "name": "Current Relief Award Start Date",
+                    "type": "date"
+                },
+                {
+                    "name": "Account Start date_x",
+                    "type": "date"
+                },
+                {
+                    "name": "+",
+                    "title": "Links",
+                    "type": "modifier"
+                },
+                {
+                    "name": "Account Start date_x",
+                    "type": "date"
+                },
+                {
+                    "name": "Account Start date_y",
+                    "type": "date"
+                },
+                {
+                    "name": "+",
+                    "title": "Links",
+                    "type": "modifier"
+                },
+                {
+                    "name": "Account Start date_y",
+                    "type": "date"
+                }
+            ],
+            "title": "Date of occupation state",
+            "type": "date"
+        }
+    ],
+    "input_data": [
+        {
+            "checksum": "476089d8f37581613344873068d6e94f8cd63a1a64b421edf374a2b341bc7563aff03b86db4d3fec8ca90ce150ba1e531e3ff0d374f932d13fc103fd709e01bd",
+            "columns": [
+                {
+                    "name": "Property ref no",
+                    "type": "number"
+                },
+                {
+                    "name": "Full Property Address",
+                    "type": "string"
+                },
+                {
+                    "name": "Primary Liable party name",
+                    "type": "string"
+                },
+                {
+                    "name": "Account Start date",
+                    "type": "date"
+                },
+                {
+                    "name": "Current Rateable Value",
+                    "type": "number"
+                }
+            ],
+            "dataframe": {
+                "Account Start date": {
+                    "0": "2003-11-10 00:00:00",
+                    "1": "2003-11-08 00:00:00",
+                    "2": "1994-12-25 00:00:00"
+                },
+                "Current Rateable Value": {
+                    "0": 37000,
+                    "1": 594000,
+                    "2": 13250
+                },
+                "Full Property Address": {
+                    "0": "Unit 7b, The Pompey Centre, Dickinson Road, Southsea, Hants, PO4 8SH",
+                    "1": "Express By Holiday Inn, The Plaza, Gunwharf Quays, Portsmouth, PO1 3FD",
+                    "2": "Unit 2cd, Shawcross Industrial Estate, Ackworth Road, Portsmouth, PO3 5JP"
+                },
+                "Primary Liable party name": {
+                    "0": "City Electrical Factors  Ltd",
+                    "1": "Kew Green Hotels (Portsmouth Lrg1) Limited",
+                    "2": "Personal details not supplied"
+                },
+                "Property ref no": {
+                    "0": 177200066910,
+                    "1": 177209823010,
+                    "2": 177500013310
+                }
+            },
+            "file": "fae2fa9a-0df6-40dd-9066-4a9ff7619c26.XLSX",
+            "id": "fae2fa9a-0df6-40dd-9066-4a9ff7619c26",
+            "key": "Property ref no",
+            "original": "raw_E06000044_014_2.XLSX"
+        },
+        {
+            "checksum": "892ec5b6e9b1f68e0b371bbaed8d93095d57f2b656753af2b279aee17b5854c5e9d731b2795aac285d7f7d9f5991311bc8fae0cfe5446a47163f30f0314cac06",
+            "columns": [
+                {
+                    "name": "Property Reference Number",
+                    "type": "number"
+                },
+                {
+                    "name": "Full Property Address",
+                    "type": "string"
+                },
+                {
+                    "name": "Current Property Exemption Code",
+                    "type": "string"
+                },
+                {
+                    "name": "Current Prop Exemption Start Date",
+                    "type": "date"
+                },
+                {
+                    "name": "Primary Liable party name",
+                    "type": "string"
+                },
+                {
+                    "name": "Current Rateable Value",
+                    "type": "number"
+                }
+            ],
+            "dataframe": {
+                "Current Prop Exemption Start Date": {
+                    "0": "2019-11-08 00:00:00",
+                    "1": "2019-09-23 00:00:00",
+                    "2": "2019-09-13 00:00:00"
+                },
+                "Current Property Exemption Code": {
+                    "0": "LOW RV",
+                    "1": "INDUSTRIAL",
+                    "2": "EPRI"
+                },
+                "Current Rateable Value": {
+                    "0": 700,
+                    "1": 11000,
+                    "2": 26500
+                },
+                "Full Property Address": {
+                    "0": "Advertising Right, 29 Albert Road, Portsmouth, PO5 2SE",
+                    "1": "24, Ordnance Court, Ackworth Road, Portsmouth, PO3 5RZ",
+                    "2": "Unit 12, Admiral Park, Airport Service Road, Portsmouth, PO3 5RQ"
+                },
+                "Primary Liable party name": {
+                    "0": "Personal details not supplied",
+                    "1": "Personal details not supplied",
+                    "2": "Legal & General Property Partners (Industrial Fund) Ltd"
+                },
+                "Property Reference Number": {
+                    "0": 177512281010,
+                    "1": 177590107810,
+                    "2": 177500058410
+                }
+            },
+            "file": "4c66cec7-41a6-4cb5-877e-94489e0321d2.XLSX",
+            "id": "4c66cec7-41a6-4cb5-877e-94489e0321d2",
+            "key": "Property Reference Number",
+            "original": "raw_E06000044_014_1.XLSX"
+        },
+        {
+            "checksum": "a41b4eb629c249fd59e6816d10d113bf2b9594c7dd7f9a61a82333a8a41bf07e59f9104eb3c1dc4269607de5a4a12eaf3215d0afc7545fdb1dfe7fe1bf5e0d29",
+            "columns": [
+                {
+                    "name": "Property Reference Number",
+                    "type": "number"
+                },
+                {
+                    "name": "Primary Liable party name",
+                    "type": "string"
+                },
+                {
+                    "name": "Full Property Address",
+                    "type": "string"
+                },
+                {
+                    "name": "Current Relief Type",
+                    "type": "string"
+                },
+                {
+                    "name": "Account Start date",
+                    "type": "date"
+                },
+                {
+                    "name": "Current Relief Award Start Date",
+                    "type": "date"
+                },
+                {
+                    "name": "Current Rateable Value",
+                    "type": "number"
+                }
+            ],
+            "dataframe": {
+                "Account Start date": {
+                    "0": "2003-05-14 00:00:00",
+                    "1": "2003-07-28 00:00:00",
+                    "2": "2003-07-08 00:00:00"
+                },
+                "Current Rateable Value": {
+                    "0": 8600,
+                    "1": 9900,
+                    "2": 6400
+                },
+                "Current Relief Award Start Date": {
+                    "0": "2019-04-01 00:00:00",
+                    "1": "2005-04-01 00:00:00",
+                    "2": "2005-04-01 00:00:00"
+                },
+                "Current Relief Type": {
+                    "0": "Retail Discount",
+                    "1": "Small Business Relief England",
+                    "2": "Small Business Relief England"
+                },
+                "Full Property Address": {
+                    "0": "Ground Floor, 25, Albert Road, Southsea, Hants, PO5 2SE",
+                    "1": "Ground Floor, 102, London Road, Portsmouth, PO2 0LZ",
+                    "2": "33, Festing Road, Southsea, Hants, PO4 0NG"
+                },
+                "Primary Liable party name": {
+                    "0": "Personal details not supplied",
+                    "1": "Personal details not supplied",
+                    "2": "Personal details not supplied"
+                },
+                "Property Reference Number": {
+                    "0": 177500080710,
+                    "1": 177504942310,
+                    "2": 177502823510
+                }
+            },
+            "file": "a50f48ab-f781-431c-9107-6788cc260c79.XLSX",
+            "id": "a50f48ab-f781-431c-9107-6788cc260c79",
+            "key": "Property Reference Number",
+            "original": "raw_E06000044_014_0.XLSX"
+        }
+    ],
+    "name": "test_method",
+    "output_data": {
+        "checksum": "be6a1c1acee2b313d460403ee075dacda0db75c4d772a56927b35d24a221c036b5480b9b796172f73b9fd49f3819df025eb1c2b9788dcf2a20e5d2bc7a773b09",
+        "columns": [
+            {
+                "name": "la_code",
+                "type": "string"
+            },
+            {
+                "name": "ba_ref",
+                "type": "number"
+            },
+            {
+                "name": "prop_ba_rates",
+                "type": "number"
+            },
+            {
+                "name": "occupant_name",
+                "type": "string"
+            },
+            {
+                "name": "postcode",
+                "type": "string"
+            },
+            {
+                "name": "occupation_state",
+                "type": "string"
+            },
+            {
+                "name": "occupation_state_reliefs",
+                "type": "string"
+            },
+            {
+                "name": "occupation_state_date",
+                "type": "date"
+            }
+        ],
+        "dataframe": {
+            "ba_ref": {
+                "0": 177500013310,
+                "1": 177500013310,
+                "2": 177500013510
+            },
+            "la_code": {
+                "0": "E06000044",
+                "1": "E06000044",
+                "2": "E06000044"
+            },
+            "occupant_name": {
+                "0": "Personal details not supplied",
+                "1": "Personal details not supplied",
+                "2": "Personal details not supplied"
+            },
+            "occupation_state": {
+                "0": true,
+                "1": true,
+                "2": true
+            },
+            "occupation_state_date": {
+                "0": "2019-04-01 00:00:00",
+                "1": "2017-04-01 00:00:00",
+                "2": "2015-12-01 00:00:00"
+            },
+            "occupation_state_reliefs": {
+                "0": "['retail']",
+                "1": "['small_business']",
+                "2": "[]"
+            },
+            "postcode": {
+                "0": "Unit 2cd, Shawcross Industrial Estate, Ackworth Road, Portsmouth, PO3 5JP",
+                "1": "Unit 2cd, Shawcross Industrial Estate, Ackworth Road, Portsmouth, PO3 5JP",
+                "2": "Emmerson Transport Ltd Unit 8, Shawcross Industrial Estate, Ackworth Road, Portsmouth, PO3 5HU"
+            },
+            "prop_ba_rates": {
+                "0": 13250,
+                "1": 13250,
+                "2": 52500
+            }
+        },
+        "file": "output_aad2a0f0-7b6d-4b63-9a2c-1e7e1340cae0.xlsx",
+        "id": "output_aad2a0f0-7b6d-4b63-9a2c-1e7e1340cae0"
+    },
+    "process_date": "2020-02-19",
+    "status": "PROCESS_COMPLETE",
+    "title": "Test Schema",
+    "updated": "2020-02-19",
+    "working_data": {
+        "checksum": "cebd1a9db7eaac3fd358e25d0a2abc687942f30d152690107c8a7a1587f646bb7b30d5144daea38f23f1585a09ebce7af4fad5b07d138fc2b3d607864e78c12f",
+        "columns": [
+            {
+                "name": "Property ref no",
+                "type": "number"
+            },
+            {
+                "name": "Full Property Address_x",
+                "type": "string"
+            },
+            {
+                "name": "Primary Liable party name_x",
+                "type": "string"
+            },
+            {
+                "name": "Account Start date_x",
+                "type": "date"
+            },
+            {
+                "name": "Current Rateable Value_x",
+                "type": "number"
+            },
+            {
+                "name": "Property Reference Number_x",
+                "type": "number"
+            },
+            {
+                "name": "Full Property Address_y",
+                "type": "number"
+            },
+            {
+                "name": "Current Property Exemption Code",
+                "type": "number"
+            },
+            {
+                "name": "Current Prop Exemption Start Date",
+                "type": "number"
+            },
+            {
+                "name": "Primary Liable party name_y",
+                "type": "number"
+            },
+            {
+                "name": "Current Rateable Value_y",
+                "type": "number"
+            },
+            {
+                "name": "Property Reference Number_y",
+                "type": "number"
+            },
+            {
+                "name": "Primary Liable party name",
+                "type": "string"
+            },
+            {
+                "name": "Full Property Address",
+                "type": "string"
+            },
+            {
+                "name": "Current Relief Type",
+                "type": "string"
+            },
+            {
+                "name": "Account Start date_y",
+                "type": "date"
+            },
+            {
+                "name": "Current Relief Award Start Date",
+                "type": "date"
+            },
+            {
+                "name": "Current Rateable Value",
+                "type": "number"
+            }
+        ],
+        "dataframe": {
+            "Account Start date_x": {
+                "0": "2003-11-10 00:00:00",
+                "1": "2003-11-08 00:00:00",
+                "2": "1994-12-25 00:00:00"
+            },
+            "Account Start date_y": {
+                "0": "NaT",
+                "1": "NaT",
+                "2": "1994-12-25 00:00:00"
+            },
+            "Current Prop Exemption Start Date": {
+                "0": NaN,
+                "1": NaN,
+                "2": NaN
+            },
+            "Current Property Exemption Code": {
+                "0": NaN,
+                "1": NaN,
+                "2": NaN
+            },
+            "Current Rateable Value": {
+                "0": NaN,
+                "1": NaN,
+                "2": 13250.0
+            },
+            "Current Rateable Value_x": {
+                "0": 37000,
+                "1": 594000,
+                "2": 13250
+            },
+            "Current Rateable Value_y": {
+                "0": NaN,
+                "1": NaN,
+                "2": NaN
+            },
+            "Current Relief Award Start Date": {
+                "0": "NaT",
+                "1": "NaT",
+                "2": "2019-04-01 00:00:00"
+            },
+            "Current Relief Type": {
+                "0": NaN,
+                "1": NaN,
+                "2": "Retail Discount"
+            },
+            "Full Property Address": {
+                "0": NaN,
+                "1": NaN,
+                "2": "Unit 2cd, Shawcross Industrial Estate, Ackworth Road, Portsmouth, PO3 5JP"
+            },
+            "Full Property Address_x": {
+                "0": "Unit 7b, The Pompey Centre, Dickinson Road, Southsea, Hants, PO4 8SH",
+                "1": "Express By Holiday Inn, The Plaza, Gunwharf Quays, Portsmouth, PO1 3FD",
+                "2": "Unit 2cd, Shawcross Industrial Estate, Ackworth Road, Portsmouth, PO3 5JP"
+            },
+            "Full Property Address_y": {
+                "0": NaN,
+                "1": NaN,
+                "2": NaN
+            },
+            "Primary Liable party name": {
+                "0": NaN,
+                "1": NaN,
+                "2": "Personal details not supplied"
+            },
+            "Primary Liable party name_x": {
+                "0": "City Electrical Factors  Ltd",
+                "1": "Kew Green Hotels (Portsmouth Lrg1) Limited",
+                "2": "Personal details not supplied"
+            },
+            "Primary Liable party name_y": {
+                "0": NaN,
+                "1": NaN,
+                "2": NaN
+            },
+            "Property Reference Number_x": {
+                "0": NaN,
+                "1": NaN,
+                "2": NaN
+            },
+            "Property Reference Number_y": {
+                "0": NaN,
+                "1": NaN,
+                "2": 177500013310.0
+            },
+            "Property ref no": {
+                "0": 177200066910,
+                "1": 177209823010,
+                "2": 177500013310
+            }
+        },
+        "file": "f2b4d538-280c-4ae5-8fc5-cb49258cb180.xlsx",
+        "id": "f2b4d538-280c-4ae5-8fc5-cb49258cb180"
+    }
+}

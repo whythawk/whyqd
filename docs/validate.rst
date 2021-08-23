@@ -1,0 +1,1 @@
+.. automodule:: whyqd.validate.validate

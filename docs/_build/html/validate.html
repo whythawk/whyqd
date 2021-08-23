@@ -1,0 +1,290 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>Validate &mdash; whyqd 0.5.0 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Roadmap" href="roadmap.html" />
+    <link rel="prev" title="Method" href="method.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> whyqd
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption" role="heading"><span class="caption-text">Getting started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Dependencies, installation &amp; importing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial_local_government_data.html">Tutorial: Local government data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial_cthulhu_data.html">Tutorial: Cthulhu data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="citation.html">Distribution &amp; Citation of methods and data</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Creating and managing Schemas</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="schema.html">Schema</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Wrangling with Methods</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="method.html">Method</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Validate an existing Method</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Validate</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#perform-validation">Perform validation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#what-gets-validated">What gets validated</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">What next?</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="roadmap.html">Roadmap</a></li>
+<li class="toctree-l1"><a class="reference internal" href="contributing.html">Background and Contributing</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Reference API</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="schema_api.html">Schema</a></li>
+<li class="toctree-l1"><a class="reference internal" href="method_api.html">Method</a></li>
+<li class="toctree-l1"><a class="reference internal" href="action_api.html">Actions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="validate_api.html">Validate</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">whyqd</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+        
+      <li>Validate</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="_sources/validate.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <span class="target" id="module-whyqd.validate.validate"></span><span class="target" id="module-validate"></span><div class="section" id="validate">
+<h1>Validate<a class="headerlink" href="#validate" title="Permalink to this headline">¶</a></h1>
+<p>When we talk about <strong>data probity</strong>, we’re referring to the following criteria:</p>
+<ul class="simple">
+<li><p>Identifiable input source data,</p></li>
+<li><p>Transparent methods for restructuring of that source data into the data used to support research analysis,</p></li>
+<li><p>Accessible restructured data used to support research conclusions,</p></li>
+<li><p>A repeatable, auditable curation process which produces the same data.</p></li>
+</ul>
+<p>Researchers may disagree on conclusions derived from analytical results. What they should not have cause for
+disagreement on is the underlying data used to produce those analytical results.</p>
+<p>That’s where validation comes in.</p>
+<div class="section" id="perform-validation">
+<h2>Perform validation<a class="headerlink" href="#perform-validation" title="Permalink to this headline">¶</a></h2>
+<p>In the <a class="reference internal" href="method.html"><span class="doc">Method</span></a> documentation, you saw how you can produce shareable output: your <cite>method.json</cite> file, your
+<cite>restructured_table.xlsx</cite>, and the original input source data.</p>
+<p>These are all that’s required to validate your methods and output:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">whyqd</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">validate</span> <span class="o">=</span> <span class="n">whyqd</span><span class="o">.</span><span class="n">Validate</span><span class="p">(</span><span class="n">directory</span><span class="o">=</span><span class="n">DIRECTORY</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">validate</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">source</span><span class="o">=</span><span class="n">METHOD_SOURCE</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">validate</span><span class="o">.</span><span class="n">import_input_data</span><span class="p">(</span><span class="n">path</span><span class="o">=</span><span class="n">INPUT_DATA</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">validate</span><span class="o">.</span><span class="n">import_restructured_data</span><span class="p">(</span><span class="n">path</span><span class="o">=</span><span class="n">RESTRUCTURED_DATA</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">validate</span><span class="o">.</span><span class="n">validate</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>Where:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><cite>DIRECTORY</cite> is your working directory to run the validation,</p></li>
+<li><p><cite>METHOD_SOURCE</cite> is the path to the <cite>method.json</cite> file,</p></li>
+<li><p><cite>INPUT_DATA</cite> is a list of paths to input source data,</p></li>
+<li><p><cite>RESTRUCTURED_DATA</cite> is the path to the restructured output data file.</p></li>
+</ul>
+</div></blockquote>
+</div>
+<div class="section" id="what-gets-validated">
+<h2>What gets validated<a class="headerlink" href="#what-gets-validated" title="Permalink to this headline">¶</a></h2>
+<p>The method contains a <cite>checksum</cite> - a hash based on <a class="reference external" href="https://en.wikipedia.org/wiki/BLAKE_(hash_function)">BLAKE2b</a> - is
+generated for each input file. These input data are never changed, and the hash is based on the entire file. If anyone
+opens these files and resaves them - even if they make no further changes - metadata and file structure will change,
+and a later hash generated on the changed file will be different from the original.</p>
+<p>The check will fail.</p>
+<p><cite>whyqd</cite> rebuilds the restructured output table, following all the action scripts provided in the <a class="reference internal" href="method.html"><span class="doc">Method</span></a>.</p>
+<p>This produces a new restructued data table. This table’s content should be absolutely identical to that of the provided
+restructured data. <cite>whyqd</cite> hashes the content of this table (<em>not</em> the file) and compares these hashes.</p>
+<p>If the provided restructured data, and the newly-generated data based on the method actions, both have the same
+checksum, then - whether you agree with the analysis, or methods, or not - we can state that these input data, with
+these restructuring actions applied <strong>does</strong> produce these restructured data.</p>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+        <a href="roadmap.html" class="btn btn-neutral float-right" title="Roadmap" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="method.html" class="btn btn-neutral float-left" title="Method" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright 2020, Gavin Chait.
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>
