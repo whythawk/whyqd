@@ -1,0 +1,25 @@
+# .readthedocs.yml
+# Read the Docs configuration file
+# See https://docs.readthedocs.io/en/stable/config-file/v2.html for details
+# See https://github.com/earthobservations/wetterdienst for implementation
+
+# Required
+version: 2
+
+# Build documentation in the docs/ directory with Sphinx
+sphinx:
+  configuration: docs/conf.py
+
+# Using test server while Python 3.9 not supported
+# https://github.com/readthedocs/readthedocs-docker-images/pull/159#issuecomment-785048185
+build:
+  image: testing
+
+# Optionally set the version of Python and requirements required to build your docs
+python:
+  version: 3.9
+  install:
+    - method: pip
+      path: .
+      extra_requirements:
+        - docs
