@@ -29,3 +29,16 @@ Then import::
 
 Your next steps are to build a target :doc:`schema` to describe the data structure, and then import
 that into a :doc:`method`.
+
+API changes
+-----------
+
+Version 0.5.0 introduced a new, simplified, API, along with script-based transformation actions. You can import and 
+transform any saved `method.json` files with::
+
+	SCHEMA = whyqd.Schema(source=SCHEMA_SOURCE)
+	schema_scripts = whyqd.parsers.LegacyScript().parse_legacy_method(
+				version="1", schema=SCHEMA, source_path=METHOD_SOURCE_V1
+			)
+
+Where SCHEMA_SOURCE is a path to your schema. Existing `schema.json` files should still work.

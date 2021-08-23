@@ -203,8 +203,12 @@ your approach, validate your methodology, or even use your methods to import dat
 import <strong>whyqd</strong> and validate your method to verify that your output data is the product of these
 inputs.</p>
 </div>
-<div class="section" id="what-does-that-look-like">
-<h2>What does that look like?<a class="headerlink" href="#what-does-that-look-like" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="why-use-it">
+<h2>Why use it?<a class="headerlink" href="#why-use-it" title="Permalink to this headline">¶</a></h2>
+<p>If all you want to do is test whether your source data are even useful, spending days or weeks
+slogging through data restructuring could kill a project. If you already have a workflow and
+established software which includes Python and pandas, having to change your code every time your
+source data changes is really, really frustrating.</p>
 <p>If you want to go from a Cthulhu dataset like this:</p>
 <div class="figure align-default" id="id1">
 <img alt="UNDP Human Development Index 2007-2008" src="_images/undp-hdi-2007-8.jpg" />
@@ -274,7 +278,7 @@ inputs.</p>
 </tr>
 </tbody>
 </table>
-<p>From a readable set of scripts to ensure that your process can be audited and repeated:</p>
+<p>With a readable set of scripts to ensure that your process can be audited and repeated:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">scripts</span> <span class="o">=</span> <span class="p">[</span>
 <span class="go">      &quot;DEBLANK&quot;,</span>
 <span class="go">      &quot;DEDUPE&quot;,</span>
@@ -293,13 +297,6 @@ inputs.</p>
 <span class="go">   ]</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="why-use-it">
-<h2>Why use it?<a class="headerlink" href="#why-use-it" title="Permalink to this headline">¶</a></h2>
-<p>If all you want to do is test whether your source data are even useful, spending days or weeks
-slogging through data restructuring could kill a project. If you already have a workflow and
-established software which includes Python and pandas, having to change your code every time your
-source data changes is really, really frustrating.</p>
 <p>There are two complex and time-consuming parts to preparing data for analysis: social, and technical.</p>
 <p>The social part requires multi-stakeholder engagement with source data-publishers, and with
 destination database users, to agree structural metadata. Without any agreement on data publication
@@ -337,6 +334,7 @@ your existing code.</p>
 <li class="toctree-l1"><a class="reference internal" href="installation.html">Dependencies, installation &amp; importing</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="installation.html#requirements">Requirements</a></li>
 <li class="toctree-l2"><a class="reference internal" href="installation.html#installing">Installing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#api-changes">API changes</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="tutorial_local_government_data.html">Tutorial: Local government data</a><ul>

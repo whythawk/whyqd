@@ -26,8 +26,13 @@ Once complete, a method file can be shared, along with your input data, and anyo
 import **whyqd** and validate your method to verify that your output data is the product of these
 inputs.
 
-What does that look like?
--------------------------
+Why use it?
+-----------
+
+If all you want to do is test whether your source data are even useful, spending days or weeks
+slogging through data restructuring could kill a project. If you already have a workflow and
+established software which includes Python and pandas, having to change your code every time your
+source data changes is really, really frustrating.
 
 If you want to go from a Cthulhu dataset like this:
 
@@ -54,7 +59,7 @@ To this:
 |  5 | Barbados               | HDI rank         | e,g, f      |   2008 |       31 |
 +----+------------------------+------------------+-------------+--------+----------+
 
-From a readable set of scripts to ensure that your process can be audited and repeated::
+With a readable set of scripts to ensure that your process can be audited and repeated::
 
    >>> scripts = [
          "DEBLANK",
@@ -72,14 +77,6 @@ From a readable set of scripts to ensure that your process can be audited and re
          "RENAME > 'year' < ['SPLIT_idx_12_1']",
          "RENAME > 'values' < ['PIVOT_LONGER_values_idx_10']",
       ]
-
-Why use it?
------------
-
-If all you want to do is test whether your source data are even useful, spending days or weeks
-slogging through data restructuring could kill a project. If you already have a workflow and
-established software which includes Python and pandas, having to change your code every time your
-source data changes is really, really frustrating.
 
 There are two complex and time-consuming parts to preparing data for analysis: social, and technical.
 

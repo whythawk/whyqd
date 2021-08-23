@@ -92,6 +92,7 @@
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Dependencies, installation &amp; importing</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#requirements">Requirements</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#installing">Installing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#api-changes">API changes</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="tutorial_local_government_data.html">Tutorial: Local government data</a></li>
@@ -218,6 +219,18 @@ as Pandas dataframes.</p>
 </div>
 <p>Your next steps are to build a target <a class="reference internal" href="schema.html"><span class="doc">Schema</span></a> to describe the data structure, and then import
 that into a <a class="reference internal" href="method.html"><span class="doc">Method</span></a>.</p>
+</div>
+<div class="section" id="api-changes">
+<h2>API changes<a class="headerlink" href="#api-changes" title="Permalink to this headline">¶</a></h2>
+<p>Version 0.5.0 introduced a new, simplified, API, along with script-based transformation actions. You can import and
+transform any saved <cite>method.json</cite> files with:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">SCHEMA</span> <span class="o">=</span> <span class="n">whyqd</span><span class="o">.</span><span class="n">Schema</span><span class="p">(</span><span class="n">source</span><span class="o">=</span><span class="n">SCHEMA_SOURCE</span><span class="p">)</span>
+<span class="n">schema_scripts</span> <span class="o">=</span> <span class="n">whyqd</span><span class="o">.</span><span class="n">parsers</span><span class="o">.</span><span class="n">LegacyScript</span><span class="p">()</span><span class="o">.</span><span class="n">parse_legacy_method</span><span class="p">(</span>
+                        <span class="n">version</span><span class="o">=</span><span class="s2">&quot;1&quot;</span><span class="p">,</span> <span class="n">schema</span><span class="o">=</span><span class="n">SCHEMA</span><span class="p">,</span> <span class="n">source_path</span><span class="o">=</span><span class="n">METHOD_SOURCE_V1</span>
+                <span class="p">)</span>
+</pre></div>
+</div>
+<p>Where SCHEMA_SOURCE is a path to your schema. Existing <cite>schema.json</cite> files should still work.</p>
 </div>
 </div>
 
