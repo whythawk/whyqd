@@ -1,6 +1,6 @@
 """
 .. module:: method
-:synopsis: Create and manage a wrangling method based on a predefined schema.
+   :synopsis: Create and manage a wrangling method based on a predefined schema.
 
 .. moduleauthor:: Gavin Chait <github.com/turukawa>
 
@@ -27,11 +27,10 @@ complete, structured JSON file which describes all aspects of the wrangling proc
 A method file can be shared, along with your input data, and anyone can then import `whyqd` and
 :doc:`validate` your method to verify that your output data is the product of these inputs.
 
-There are three worked tutorials to demonstrate how you can use `whyqd` to support source data curation transparency.
+There are two worked tutorials to demonstrate how you can use `whyqd` to support source data curation transparency.
 
-* :doc:`local_government_data_tutorial`
-* :doc:`world_bank_data_tutorial`
-* :doc:`cthulu_data_tutorial`
+* :doc:`Local-government data <tutorial_local_government_data>`
+* :doc:`Data produced by Cthulhu <tutorial_cthulhu_data>`
 
 The first step in the process is simply to declare a method, and assign a `schema` which it must conform to::
 
@@ -78,7 +77,7 @@ the changed file will be different from the original.
 You now have two options:
 
 * **Merge**: since you have multiple data sources, you can merge these into one so that you only need to develop one**
-    set of restructuring actions,
+  set of restructuring actions,
 * **Add actions**: or you can add individual actions, and then merge.
 
 .. warning:: **Whyqd** ensures **unambiguous** data curation. There are no "stranded" assets in a `method`. If you
@@ -127,7 +126,7 @@ Whether you needed to `merge` or not, you're now ready to assign restructuring a
 
 Restructure with Actions
 ------------------------
-:doc:`actions` are the core of the wrangling process and is the step where you define individual steps which must be
+:doc:`action_api` are the core of the wrangling process and is the step where you define individual steps which must be
 performed to restructure your data.
 
 There are two main types of restructuring actions:
@@ -149,7 +148,7 @@ Where, for each input data source:
  * `destination_column` is the schema field, or existing column, you wish to direct the results of your action,
  * `source_column` is the existing column you wish to restructure,
  * `modifier` are special characters, defined by the ACTION, which modify the way the values in the `source_colum`
-    are interpreted.
+   are interpreted.
  * `{action_script}` is a nested action.
 
 Schema-based actions can be nested. You can embed other schema-based actions inside them. In the case of `CALCULATE`,
@@ -174,7 +173,7 @@ Morph-based actions are not permitted to be nested, i.e. they are stand-alone ac
     actions - *especially* row-level actions - otherwise you are going to get extremely erratic results. **Whyqd** is
     built on `Pandas <https://pandas.pydata.org/>`_ and these examples lean heavily on that package.
 
-Reviw :doc:`actions`, and each action's documentation in the API to know how to work with them.
+Reviw :doc:`action_api` for each action's documentation in the API to know how to work with them.
 
 Assigning actions
 ^^^^^^^^^^^^^^^^^
@@ -194,12 +193,17 @@ names or the action will fail. You can review your progress at any point by runn
 
     >>> df = method.transform(source_data)
 
++----+----------------+----------------+------------------+------------------+----------+----------+----------+----------+----------+----------+------------------+------------------+------------------+------------------+------------------+------------------+------------------+------------------+------------------+------------------+------------------+------------------+------------------+------------------+------------------+------------------+------------------+------------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+----------+
 |    | Country Name   | Country Code   | Indicator Name   | Indicator Code   |   1960.0 |   1961.0 |   1962.0 |   1963.0 |   1964.0 |   1965.0 |           1966.0 |           1967.0 |           1968.0 |           1969.0 |           1970.0 |           1971.0 |           1972.0 |           1973.0 |           1974.0 |           1975.0 |           1976.0 |           1977.0 |           1978.0 |           1979.0 |           1980.0 |           1981.0 |           1982.0 |           1983.0 |          1984.0 |          1985.0 |          1986.0 |          1987.0 |          1988.0 |          1989.0 |          1990.0 |          1991.0 |          1992.0 |          1993.0 |          1994.0 |          1995.0 |          1996.0 |          1997.0 |          1998.0 |          1999.0 |          2000.0 |          2001.0 |          2002.0 |          2003.0 |          2004.0 |          2005.0 |          2006.0 |          2007.0 |          2008.0 |          2009.0 |          2010.0 |          2011.0 |          2012.0 |          2013.0 |          2014.0 |          2015.0 |          2016.0 |          2017.0 |          2018.0 |   2019.0 |
-|---:|:---------------|:---------------|:-----------------|:-----------------|---------:|---------:|---------:|---------:|---------:|---------:|-----------------:|-----------------:|-----------------:|-----------------:|-----------------:|-----------------:|-----------------:|-----------------:|-----------------:|-----------------:|-----------------:|-----------------:|-----------------:|-----------------:|-----------------:|-----------------:|-----------------:|-----------------:|----------------:|----------------:|----------------:|----------------:|----------------:|----------------:|----------------:|----------------:|----------------:|----------------:|----------------:|----------------:|----------------:|----------------:|----------------:|----------------:|----------------:|----------------:|----------------:|----------------:|----------------:|----------------:|----------------:|----------------:|----------------:|----------------:|----------------:|----------------:|----------------:|----------------:|----------------:|----------------:|----------------:|----------------:|----------------:|---------:|
++====+================+================+==================+==================+==========+==========+==========+==========+==========+==========+==================+==================+==================+==================+==================+==================+==================+==================+==================+==================+==================+==================+==================+==================+==================+==================+==================+==================+=================+=================+=================+=================+=================+=================+=================+=================+=================+=================+=================+=================+=================+=================+=================+=================+=================+=================+=================+=================+=================+=================+=================+=================+=================+=================+=================+=================+=================+=================+=================+=================+=================+=================+=================+==========+
 |  3 | Aruba          | ABW            | Urban population | SP.URB.TOTL      |    27526 |    28141 |    28532 |    28761 |    28924 |    29082 |  29253           |  29416           |  29575           |  29738           |  29900           |  30082           |  30275           |  30470           |  30605           |  30661           |  30615           |  30495           |  30353           |  30282           |  30332           |  30560           |  30943           |  31365           | 31676           | 31762           | 31560           | 31142           | 30753           | 30720           | 31273           | 32507           | 34116           | 35953           | 37719           | 39172           | 40232           | 40970           | 41488           | 41945           | 42444           | 43048           | 43670           | 44246           | 44669           | 44889           | 44882           | 44686           | 44378           | 44053           | 43778           | 43819           | 44057           | 44348           | 44665           | 44979           | 45296           | 45616           | 45948           |      nan |
++----+----------------+----------------+------------------+------------------+----------+----------+----------+----------+----------+----------+------------------+------------------+------------------+------------------+------------------+------------------+------------------+------------------+------------------+------------------+------------------+------------------+------------------+------------------+------------------+------------------+------------------+------------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+----------+
 |  4 | Afghanistan    | AFG            | Urban population | SP.URB.TOTL      |   755836 |   796272 |   839385 |   885228 |   934135 |   986074 |      1.04119e+06 |      1.09927e+06 |      1.16136e+06 |      1.22827e+06 |      1.30095e+06 |      1.37946e+06 |      1.46329e+06 |      1.55104e+06 |      1.64087e+06 |      1.73093e+06 |      1.82161e+06 |      1.91208e+06 |      1.99758e+06 |      2.07094e+06 |      2.13637e+06 |      2.18149e+06 |      2.20897e+06 |      2.22507e+06 |     2.24132e+06 |     2.2679e+06  |     2.30581e+06 |     2.35734e+06 |     2.43955e+06 |     2.50291e+06 |     2.62855e+06 |     2.82817e+06 |     3.09339e+06 |     3.39171e+06 |     3.67709e+06 |     3.91625e+06 |     4.09384e+06 |     4.22082e+06 |     4.32158e+06 |     4.43476e+06 |     4.5878e+06  |     4.79005e+06 |     5.03116e+06 |     5.29338e+06 |     5.5635e+06  |     5.82429e+06 |     6.05502e+06 |     6.26375e+06 |     6.46484e+06 |     6.68073e+06 |     6.92776e+06 |     7.21252e+06 |     7.52859e+06 |     7.86507e+06 |     8.20488e+06 |     8.53561e+06 |     8.85286e+06 |     9.16484e+06 |     9.4771e+06  |      nan |
++----+----------------+----------------+------------------+------------------+----------+----------+----------+----------+----------+----------+------------------+------------------+------------------+------------------+------------------+------------------+------------------+------------------+------------------+------------------+------------------+------------------+------------------+------------------+------------------+------------------+------------------+------------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+----------+
 |  5 | Angola         | AGO            | Urban population | SP.URB.TOTL      |   569222 |   597288 |   628381 |   660180 |   691532 |   721552 | 749534           | 776116           | 804107           | 837758           | 881022           | 944294           |      1.0282e+06  |      1.12462e+06 |      1.23071e+06 |      1.34355e+06 |      1.4626e+06  |      1.58871e+06 |      1.72346e+06 |      1.86883e+06 |      2.02677e+06 |      2.19787e+06 |      2.38256e+06 |      2.58126e+06 |     2.79453e+06 |     3.02227e+06 |     3.26559e+06 |     3.5251e+06  |     3.8011e+06  |     4.09291e+06 |     4.40096e+06 |     4.72563e+06 |     5.06788e+06 |     5.42758e+06 |     5.80661e+06 |     6.15946e+06 |     6.53015e+06 |     6.919e+06   |     7.32807e+06 |     7.75842e+06 |     8.212e+06   |     8.68876e+06 |     9.19086e+06 |     9.72127e+06 |     1.02845e+07 |     1.08828e+07 |     1.14379e+07 |     1.20256e+07 |     1.26446e+07 |     1.32911e+07 |     1.39631e+07 |     1.46603e+07 |     1.53831e+07 |     1.61303e+07 |     1.69008e+07 |     1.76915e+07 |     1.85022e+07 |     1.93329e+07 |     2.01847e+07 |      nan |
++----+----------------+----------------+------------------+------------------+----------+----------+----------+----------+----------+----------+------------------+------------------+------------------+------------------+------------------+------------------+------------------+------------------+------------------+------------------+------------------+------------------+------------------+------------------+------------------+------------------+------------------+------------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+----------+
 |  6 | Albania        | ALB            | Urban population | SP.URB.TOTL      |   493982 |   513592 |   530766 |   547928 |   565248 |   582374 | 599300           | 616687           | 635924           | 656733           | 677801           | 698647           | 720649           | 742333           | 764166           | 786668           | 809052           | 832109           | 854618           | 876974           | 902120           | 927513           | 954645           | 982645           |     1.01124e+06 |     1.04013e+06 |     1.0685e+06  |     1.09835e+06 |     1.12772e+06 |     1.16716e+06 |     1.19722e+06 |     1.19891e+06 |     1.20949e+06 |     1.21988e+06 |     1.23022e+06 |     1.2404e+06  |     1.25052e+06 |     1.26041e+06 |     1.27021e+06 |     1.27985e+06 |     1.28939e+06 |     1.29858e+06 |     1.32722e+06 |     1.35485e+06 |     1.38183e+06 |     1.4073e+06  |     1.43089e+06 |     1.4524e+06  |     1.47339e+06 |     1.49526e+06 |     1.51952e+06 |     1.54693e+06 |     1.57579e+06 |     1.6035e+06  |     1.63012e+06 |     1.6545e+06  |     1.68025e+06 |     1.70634e+06 |     1.72897e+06 |      nan |
++----+----------------+----------------+------------------+------------------+----------+----------+----------+----------+----------+----------+------------------+------------------+------------------+------------------+------------------+------------------+------------------+------------------+------------------+------------------+------------------+------------------+------------------+------------------+------------------+------------------+------------------+------------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+----------+
 
 Wide format is not exactly helpful, so we'll modify this::
 
@@ -209,12 +213,17 @@ Wide format is not exactly helpful, so we'll modify this::
     >>> method.add_actions(schema_script, source_data.uuid.hex, sheet_name = "Data")
     >>> df = method.transform(source_data)
 
-|    | Country Name   | Indicator Name   | Country Code   | Indicator Code   |   PIVOT_LONGER_names_idx_4 |   PIVOT_LONGER_values_idx_5 |
-|---:|:---------------|:-----------------|:---------------|:-----------------|---------------------------:|----------------------------:|
-|  0 | Aruba          | Urban population | ABW            | SP.URB.TOTL      |                       1960 |                       27526 |
-|  1 | Afghanistan    | Urban population | AFG            | SP.URB.TOTL      |                       1960 |                      755836 |
-|  2 | Angola         | Urban population | AGO            | SP.URB.TOTL      |                       1960 |                      569222 |
-|  3 | Albania        | Urban population | ALB            | SP.URB.TOTL      |                       1960 |                      493982 |
++----+----------------+------------------+------------------+----------------+----------------------------+-----------------------------+
+|    | Country Code   | Indicator Name   | Indicator Code   | Country Name   |   PIVOT_LONGER_names_idx_4 |   PIVOT_LONGER_values_idx_5 |
++====+================+==================+==================+================+============================+=============================+
+|  0 | ABW            | Urban population | SP.URB.TOTL      | Aruba          |                       1960 |                       27526 |
++----+----------------+------------------+------------------+----------------+----------------------------+-----------------------------+
+|  1 | AFG            | Urban population | SP.URB.TOTL      | Afghanistan    |                       1960 |                      755836 |
++----+----------------+------------------+------------------+----------------+----------------------------+-----------------------------+
+|  2 | AGO            | Urban population | SP.URB.TOTL      | Angola         |                       1960 |                      569222 |
++----+----------------+------------------+------------------+----------------+----------------------------+-----------------------------+
+|  3 | ALB            | Urban population | SP.URB.TOTL      | Albania        |                       1960 |                      493982 |
++----+----------------+------------------+------------------+----------------+----------------------------+-----------------------------+
 
 It may seem daunting at first, but the actions are designed to give you all the power of `pandas` while allowing you
 to focus on the complexities of restructuring your data.
@@ -250,7 +259,7 @@ or::
 Where assignment terms include:
 
  * `destination_field` is a `FieldModel` and is the destination column. The `::` linked `CategoryModel` defines what
-    term the source values are to be assigned.
+   term the source values are to be assigned.
  * `list` of `CategoryModel` - unique values from `ColumnModel` - will be assigned `::CategoryModel`.
  * Values from the `source_column` `ColumnModel` are treated as boolean `True` or `False`, defined by `::bool`.
 
@@ -303,7 +312,7 @@ Where:
  * `filter_column`: the specific column for filtering,
  * `source_column`: a group-by column for filtering the latest data only of a data series,
  * `date`: a specific date reference, in ISO `YYYY-MM-DD` format. Times are not filtered, so treat with caution if your
-    filter requirements are time-based.
+   filter requirements are time-based.
 
 There are three filters: before a specified date, after a specified date, or latest for a specified group.
 
@@ -352,7 +361,7 @@ A citation is a special set of fields, with options for:
 * **publisher**: The publisher's name,
 * **institution**: The institution that was involved in the publishing, but not necessarily the publisher,
 * **doi**: The doi field is used to store the digital object identifier (DOI) of a journal article, conference paper,
-    book chapter or book. It is a non-standard BibTeX field. It's recommended to simply use the DOI, and not a DOI link,
+  book chapter or book. It is a non-standard BibTeX field. It's recommended to simply use the DOI, and not a DOI link,
 * **month**: The month of publication (or, if unpublished, the month of creation). Use three-letter abbreviation,
 * **year**: The year of publication (or, if unpublished, the year of creation),
 * **note**: Miscellaneous extra information.
@@ -507,10 +516,11 @@ class Method:
     # MANAGE INPUT DATA
     #########################################################################################
 
-    def add_data(self, source: Union[DataSourceModel, List[DataSourceModel]]) -> None:
-        """Provide a dictionary conforming to the DataSourceModel data for wrangling.
+    def add_data(self, source: Union[str, List[str], DataSourceModel, List[DataSourceModel]]) -> None:
+        """Provide either a path string, list of path strings, or a dictionary conforming to the DataSourceModel data
+        for wrangling.
 
-        Each source dictionary requires the minimum of:
+        If conforming to the DataSourceModel, each source dictionary requires the minimum of::
 
             {
                 "path": "path/to/source/file"
@@ -520,12 +530,14 @@ class Method:
 
         Parameters
         ----------
-        source: DataSourceModel or list of DataSourceModel
+        source: str, list of str, DataSourceModel, or list of DataSourceModel
             A dictionary conforming to the DataSourceModel. Each path can be to a filename, or a url.
         """
         if not isinstance(source, list):
             source = [source]
         for data in source:
+            if isinstance(data, str):
+                data = {"path": data}
             data = DataSourceModel(**data)
             # Check if the filename is remote
             file_root = "/".join(data.path.split("/")[:-1])

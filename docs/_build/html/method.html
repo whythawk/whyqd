@@ -1,41 +1,47 @@
 
 
 <!DOCTYPE html>
-<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8">
+  <meta charset="utf-8" />
   
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>Method &mdash; whyqd 0.1.0 documentation</title>
+  <title>Method &mdash; whyqd 0.5.0 documentation</title>
   
-
-  
-  
-  
-  
-
-  
-  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
-  
-    
-      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
-        <script src="_static/jquery.js"></script>
-        <script src="_static/underscore.js"></script>
-        <script src="_static/doctools.js"></script>
-        <script src="_static/language_data.js"></script>
-    
-    <script type="text/javascript" src="_static/js/theme.js"></script>
-
-    
 
   
   <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
   <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Roadmap" href="roadmap.html" />
+    <link rel="next" title="Validate" href="validate.html" />
     <link rel="prev" title="Schema" href="schema.html" /> 
 </head>
 
@@ -73,6 +79,7 @@
           
         </div>
 
+        
         <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
           
             
@@ -80,48 +87,57 @@
               
             
             
-              <p class="caption"><span class="caption-text">Getting started</span></p>
+              <p class="caption" role="heading"><span class="caption-text">Getting started</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="installation.html">Dependencies, installation &amp; importing</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tutorial.html">Full worked tutorial</a></li>
-<li class="toctree-l1"><a class="reference internal" href="morph_tutorial.html">Table morph tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial_local_government_data.html">Tutorial: Local government data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial_cthulhu_data.html">Tutorial: Cthulhu data</a></li>
 <li class="toctree-l1"><a class="reference internal" href="citation.html">Distribution &amp; Citation of methods and data</a></li>
 </ul>
-<p class="caption"><span class="caption-text">Creating and managing Schemas</span></p>
+<p class="caption" role="heading"><span class="caption-text">Creating and managing Schemas</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="schema.html">Schema</a></li>
 </ul>
-<p class="caption"><span class="caption-text">Wrangling with Methods</span></p>
+<p class="caption" role="heading"><span class="caption-text">Wrangling with Methods</span></p>
 <ul class="current">
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Method</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#help">Help</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#import-source-data">Import source data</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#merge">Merge</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#structure">Structure</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#category">Category</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#filter">Filter</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#restructure-with-actions">Restructure with Actions</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#schema-based-actions">Schema-based actions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#morph-based-actions">Morph-based actions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#assigning-actions">Assigning actions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#assigning-categories">Assigning categories</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#assigning-filters">Assigning filters</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#build">Build</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#validation">Validation</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#transform">Transform</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#citation">Citation</a></li>
 </ul>
 </li>
 </ul>
-<p class="caption"><span class="caption-text">What next?</span></p>
+<p class="caption" role="heading"><span class="caption-text">Validate an existing Method</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="validate.html">Validate</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">What next?</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="roadmap.html">Roadmap</a></li>
 <li class="toctree-l1"><a class="reference internal" href="contributing.html">Background and Contributing</a></li>
 </ul>
-<p class="caption"><span class="caption-text">Reference API</span></p>
+<p class="caption" role="heading"><span class="caption-text">Reference API</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="field_api.html">Field</a></li>
 <li class="toctree-l1"><a class="reference internal" href="schema_api.html">Schema</a></li>
-<li class="toctree-l1"><a class="reference internal" href="action_api.html">Action</a></li>
-<li class="toctree-l1"><a class="reference internal" href="morph_api.html">Morph</a></li>
 <li class="toctree-l1"><a class="reference internal" href="method_api.html">Method</a></li>
+<li class="toctree-l1"><a class="reference internal" href="action_api.html">Actions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="validate_api.html">Validate</a></li>
 </ul>
 
             
           
         </div>
+        
       </div>
     </nav>
 
@@ -156,18 +172,20 @@
 
 
 
+
+
 <div role="navigation" aria-label="breadcrumbs navigation">
 
   <ul class="wy-breadcrumbs">
     
-      <li><a href="index.html">Docs</a> &raquo;</li>
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
         
       <li>Method</li>
     
     
       <li class="wy-breadcrumbs-aside">
         
-            
+          
             <a href="_sources/method.rst.txt" rel="nofollow"> View page source</a>
           
         
@@ -181,298 +199,839 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <span class="target" id="module-method.method"></span><span class="target" id="module-method"></span><div class="section" id="method">
+  <span class="target" id="module-whyqd.method.method"></span><span class="target" id="module-method"></span><div class="section" id="method">
 <h1>Method<a class="headerlink" href="#method" title="Permalink to this headline">¶</a></h1>
-<p>Once you have created your <cite>Schema</cite> it can be imported and used to develop a wrangling <cite>method</cite>, a
+<p><a class="reference external" href="https://whyqd.com">Whyqd</a> supports trust in research by ensuring complete and unambiquous probity in the curation of
+all source data.</p>
+<p><strong>Data probity</strong> refers to the following criteria:</p>
+<ul class="simple">
+<li><p>Identifiable input source data,</p></li>
+<li><p>Transparent methods for restructuring of that source data into the data used to support research analysis,</p></li>
+<li><p>Accessible restructured data used to support research conclusions,</p></li>
+<li><p>A repeatable, auditable curation process which produces the same data.</p></li>
+</ul>
+<p>Researchers may disagree on conclusions derived from analytical results. What they should not have cause for
+disagreement on is the probity of the underlying data used to produce those analytical results.</p>
+<p>Once you have created your <a class="reference internal" href="schema.html"><span class="doc">Schema</span></a> it can be imported and used to develop a wrangling <cite>method</cite>, a
 complete, structured JSON file which describes all aspects of the wrangling process. There is no
 ‘magic’. Only what is defined in the method will be executed during transformation.</p>
-<p>A method file can be shared, along with your input data, and anyone can import <strong>whyqd</strong> and
-validate your method to verify that your output data is the product of these inputs:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">whyqd</span> <span class="k">as</span> <span class="nn">_w</span>
-<span class="n">method</span> <span class="o">=</span> <span class="n">_w</span><span class="o">.</span><span class="n">Method</span><span class="p">(</span><span class="n">source</span><span class="p">,</span> <span class="n">directory</span><span class="o">=</span><span class="n">DIRECTORY</span><span class="p">,</span> <span class="n">input_data</span><span class="o">=</span><span class="n">INPUT_DATA</span><span class="p">)</span>
+<p>A method file can be shared, along with your input data, and anyone can then import <cite>whyqd</cite> and
+<a class="reference internal" href="validate.html"><span class="doc">Validate</span></a> your method to verify that your output data is the product of these inputs.</p>
+<p>There are two worked tutorials to demonstrate how you can use <cite>whyqd</cite> to support source data curation transparency.</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="tutorial_local_government_data.html"><span class="doc">Local-government data</span></a></p></li>
+<li><p><a class="reference internal" href="tutorial_cthulhu_data.html"><span class="doc">Data produced by Cthulhu</span></a></p></li>
+</ul>
+<p>The first step in the process is simply to declare a method, and assign a <cite>schema</cite> which it must conform to:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">whyqd</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">SCHEMA</span> <span class="o">=</span> <span class="n">whyqd</span><span class="o">.</span><span class="n">Schema</span><span class="p">(</span><span class="n">source</span><span class="o">=</span><span class="n">SCHEMA_SOURCE</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">method</span> <span class="o">=</span> <span class="n">whyqd</span><span class="o">.</span><span class="n">Method</span><span class="p">(</span><span class="n">directory</span><span class="o">=</span><span class="n">DIRECTORY</span><span class="p">,</span> <span class="n">schema</span><span class="o">=</span><span class="n">SCHEMA</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">method_details</span> <span class="o">=</span> <span class="p">{</span>
+<span class="go">    &quot;name&quot;: &quot;urban_population_method&quot;,</span>
+<span class="go">    &quot;title&quot;: &quot;Urban population method&quot;,</span>
+<span class="go">    &quot;description&quot;: &quot;Methods converting World Bank Urban Population source data into our analytical input data.&quot;,</span>
+<span class="go">}</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">method</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">method_details</span><span class="p">)</span>
 </pre></div>
 </div>
-<p><cite>source</cite> is the full path to the schema you wish to use, and <cite>DIRECTORY</cite> will be your working
-directory for saved data, imports, working data and output.</p>
-<p><cite>INPUT_DATA</cite> is a list of filenames or file sources. This is optional at this stage, and you can
-add and edit your sources later. File sources can include URI’s.</p>
-<div class="section" id="help">
-<h2>Help<a class="headerlink" href="#help" title="Permalink to this headline">¶</a></h2>
-<p>To get help, type:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">method</span><span class="o">.</span><span class="n">help</span><span class="p">()</span>
-<span class="c1"># or</span>
-<span class="n">method</span><span class="o">.</span><span class="n">help</span><span class="p">(</span><span class="n">option</span><span class="p">)</span>
+<p>Where:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><cite>DIRECTORY</cite> is your working directory to create your method and manage data files,</p></li>
+<li><p><cite>SCHEMA_SOURCE</cite> is the path to the <cite>schema.json</cite> file,</p></li>
+</ul>
+</div></blockquote>
+<p>Greater detail can be found in the complete API reference. What follows are the high-level steps required to develop
+your <cite>method</cite>.</p>
+<div class="section" id="import-source-data">
+<h2>Import source data<a class="headerlink" href="#import-source-data" title="Permalink to this headline">¶</a></h2>
+<p>Assuming you have a list of input source data you wish to restructure:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">INPUT_DATA</span> <span class="o">=</span> <span class="p">[</span>
+<span class="go">    SOURCE_DIRECTORY + &quot;raw_E06000044_014_0.XLSX&quot;,</span>
+<span class="go">    SOURCE_DIRECTORY + &quot;raw_E06000044_014_1.XLSX&quot;,</span>
+<span class="go">    SOURCE_DIRECTORY + &quot;raw_E06000044_014_2.XLSX&quot;,</span>
+<span class="go">]</span>
 </pre></div>
 </div>
-<p>Where <cite>option</cite> can be any of:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="s2">&quot;status&quot;</span>
-<span class="s2">&quot;merge&quot;</span>
-<span class="s2">&quot;structure&quot;</span>
-<span class="s2">&quot;category&quot;</span>
-<span class="s2">&quot;filter&quot;</span>
+<p>Data must conform to the <cite>DataSourceModel</cite>, which requires a minimum of a <cite>path</cite> field declaration:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">input_data</span> <span class="o">=</span> <span class="p">[{</span><span class="s2">&quot;path&quot;</span><span class="p">:</span> <span class="n">d</span><span class="p">}</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">INPUT_DATA</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">method</span><span class="o">.</span><span class="n">add_data</span><span class="p">(</span><span class="n">source</span><span class="o">=</span><span class="n">input_data</span><span class="p">)</span>
 </pre></div>
 </div>
-<p><cite>status</cite> will return the current method status, and your mostly likely next steps. The other options
-will return methodology, and output of that option’s result (if appropriate).</p>
-<p>These are the steps to create a complete method:</p>
+<p>These data will be imported to your working <cite>DIRECTORY</cite> and a unique <cite>checksum</cite> assigned to each data. The checksum is
+a hash based on <a class="reference external" href="https://en.wikipedia.org/wiki/BLAKE_(hash_function)">BLAKE2b</a>. These input data are never changed
+during the restructuring process, and the hash is based on the entire file. If anyone opens these files and resaves
+them - even if they make no further changes - metadata and file structure will change, and a later hash generated on
+the changed file will be different from the original.</p>
+<p>You now have two options:</p>
+<ul class="simple">
+<li><p><strong>Merge</strong>: since you have multiple data sources, you can merge these into one so that you only need to develop one**
+set of restructuring actions,</p></li>
+<li><p><strong>Add actions</strong>: or you can add individual actions, and then merge.</p></li>
+</ul>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p><strong>Whyqd</strong> ensures <strong>unambiguous</strong> data curation. There are no “stranded” assets in a <cite>method</cite>. If you
+import an Excel spreadsheet which happens to have multiple sheets, each of these sheets as added as a separate
+<cite>input_data</cite> reference. It is up to you to delete input data you have no intention of using.</p>
+</div>
 </div>
 <div class="section" id="merge">
 <h2>Merge<a class="headerlink" href="#merge" title="Permalink to this headline">¶</a></h2>
-<p><cite>merge</cite> will join, in order from right to left, your input data on a common column. You can modify
-your input data at any time. Note, however, that this will reset your status and require
-revalidation of all subsequent steps.</p>
-<p>To add input data, where <cite>input_data</cite> is a filename / source, or list of filenames / sources:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">method</span><span class="o">.</span><span class="n">add_input_data</span><span class="p">(</span><span class="n">input_data</span><span class="p">)</span>
+<p><cite>merge</cite> will join, in order from right to left, your input data on a <cite>key</cite> column. Merging will generate a <cite>working_data</cite>
+reference.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>If you only have one input source file, you don’t need to merge. However, if you have multiple sources, then
+a merge is <strong>mandatory</strong> or your build will fail.</p>
+</div>
+<p>During import, each data source was assigned a unique reference
+<cite>UUID &lt;https://en.wikipedia.org/wiki/Universally_unique_identifier&gt;</cite>&gt;_. If a single Excel source file had multiple
+sheets, then uniquely-identifying each is a combination of the <cite>UUID</cite> and its <cite>sheet_name</cite>.</p>
+<p>To merge, you create a special MERGE <cite>action</cite>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="s2">&quot;MERGE &lt; [&#39;key_column&#39;::&#39;source_hex&#39;::&#39;sheet_name&#39;, etc.]&quot;</span>
 </pre></div>
 </div>
-<p>To remove input data, where <cite>id</cite> is the unique id for that input data:</p>
-<blockquote>
-<div><p>method.remove_input_data(id)</p>
-</div></blockquote>
-<p>To display a nicely-formatted output for review:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># Permits horizontal scroll-bar in Jupyter Notebook</span>
-<span class="kn">from</span> <span class="nn">IPython.core.display</span> <span class="kn">import</span> <span class="n">HTML</span>
-<span class="n">display</span><span class="p">(</span><span class="n">HTML</span><span class="p">(</span><span class="s2">&quot;&lt;style&gt;pre { white-space: pre !important; }&lt;/style&gt;&quot;</span><span class="p">))</span>
-
-<span class="nb">print</span><span class="p">(</span><span class="n">method</span><span class="o">.</span><span class="n">print_input_data</span><span class="p">())</span>
-
-<span class="n">Data</span> <span class="nb">id</span><span class="p">:</span> <span class="n">c8944fed</span><span class="o">-</span><span class="mf">4e8</span><span class="n">c</span><span class="o">-</span><span class="mi">4</span><span class="n">cbd</span><span class="o">-</span><span class="mi">807</span><span class="n">d</span><span class="o">-</span><span class="mi">53</span><span class="n">fcc96b7018</span>
-
-<span class="o">====</span>  <span class="o">====================</span>  <span class="o">========================</span>  <span class="o">=================================</span>  <span class="o">=============================</span>  <span class="o">=======================================================</span>  <span class="o">=============================</span>  <span class="o">===========================</span>
-<span class="o">..</span>  <span class="n">Account</span> <span class="n">Start</span> <span class="n">date</span>      <span class="n">Current</span> <span class="n">Rateable</span> <span class="n">Value</span>  <span class="n">Current</span> <span class="n">Relief</span> <span class="n">Award</span> <span class="n">Start</span> <span class="n">Date</span>    <span class="n">Current</span> <span class="n">Relief</span> <span class="n">Type</span>            <span class="n">Full</span> <span class="n">Property</span> <span class="n">Address</span>                                    <span class="n">Primary</span> <span class="n">Liable</span> <span class="n">party</span> <span class="n">name</span>        <span class="n">Property</span> <span class="n">Reference</span> <span class="n">Number</span>
-<span class="o">====</span>  <span class="o">====================</span>  <span class="o">========================</span>  <span class="o">=================================</span>  <span class="o">=============================</span>  <span class="o">=======================================================</span>  <span class="o">=============================</span>  <span class="o">===========================</span>
-<span class="mi">0</span>  <span class="mi">2003</span><span class="o">-</span><span class="mi">05</span><span class="o">-</span><span class="mi">14</span> <span class="mi">00</span><span class="p">:</span><span class="mi">00</span><span class="p">:</span><span class="mi">00</span>                       <span class="mi">8600</span>  <span class="mi">2019</span><span class="o">-</span><span class="mi">04</span><span class="o">-</span><span class="mi">01</span> <span class="mi">00</span><span class="p">:</span><span class="mi">00</span><span class="p">:</span><span class="mi">00</span>                <span class="n">Retail</span> <span class="n">Discount</span>                <span class="n">Ground</span> <span class="n">Floor</span><span class="p">,</span> <span class="mi">25</span><span class="p">,</span> <span class="n">Albert</span> <span class="n">Road</span><span class="p">,</span> <span class="n">Southsea</span><span class="p">,</span> <span class="n">Hants</span><span class="p">,</span> <span class="n">PO5</span> <span class="mi">2</span><span class="n">SE</span>  <span class="n">Personal</span> <span class="n">details</span> <span class="ow">not</span> <span class="n">supplied</span>                 <span class="mi">177500080710</span>
-<span class="mi">1</span>  <span class="mi">2003</span><span class="o">-</span><span class="mi">07</span><span class="o">-</span><span class="mi">28</span> <span class="mi">00</span><span class="p">:</span><span class="mi">00</span><span class="p">:</span><span class="mi">00</span>                       <span class="mi">9900</span>  <span class="mi">2005</span><span class="o">-</span><span class="mi">04</span><span class="o">-</span><span class="mi">01</span> <span class="mi">00</span><span class="p">:</span><span class="mi">00</span><span class="p">:</span><span class="mi">00</span>                <span class="n">Small</span> <span class="n">Business</span> <span class="n">Relief</span> <span class="n">England</span>  <span class="n">Ground</span> <span class="n">Floor</span><span class="p">,</span> <span class="mi">102</span><span class="p">,</span> <span class="n">London</span> <span class="n">Road</span><span class="p">,</span> <span class="n">Portsmouth</span><span class="p">,</span> <span class="n">PO2</span> <span class="mi">0</span><span class="n">LZ</span>      <span class="n">Personal</span> <span class="n">details</span> <span class="ow">not</span> <span class="n">supplied</span>                 <span class="mi">177504942310</span>
-<span class="mi">2</span>  <span class="mi">2003</span><span class="o">-</span><span class="mi">07</span><span class="o">-</span><span class="mi">08</span> <span class="mi">00</span><span class="p">:</span><span class="mi">00</span><span class="p">:</span><span class="mi">00</span>                       <span class="mi">6400</span>  <span class="mi">2005</span><span class="o">-</span><span class="mi">04</span><span class="o">-</span><span class="mi">01</span> <span class="mi">00</span><span class="p">:</span><span class="mi">00</span><span class="p">:</span><span class="mi">00</span>                <span class="n">Small</span> <span class="n">Business</span> <span class="n">Relief</span> <span class="n">England</span>  <span class="mi">33</span><span class="p">,</span> <span class="n">Festing</span> <span class="n">Road</span><span class="p">,</span> <span class="n">Southsea</span><span class="p">,</span> <span class="n">Hants</span><span class="p">,</span> <span class="n">PO4</span> <span class="mi">0</span><span class="n">NG</span>               <span class="n">Personal</span> <span class="n">details</span> <span class="ow">not</span> <span class="n">supplied</span>                 <span class="mi">177502823510</span>
-<span class="o">====</span>  <span class="o">====================</span>  <span class="o">========================</span>  <span class="o">=================================</span>  <span class="o">=============================</span>  <span class="o">=======================================================</span>  <span class="o">=============================</span>  <span class="o">===========================</span>
-
-<span class="n">Data</span> <span class="nb">id</span><span class="p">:</span> <span class="n">a9ad7716</span><span class="o">-</span><span class="n">f777</span><span class="o">-</span><span class="mi">4752</span><span class="o">-</span><span class="mi">8627</span><span class="o">-</span><span class="n">dd6206bede65</span>
-
-<span class="o">====</span>  <span class="o">===================================</span>  <span class="o">=================================</span>  <span class="o">========================</span>  <span class="o">================================================================</span>  <span class="o">=======================================================</span>  <span class="o">===========================</span>
-<span class="o">..</span>  <span class="n">Current</span> <span class="n">Prop</span> <span class="n">Exemption</span> <span class="n">Start</span> <span class="n">Date</span>    <span class="n">Current</span> <span class="n">Property</span> <span class="n">Exemption</span> <span class="n">Code</span>      <span class="n">Current</span> <span class="n">Rateable</span> <span class="n">Value</span>  <span class="n">Full</span> <span class="n">Property</span> <span class="n">Address</span>                                             <span class="n">Primary</span> <span class="n">Liable</span> <span class="n">party</span> <span class="n">name</span>                                  <span class="n">Property</span> <span class="n">Reference</span> <span class="n">Number</span>
-<span class="o">====</span>  <span class="o">===================================</span>  <span class="o">=================================</span>  <span class="o">========================</span>  <span class="o">================================================================</span>  <span class="o">=======================================================</span>  <span class="o">===========================</span>
-<span class="mi">0</span>  <span class="mi">2019</span><span class="o">-</span><span class="mi">11</span><span class="o">-</span><span class="mi">08</span> <span class="mi">00</span><span class="p">:</span><span class="mi">00</span><span class="p">:</span><span class="mi">00</span>                  <span class="n">LOW</span> <span class="n">RV</span>                                                  <span class="mi">700</span>  <span class="n">Advertising</span> <span class="n">Right</span><span class="p">,</span> <span class="mi">29</span> <span class="n">Albert</span> <span class="n">Road</span><span class="p">,</span> <span class="n">Portsmouth</span><span class="p">,</span> <span class="n">PO5</span> <span class="mi">2</span><span class="n">SE</span>            <span class="n">Personal</span> <span class="n">details</span> <span class="ow">not</span> <span class="n">supplied</span>                                           <span class="mi">177512281010</span>
-<span class="mi">1</span>  <span class="mi">2019</span><span class="o">-</span><span class="mi">09</span><span class="o">-</span><span class="mi">23</span> <span class="mi">00</span><span class="p">:</span><span class="mi">00</span><span class="p">:</span><span class="mi">00</span>                  <span class="n">INDUSTRIAL</span>                                            <span class="mi">11000</span>  <span class="mi">24</span><span class="p">,</span> <span class="n">Ordnance</span> <span class="n">Court</span><span class="p">,</span> <span class="n">Ackworth</span> <span class="n">Road</span><span class="p">,</span> <span class="n">Portsmouth</span><span class="p">,</span> <span class="n">PO3</span> <span class="mi">5</span><span class="n">RZ</span>            <span class="n">Personal</span> <span class="n">details</span> <span class="ow">not</span> <span class="n">supplied</span>                                           <span class="mi">177590107810</span>
-<span class="mi">2</span>  <span class="mi">2019</span><span class="o">-</span><span class="mi">09</span><span class="o">-</span><span class="mi">13</span> <span class="mi">00</span><span class="p">:</span><span class="mi">00</span><span class="p">:</span><span class="mi">00</span>                  <span class="n">EPRI</span>                                                  <span class="mi">26500</span>  <span class="n">Unit</span> <span class="mi">12</span><span class="p">,</span> <span class="n">Admiral</span> <span class="n">Park</span><span class="p">,</span> <span class="n">Airport</span> <span class="n">Service</span> <span class="n">Road</span><span class="p">,</span> <span class="n">Portsmouth</span><span class="p">,</span> <span class="n">PO3</span> <span class="mi">5</span><span class="n">RQ</span>  <span class="n">Legal</span> <span class="o">&amp;</span> <span class="n">General</span> <span class="n">Property</span> <span class="n">Partners</span> <span class="p">(</span><span class="n">Industrial</span> <span class="n">Fund</span><span class="p">)</span> <span class="n">Ltd</span>                 <span class="mi">177500058410</span>
-<span class="o">====</span>  <span class="o">===================================</span>  <span class="o">=================================</span>  <span class="o">========================</span>  <span class="o">================================================================</span>  <span class="o">=======================================================</span>  <span class="o">===========================</span>
-
-<span class="n">Data</span> <span class="nb">id</span><span class="p">:</span> <span class="mf">1e5</span><span class="n">a165d</span><span class="o">-</span><span class="mf">5e83</span><span class="o">-</span><span class="mi">4</span><span class="n">eec</span><span class="o">-</span><span class="mi">9781</span><span class="o">-</span><span class="n">d450a1d3f5f1</span>
-
-<span class="o">====</span>  <span class="o">====================</span>  <span class="o">========================</span>  <span class="o">=========================================================================</span>  <span class="o">==========================================</span>  <span class="o">=================</span>
-<span class="o">..</span>  <span class="n">Account</span> <span class="n">Start</span> <span class="n">date</span>      <span class="n">Current</span> <span class="n">Rateable</span> <span class="n">Value</span>  <span class="n">Full</span> <span class="n">Property</span> <span class="n">Address</span>                                                      <span class="n">Primary</span> <span class="n">Liable</span> <span class="n">party</span> <span class="n">name</span>                     <span class="n">Property</span> <span class="n">ref</span> <span class="n">no</span>
-<span class="o">====</span>  <span class="o">====================</span>  <span class="o">========================</span>  <span class="o">=========================================================================</span>  <span class="o">==========================================</span>  <span class="o">=================</span>
-<span class="mi">0</span>  <span class="mi">2003</span><span class="o">-</span><span class="mi">11</span><span class="o">-</span><span class="mi">10</span> <span class="mi">00</span><span class="p">:</span><span class="mi">00</span><span class="p">:</span><span class="mi">00</span>                      <span class="mi">37000</span>  <span class="n">Unit</span> <span class="mi">7</span><span class="n">b</span><span class="p">,</span> <span class="n">The</span> <span class="n">Pompey</span> <span class="n">Centre</span><span class="p">,</span> <span class="n">Dickinson</span> <span class="n">Road</span><span class="p">,</span> <span class="n">Southsea</span><span class="p">,</span> <span class="n">Hants</span><span class="p">,</span> <span class="n">PO4</span> <span class="mi">8</span><span class="n">SH</span>       <span class="n">City</span> <span class="n">Electrical</span> <span class="n">Factors</span>  <span class="n">Ltd</span>                     <span class="mi">177200066910</span>
-<span class="mi">1</span>  <span class="mi">2003</span><span class="o">-</span><span class="mi">11</span><span class="o">-</span><span class="mi">08</span> <span class="mi">00</span><span class="p">:</span><span class="mi">00</span><span class="p">:</span><span class="mi">00</span>                     <span class="mi">594000</span>  <span class="n">Express</span> <span class="n">By</span> <span class="n">Holiday</span> <span class="n">Inn</span><span class="p">,</span> <span class="n">The</span> <span class="n">Plaza</span><span class="p">,</span> <span class="n">Gunwharf</span> <span class="n">Quays</span><span class="p">,</span> <span class="n">Portsmouth</span><span class="p">,</span> <span class="n">PO1</span> <span class="mi">3</span><span class="n">FD</span>     <span class="n">Kew</span> <span class="n">Green</span> <span class="n">Hotels</span> <span class="p">(</span><span class="n">Portsmouth</span> <span class="n">Lrg1</span><span class="p">)</span> <span class="n">Limited</span>       <span class="mi">177209823010</span>
-<span class="mi">2</span>  <span class="mi">1994</span><span class="o">-</span><span class="mi">12</span><span class="o">-</span><span class="mi">25</span> <span class="mi">00</span><span class="p">:</span><span class="mi">00</span><span class="p">:</span><span class="mi">00</span>                      <span class="mi">13250</span>  <span class="n">Unit</span> <span class="mi">2</span><span class="n">cd</span><span class="p">,</span> <span class="n">Shawcross</span> <span class="n">Industrial</span> <span class="n">Estate</span><span class="p">,</span> <span class="n">Ackworth</span> <span class="n">Road</span><span class="p">,</span> <span class="n">Portsmouth</span><span class="p">,</span> <span class="n">PO3</span> <span class="mi">5</span><span class="n">JP</span>  <span class="n">Personal</span> <span class="n">details</span> <span class="ow">not</span> <span class="n">supplied</span>                    <span class="mi">177500013310</span>
-<span class="o">====</span>  <span class="o">====================</span>  <span class="o">========================</span>  <span class="o">=========================================================================</span>  <span class="o">==========================================</span>  <span class="o">=================</span>
-</pre></div>
-</div>
-<p>Once you’re satisfied with your <cite>input_data</cite>, prepare an <cite>order_and_key</cite> list to define the merge
-order, and a unique key for merging. Each input data file needs to be defined in a list as a dict:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="nb">id</span><span class="p">:</span> <span class="n">input_data</span> <span class="nb">id</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="n">column_name</span> <span class="k">for</span> <span class="n">merge</span><span class="p">}</span>
-</pre></div>
-</div>
-<p>Run the merge by calling (and, optionally - if you need to overwrite an existing merge - setting
-<cite>overwrite_working=True</cite>):</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">method</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">order_and_key</span><span class="p">,</span> <span class="n">overwrite_working</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-</pre></div>
-</div>
-<p>To view your existing <cite>input_data</cite> as a JSON output (or the <cite>print_input_data</cite> as above):</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">method</span><span class="o">.</span><span class="n">input_data</span>
-</pre></div>
-</div>
-</div>
-<div class="section" id="structure">
-<h2>Structure<a class="headerlink" href="#structure" title="Permalink to this headline">¶</a></h2>
-<p><cite>structure</cite> is the core of the wrangling process and is the step where you define the actions
-which must be performed to restructure your working data.</p>
-<p>Create a list of methods of the form:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
-        <span class="s2">&quot;schema_field1&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;action&quot;</span><span class="p">,</span> <span class="s2">&quot;column_name1&quot;</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;action&quot;</span><span class="p">,</span> <span class="s2">&quot;column_name2&quot;</span><span class="p">]],</span>
-        <span class="s2">&quot;schema_field2&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;action&quot;</span><span class="p">,</span> <span class="s2">&quot;column_name1&quot;</span><span class="p">,</span> <span class="s2">&quot;modifier&quot;</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;action&quot;</span><span class="p">,</span> <span class="s2">&quot;column_name2&quot;</span><span class="p">]],</span>
-<span class="p">}</span>
-</pre></div>
-</div>
-<p>The format for defining a <cite>structure</cite> is as follows, and - yes - this does permit you to create
-nested wrangling tasks:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">[</span><span class="n">action</span><span class="p">,</span> <span class="n">column_name</span><span class="p">,</span> <span class="p">[</span><span class="n">action</span><span class="p">,</span> <span class="n">column_name</span><span class="p">]]</span>
-</pre></div>
-</div>
-<p>e.g.:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">[</span><span class="s2">&quot;CATEGORISE&quot;</span><span class="p">,</span> <span class="s2">&quot;+&quot;</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;ORDER&quot;</span><span class="p">,</span> <span class="s2">&quot;column_1&quot;</span><span class="p">,</span> <span class="s2">&quot;column_2&quot;</span><span class="p">]]</span>
-</pre></div>
-</div>
-<p>This permits the creation of quite expressive wrangling structures from simple building blocks.</p>
-<p>Every task structure must start with an action to describe what to do with the following terms.
-There are several “actions” which can be performed, and some require action modifiers:</p>
-<blockquote>
-<div><ul>
-<li><p>NEW: Add in a new column, and populate it according to the value in the “new” constraint</p></li>
-<li><p>RENAME: If only 1 item in list of source fields, then rename that field</p></li>
-<li><p>ORDER: If &gt; 1 item in list of source fields, pick the value from the column, replacing each value with one from the next in the order of the provided fields</p></li>
-<li><p>ORDER_NEW: As in ORDER, but replacing each value with one associated with a newer “dateorder” constraint</p>
+<p>Where, for each input data source:</p>
 <blockquote>
 <div><ul class="simple">
-<li><p>MODIFIER: <cite>+</cite> between terms for source and source_date</p></li>
+<li><p><cite>key_column</cite> is the data column used to uniquely link each row of each data source,</p></li>
+<li><p><cite>source_hex</cite> is unique reference UUID for each data source,</p></li>
+<li><p><cite>sheet_name</cite> is sheet name within a multi-sheet Excel source file, if such exist (otherwise <cite>None</cite>).</p></li>
 </ul>
 </div></blockquote>
-</li>
-<li><p>ORDER_OLD: As in ORDER, but replacing each value with one associated with an older “dateorder” constraint</p>
-<blockquote>
-<div><ul class="simple">
-<li><p>MODIFIER: <cite>+</cite> between terms for source and source_date</p></li>
-</ul>
-</div></blockquote>
-</li>
-<li><p>CALCULATE: Only if of “type” = “float64” (or which can be forced to float64)</p>
-<blockquote>
-<div><ul class="simple">
-<li><p>MODIFIER: <cite>+</cite> or <cite>-</cite> before each term to define whether add or subtract</p></li>
-</ul>
-</div></blockquote>
-</li>
-<li><p>JOIN: Only if of “type” = “object”, join text with ” “.join()</p></li>
-<li><p>CATEGORISE: Only if of “type” = “string”; look for associated constraint, “categorise” where <cite>True</cite> = keep a list of categories, <cite>False</cite> = set True if terms found in list</p>
-<blockquote>
-<div><ul>
-<li><p>MODIFIER:</p>
-<blockquote>
-<div><ul class="simple">
-<li><p><cite>+</cite> before terms where column values to be classified as unique</p></li>
-<li><p><cite>-</cite> before terms where column values are treated as boolean</p></li>
-</ul>
-</div></blockquote>
-</li>
-</ul>
-</div></blockquote>
-</li>
-</ul>
-</div></blockquote>
-</div>
-<div class="section" id="category">
-<h2>Category<a class="headerlink" href="#category" title="Permalink to this headline">¶</a></h2>
-<p>Provide a list of categories of the form:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
-        <span class="s2">&quot;schema_field1&quot;</span><span class="p">:</span> <span class="p">{</span>
-                <span class="s2">&quot;category_1&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;term1&quot;</span><span class="p">,</span> <span class="s2">&quot;term2&quot;</span><span class="p">,</span> <span class="s2">&quot;term3&quot;</span><span class="p">],</span>
-                <span class="s2">&quot;category_2&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;term4&quot;</span><span class="p">,</span> <span class="s2">&quot;term5&quot;</span><span class="p">,</span> <span class="s2">&quot;term6&quot;</span><span class="p">]</span>
-        <span class="p">}</span>
-<span class="p">}</span>
+<p>You should know your own source data, and you can get the references as follows:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">merge_reference</span> <span class="o">=</span> <span class="p">[</span>
+<span class="go">        {&quot;source_hex&quot;: method.get.input_data[2].uuid.hex, &quot;key_column&quot;: &quot;Property ref no&quot;},</span>
+<span class="go">        {&quot;source_hex&quot;: method.get.input_data[1].uuid.hex, &quot;key_column&quot;: &quot;Property Reference Number&quot;},</span>
+<span class="go">        {&quot;source_hex&quot;: method.get.input_data[0].uuid.hex, &quot;key_column&quot;: &quot;Property Reference Number&quot;},</span>
+<span class="go">    ]</span>
 </pre></div>
 </div>
-<p>The format for defining a <cite>category</cite> term as follows:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">term_name</span><span class="p">::</span><span class="n">column_name</span>
+<p>In this example, there is no <cite>sheet_name</cite>. Generate and add your merge script as follows:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">merge_terms</span> <span class="o">=</span> <span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="sa">f</span><span class="s2">&quot;&#39;</span><span class="si">{</span><span class="n">m</span><span class="p">[</span><span class="s1">&#39;key_column&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&#39;::&#39;</span><span class="si">{</span><span class="n">m</span><span class="p">[</span><span class="s1">&#39;source_hex&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&#39;&quot;</span> <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">merge_reference</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">merge_script</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;MERGE &lt; [</span><span class="si">{</span><span class="n">merge_terms</span><span class="si">}</span><span class="s2">]&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">method</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">merge_script</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>Get a list of available terms, and the categories for assignment, by calling:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">method</span><span class="o">.</span><span class="n">category</span><span class="p">(</span><span class="n">field_name</span><span class="p">)</span>
+<p><cite>whyqd</cite> will automatically process the merge, validate the merge works, and assign a UUID to the <cite>working_data</cite>.</p>
+<p>Whether you needed to <cite>merge</cite> or not, you’re now ready to assign restructuring actions.</p>
+</div>
+<div class="section" id="restructure-with-actions">
+<h2>Restructure with Actions<a class="headerlink" href="#restructure-with-actions" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference internal" href="action_api.html"><span class="doc">Actions</span></a> are the core of the wrangling process and is the step where you define individual steps which must be
+performed to restructure your data.</p>
+<p>There are two main types of restructuring actions:</p>
+<ul class="simple">
+<li><p><strong>Schema-based</strong> where the result of the action is to restructure source data columns into schema columns,</p></li>
+<li><p><strong>Morph-based</strong> where you physically, and destructively, manipulate your source data to make it useable.</p></li>
+</ul>
+<p>Morphs include actions like deletion, or rebasing the header row. These will lose information from your source. These
+two actions have a slightly different structure, but the process by which you add them to your method is the same.</p>
+<div class="section" id="schema-based-actions">
+<h3>Schema-based actions<a class="headerlink" href="#schema-based-actions" title="Permalink to this headline">¶</a></h3>
+<p>A template schema-based script:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="s2">&quot;ACTION &gt; &#39;destination_column&#39; &lt; [modifier &#39;source_column&#39;, </span><span class="si">{action_script}</span><span class="s2">]&quot;</span>
 </pre></div>
 </div>
-<p>Once your data are prepared as above:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">method</span><span class="o">.</span><span class="n">set_category</span><span class="p">(</span><span class="o">**</span><span class="n">category</span><span class="p">)</span>
+<p>Where, for each input data source:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><cite>destination_column</cite> is the schema field, or existing column, you wish to direct the results of your action,</p></li>
+<li><p><cite>source_column</cite> is the existing column you wish to restructure,</p></li>
+<li><p><cite>modifier</cite> are special characters, defined by the ACTION, which modify the way the values in the <cite>source_colum</cite>
+are interpreted.</p></li>
+<li><p><cite>{action_script}</cite> is a nested action.</p></li>
+</ul>
+</div></blockquote>
+<p>Schema-based actions can be nested. You can embed other schema-based actions inside them. In the case of <cite>CALCULATE</cite>,
+this may be necessary if you need to change the sign of a column of negative values:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="s2">&quot;CALCULATE &gt; &#39;destination_field&#39; &lt; [modifier &#39;source_column&#39;, modifier CALCULATE &lt; [- &#39;source_column&#39;]&quot;</span>
 </pre></div>
 </div>
 </div>
-<div class="section" id="filter">
-<h2>Filter<a class="headerlink" href="#filter" title="Permalink to this headline">¶</a></h2>
-<p>Set date filters on any date-type fields. <strong>whyqd</strong> offers only rudimentary post-
-wrangling functionality. Filters are there to, for example, facilitate importing data
-outside the bounds of a previous import.</p>
-<p>This is also an optional step. By default, if no filters are present, the transformed output
-will include <cite>ALL</cite> data. Parameters for filtering:</p>
-<blockquote>
-<div><ul class="simple">
-<li><p><cite>field_name</cite>: Name of field on which filters to be set</p></li>
-<li><p><cite>filter_name</cite>: Name of filter type from the list of valid filter names</p></li>
-<li><p><cite>filter_date</cite>: A date in the format specified by the field type</p></li>
-<li><p><cite>foreign_field</cite>: Name of field to which filter will be applied. Defaults to <cite>field_name</cite></p></li>
-</ul>
-</div></blockquote>
-<p>There are four filter_names:</p>
-<blockquote>
-<div><ul class="simple">
-<li><p><cite>ALL</cite>: default, import all data</p></li>
-<li><p><cite>LATEST</cite>: only the latest date</p></li>
-<li><p><cite>BEFORE</cite>: before a specified date</p></li>
-<li><p><cite>AFTER</cite>: after a specified date</p></li>
-</ul>
-</div></blockquote>
-<p><cite>BEFORE</cite> and <cite>AFTER</cite> take an optional <cite>foreign_field</cite> term for filtering on that column. e.g:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">method</span><span class="o">.</span><span class="n">set_filter</span><span class="p">(</span><span class="s2">&quot;occupation_state_date&quot;</span><span class="p">,</span> <span class="s2">&quot;AFTER&quot;</span><span class="p">,</span> <span class="s2">&quot;2019-09-01&quot;</span><span class="p">,</span> <span class="s2">&quot;ba_ref&quot;</span><span class="p">)</span>
+<div class="section" id="morph-based-actions">
+<h3>Morph-based actions<a class="headerlink" href="#morph-based-actions" title="Permalink to this headline">¶</a></h3>
+<p>A template morph-based script:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="s2">&quot;ACTION &gt; [columns] &lt; [rows]&quot;</span>
 </pre></div>
 </div>
-<p>Filters references in column <cite>ba_ref</cite> by dates in column <cite>occupation_state_date</cite> after <cite>2019-09-01</cite>.</p>
+<p>Where:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><cite>rows</cite> are the specific rows effected by the morph, a <cite>list</cite> of <cite>int</cite>,</p></li>
+<li><p><cite>columns</cite> are the specific columns effected by the morph, a <cite>list</cite> of <cite>source_column</cite>.</p></li>
+</ul>
+</div></blockquote>
+<p>Morph-based actions are not permitted to be nested, i.e. they are stand-alone actions.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>It is assumed that you’re not working ‘blind’, that you’re actually looking at your data while assigning
+actions - <em>especially</em> row-level actions - otherwise you are going to get extremely erratic results. <strong>Whyqd</strong> is
+built on <a class="reference external" href="https://pandas.pydata.org/">Pandas</a> and these examples lean heavily on that package.</p>
+</div>
+<p>Reviw <a class="reference internal" href="action_api.html"><span class="doc">Actions</span></a> for each action’s documentation in the API to know how to work with them.</p>
+</div>
+<div class="section" id="assigning-actions">
+<h3>Assigning actions<a class="headerlink" href="#assigning-actions" title="Permalink to this headline">¶</a></h3>
+<p>Once you have reviewed your data, and worked through the script you need to produce, they can be assigned:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">schema_scripts</span> <span class="o">=</span> <span class="p">[</span>
+<span class="go">        &quot;DEBLANK&quot;,</span>
+<span class="go">        &quot;DEDUPE&quot;,</span>
+<span class="go">        &quot;REBASE &lt; [2]&quot;,</span>
+<span class="go">    ]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">source_data</span> <span class="o">=</span> <span class="n">method</span><span class="o">.</span><span class="n">get</span><span class="o">.</span><span class="n">input_data</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">method</span><span class="o">.</span><span class="n">add_actions</span><span class="p">(</span><span class="n">schema_scripts</span><span class="p">,</span> <span class="n">source_data</span><span class="o">.</span><span class="n">uuid</span><span class="o">.</span><span class="n">hex</span><span class="p">,</span> <span class="n">sheet_name</span> <span class="o">=</span> <span class="s2">&quot;Data&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Note, though, that <cite>“REBASE &lt; [2]”</cite> changed the header-row column labels. Any further actions need to reference these
+names or the action will fail. You can review your progress at any point by running the transform and getting a
+<a class="reference external" href="https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.html">Pandas DataFrame</a>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">df</span> <span class="o">=</span> <span class="n">method</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">source_data</span><span class="p">)</span>
+</pre></div>
+</div>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 0%" />
+<col style="width: 2%" />
+<col style="width: 2%" />
+<col style="width: 2%" />
+<col style="width: 2%" />
+<col style="width: 1%" />
+<col style="width: 1%" />
+<col style="width: 1%" />
+<col style="width: 1%" />
+<col style="width: 1%" />
+<col style="width: 1%" />
+<col style="width: 2%" />
+<col style="width: 2%" />
+<col style="width: 2%" />
+<col style="width: 2%" />
+<col style="width: 2%" />
+<col style="width: 2%" />
+<col style="width: 2%" />
+<col style="width: 2%" />
+<col style="width: 2%" />
+<col style="width: 2%" />
+<col style="width: 2%" />
+<col style="width: 2%" />
+<col style="width: 2%" />
+<col style="width: 2%" />
+<col style="width: 2%" />
+<col style="width: 2%" />
+<col style="width: 2%" />
+<col style="width: 2%" />
+<col style="width: 2%" />
+<col style="width: 2%" />
+<col style="width: 2%" />
+<col style="width: 2%" />
+<col style="width: 2%" />
+<col style="width: 2%" />
+<col style="width: 2%" />
+<col style="width: 2%" />
+<col style="width: 2%" />
+<col style="width: 2%" />
+<col style="width: 2%" />
+<col style="width: 2%" />
+<col style="width: 2%" />
+<col style="width: 2%" />
+<col style="width: 2%" />
+<col style="width: 2%" />
+<col style="width: 2%" />
+<col style="width: 2%" />
+<col style="width: 2%" />
+<col style="width: 2%" />
+<col style="width: 2%" />
+<col style="width: 2%" />
+<col style="width: 2%" />
+<col style="width: 2%" />
+<col style="width: 2%" />
+<col style="width: 2%" />
+<col style="width: 2%" />
+<col style="width: 2%" />
+<col style="width: 2%" />
+<col style="width: 2%" />
+<col style="width: 2%" />
+<col style="width: 2%" />
+<col style="width: 2%" />
+<col style="width: 2%" />
+<col style="width: 2%" />
+<col style="width: 1%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"></th>
+<th class="head"><p>Country Name</p></th>
+<th class="head"><p>Country Code</p></th>
+<th class="head"><p>Indicator Name</p></th>
+<th class="head"><p>Indicator Code</p></th>
+<th class="head"><p>1960.0</p></th>
+<th class="head"><p>1961.0</p></th>
+<th class="head"><p>1962.0</p></th>
+<th class="head"><p>1963.0</p></th>
+<th class="head"><p>1964.0</p></th>
+<th class="head"><p>1965.0</p></th>
+<th class="head"><p>1966.0</p></th>
+<th class="head"><p>1967.0</p></th>
+<th class="head"><p>1968.0</p></th>
+<th class="head"><p>1969.0</p></th>
+<th class="head"><p>1970.0</p></th>
+<th class="head"><p>1971.0</p></th>
+<th class="head"><p>1972.0</p></th>
+<th class="head"><p>1973.0</p></th>
+<th class="head"><p>1974.0</p></th>
+<th class="head"><p>1975.0</p></th>
+<th class="head"><p>1976.0</p></th>
+<th class="head"><p>1977.0</p></th>
+<th class="head"><p>1978.0</p></th>
+<th class="head"><p>1979.0</p></th>
+<th class="head"><p>1980.0</p></th>
+<th class="head"><p>1981.0</p></th>
+<th class="head"><p>1982.0</p></th>
+<th class="head"><p>1983.0</p></th>
+<th class="head"><p>1984.0</p></th>
+<th class="head"><p>1985.0</p></th>
+<th class="head"><p>1986.0</p></th>
+<th class="head"><p>1987.0</p></th>
+<th class="head"><p>1988.0</p></th>
+<th class="head"><p>1989.0</p></th>
+<th class="head"><p>1990.0</p></th>
+<th class="head"><p>1991.0</p></th>
+<th class="head"><p>1992.0</p></th>
+<th class="head"><p>1993.0</p></th>
+<th class="head"><p>1994.0</p></th>
+<th class="head"><p>1995.0</p></th>
+<th class="head"><p>1996.0</p></th>
+<th class="head"><p>1997.0</p></th>
+<th class="head"><p>1998.0</p></th>
+<th class="head"><p>1999.0</p></th>
+<th class="head"><p>2000.0</p></th>
+<th class="head"><p>2001.0</p></th>
+<th class="head"><p>2002.0</p></th>
+<th class="head"><p>2003.0</p></th>
+<th class="head"><p>2004.0</p></th>
+<th class="head"><p>2005.0</p></th>
+<th class="head"><p>2006.0</p></th>
+<th class="head"><p>2007.0</p></th>
+<th class="head"><p>2008.0</p></th>
+<th class="head"><p>2009.0</p></th>
+<th class="head"><p>2010.0</p></th>
+<th class="head"><p>2011.0</p></th>
+<th class="head"><p>2012.0</p></th>
+<th class="head"><p>2013.0</p></th>
+<th class="head"><p>2014.0</p></th>
+<th class="head"><p>2015.0</p></th>
+<th class="head"><p>2016.0</p></th>
+<th class="head"><p>2017.0</p></th>
+<th class="head"><p>2018.0</p></th>
+<th class="head"><p>2019.0</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>3</p></td>
+<td><p>Aruba</p></td>
+<td><p>ABW</p></td>
+<td><p>Urban population</p></td>
+<td><p>SP.URB.TOTL</p></td>
+<td><p>27526</p></td>
+<td><p>28141</p></td>
+<td><p>28532</p></td>
+<td><p>28761</p></td>
+<td><p>28924</p></td>
+<td><p>29082</p></td>
+<td><p>29253</p></td>
+<td><p>29416</p></td>
+<td><p>29575</p></td>
+<td><p>29738</p></td>
+<td><p>29900</p></td>
+<td><p>30082</p></td>
+<td><p>30275</p></td>
+<td><p>30470</p></td>
+<td><p>30605</p></td>
+<td><p>30661</p></td>
+<td><p>30615</p></td>
+<td><p>30495</p></td>
+<td><p>30353</p></td>
+<td><p>30282</p></td>
+<td><p>30332</p></td>
+<td><p>30560</p></td>
+<td><p>30943</p></td>
+<td><p>31365</p></td>
+<td><p>31676</p></td>
+<td><p>31762</p></td>
+<td><p>31560</p></td>
+<td><p>31142</p></td>
+<td><p>30753</p></td>
+<td><p>30720</p></td>
+<td><p>31273</p></td>
+<td><p>32507</p></td>
+<td><p>34116</p></td>
+<td><p>35953</p></td>
+<td><p>37719</p></td>
+<td><p>39172</p></td>
+<td><p>40232</p></td>
+<td><p>40970</p></td>
+<td><p>41488</p></td>
+<td><p>41945</p></td>
+<td><p>42444</p></td>
+<td><p>43048</p></td>
+<td><p>43670</p></td>
+<td><p>44246</p></td>
+<td><p>44669</p></td>
+<td><p>44889</p></td>
+<td><p>44882</p></td>
+<td><p>44686</p></td>
+<td><p>44378</p></td>
+<td><p>44053</p></td>
+<td><p>43778</p></td>
+<td><p>43819</p></td>
+<td><p>44057</p></td>
+<td><p>44348</p></td>
+<td><p>44665</p></td>
+<td><p>44979</p></td>
+<td><p>45296</p></td>
+<td><p>45616</p></td>
+<td><p>45948</p></td>
+<td><p>nan</p></td>
+</tr>
+<tr class="row-odd"><td><p>4</p></td>
+<td><p>Afghanistan</p></td>
+<td><p>AFG</p></td>
+<td><p>Urban population</p></td>
+<td><p>SP.URB.TOTL</p></td>
+<td><p>755836</p></td>
+<td><p>796272</p></td>
+<td><p>839385</p></td>
+<td><p>885228</p></td>
+<td><p>934135</p></td>
+<td><p>986074</p></td>
+<td><p>1.04119e+06</p></td>
+<td><p>1.09927e+06</p></td>
+<td><p>1.16136e+06</p></td>
+<td><p>1.22827e+06</p></td>
+<td><p>1.30095e+06</p></td>
+<td><p>1.37946e+06</p></td>
+<td><p>1.46329e+06</p></td>
+<td><p>1.55104e+06</p></td>
+<td><p>1.64087e+06</p></td>
+<td><p>1.73093e+06</p></td>
+<td><p>1.82161e+06</p></td>
+<td><p>1.91208e+06</p></td>
+<td><p>1.99758e+06</p></td>
+<td><p>2.07094e+06</p></td>
+<td><p>2.13637e+06</p></td>
+<td><p>2.18149e+06</p></td>
+<td><p>2.20897e+06</p></td>
+<td><p>2.22507e+06</p></td>
+<td><p>2.24132e+06</p></td>
+<td><p>2.2679e+06</p></td>
+<td><p>2.30581e+06</p></td>
+<td><p>2.35734e+06</p></td>
+<td><p>2.43955e+06</p></td>
+<td><p>2.50291e+06</p></td>
+<td><p>2.62855e+06</p></td>
+<td><p>2.82817e+06</p></td>
+<td><p>3.09339e+06</p></td>
+<td><p>3.39171e+06</p></td>
+<td><p>3.67709e+06</p></td>
+<td><p>3.91625e+06</p></td>
+<td><p>4.09384e+06</p></td>
+<td><p>4.22082e+06</p></td>
+<td><p>4.32158e+06</p></td>
+<td><p>4.43476e+06</p></td>
+<td><p>4.5878e+06</p></td>
+<td><p>4.79005e+06</p></td>
+<td><p>5.03116e+06</p></td>
+<td><p>5.29338e+06</p></td>
+<td><p>5.5635e+06</p></td>
+<td><p>5.82429e+06</p></td>
+<td><p>6.05502e+06</p></td>
+<td><p>6.26375e+06</p></td>
+<td><p>6.46484e+06</p></td>
+<td><p>6.68073e+06</p></td>
+<td><p>6.92776e+06</p></td>
+<td><p>7.21252e+06</p></td>
+<td><p>7.52859e+06</p></td>
+<td><p>7.86507e+06</p></td>
+<td><p>8.20488e+06</p></td>
+<td><p>8.53561e+06</p></td>
+<td><p>8.85286e+06</p></td>
+<td><p>9.16484e+06</p></td>
+<td><p>9.4771e+06</p></td>
+<td><p>nan</p></td>
+</tr>
+<tr class="row-even"><td><p>5</p></td>
+<td><p>Angola</p></td>
+<td><p>AGO</p></td>
+<td><p>Urban population</p></td>
+<td><p>SP.URB.TOTL</p></td>
+<td><p>569222</p></td>
+<td><p>597288</p></td>
+<td><p>628381</p></td>
+<td><p>660180</p></td>
+<td><p>691532</p></td>
+<td><p>721552</p></td>
+<td><p>749534</p></td>
+<td><p>776116</p></td>
+<td><p>804107</p></td>
+<td><p>837758</p></td>
+<td><p>881022</p></td>
+<td><p>944294</p></td>
+<td><p>1.0282e+06</p></td>
+<td><p>1.12462e+06</p></td>
+<td><p>1.23071e+06</p></td>
+<td><p>1.34355e+06</p></td>
+<td><p>1.4626e+06</p></td>
+<td><p>1.58871e+06</p></td>
+<td><p>1.72346e+06</p></td>
+<td><p>1.86883e+06</p></td>
+<td><p>2.02677e+06</p></td>
+<td><p>2.19787e+06</p></td>
+<td><p>2.38256e+06</p></td>
+<td><p>2.58126e+06</p></td>
+<td><p>2.79453e+06</p></td>
+<td><p>3.02227e+06</p></td>
+<td><p>3.26559e+06</p></td>
+<td><p>3.5251e+06</p></td>
+<td><p>3.8011e+06</p></td>
+<td><p>4.09291e+06</p></td>
+<td><p>4.40096e+06</p></td>
+<td><p>4.72563e+06</p></td>
+<td><p>5.06788e+06</p></td>
+<td><p>5.42758e+06</p></td>
+<td><p>5.80661e+06</p></td>
+<td><p>6.15946e+06</p></td>
+<td><p>6.53015e+06</p></td>
+<td><p>6.919e+06</p></td>
+<td><p>7.32807e+06</p></td>
+<td><p>7.75842e+06</p></td>
+<td><p>8.212e+06</p></td>
+<td><p>8.68876e+06</p></td>
+<td><p>9.19086e+06</p></td>
+<td><p>9.72127e+06</p></td>
+<td><p>1.02845e+07</p></td>
+<td><p>1.08828e+07</p></td>
+<td><p>1.14379e+07</p></td>
+<td><p>1.20256e+07</p></td>
+<td><p>1.26446e+07</p></td>
+<td><p>1.32911e+07</p></td>
+<td><p>1.39631e+07</p></td>
+<td><p>1.46603e+07</p></td>
+<td><p>1.53831e+07</p></td>
+<td><p>1.61303e+07</p></td>
+<td><p>1.69008e+07</p></td>
+<td><p>1.76915e+07</p></td>
+<td><p>1.85022e+07</p></td>
+<td><p>1.93329e+07</p></td>
+<td><p>2.01847e+07</p></td>
+<td><p>nan</p></td>
+</tr>
+<tr class="row-odd"><td><p>6</p></td>
+<td><p>Albania</p></td>
+<td><p>ALB</p></td>
+<td><p>Urban population</p></td>
+<td><p>SP.URB.TOTL</p></td>
+<td><p>493982</p></td>
+<td><p>513592</p></td>
+<td><p>530766</p></td>
+<td><p>547928</p></td>
+<td><p>565248</p></td>
+<td><p>582374</p></td>
+<td><p>599300</p></td>
+<td><p>616687</p></td>
+<td><p>635924</p></td>
+<td><p>656733</p></td>
+<td><p>677801</p></td>
+<td><p>698647</p></td>
+<td><p>720649</p></td>
+<td><p>742333</p></td>
+<td><p>764166</p></td>
+<td><p>786668</p></td>
+<td><p>809052</p></td>
+<td><p>832109</p></td>
+<td><p>854618</p></td>
+<td><p>876974</p></td>
+<td><p>902120</p></td>
+<td><p>927513</p></td>
+<td><p>954645</p></td>
+<td><p>982645</p></td>
+<td><p>1.01124e+06</p></td>
+<td><p>1.04013e+06</p></td>
+<td><p>1.0685e+06</p></td>
+<td><p>1.09835e+06</p></td>
+<td><p>1.12772e+06</p></td>
+<td><p>1.16716e+06</p></td>
+<td><p>1.19722e+06</p></td>
+<td><p>1.19891e+06</p></td>
+<td><p>1.20949e+06</p></td>
+<td><p>1.21988e+06</p></td>
+<td><p>1.23022e+06</p></td>
+<td><p>1.2404e+06</p></td>
+<td><p>1.25052e+06</p></td>
+<td><p>1.26041e+06</p></td>
+<td><p>1.27021e+06</p></td>
+<td><p>1.27985e+06</p></td>
+<td><p>1.28939e+06</p></td>
+<td><p>1.29858e+06</p></td>
+<td><p>1.32722e+06</p></td>
+<td><p>1.35485e+06</p></td>
+<td><p>1.38183e+06</p></td>
+<td><p>1.4073e+06</p></td>
+<td><p>1.43089e+06</p></td>
+<td><p>1.4524e+06</p></td>
+<td><p>1.47339e+06</p></td>
+<td><p>1.49526e+06</p></td>
+<td><p>1.51952e+06</p></td>
+<td><p>1.54693e+06</p></td>
+<td><p>1.57579e+06</p></td>
+<td><p>1.6035e+06</p></td>
+<td><p>1.63012e+06</p></td>
+<td><p>1.6545e+06</p></td>
+<td><p>1.68025e+06</p></td>
+<td><p>1.70634e+06</p></td>
+<td><p>1.72897e+06</p></td>
+<td><p>nan</p></td>
+</tr>
+</tbody>
+</table>
+<p>Wide format is not exactly helpful, so we’ll modify this:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">source_data</span> <span class="o">=</span> <span class="n">method</span><span class="o">.</span><span class="n">get</span><span class="o">.</span><span class="n">input_data</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">source_columns</span> <span class="o">=</span> <span class="p">[</span><span class="n">c</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">source_data</span><span class="o">.</span><span class="n">columns</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">schema_script</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;PIVOT_LONGER &gt; </span><span class="si">{</span><span class="n">source_columns</span><span class="p">[</span><span class="mi">4</span><span class="p">:]</span><span class="si">}</span><span class="s2">&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">method</span><span class="o">.</span><span class="n">add_actions</span><span class="p">(</span><span class="n">schema_script</span><span class="p">,</span> <span class="n">source_data</span><span class="o">.</span><span class="n">uuid</span><span class="o">.</span><span class="n">hex</span><span class="p">,</span> <span class="n">sheet_name</span> <span class="o">=</span> <span class="s2">&quot;Data&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">df</span> <span class="o">=</span> <span class="n">method</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">source_data</span><span class="p">)</span>
+</pre></div>
+</div>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 3%" />
+<col style="width: 12%" />
+<col style="width: 14%" />
+<col style="width: 14%" />
+<col style="width: 12%" />
+<col style="width: 22%" />
+<col style="width: 22%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"></th>
+<th class="head"><p>Country Code</p></th>
+<th class="head"><p>Indicator Name</p></th>
+<th class="head"><p>Indicator Code</p></th>
+<th class="head"><p>Country Name</p></th>
+<th class="head"><p>PIVOT_LONGER_names_idx_4</p></th>
+<th class="head"><p>PIVOT_LONGER_values_idx_5</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>0</p></td>
+<td><p>ABW</p></td>
+<td><p>Urban population</p></td>
+<td><p>SP.URB.TOTL</p></td>
+<td><p>Aruba</p></td>
+<td><p>1960</p></td>
+<td><p>27526</p></td>
+</tr>
+<tr class="row-odd"><td><p>1</p></td>
+<td><p>AFG</p></td>
+<td><p>Urban population</p></td>
+<td><p>SP.URB.TOTL</p></td>
+<td><p>Afghanistan</p></td>
+<td><p>1960</p></td>
+<td><p>755836</p></td>
+</tr>
+<tr class="row-even"><td><p>2</p></td>
+<td><p>AGO</p></td>
+<td><p>Urban population</p></td>
+<td><p>SP.URB.TOTL</p></td>
+<td><p>Angola</p></td>
+<td><p>1960</p></td>
+<td><p>569222</p></td>
+</tr>
+<tr class="row-odd"><td><p>3</p></td>
+<td><p>ALB</p></td>
+<td><p>Urban population</p></td>
+<td><p>SP.URB.TOTL</p></td>
+<td><p>Albania</p></td>
+<td><p>1960</p></td>
+<td><p>493982</p></td>
+</tr>
+</tbody>
+</table>
+<p>It may seem daunting at first, but the actions are designed to give you all the power of <cite>pandas</cite> while allowing you
+to focus on the complexities of restructuring your data.</p>
+</div>
+<div class="section" id="assigning-categories">
+<h3>Assigning categories<a class="headerlink" href="#assigning-categories" title="Permalink to this headline">¶</a></h3>
+<p>One of the problems with having a schema is that not everyone will agree to use it. Your source data can have a variety
+of terms - with a variety of different spellings - to refer to the same things. This can make an already-intimidating
+restructuring process a hair-tearing experience.</p>
+<p>It takes two separate sets of actions to categorise and restructure categories.</p>
+<ul class="simple">
+<li><p>First, identify the columns which contain values you wish to categories, and specify how to treat those values,</p></li>
+<li><p>Second, assign the values in each column to the schema-defined categories.</p></li>
+</ul>
+<p>The template script to extract unique terms in columns is:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="s2">&quot;CATEGORISE &gt; &#39;destination_field&#39; &lt; [modifier &#39;source_column&#39;, modifier &#39;source_column&#39;, etc.]&quot;</span>
+</pre></div>
+</div>
+<p>Where there are two <cite>modifier</cite> terms:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><cite>-</cite> indicates that the presence or absence of values in the column are coerced to <cite>boolean</cite>, and</p></li>
+<li><p><cite>+</cite> indicates that specific values in the column are to be assigned to a defined <cite>schema</cite> <cite>category</cite>.</p></li>
+</ul>
+</div></blockquote>
+<p>Once complete, you can get a list of the unique terms and assign them using one of the two assignment actions:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="s2">&quot;ASSIGN_CATEGORY_BOOLEANS &gt; &#39;destination_field&#39;::bool &lt; &#39;source_column&#39;&quot;</span>
+</pre></div>
+</div>
+<p>or:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="s2">&quot;ASSIGN_CATEGORY_UNIQUES &gt; &#39;destination_field&#39;::&#39;destination_category&#39; &lt; &#39;source_column&#39;::[&#39;unique_source_term&#39;, &#39;unique_source_term&#39;, etc.]&quot;</span>
+</pre></div>
+</div>
+<p>Where assignment terms include:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><cite>destination_field</cite> is a <cite>FieldModel</cite> and is the destination column. The <cite>::</cite> linked <cite>CategoryModel</cite> defines what
+term the source values are to be assigned.</p></li>
+<li><p><cite>list</cite> of <cite>CategoryModel</cite> - unique values from <cite>ColumnModel</cite> - will be assigned <cite>::CategoryModel</cite>.</p></li>
+<li><p>Values from the <cite>source_column</cite> <cite>ColumnModel</cite> are treated as boolean <cite>True</cite> or <cite>False</cite>, defined by <cite>::bool</cite>.</p></li>
+</ul>
+</div></blockquote>
+<p>The way to think about assigning a <cite>boolean</cite> column is that these are columns with values and nulls. The presence or
+absence of values can be all you need to know, not the values themselves. For example, if you want to know who - in a
+list of employees - has taken leave but all you have is a date column of <em>when</em> they took leave, an absence of a date
+in that column indicates they haven’t yet taken any.</p>
+<p>Getting a list of the unique terms in a column so you can assign them goes like this:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">df</span> <span class="o">=</span> <span class="n">method</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">method</span><span class="o">.</span><span class="n">get</span><span class="o">.</span><span class="n">working_data</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">list</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="s2">&quot;Current Relief Type&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">unique</span><span class="p">())</span>
+<span class="go">[&lt;NA&gt;,</span>
+<span class="go">&#39;Retail Discount&#39;,</span>
+<span class="go">&#39;Small Business Relief England&#39;,</span>
+<span class="go">&#39;Supporting Small Business Relief&#39;,</span>
+<span class="go">&#39;Sbre Extension For 12 Months&#39;,</span>
+<span class="go">&#39;Empty Property Rate Industrial&#39;,</span>
+<span class="go">&#39;Empty Property Rate Non-Industrial&#39;,</span>
+<span class="go">&#39;Mandatory&#39;,</span>
+<span class="go">&#39;Sports Club (Registered CASC)&#39;,</span>
+<span class="go">&#39;Empty Property Rate Charitable&#39;]</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>You can assign unique values to a <cite>boolean</cite> category term (e.g. ‘Empty Property Rate Industrial’ and
+‘Empty Property Rate Non-Industrial’ could be assigned to a <cite>occupation_status</cite> schema field, where <cite>True</cite> is
+occupied, and <cite>False</cite> is vacant). You can also assign booleans to a schema requiring unique fields. Use your
+intuiation and it’ll probably work the way you expect.</p>
+</div>
+<p>Here’s an example script to assign column values to a boolean schema field:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="s2">&quot;CATEGORISE &gt; &#39;occupation_state&#39; &lt; [+ &#39;Current Property Exemption Code&#39;, + &#39;Current Relief Type&#39;]&quot;</span>
+<span class="s2">&quot;ASSIGN_CATEGORY_UNIQUES &gt; &#39;occupation_state&#39;::False &lt; &#39;Current Relief Type&#39;::[&#39;Empty Property Rate Non-Industrial&#39;, &#39;Empty Property Rate Industrial&#39;, &#39;Empty Property Rate Charitable&#39;]&quot;</span>
+</pre></div>
+</div>
+<p>Adding these scripts works as above:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">source_data</span> <span class="o">=</span> <span class="n">method</span><span class="o">.</span><span class="n">get</span><span class="o">.</span><span class="n">working_data</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">method</span><span class="o">.</span><span class="n">add_actions</span><span class="p">(</span><span class="n">schema_scripts</span><span class="p">,</span> <span class="n">source_data</span><span class="o">.</span><span class="n">uuid</span><span class="o">.</span><span class="n">hex</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="assigning-filters">
+<h3>Assigning filters<a class="headerlink" href="#assigning-filters" title="Permalink to this headline">¶</a></h3>
+<p>Filtering is inherently destructive, reducing the number of rows in your source data. This can make your data more
+manageable, or help ensure only the latest data since a previous release, are included in an ongoing data series.</p>
+<p>A standard script is:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="s2">&quot;ACTION &gt; &#39;filter_column&#39;::&#39;date&#39; &lt; &#39;source_column&#39;&quot;</span>
+</pre></div>
+</div>
+<p>Where:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><cite>filter_column</cite>: the specific column for filtering,</p></li>
+<li><p><cite>source_column</cite>: a group-by column for filtering the latest data only of a data series,</p></li>
+<li><p><cite>date</cite>: a specific date reference, in ISO <cite>YYYY-MM-DD</cite> format. Times are not filtered, so treat with caution if your
+filter requirements are time-based.</p></li>
+</ul>
+</div></blockquote>
+<p>There are three filters: before a specified date, after a specified date, or latest for a specified group.</p>
+<p>As example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">filter_script</span> <span class="o">=</span> <span class="s2">&quot;FILTER_AFTER &gt; &#39;occupation_state_date&#39;::&#39;2010-01-01&#39;&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">method</span><span class="o">.</span><span class="n">add_actions</span><span class="p">(</span><span class="n">filter_script</span><span class="p">,</span> <span class="n">source_data</span><span class="o">.</span><span class="n">uuid</span><span class="o">.</span><span class="n">hex</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Or you could do latest:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">filter_script</span> <span class="o">=</span> <span class="s2">&quot;FILTER_LATEST &gt; &#39;occupation_state_date&#39; &lt; &#39;ba_ref&#39;&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">method</span><span class="o">.</span><span class="n">add_actions</span><span class="p">(</span><span class="n">filter_script</span><span class="p">,</span> <span class="n">source_data</span><span class="o">.</span><span class="n">uuid</span><span class="o">.</span><span class="n">hex</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="build">
+<h2>Build<a class="headerlink" href="#build" title="Permalink to this headline">¶</a></h2>
+<p>Performing the build is straightforward:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">method</span><span class="o">.</span><span class="n">build</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">method</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">created_by</span><span class="o">=</span><span class="s2">&quot;Gavin Chait&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><cite>Build</cite> will automatically save your restructured output data as an Excel file (to preserve source field types). You
+can save your method as a <cite>json</cite> file by calling <cite>save</cite>. A <cite>version</cite> data update will automatically be added to the
+method, and you can add an optional <cite>created_by</cite> reference as well.</p>
 </div>
 <div class="section" id="validation">
 <h2>Validation<a class="headerlink" href="#validation" title="Permalink to this headline">¶</a></h2>
-<p>Each step can be validated and, once all steps validate, you can move to transformation of your data:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">method</span><span class="o">.</span><span class="n">validate_input_data</span>
-<span class="n">method</span><span class="o">.</span><span class="n">validate_merge_data</span>
-<span class="n">method</span><span class="o">.</span><span class="n">validate_merge</span>
-<span class="n">method</span><span class="o">.</span><span class="n">validate_structure</span>
-<span class="n">method</span><span class="o">.</span><span class="n">validate_category</span>
-<span class="n">method</span><span class="o">.</span><span class="n">validate_filter</span>
-</pre></div>
-</div>
-<p>Or, to run all the above and complete the method (setting status to ‘Ready to Transform’):</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">method</span><span class="o">.</span><span class="n">validate</span>
-</pre></div>
-</div>
-</div>
-<div class="section" id="transform">
-<h2>Transform<a class="headerlink" href="#transform" title="Permalink to this headline">¶</a></h2>
-<p>Transformation requires only the following:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">method</span><span class="o">.</span><span class="n">transform</span><span class="p">()</span>
-<span class="n">method</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">DIRECTORY</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="n">FILENAME</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-</pre></div>
-</div>
-<p>With one little permutation … if you’ve ever created a transform before, you’ll need to deliberately
-tell the function to overwrite your original:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">method</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">overwrite_output</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<p>At each step of the transformation process - whether it be adding input data, merging or adding actions - <cite>whyqd</cite>
+performs validation, both for individual steps, and for the entire build process. This validation step exists only
+for the truly paranoid (as you rightly should be with input data you do not control).</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">method</span><span class="o">.</span><span class="n">validate</span><span class="p">()</span>
+<span class="go">True</span>
 </pre></div>
 </div>
 </div>
 <div class="section" id="citation">
 <h2>Citation<a class="headerlink" href="#citation" title="Permalink to this headline">¶</a></h2>
-<p><strong>whyqd</strong> is designed for sharing. Add information you wish to be cited to a <cite>constructor</cite> field in the <cite>method</cite>.</p>
-<p>The <cite>constructor</cite> field is there to store any metadata you wish to add. Whether it be <a class="reference external" href="https://dublincore.org/">Dublin Core</a>
-or <a class="reference external" href="https://sdmx.org/">SDMX</a>, add that metadata by creating a dictionary and placing it in the
-<cite>constructor</cite>.</p>
+<p><strong>whyqd</strong> is designed to support a research process and ensure citation of the incredible work done by research-based
+data scientists.</p>
 <p>A citation is a special set of fields, with options for:</p>
 <ul class="simple">
-<li><p><strong>authors</strong>: a list of author names in the format, and order, you wish to reference them</p></li>
-<li><p><strong>date</strong>: publication date</p></li>
-<li><p><strong>title</strong>: a text field for the full study title</p></li>
-<li><p><strong>repository</strong>: the organisation, or distributor, responsible for hosting your data (and your method file)</p></li>
-<li><p><strong>doi</strong>: the persistent <a class="reference external" href="http://www.doi.org/">DOI</a> for your repository</p></li>
+<li><p><strong>author</strong>: The name(s) of the author(s) (in the case of more than one author, separated by <cite>and</cite>),</p></li>
+<li><p><strong>title</strong>: The title of the work,</p></li>
+<li><p><strong>url</strong>: The URL field is used to store the URL of a web page or FTP download. It is a non-standard BibTeX field,</p></li>
+<li><p><strong>publisher</strong>: The publisher’s name,</p></li>
+<li><p><strong>institution</strong>: The institution that was involved in the publishing, but not necessarily the publisher,</p></li>
+<li><p><strong>doi</strong>: The doi field is used to store the digital object identifier (DOI) of a journal article, conference paper,
+book chapter or book. It is a non-standard BibTeX field. It’s recommended to simply use the DOI, and not a DOI link,</p></li>
+<li><p><strong>month</strong>: The month of publication (or, if unpublished, the month of creation). Use three-letter abbreviation,</p></li>
+<li><p><strong>year</strong>: The year of publication (or, if unpublished, the year of creation),</p></li>
+<li><p><strong>note</strong>: Miscellaneous extra information.</p></li>
 </ul>
 <p>Those of you familiar with Dataverse’s <a class="reference external" href="http://guides.dataverse.org/en/latest/developers/unf/index.html">universal numerical fingerprint</a>
 may be wondering where it is? <strong>whyqd</strong>, similarly, produces a unique hash for each datasource,
 including inputs, working data, and outputs. Ours is based on <a class="reference external" href="https://en.wikipedia.org/wiki/BLAKE_(hash_function)">BLAKE2b</a>
-and is sufficiently universally available as to ensure you can run this as required.</p>
+and is included in the citation output.</p>
 <p>As an example:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">citation</span> <span class="o">=</span> <span class="p">{</span>
-        <span class="s2">&quot;authors&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;Gavin Chait&quot;</span><span class="p">],</span>
-        <span class="s2">&quot;date&quot;</span><span class="p">:</span> <span class="s2">&quot;2020-02-18&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;title&quot;</span><span class="p">:</span> <span class="s2">&quot;Portsmouth City Council normalised database of commercial ratepayers&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;repository&quot;</span><span class="p">:</span> <span class="s2">&quot;Github.com&quot;</span>
-<span class="p">}</span>
-<span class="n">method</span><span class="o">.</span><span class="n">set_constructors</span><span class="p">({</span><span class="s2">&quot;citation&quot;</span><span class="p">:</span> <span class="n">citation</span><span class="p">})</span>
-<span class="n">method</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">DIRECTORY</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="n">FILENAME</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">citation</span> <span class="o">=</span> <span class="p">{</span>
+<span class="go">        &quot;author&quot;: &quot;Gavin Chait&quot;,</span>
+<span class="go">        &quot;month&quot;: &quot;feb&quot;,</span>
+<span class="go">        &quot;year&quot;: 2020,</span>
+<span class="go">        &quot;title&quot;: &quot;Portsmouth City Council normalised database of commercial ratepayers&quot;,</span>
+<span class="go">        &quot;url&quot;: &quot;https://github.com/whythawk/whyqd/tree/master/tests/data&quot;</span>
+<span class="go">    }</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">method</span><span class="o">.</span><span class="n">set_citation</span><span class="p">(</span><span class="n">citation</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>You can then get your citation report:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">method</span><span class="o">.</span><span class="n">citation</span>
-
-<span class="n">Gavin</span> <span class="n">Chait</span><span class="p">,</span> <span class="mi">2020</span><span class="o">-</span><span class="mi">02</span><span class="o">-</span><span class="mi">18</span><span class="p">,</span> <span class="n">Portsmouth</span> <span class="n">City</span> <span class="n">Council</span> <span class="n">normalised</span> <span class="n">database</span> <span class="n">of</span> <span class="n">commercial</span> <span class="n">ratepayers</span><span class="p">,</span>
-<span class="n">Github</span><span class="o">.</span><span class="n">com</span><span class="p">,</span> <span class="mi">1367</span><span class="n">d4f02c99030f6645389141b85a93d54c226b435fb1b5a6cbccd7f703687e442a011f62c1381793a2d3fbf13cc52c176e0c5c573008991134658759eef948</span><span class="p">,</span>
-<span class="p">[</span><span class="nb">input</span> <span class="n">sources</span><span class="p">:</span>
-<span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">www</span><span class="o">.</span><span class="n">portsmouth</span><span class="o">.</span><span class="n">gov</span><span class="o">.</span><span class="n">uk</span><span class="o">/</span><span class="n">ext</span><span class="o">/</span><span class="n">documents</span><span class="o">-</span><span class="n">external</span><span class="o">/</span><span class="n">biz</span><span class="o">-</span><span class="n">ndr</span><span class="o">-</span><span class="n">properties</span><span class="o">-</span><span class="n">january</span><span class="o">-</span><span class="mf">2020.</span><span class="n">xls</span><span class="p">,</span>
-<span class="mi">476089</span><span class="n">d8f37581613344873068d6e94f8cd63a1a64b421edf374a2b341bc7563aff03b86db4d3fec8ca90ce150ba1e531e3ff0d374f932d13fc103fd709e01bd</span><span class="p">;</span>
-<span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">www</span><span class="o">.</span><span class="n">portsmouth</span><span class="o">.</span><span class="n">gov</span><span class="o">.</span><span class="n">uk</span><span class="o">/</span><span class="n">ext</span><span class="o">/</span><span class="n">documents</span><span class="o">-</span><span class="n">external</span><span class="o">/</span><span class="n">biz</span><span class="o">-</span><span class="n">ndr</span><span class="o">-</span><span class="n">reliefs</span><span class="o">-</span><span class="n">january</span><span class="o">-</span><span class="mf">2020.</span><span class="n">xls</span><span class="p">,</span>
-<span class="mi">892</span><span class="n">ec5b6e9b1f68e0b371bbaed8d93095d57f2b656753af2b279aee17b5854c5e9d731b2795aac285d7f7d9f5991311bc8fae0cfe5446a47163f30f0314cac06</span><span class="p">;</span>
-<span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">www</span><span class="o">.</span><span class="n">portsmouth</span><span class="o">.</span><span class="n">gov</span><span class="o">.</span><span class="n">uk</span><span class="o">/</span><span class="n">ext</span><span class="o">/</span><span class="n">documents</span><span class="o">-</span><span class="n">external</span><span class="o">/</span><span class="n">biz</span><span class="o">-</span><span class="n">empty</span><span class="o">-</span><span class="n">commercial</span><span class="o">-</span><span class="n">properties</span><span class="o">-</span><span class="n">january</span><span class="o">-</span><span class="mf">2020.</span><span class="n">xls</span><span class="p">,</span>
-<span class="n">a41b4eb629c249fd59e6816d10d113bf2b9594c7dd7f9a61a82333a8a41bf07e59f9104eb3c1dc4269607de5a4a12eaf3215d0afc7545fdb1dfe7fe1bf5e0d29</span><span class="p">]</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">method</span><span class="o">.</span><span class="n">get_citation</span><span class="p">()</span>
+<span class="go">    {&#39;author&#39;: &#39;Gavin Chait&#39;,</span>
+<span class="go">    &#39;title&#39;: &#39;Portsmouth City Council normalised database of commercial ratepayers&#39;,</span>
+<span class="go">    &#39;url&#39;: AnyUrl(&#39;https://github.com/whythawk/whyqd/tree/master/tests/data&#39;, scheme=&#39;https&#39;, host=&#39;github.com&#39;, tld=&#39;com&#39;, host_type=&#39;domain&#39;, path=&#39;/whythawk/whyqd/tree/master/tests/data&#39;),</span>
+<span class="go">    &#39;month&#39;: &#39;feb&#39;,</span>
+<span class="go">    &#39;year&#39;: 2020,</span>
+<span class="go">    &#39;input_sources&#39;: [{&#39;path&#39;: &#39;https://www.portsmouth.gov.uk/ext/documents-external/biz-ndr-properties-january-2020.xls&#39;,</span>
+<span class="go">    &#39;checksum&#39;: &#39;b180bd9fe8c3b1025f433e0b3377fb9a738523b9c33eac5d62ed83c51883e1f64a3895edf0fc9e96a85a4130df3392177dff262963338971114aa4f5d1b0a70e&#39;},</span>
+<span class="go">    {&#39;path&#39;: &#39;https://www.portsmouth.gov.uk/ext/documents-external/biz-ndr-reliefs-january-2020.xls&#39;,</span>
+<span class="go">    &#39;checksum&#39;: &#39;98e23e4eac6782873492181d6e4f3fcf308f1bb0fc47dc582c3fdf031c020a651d9f06f6510b21405c3f63b8d576a93a27bd2f3cc5b053d8d9022c884b57d3a3&#39;},</span>
+<span class="go">    {&#39;path&#39;: &#39;https://www.portsmouth.gov.uk/ext/documents-external/biz-empty-commercial-properties-january-2020.xls&#39;,</span>
+<span class="go">    &#39;checksum&#39;: &#39;9fd3d0df6cc1e0e58ab481ca9d46b68150b3b8d0c97148a00417af16025ba066e29a35994d0e4526edb1deda4c10b703df8f0dbcc23421dd6c0c0fd1a4c6b01c&#39;}],</span>
+<span class="go">    &#39;restructured_data&#39;: {&#39;path&#39;: &#39;https://github.com/whythawk/whyqd/tree/master/tests/data&#39;,</span>
+<span class="go">    &#39;checksum&#39;: &#39;25591827b9b5ad69780dc1eea6121b4ec79f10b62f21268368c7faa5ca473ef3f613c72fea723875669d0fe8aa57c9e7890f1df5b13f922fc525c82c1239eb42&#39;}}</span>
 </pre></div>
 </div>
 </div>
@@ -483,29 +1042,29 @@ and is sufficiently universally available as to ensure you can run this as requi
            
           </div>
           <footer>
-  
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-      
-        <a href="roadmap.html" class="btn btn-neutral float-right" title="Roadmap" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
-      
-      
-        <a href="schema.html" class="btn btn-neutral float-left" title="Schema" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
-      
+        <a href="validate.html" class="btn btn-neutral float-right" title="Validate" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="schema.html" class="btn btn-neutral float-left" title="Schema" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
     </div>
-  
 
   <hr/>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2020, Gavin Chait
+        &#169; Copyright 2020, Gavin Chait.
 
     </p>
   </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
 
 </footer>
-
         </div>
       </div>
 
@@ -513,7 +1072,6 @@ and is sufficiently universally available as to ensure you can run this as requi
 
   </div>
   
-
 
   <script type="text/javascript">
       jQuery(function () {

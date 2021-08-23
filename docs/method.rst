@@ -1,1 +1,1 @@
-.. automodule:: method.method
+.. automodule:: whyqd.method.method

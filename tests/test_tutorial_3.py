@@ -10,7 +10,7 @@ SOURCE_DATA = SOURCE_DIRECTORY + "/data/HDR-2007-2008-Table-03.xlsx"
 
 class TestMethod:
     def test_tutorial(self, tmp_path):
-        """World Bank Human Development Report 2007 - 2008 in Cthulu format. Demonstrate define a schema,
+        """World Bank Human Development Report 2007 - 2008 in Cthulhu format. Demonstrate define a schema,
         create a method, import data, perform actions and generate a schema-compliant output.
         Copies at: https://github.com/whythawk/data-wrangling-and-validation/tree/master/data/lesson-spreadsheet"""
         DIRECTORY = str(tmp_path) + "/"

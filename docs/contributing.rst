@@ -16,5 +16,9 @@ trail from data imported to our database, back to source. You can see the produc
 All the code (so far) has been written by `Gavin Chait <https://gavinchait.com>`_ with references in
 the code to snippets from elsewhere.
 
+In 2021, **whyqd** received financial support from the `Mayor's Resilience Fund <https://challenges.org/mayors-resilience/>`_,
+the Mayor of London's £1 million challenge fund to incentivize innovators to address socially impactful issues facing 
+London.
+
 The 'backronym' for **whyqd** /wɪkɪd/ is *Whythawk Quantitative Data*, `Whythawk <https://whythawk.com>`_
 is an open data science and open research technical consultancy.

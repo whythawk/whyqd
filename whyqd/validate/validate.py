@@ -1,6 +1,6 @@
 """
 .. module:: validate
-:synopsis: Validate an existing method and restructured output data.
+   :synopsis: Validate an existing method and restructured output data.
 
 .. moduleauthor:: Gavin Chait <github.com/turukawa>
 

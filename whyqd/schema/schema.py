@@ -152,7 +152,7 @@ data, ensuring consistency between sources.
 * `array`: any valid array-based data.
 * `date`: any date without a time. Must be in ISO8601 format, `YYYY-MM-DD`.
 * `datetime`: any date with a time. Must be in ISO8601 format, with UTC time specified (optionally) as
-    `YYYY-MM-DD hh:mm:ss Zz`.
+  `YYYY-MM-DD hh:mm:ss Zz`.
 * `year`: any year, formatted as `YYYY`.
 
 `missing`
@@ -179,12 +179,12 @@ Define these as part of your schema definition for a specific field::
 All available constraints:
 
 * `required`: boolean, indicates whether this field is compulsory (but blank values in the input column are permitted
-    and will be set to the `missing` default)
+  and will be set to the `missing` default)
 * `unique`: boolean, if `true` then all values for that input column must be unique
 * `minimum`: `integer` / `number`, as appropriate defining min number of characters in a string, or the min values of
-    numbers or integers
+  numbers or integers
 * `maximum`: `integer` / `number`, as appropriate defining max number of characters in a string, or the max values of
-    numbers or integers
+  numbers or integers
 
 There are two others, `category` and `default`.
 

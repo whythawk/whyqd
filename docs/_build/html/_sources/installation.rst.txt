@@ -10,15 +10,11 @@ Requirements
 
 **whyqd** has a relatively short list of requirements (excl. dependencies):
 
-	* Python 3.7+
+	* Python 3.8+
 	* Pandas 1.0+
-	* Numpy 1.18+
+	* Numpy 1.2+
 	* OpenPyxl 3.0+
 	* XLRD 1.2+
-	* Tabulate 0.8+ (for pretty-printing tables)
-
-It could run on lower versions, but this hasn't been tested. If you want to work with Jupyter, then
-either install Jupyter only, or Anaconda.
 
 Installing
 ----------

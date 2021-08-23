@@ -1,42 +1,48 @@
 
 
 <!DOCTYPE html>
-<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8">
+  <meta charset="utf-8" />
   
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>Distribution &amp; Citation of methods and data &mdash; whyqd 0.1.0 documentation</title>
+  <title>Distribution &amp; Citation of methods and data &mdash; whyqd 0.5.0 documentation</title>
   
-
-  
-  
-  
-  
-
-  
-  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
-  
-    
-      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
-        <script src="_static/jquery.js"></script>
-        <script src="_static/underscore.js"></script>
-        <script src="_static/doctools.js"></script>
-        <script src="_static/language_data.js"></script>
-    
-    <script type="text/javascript" src="_static/js/theme.js"></script>
-
-    
 
   
   <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
   <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Schema" href="schema.html" />
-    <link rel="prev" title="Full worked tutorial" href="tutorial.html" /> 
+    <link rel="prev" title="Tutorial: Cthulhu data" href="tutorial_cthulhu_data.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -73,6 +79,7 @@
           
         </div>
 
+        
         <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
           
             
@@ -80,32 +87,42 @@
               
             
             
-              <p class="caption"><span class="caption-text">Getting started</span></p>
+              <p class="caption" role="heading"><span class="caption-text">Getting started</span></p>
 <ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="installation.html">Requirements, installation &amp; importing</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tutorial.html">Full worked tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Dependencies, installation &amp; importing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial_local_government_data.html">Tutorial: Local government data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial_cthulhu_data.html">Tutorial: Cthulhu data</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Distribution &amp; Citation of methods and data</a></li>
 </ul>
-<p class="caption"><span class="caption-text">Creating and managing Schemas</span></p>
+<p class="caption" role="heading"><span class="caption-text">Creating and managing Schemas</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="schema.html">Schema</a></li>
 </ul>
-<p class="caption"><span class="caption-text">Wrangling with Methods</span></p>
+<p class="caption" role="heading"><span class="caption-text">Wrangling with Methods</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="method.html">Method</a></li>
 </ul>
-<p class="caption"><span class="caption-text">Reference API</span></p>
+<p class="caption" role="heading"><span class="caption-text">Validate an existing Method</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="field_api.html">Field</a></li>
+<li class="toctree-l1"><a class="reference internal" href="validate.html">Validate</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">What next?</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="roadmap.html">Roadmap</a></li>
+<li class="toctree-l1"><a class="reference internal" href="contributing.html">Background and Contributing</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Reference API</span></p>
+<ul>
 <li class="toctree-l1"><a class="reference internal" href="schema_api.html">Schema</a></li>
-<li class="toctree-l1"><a class="reference internal" href="action_api.html">Action</a></li>
 <li class="toctree-l1"><a class="reference internal" href="method_api.html">Method</a></li>
-<li class="toctree-l1"><a class="reference internal" href="transform_api.html">Transform</a></li>
+<li class="toctree-l1"><a class="reference internal" href="action_api.html">Actions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="validate_api.html">Validate</a></li>
 </ul>
 
             
           
         </div>
+        
       </div>
     </nav>
 
@@ -140,18 +157,20 @@
 
 
 
+
+
 <div role="navigation" aria-label="breadcrumbs navigation">
 
   <ul class="wy-breadcrumbs">
     
-      <li><a href="index.html">Docs</a> &raquo;</li>
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
         
       <li>Distribution &amp; Citation of methods and data</li>
     
     
       <li class="wy-breadcrumbs-aside">
         
-            
+          
             <a href="_sources/citation.rst.txt" rel="nofollow"> View page source</a>
           
         
@@ -167,27 +186,31 @@
             
   <div class="section" id="distribution-citation-of-methods-and-data">
 <h1>Distribution &amp; Citation of methods and data<a class="headerlink" href="#distribution-citation-of-methods-and-data" title="Permalink to this headline">¶</a></h1>
-<p><strong>whyqd</strong> is designed for sharing. Simply zip up the various data files, your method JSON and upload
-to your favourite data repository.</p>
+<p><strong>whyqd</strong> is designed to support a research process and ensure citation of the incredible work done by research-based
+data scientists. Simply zip up the various data files, your method JSON and upload to your favourite data repository.</p>
 <p>You can get a <cite>citation</cite> for reference (and more on how to prepare the citation at <a class="reference internal" href="method.html"><span class="doc">Method</span></a>):</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">method</span><span class="o">.</span><span class="n">citation</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">method</span><span class="o">.</span><span class="n">get_citation</span><span class="p">()</span>
 </pre></div>
 </div>
 <p>A citation is a special set of fields, with:</p>
 <ul class="simple">
-<li><p><strong>authors</strong>: a list of author names in the format, and order, you wish to reference them</p></li>
-<li><p><strong>title</strong>: a text field for the full study title</p></li>
-<li><p><strong>repository</strong>: the organisation, or distributor, responsible for hosting your data (and your method file)</p></li>
-<li><p><strong>doi</strong>: the persistent <a class="reference external" href="http://www.doi.org/">DOI</a> for your repository</p></li>
-<li><p><strong>hash</strong>: <a class="reference external" href="https://en.wikipedia.org/wiki/BLAKE_(hash_function)">BLAKE2b</a> has of output data</p></li>
-<li><p><strong>input data</strong>: a list of input data by original source, and the source hash</p></li>
+<li><p><strong>author</strong>: The name(s) of the author(s) (in the case of more than one author, separated by <cite>and</cite>),</p></li>
+<li><p><strong>title</strong>: The title of the work,</p></li>
+<li><p><strong>url</strong>: The URL field is used to store the URL of a web page or FTP download. It is a non-standard BibTeX field,</p></li>
+<li><p><strong>publisher</strong>: The publisher’s name,</p></li>
+<li><p><strong>institution</strong>: The institution that was involved in the publishing, but not necessarily the publisher,</p></li>
+<li><p><strong>doi</strong>: The doi field is used to store the digital object identifier (DOI) of a journal article, conference paper,
+book chapter or book. It is a non-standard BibTeX field. It’s recommended to simply use the DOI, and not a DOI link,</p></li>
+<li><p><strong>month</strong>: The month of publication (or, if unpublished, the month of creation). Use three-letter abbreviation,</p></li>
+<li><p><strong>year</strong>: The year of publication (or, if unpublished, the year of creation),</p></li>
+<li><p><strong>note</strong>: Miscellaneous extra information.</p></li>
 </ul>
 <p>Those of you familiar with Dataverse’s <a class="reference external" href="http://guides.dataverse.org/en/latest/developers/unf/index.html">universal numerical fingerprint</a>
 may be wondering where it is? <strong>whyqd</strong>, similarly, produces a unique hash for each datasource,
 including inputs, working data, and outputs. Ours is based on <a class="reference external" href="https://en.wikipedia.org/wiki/BLAKE_(hash_function)">BLAKE2b</a>
-and is sufficiently universally available as to ensure you can run this as required.</p>
-<p>Anyone with a copy of the method and input data can automatically rerun the entire method file to
-produce a “new” version of the output data and so confirm more directly the validity of the data.</p>
+and is included in the citation output.</p>
+<p>Anyone with a copy of your method and input data can automatically rerun your entire method file to produce a “new”
+version of the output data and so confirm more directly the validity of your restructured research data.</p>
 </div>
 
 
@@ -195,29 +218,29 @@ produce a “new” version of the output data and so confirm more directly the 
            
           </div>
           <footer>
-  
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-      
-        <a href="schema.html" class="btn btn-neutral float-right" title="Schema" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
-      
-      
-        <a href="tutorial.html" class="btn btn-neutral float-left" title="Full worked tutorial" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
-      
+        <a href="schema.html" class="btn btn-neutral float-right" title="Schema" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="tutorial_cthulhu_data.html" class="btn btn-neutral float-left" title="Tutorial: Cthulhu data" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
     </div>
-  
 
   <hr/>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2020, Gavin Chait
+        &#169; Copyright 2020, Gavin Chait.
 
     </p>
   </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
 
 </footer>
-
         </div>
       </div>
 
@@ -225,7 +248,6 @@ produce a “new” version of the output data and so confirm more directly the 
 
   </div>
   
-
 
   <script type="text/javascript">
       jQuery(function () {

@@ -73,4 +73,16 @@ class TestMethod:
         source_data = method.get.working_data
         method.add_actions(schema_scripts, source_data.uuid.hex)
         method.build()
-        method.save(created_by="Gavin Chait", hide_uuid=True)
+        citation = {
+            "author": "Gavin Chait",
+            "month": "feb",
+            "year": 2020,
+            "title": "Portsmouth City Council normalised database of commercial ratepayers",
+            "url": "https://github.com/whythawk/whyqd/tree/master/tests/data",
+        }
+        method.set_citation(citation)
+        test_citation = method.get_citation()
+        del test_citation["input_sources"]
+        del test_citation["restructured_data"]
+        assert test_citation == citation
+        assert method.save(created_by="Gavin Chait", hide_uuid=True)
