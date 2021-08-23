@@ -1,4 +1,5 @@
 dist: focal
+sudo: required
 language: python
 python:
   - "3.7"
