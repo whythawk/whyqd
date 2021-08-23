@@ -8,7 +8,7 @@ readme = "README.md"
 homepage = "https://whyqd.com"
 repository = "https://github.com/whythawk/whyqd/"
 documentation = "https://whyqd.readthedocs.io/"
-keywords = ["python3", "epub-generation", "epub3", "docx-to-epub"]
+keywords = ["python", "data-science", "pandas", "open-data", "open-science", "data-analysis", "data-wrangling", "data-management", "munging"]
 classifiers = [
     "Development Status :: 5 - Production/Stable",
     "Environment :: Console",
@@ -21,7 +21,6 @@ classifiers = [
 ]
 include = [
     "whyqd/VERSION",
-    "whyqd/settings/*",
     "tests/data/*"
 ]
 
