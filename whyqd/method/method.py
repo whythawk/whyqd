@@ -582,7 +582,7 @@ class Method:
                 if len(df_sample.keys()) > 1:
                     data_k = data.copy(deep=True, update={"sheet_name": k})
                 data_k.columns = df_columns
-                if get_row_count: data_k.row_count = len(df_sample)
+                if get_row_count: data_k.row_count = len(df_sample[k])
                 self._method.input_data.append(data_k)
 
     def remove_data(self, uid: UUID, sheet_name: Optional[str] = None) -> None:
