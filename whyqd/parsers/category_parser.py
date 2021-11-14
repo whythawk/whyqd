@@ -51,10 +51,7 @@ class CategoryScript:
         self.core = CoreScript()
         self.parser = ParserScript()
         self.wrangle = WranglingScript()
-        sheet_name = source_data.sheet_name
-        self.source_data = self.wrangle.get_dataframe(source=source_data.path, filetype=source_data.mime)
-        if isinstance(source_data, dict):
-            self.source_data = self.source_data[sheet_name]
+        self.source_data = self.wrangle.get_dataframe_from_datasource(data=source_data)
         self.source_columns = source_data.columns
         self.schema = schema
 

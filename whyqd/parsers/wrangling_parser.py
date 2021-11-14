@@ -18,6 +18,7 @@ from ..types import MimeType
 
 if TYPE_CHECKING:
     from ..schema import Schema
+    from ..models import DataSourceModel
 
 
 class WranglingScript:
@@ -25,6 +26,7 @@ class WranglingScript:
 
     def __init__(self):
         self.check_source = CoreScript().check_source
+        self.core = CoreScript()
         self.DATE_FORMATS = {
             "date": {"fmt": ["%Y-%m-%d"], "txt": ["YYYY-MM-DD"]},
             "datetime": {
@@ -106,6 +108,43 @@ class WranglingScript:
                 df = pd.concat(df_iterator, ignore_index=True)
         return df
 
+    def get_dataframe_from_datasource(self, data: DataSourceModel) -> pd.DataFrame:
+        """Return the dataframe for a data source.
+
+        Parameters
+        ----------
+        data: DataSourceModel
+
+        Returns
+        -------
+        pd.DataFrame
+        """
+        path = data.path
+        try:
+            self.core.check_source(path)
+        except FileNotFoundError:
+            path = str(self.directory / data.source)
+            self.core.check_source(path)
+        df_columns = [d.name for d in data.columns]
+        names = [d.name for d in data.names] if data.names else None
+        df = self.get_dataframe(
+            source=path,
+            filetype=data.mime,
+            names=names,
+            preserve=[d.name for d in data.preserve if d.name in df_columns],
+        )
+        if isinstance(df, dict):
+            if df:
+                df = df[data.sheet_name]
+            else:
+                # It's an empty df for some reason. Maybe excessive filtering.
+                df = pd.DataFrame()
+        if df.empty:
+            raise ValueError(
+                f"Data source contains no data ({data.path}). Review actions to see if any were more destructive than expected."
+            )
+        return df
+
     def get_dataframe_columns(self, df: pd.DataFrame) -> List(ColumnModel):
         """Returns a list of ColumnModels from a source DataFrame.
 
@@ -161,43 +200,43 @@ class WranglingScript:
             column_index.loc[dups] = replacements
         return pd.Index(column_index)
 
-    def check_column_unique(self, source: str, key: str) -> bool:
-        """
-        Test a column in a dataframe to ensure all values are unique.
+    # def check_column_unique(self, source: str, key: str) -> bool:
+    #     """
+    #     Test a column in a dataframe to ensure all values are unique.
 
-        Parameters
-        ----------
-        source: Source filename
-        key: Column name of field where data are to be tested for uniqueness
+    #     Parameters
+    #     ----------
+    #     source: Source filename
+    #     key: Column name of field where data are to be tested for uniqueness
 
-        Raises
-        ------
-        ValueError if not unique
+    #     Raises
+    #     ------
+    #     ValueError if not unique
 
-        Returns
-        -------
-        bool, True if unique
-        """
-        df = self.get_dataframe(source, key)
-        if len(df[key]) != len(df[key].unique()):
-            import warnings
+    #     Returns
+    #     -------
+    #     bool, True if unique
+    #     """
+    #     df = self.get_dataframe(source, key)
+    #     if len(df[key]) != len(df[key].unique()):
+    #         import warnings
 
-            filename = source.split("/")[-1]  # Obfuscate the path
-            e = "'{}' contains non-unique rows in column `{}`".format(filename, key)
-            # raise ValueError(e)
-            warnings.warn(e)
-        return True
+    #         filename = source.split("/")[-1]  # Obfuscate the path
+    #         e = "'{}' contains non-unique rows in column `{}`".format(filename, key)
+    #         # raise ValueError(e)
+    #         warnings.warn(e)
+    #     return True
 
-    def check_date_format(self, date_type: str, date_value: str) -> bool:
-        # https://stackoverflow.com/a/37045601
-        # https://www.saltycrane.com/blog/2009/05/converting-time-zones-datetime-objects-python/
-        for fmt in self.DATE_FORMATS[date_type]["fmt"]:
-            try:
-                if date_value == datetime.strptime(date_value, fmt).strftime(fmt):
-                    return True
-            except ValueError:
-                continue
-        raise ValueError(f"Incorrect date format, should be: `{self.DATE_FORMATS[date_type]['txt']}`")
+    # def check_date_format(self, date_type: str, date_value: str) -> bool:
+    #     # https://stackoverflow.com/a/37045601
+    #     # https://www.saltycrane.com/blog/2009/05/converting-time-zones-datetime-objects-python/
+    #     for fmt in self.DATE_FORMATS[date_type]["fmt"]:
+    #         try:
+    #             if date_value == datetime.strptime(date_value, fmt).strftime(fmt):
+    #                 return True
+    #         except ValueError:
+    #             continue
+    #     raise ValueError(f"Incorrect date format, should be: `{self.DATE_FORMATS[date_type]['txt']}`")
 
     ###################################################################################################
     ### Pandas type parsers

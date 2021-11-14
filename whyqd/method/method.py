@@ -516,7 +516,7 @@ class Method:
     # MANAGE INPUT DATA
     #########################################################################################
 
-    def add_data(self, source: Union[str, List[str], DataSourceModel, List[DataSourceModel]]) -> None:
+    def add_data(self, source: Union[str, List[str], DataSourceModel, List[DataSourceModel]], get_row_count: bool = False) -> None:
         """Provide either a path string, list of path strings, or a dictionary conforming to the DataSourceModel data
         for wrangling.
 
@@ -532,13 +532,16 @@ class Method:
         ----------
         source: str, list of str, DataSourceModel, or list of DataSourceModel
             A dictionary conforming to the DataSourceModel. Each path can be to a filename, or a url.
+        get_row_count: bool, default False
+            Toggle whether to include row-count for tabular data in model.
         """
         if not isinstance(source, list):
             source = [source]
         for data in source:
             if isinstance(data, str):
                 data = {"path": data}
-            data = DataSourceModel(**data)
+            if not isinstance(data, DataSourceModel):
+                data = DataSourceModel(**data)
             # Check if the filename is remote
             file_root = "/".join(data.path.split("/")[:-1])
             valid_file_source = "".join(
@@ -555,13 +558,21 @@ class Method:
                 except SameFileError:
                     pass
             self.core.rename_file(local_source, data.source)
-            df_sample = self.wrangle.get_dataframe(
-                self.directory / data.source,
-                filetype=data.mime,
-                names=[d.name for d in data.names],
-                preserve=[d.name for d in data.preserve],
-                nrows=self._nrows,
-            )
+            if not get_row_count:
+                df_sample = self.wrangle.get_dataframe(
+                    self.directory / data.source,
+                    filetype=data.mime,
+                    names=[d.name for d in data.names],
+                    preserve=[d.name for d in data.preserve],
+                    nrows=self._nrows,
+                )
+            else:
+                df_sample = self.wrangle.get_dataframe(
+                    self.directory / data.source,
+                    filetype=data.mime,
+                    names=[d.name for d in data.names],
+                    preserve=[d.name for d in data.preserve]
+                )
             if not isinstance(df_sample, dict):
                 # There weren't multiple sheets in MimeType.XLS/X
                 df_sample = {"key": df_sample}
@@ -571,6 +582,7 @@ class Method:
                 if len(df_sample.keys()) > 1:
                     data_k = data.copy(deep=True, update={"sheet_name": k})
                 data_k.columns = df_columns
+                if get_row_count: data_k.row_count = len(df_sample)
                 self._method.input_data.append(data_k)
 
     def remove_data(self, uid: UUID, sheet_name: Optional[str] = None) -> None:
@@ -630,6 +642,8 @@ class Method:
                 ds.names = updated_source.names
             if "preserve" in keys:
                 ds.preserve = updated_source.preserve
+            if "key" in keys:
+                ds.key = updated_source.key
             if "citation" in keys and ds.citation:
                 ds.citation = ds.citation.copy(update=updated_source.citation.dict(exclude_unset=True))
             elif "citation" in keys and not ds.citation:
@@ -797,8 +811,9 @@ class Method:
         working_data.columns = self.wrangle.get_dataframe_columns(df)
         working_data.preserve = [c for c in working_data.columns if c.type_field == "string"]
         working_data.actions = actions
+        working_data.row_count = len(df)
         # Load file again to calculate checksum
-        df = self._get_dataframe(working_data)
+        df = self.wrangle.get_dataframe_from_datasource(working_data)
         working_data.checksum = self.core.get_data_checksum(df)
         self._method.working_data = working_data
         # Update the method with this change-event
@@ -832,7 +847,7 @@ class Method:
             data_actions = data.actions[1:].copy()
         # 2. Morph ACTIONS change reference columns ... this causes the chaos you would expect ...
         # Reset column references BEFORE starting transform so that scripts run properly
-        df = self._get_dataframe(data)
+        df = self.wrangle.get_dataframe_from_datasource(data)
         data.columns = self.wrangle.get_dataframe_columns(df)
         # 1. Parse all category assignment scripts
         category_assignments = []
@@ -911,7 +926,7 @@ class Method:
         restructured_data.columns = self.wrangle.get_dataframe_columns(df_restructured)
         restructured_data.preserve = [c for c in restructured_data.columns if c.type_field == "string"]
         # Load file again to calculate checksum
-        df_restructured = self._get_dataframe(restructured_data)
+        df_restructured = self.wrangle.get_dataframe_from_datasource(restructured_data)
         restructured_data.checksum = self.core.get_data_checksum(df_restructured)
         self._method.restructured_data = restructured_data
         # Update the method with this change-event
@@ -947,7 +962,7 @@ class Method:
         temporary_data.columns = self.wrangle.get_dataframe_columns(df_restructured)
         temporary_data.preserve = [c for c in temporary_data.columns if c.type_field == "string"]
         # Load file again to calculate checksum
-        df_restructured = self._get_dataframe(temporary_data)
+        df_restructured = self.wrangle.get_dataframe_from_datasource(temporary_data)
         # Validate RESTRUCTURED DATA checksums
         df_checksum = self.core.get_data_checksum(df_restructured)
         # Delete the temporary file. Before crashing.
@@ -1149,13 +1164,13 @@ class Method:
         self._method.version.append(update)
         # Reset all the source data columns
         for data in self._method.input_data:
-            df = self._get_dataframe(data)
+            df = self.wrangle.get_dataframe_from_datasource(data)
             data.columns = self.wrangle.get_dataframe_columns(df)
         if self._method.working_data:
-            df = self._get_dataframe(self._method.working_data)
+            df = self.wrangle.get_dataframe_from_datasource(self._method.working_data)
             self._method.working_data.columns = self.wrangle.get_dataframe_columns(df)
         if self._method.restructured_data:
-            df = self._get_dataframe(self._method.restructured_data)
+            df = self.wrangle.get_dataframe_from_datasource(self._method.restructured_data)
             self._method.restructured_data.columns = self.wrangle.get_dataframe_columns(df)
         return self.core.save_file(self.get_json(hide_uuid=hide_uuid), path)
 
@@ -1163,47 +1178,47 @@ class Method:
     # OTHER UTILITIES
     #########################################################################################
 
-    def _get_dataframe(self, data: DataSourceModel) -> pd.DataFrame:
-        """Return the dataframe for a data source. Used in transforms.
+    # def _get_dataframe(self, data: DataSourceModel) -> pd.DataFrame:
+    #     """Return the dataframe for a data source. Used in transforms.
 
-        Parameters
-        ----------
-        data: DataSourceModel
+    #     Parameters
+    #     ----------
+    #     data: DataSourceModel
 
-        Returns
-        -------
-        pd.DataFrame
-        """
-        path = data.path
-        try:
-            self.core.check_source(path)
-        except FileNotFoundError:
-            path = str(self.directory / data.source)
-            self.core.check_source(path)
-        df_columns = [d.name for d in data.columns]
-        names = [d.name for d in data.names] if data.names else None
-        df = self.wrangle.get_dataframe(
-            path,
-            filetype=data.mime,
-            names=names,
-            preserve=[d.name for d in data.preserve if d.name in df_columns],
-        )
-        if isinstance(df, dict):
-            if df:
-                df = df[data.sheet_name]
-            else:
-                # It's an empty df for some reason. Maybe excessive filtering.
-                df = pd.DataFrame()
-        if df.empty:
-            raise ValueError(
-                f"Data source contains no data ({data.path}). Review actions to see if any were more destructive than expected."
-            )
-        return df
+    #     Returns
+    #     -------
+    #     pd.DataFrame
+    #     """
+    #     path = data.path
+    #     try:
+    #         self.core.check_source(path)
+    #     except FileNotFoundError:
+    #         path = str(self.directory / data.source)
+    #         self.core.check_source(path)
+    #     df_columns = [d.name for d in data.columns]
+    #     names = [d.name for d in data.names] if data.names else None
+    #     df = self.wrangle.get_dataframe(
+    #         path,
+    #         filetype=data.mime,
+    #         names=names,
+    #         preserve=[d.name for d in data.preserve if d.name in df_columns],
+    #     )
+    #     if isinstance(df, dict):
+    #         if df:
+    #             df = df[data.sheet_name]
+    #         else:
+    #             # It's an empty df for some reason. Maybe excessive filtering.
+    #             df = pd.DataFrame()
+    #     if df.empty:
+    #         raise ValueError(
+    #             f"Data source contains no data ({data.path}). Review actions to see if any were more destructive than expected."
+    #         )
+    #     return df
 
     def _rebuild_actions(self, data: DataSourceModel) -> None:
         """Rebuild all actions for any changes to the list of actions since they can have unexpected interactions."""
         actions = [d.script for d in data.actions]
-        df = self._get_dataframe(data)
+        df = self.wrangle.get_dataframe_from_datasource(data)
         data.columns = self.wrangle.get_dataframe_columns(df)
         data.actions = []
         data.actions = self.add_actions(actions, data.uuid.hex, data.sheet_name)
@@ -1225,7 +1240,7 @@ class Method:
             if input_data.actions:
                 df = self.transform(input_data)
             else:
-                df = self._get_dataframe(input_data)
+                df = self.wrangle.get_dataframe_from_datasource(input_data)
             if df_base.empty:
                 df_base = df.copy()
                 data_base = input_data.copy()
@@ -1272,7 +1287,7 @@ class Method:
             temporary_data.columns = self.wrangle.get_dataframe_columns(df_working)
             temporary_data.preserve = [c for c in temporary_data.columns if c.type_field == "string"]
             # Load file again to calculate checksum
-            df_working = self._get_dataframe(temporary_data)
+            df_working = self.wrangle.get_dataframe_from_datasource(temporary_data)
             df_checksum = self.core.get_data_checksum(df_working)
             if self._method.working_data.checksum != df_checksum:
                 raise ValueError(

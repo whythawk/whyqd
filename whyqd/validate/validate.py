@@ -66,7 +66,7 @@ from typing import Optional, Union, List, Dict
 from uuid import UUID
 import pandas as pd
 
-from ..models import MethodModel
+from ..models import MethodModel, DataSourceModel
 from ..parsers import CoreScript, WranglingScript
 from ..schema import Schema
 from ..method import Method
@@ -209,7 +209,7 @@ class Validate:
         self.core.check_source(path)
         restructured_data = self._method.restructured_data.copy()
         restructured_data["path"] = path
-        df = self._get_dataframe(restructured_data)
+        df = self.wrangle.get_dataframe_from_datasource(DataSourceModel(**restructured_data))
         checksum = self.core.get_data_checksum(df)
         if checksum != self._method.restructured_data["checksum"]:
             # Try an alternative header in Schema order
@@ -290,28 +290,28 @@ class Validate:
             raise ValueError(f"Data source cannot be found ({uid} {sheet_name}).")
         return ds
 
-    def _get_dataframe(self, data: dict) -> pd.DataFrame:
-        """Return the dataframe for a data source.
+    # def _get_dataframe(self, data: dict) -> pd.DataFrame:
+    #     """Return the dataframe for a data source.
 
-        Parameters
-        ----------
-        data: dict
+    #     Parameters
+    #     ----------
+    #     data: dict
 
-        Returns
-        -------
-        pd.DataFrame
-        """
-        df_columns = [d["name"] for d in data["columns"]]
-        names = [d["name"] for d in data["names"]] if data.get("names") else None
-        df = self.wrangle.get_dataframe(
-            data["path"],
-            filetype=data["mime"],
-            names=names,
-            preserve=[d["name"] for d in data.get("preserve", []) if d["name"] in df_columns],
-        )
-        if isinstance(df, dict):
-            df = df[data["sheet_name"]]
-        return df
+    #     Returns
+    #     -------
+    #     pd.DataFrame
+    #     """
+    #     df_columns = [d["name"] for d in data["columns"]]
+    #     names = [d["name"] for d in data["names"]] if data.get("names") else None
+    #     df = self.wrangle.get_dataframe(
+    #         data["path"],
+    #         filetype=data["mime"],
+    #         names=names,
+    #         preserve=[d["name"] for d in data.get("preserve", []) if d["name"] in df_columns],
+    #     )
+    #     if isinstance(df, dict):
+    #         df = df[data["sheet_name"]]
+    #     return df
 
     @property
     def _validate_input_data(self) -> bool:

@@ -42,6 +42,7 @@ class DataSourceModel(BaseModel):
     checksum: str = Field(
         default=None, description="Checksum for source data file. Automatically generated. Based on Blake2b."
     )
+    row_count: Optional[int] = Field(None, description="Count of rows in source data table.")
     citation: Optional[CitationModel] = Field(None, description="Optional full citation for the source data.")
 
     class Config:

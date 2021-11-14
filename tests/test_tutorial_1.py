@@ -23,7 +23,7 @@ class TestMethod:
         method = whyqd.Method(directory=DIRECTORY, schema=SCHEMA)
         method.set({"name": "test_method"})
         input_data = [{"path": d} for d in INPUT_DATA]
-        method.add_data(source=input_data)
+        method.add_data(source=input_data, get_row_count=True)
         # reorder
         input_order = [m.uuid.hex for m in method.get.input_data]
         input_order.reverse()

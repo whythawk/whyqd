@@ -37,14 +37,7 @@ class MorphScript:
         self.wrangle = WranglingScript()
         self.data = data
         if not isinstance(df, pd.DataFrame):
-            df = self.wrangle.get_dataframe(
-                data.path,
-                filetype=data.mime,
-                names=data.names,
-                preserve=data.preserve,
-            )
-            if isinstance(df, dict):
-                df = df[data.sheet_name]
+            df = self.wrangle.get_dataframe_from_datasource(data=data)
         self.df = df
         self.source_columns = data.columns
         self.row_indices = list(self.df.index)
