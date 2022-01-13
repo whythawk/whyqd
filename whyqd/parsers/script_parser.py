@@ -202,6 +202,6 @@ class ParserScript:
         # Going to sort these so the longest is first to avoid replacing partial matches
         # https://docs.python.org/3/howto/sorting.html
         for f in sorted(fields, key=lambda f: len(f.name), reverse=True):
-            if f.name in script:
-                script = script.replace(f.name, f.uuid.hex)
+            if f"'{f.name}'" in script:
+                script = script.replace(f"'{f.name}'", f"'{f.uuid.hex}'")
         return script

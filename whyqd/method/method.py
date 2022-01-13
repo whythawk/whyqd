@@ -921,13 +921,18 @@ class Method:
             restructured_path = self.directory / restructured_file
         # Try for a Schema order
         header_order = [c.name for c in self._schema.get.fields if c.name in df_restructured.columns]
-        df_restructured[header_order].to_excel(restructured_path, index=False)
+        try:
+            df_restructured[header_order].to_excel(restructured_path, index=False)
+        except ValueError:
+            # Excel is limited to a particular row length, if exceeded, it has to be CSV, unfortunately
+            restructured_path = f"{str(restructured_path)[:-5]}.csv"
+            df_restructured[header_order].to_csv(restructured_path, index=False)
         restructured_data = DataSourceModel(**{"path": str(restructured_path)})
-        restructured_data.columns = self.wrangle.get_dataframe_columns(df_restructured)
+        restructured_data.columns = self.wrangle.get_dataframe_columns(df_restructured[header_order])
         restructured_data.preserve = [c for c in restructured_data.columns if c.type_field == "string"]
         # Load file again to calculate checksum
         df_restructured = self.wrangle.get_dataframe_from_datasource(restructured_data)
-        restructured_data.checksum = self.core.get_data_checksum(df_restructured)
+        restructured_data.checksum = self.core.get_data_checksum(df_restructured[header_order])
         self._method.restructured_data = restructured_data
         # Update the method with this change-event
         update = VersionModel(**{"description": "Build restructured data."})

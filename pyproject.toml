@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "whyqd"
-version = "0.6.1"
+version = "0.6.2"
 description = "data wrangling simplicity, complete audit transparency, and at speed"
 authors = ["Gavin Chait <gchait@whythawk.com>"]
 license = "BSD-3-Clause"
