@@ -10,7 +10,9 @@ if TYPE_CHECKING:
     from ..models import ColumnModel, SchemaActionModel, ModifierModel, CategoryActionModel, CategoryModel
     from ..schema import Schema
     from ..base import BaseSchemaAction
-    import pandas as pd
+
+    # import pandas as pd
+    import modin.pandas as pd
 
 
 class ActionScript:

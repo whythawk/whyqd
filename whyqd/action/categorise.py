@@ -1,5 +1,9 @@
 from __future__ import annotations
-import pandas as pd
+
+# import pandas as pd
+# import ray
+import os
+import modin.pandas as pd
 import numpy as np
 from typing import List, Dict, Union, TYPE_CHECKING
 
@@ -7,6 +11,9 @@ from whyqd.base import BaseSchemaAction
 
 if TYPE_CHECKING:
     from ..models import ColumnModel, ModifierModel, FieldModel, CategoryModel, CategoryActionModel
+
+# ray.init(runtime_env={"env_vars": {"__MODIN_AUTOIMPORT_PANDAS__": "1"}}, ignore_reinit_error=True)
+# os.environ["MODIN_ENGINE"] = "ray"
 
 
 class Action(BaseSchemaAction):
@@ -326,9 +333,7 @@ class Action(BaseSchemaAction):
         if df[source.name].dtype in ["float64", "int64"]:
             df[source.name] = df[source.name].replace({0: np.nan})
         if df[source.name].dtype in ["datetime64[ns]"]:
-            df.loc[:, source.name] = df.loc[:, source.name].apply(
-                lambda x: pd.to_datetime(self.core.parse_dates(x), errors="coerce")
-            )
+            df[source.name] = df[source.name].apply(self.wrangle.parse_dates_coerced)
         return [
             pd.notnull(df[source.name]) if schema_category == "false" else ~pd.notnull(df[source.name])
             for schema_category in category_terms

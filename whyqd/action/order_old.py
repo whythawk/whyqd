@@ -1,5 +1,9 @@
 from __future__ import annotations
-import pandas as pd
+
+# import pandas as pd
+# import ray
+# import os
+import modin.pandas as pd
 import numpy as np
 from typing import List, Union, TYPE_CHECKING
 
@@ -7,6 +11,9 @@ from whyqd.base import BaseSchemaAction
 
 if TYPE_CHECKING:
     from ..models import ColumnModel, ModifierModel, FieldModel
+
+# ray.init(runtime_env={"env_vars": {"__MODIN_AUTOIMPORT_PANDAS__": "1"}}, ignore_reinit_error=True)
+# os.environ["MODIN_ENGINE"] = "ray"
 
 
 class Action(BaseSchemaAction):
@@ -76,24 +83,20 @@ class Action(BaseSchemaAction):
                 if data.name == date.name:
                     # Just comparing date columns
                     base_date = destination.name
-                df.loc[:, base_date] = df.loc[:, base_date].apply(
-                    lambda x: pd.to_datetime(self.wrangle.parse_dates(x), errors="coerce")
-                )
+                df[base_date] = df[base_date].apply(self.wrangle.parse_dates_coerced)
                 continue
             # np.where date is <> base_date and don't replace value with null
             # logic: if test_date not null & base_date <> test_date
             # False if (test_date == nan) | (base_date == nan) | base_date >< test_date
             # Therefore we need to test again for the alternatives
-            df.loc[:, date.name] = df.loc[:, date.name].apply(
-                lambda x: pd.to_datetime(self.wrangle.parse_dates(x), errors="coerce")
-            )
-            df.loc[:, destination.name] = np.where(
+            df[date.name] = df[date.name].apply(self.wrangle.parse_dates_coerced)
+            df[destination.name] = np.where(
                 df[date.name].isnull() | (df[base_date] < df[date.name]),
                 np.where(df[destination.name].notnull(), df[destination.name], df[data.name]),
                 np.where(df[data.name].notnull(), df[data.name], df[destination.name]),
             )
             if base_date != destination.name:
-                df.loc[:, base_date] = np.where(
+                df[base_date] = np.where(
                     df[date.name].isnull() | (df[base_date] < df[date.name]),
                     np.where(df[base_date].notnull(), df[base_date], df[date.name]),
                     np.where(df[date.name].notnull(), df[date.name], df[base_date]),

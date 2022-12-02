@@ -1,11 +1,13 @@
 from __future__ import annotations
 from typing import List, Union, TYPE_CHECKING
-import pandas as pd
+
+# import pandas as pd
 import numpy as np
 
 from whyqd.base import BaseSchemaAction
 
 if TYPE_CHECKING:
+    import modin.pandas as pd
     from ..models import FieldModel, ColumnModel
 
 
@@ -52,7 +54,7 @@ class Action(BaseSchemaAction):
             Containing the implementation of the Action
         """
         if destination.name not in df.columns:
-            df.loc[:, destination.name] = None
+            df[destination.name] = None
         for field in source:
-            df.loc[:, destination.name] = np.where(df[field.name].notnull(), df[field.name], df[destination.name])
+            df[destination.name] = np.where(df[field.name].notnull(), df[field.name], df[destination.name])
         return df

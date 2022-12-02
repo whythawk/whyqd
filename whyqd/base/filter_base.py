@@ -1,9 +1,11 @@
 from __future__ import annotations
 from typing import List, Union, Optional, Dict, TYPE_CHECKING
-import pandas as pd
+
+# import pandas as pd
 from datetime import date
 
 if TYPE_CHECKING:
+    import modin.pandas as pd
     from ..models import FilterActionModel, FieldModel, ColumnModel
 
 

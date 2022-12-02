@@ -1,11 +1,13 @@
 from __future__ import annotations
 from typing import List, Optional, TYPE_CHECKING
-import pandas as pd
+
+# import pandas as pd
 import numpy as np
 
 from whyqd.base import BaseMorphAction
 
 if TYPE_CHECKING:
+    import modin.pandas as pd
     from ..models import ColumnModel
 
 

@@ -1,6 +1,10 @@
 from __future__ import annotations
 from typing import Dict, List, Union, TYPE_CHECKING
-import pandas as pd
+
+# import pandas as pd
+# import ray
+import os
+import modin.pandas as pd
 import numpy as np
 
 from . import CoreScript, ParserScript, WranglingScript
@@ -9,6 +13,9 @@ from ..models import CategoryModel
 if TYPE_CHECKING:
     from ..models import ColumnModel, FieldModel, CategoryActionModel, DataSourceModel
     from ..schema import Schema
+
+# ray.init(runtime_env={"env_vars": {"__MODIN_AUTOIMPORT_PANDAS__": "1"}}, ignore_reinit_error=True)
+# os.environ["MODIN_ENGINE"] = "ray"
 
 
 class CategoryScript:

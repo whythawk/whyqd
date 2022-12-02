@@ -5,15 +5,24 @@ import hashlib
 from urllib.parse import urlparse
 from datetime import date, datetime
 from pathlib import Path, PurePath
-import pandas as pd
+
+# import pandas as pd
+# import ray
+import os
+import modin.pandas as pd
 from typing import Dict
 import locale
+
+from ..utilities.hashing import hash_pandas_object
 
 try:
     locale.setlocale(locale.LC_ALL, "en_US.UTF-8")
 except locale.Error:
     # Readthedocs has a problem, but difficult to replicate
     locale.setlocale(locale.LC_ALL, "")
+
+# ray.init(runtime_env={"env_vars": {"__MODIN_AUTOIMPORT_PANDAS__": "1"}}, ignore_reinit_error=True)
+# os.environ["MODIN_ENGINE"] = "ray"
 
 
 class CoreScript:
@@ -88,7 +97,7 @@ class CoreScript:
 
     def get_data_checksum(self, df: pd.DataFrame) -> str:
         # The destination data does not have a valid checksum for the file itself, only the data.
-        df_checksum = pd.util.hash_pandas_object(df, index=True).values
+        df_checksum = hash_pandas_object(df, index=True).values
         checksum = hashlib.blake2b
         return checksum(df_checksum).hexdigest()
 

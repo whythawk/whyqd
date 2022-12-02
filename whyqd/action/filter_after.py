@@ -1,10 +1,12 @@
 from __future__ import annotations
 from typing import Union, Optional, TYPE_CHECKING
-import pandas as pd
+
+# import pandas as pd
 
 from whyqd.base import BaseFilterAction
 
 if TYPE_CHECKING:
+    import modin.pandas as pd
     from ..models import FieldModel, ColumnModel
 
 
@@ -60,6 +62,6 @@ class Action(BaseFilterAction):
 
         wrangle = WranglingScript()
         df_filter = df.copy()
-        df_filter[filter_column.name] = df_filter[filter_column.name].apply(lambda x: wrangle.parse_dates(x))
+        df_filter[filter_column.name] = df_filter[filter_column.name].apply(wrangle.parse_dates)
         rows = df_filter[df_filter[filter_column.name] > date_term].index.values
         return df.loc[rows]

@@ -64,7 +64,9 @@ these restructuring actions applied **does** produce these restructured data.
 from __future__ import annotations
 from typing import Optional, Union, List, Dict
 from uuid import UUID
-import pandas as pd
+
+# import pandas as pd
+# import modin.pandas as pd
 
 from ..models import MethodModel, DataSourceModel
 from ..parsers import CoreScript, WranglingScript
