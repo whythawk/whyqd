@@ -229,7 +229,8 @@ class TestAction:
     def test_rename_all(self, tmp_path):
         DIRECTORY = str(tmp_path) + "/"
         CoreScript().check_path(DIRECTORY)
-        renames = [uuid4().hex for _ in np.arange(18)]
+        # Check length of columns in 'working_test_data.xlsx'
+        renames = [uuid4().hex for _ in np.arange(16)]
         script = f"RENAME_ALL > {renames}"
         assert _test_script_portsmouth(DIRECTORY, script)
 
