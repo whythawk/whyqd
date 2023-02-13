@@ -1,6 +1,8 @@
 from __future__ import annotations
 from typing import Optional, List
-import pandas as pd
+
+# import pandas as pd
+import modin.pandas as pd
 
 from whyqd.base import BaseMorphAction
 

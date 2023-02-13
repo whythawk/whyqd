@@ -1,10 +1,12 @@
 from __future__ import annotations
 from typing import List, Union, TYPE_CHECKING
-import pandas as pd
+
+# import pandas as pd
 
 from whyqd.base import BaseSchemaAction
 
 if TYPE_CHECKING:
+    import modin.pandas as pd
     from ..models import FieldModel, ColumnModel
 
 

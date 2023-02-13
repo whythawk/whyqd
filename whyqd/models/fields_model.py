@@ -1,7 +1,6 @@
 from __future__ import annotations
 from typing import Optional, Any
-from pydantic import BaseModel, Field, validator
-from pydantic.types import constr
+from pydantic import BaseModel, Field
 from uuid import UUID, uuid4
 
 from ..models import ConstraintsModel
@@ -10,9 +9,9 @@ from ..types import FieldType
 
 class FieldModel(BaseModel):
     uuid: UUID = Field(default_factory=uuid4, description="Unique identity for the field. Automatically generated.")
-    name: constr(strip_whitespace=True, to_lower=True) = Field(
+    name: str = Field(
         ...,
-        description="Machine-readable term to uniquely address this field. Cannot have spaces. CamelCase or snake_case.",
+        description="Defined exactly as it appears in the source data. By convention, it should be a machine-readable term to uniquely address this field. Cannot have spaces. CamelCase or snake_case.",
     )
     title: Optional[str] = Field(None, description="A human-readable version of the field name.")
     description: Optional[str] = Field(None, description="A description for the field.")
@@ -29,7 +28,3 @@ class FieldModel(BaseModel):
         use_enum_values = True
         anystr_strip_whitespace = True
         validate_assignment = True
-
-    @validator("name")
-    def name_space(cls, v):
-        return "_".join(v.split(" ")).lower()

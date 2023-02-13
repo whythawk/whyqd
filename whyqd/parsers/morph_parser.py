@@ -1,6 +1,8 @@
 from __future__ import annotations
 from typing import Dict, List, Union, Optional, Type, TYPE_CHECKING
-import pandas as pd
+
+# import pandas as pd
+import modin.pandas as pd
 import numpy as np
 
 from . import CoreScript, ParserScript, WranglingScript

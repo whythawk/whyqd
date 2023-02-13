@@ -1,6 +1,8 @@
 from __future__ import annotations
 from typing import List, Union, TYPE_CHECKING
-import pandas as pd
+
+# import pandas as pd
+import modin.pandas as pd
 import numpy as np
 
 from whyqd.base import BaseSchemaAction
@@ -74,13 +76,13 @@ class Action(BaseSchemaAction):
         add_fields = [field.name for modifier, field in self.core.chunks(source, term_set) if modifier.name == "+"]
         sub_fields = [field.name for modifier, field in self.core.chunks(source, term_set) if modifier.name == "-"]
         for field in add_fields + sub_fields:
-            df.loc[:, field] = df.loc[:, field].apply(lambda x: self.wrangle.parse_float(x))
+            df[field] = df[field].apply(self.wrangle.parse_float)
         # Need to maintain NaNs ... default is to treat NaNs as zeros, so even a sum of two NaNs is zero
         # If we don't know, we don't know ... but ... if a sum is mixed, then ignore the NaNs
         _add = df[add_fields].sum(min_count=1, axis=1).array
         _sub = df[sub_fields].sum(min_count=1, axis=1).array
         # Need to use 'logical_and' since comparing NaNs is a disaster
-        df.loc[:, destination.name] = np.where(
+        df[destination.name] = np.where(
             np.logical_and(np.isnan(_add), np.isnan(_sub)), np.nan, np.nan_to_num(_add) - np.nan_to_num(_sub)
         )
         return df

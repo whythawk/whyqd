@@ -5,9 +5,17 @@ import hashlib
 from urllib.parse import urlparse
 from datetime import date, datetime
 from pathlib import Path, PurePath
-import pandas as pd
+
+# import pandas as pd
+import modin.pandas as pd
+from pandas.util import hash_pandas_object
 from typing import Dict
 import locale
+
+# from ..utilities.hashing import hash_pandas_object
+from ..config.ray_init import ray_start
+
+ray_start()
 
 try:
     locale.setlocale(locale.LC_ALL, "en_US.UTF-8")
@@ -88,7 +96,7 @@ class CoreScript:
 
     def get_data_checksum(self, df: pd.DataFrame) -> str:
         # The destination data does not have a valid checksum for the file itself, only the data.
-        df_checksum = pd.util.hash_pandas_object(df, index=True).values
+        df_checksum = hash_pandas_object(df._to_pandas(), index=True).values
         checksum = hashlib.blake2b
         return checksum(df_checksum).hexdigest()
 

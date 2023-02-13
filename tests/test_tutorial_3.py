@@ -63,7 +63,7 @@ class TestMethod:
         ]
         for field in fields:
             schema.add_field(field)
-        schema.save(DIRECTORY)
+        schema.save(directory=DIRECTORY)
         # CREATE METHOD
         SCHEMA_SOURCE = DIRECTORY + "human-development-report.json"
         SCHEMA = whyqd.Schema(source=SCHEMA_SOURCE)

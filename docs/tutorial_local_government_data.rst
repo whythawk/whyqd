@@ -176,7 +176,7 @@ Let's add a list of `category` terms as a constraint for `occupation_state_relie
 				"name": category for category in categories
 			}]
 		}
-    >>> schema.set_field_constraints("occupation_state_reliefs", constraints)
+    >>> schema.set_field_constraints(field="occupation_state_reliefs", category=constraints)
     >>> schema.get_field("occupation_state_reliefs").dict(by_alias=True, exclude_defaults=True, exclude_none=True)
 		{'uuid': UUID('cf4d066e-22a8-4b76-8956-f6120eec4c52'),
 		'name': 'occupation_state_reliefs',

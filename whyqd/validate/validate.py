@@ -64,7 +64,9 @@ these restructuring actions applied **does** produce these restructured data.
 from __future__ import annotations
 from typing import Optional, Union, List, Dict
 from uuid import UUID
-import pandas as pd
+
+# import pandas as pd
+# import modin.pandas as pd
 
 from ..models import MethodModel, DataSourceModel
 from ..parsers import CoreScript, WranglingScript
@@ -160,7 +162,7 @@ class Validate:
                 "Please provide at least one of either a path to a method file, or a `json` object, to initialise validation."
             )
         self._method = MethodModel.construct(**self._method)
-        self._schema = Schema(schema={"name": f"schema_for_{self._method.name}", "fields": self._method.schema_fields})
+        self._schema = Schema(source={"name": f"schema_for_{self._method.name}", "fields": self._method.schema_fields})
 
     #########################################################################################
     # IMPORT SOURCE DATA

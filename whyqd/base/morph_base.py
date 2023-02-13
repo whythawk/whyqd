@@ -1,12 +1,14 @@
 from __future__ import annotations
 from typing import List, TYPE_CHECKING
-import pandas as pd
+
+# import pandas as pd
 from uuid import uuid4
 
 from ..parsers import CoreScript
 from ..models import MorphActionModel
 
 if TYPE_CHECKING:
+    import modin.pandas as pd
     from ..models import ColumnModel
 
 

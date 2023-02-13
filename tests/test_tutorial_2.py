@@ -24,42 +24,42 @@ class TestMethod:
         schema.set(details)
         fields = [
             {
-                "name": "Indicator Code",
+                "name": "indicator_code",
                 "title": "Indicator Code",
                 "type": "string",
                 "description": "World Bank code reference for Indicator Name.",
                 "constraints": {"required": True},
             },
             {
-                "name": "Country Name",
+                "name": "country_name",
                 "title": "Country Name",
                 "type": "string",
                 "description": "Official country names.",
                 "constraints": {"required": True},
             },
             {
-                "name": "Country Code",
+                "name": "country_code",
                 "title": "Country Code",
                 "type": "string",
                 "description": "UN ISO 3-letter country code.",
                 "constraints": {"required": True},
             },
             {
-                "name": "Indicator Name",
+                "name": "indicator_name",
                 "title": "Indicator Name",
                 "type": "string",
                 "description": "Indicator described in the data series.",
                 "constraints": {"required": True},
             },
             {
-                "name": "Year",
+                "name": "year",
                 "title": "Year",
                 "type": "year",
                 "description": "Year of release.",
                 "constraints": {"required": True},
             },
             {
-                "name": "Values",
+                "name": "values",
                 "title": "Values",
                 "type": "number",
                 "description": "Value for the Year and Indicator Name.",
@@ -68,7 +68,7 @@ class TestMethod:
         ]
         for field in fields:
             schema.add_field(field)
-        schema.save(DIRECTORY)
+        schema.save(directory=DIRECTORY)
         # CREATE METHOD
         SCHEMA_SOURCE = DIRECTORY + "urban_population.json"
         SCHEMA = whyqd.Schema(source=SCHEMA_SOURCE)

@@ -1,6 +1,8 @@
 from __future__ import annotations
 from typing import List, TYPE_CHECKING
-import pandas as pd
+
+# import pandas as pd
+import modin.pandas as pd
 import numpy as np
 
 from whyqd.base import BaseMorphAction
@@ -91,8 +93,12 @@ class Action(BaseMorphAction):
                 if k not in new_columns:
                     nc = f"{self.name}_{hx}_{i}"
                     new_columns[k] = nc
+                    # Fix: Multiple arguments results in keyerror in Modin
+                    df[nc] = None
                 # https://stackoverflow.com/a/46307319
                 idx_list = np.arange(idx + 1, to_idx)
+                # Fix: Multiple arguments results in keyerror in Modin
+                # https://github.com/modin-project/modin/issues/4354
                 df.loc[df.index.intersection(idx_list), nc] = category_columns[k]
         df = df.drop(rows, errors="ignore")
         return self._column_renames_to_index(df, list(new_columns.values()), hx)

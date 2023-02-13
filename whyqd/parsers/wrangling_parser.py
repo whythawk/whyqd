@@ -1,20 +1,21 @@
 from __future__ import annotations
 from typing import Optional, Dict, List, Union, Type, TYPE_CHECKING
 from datetime import date, datetime
-import pandas as pd
+
+# import pandas as pd
+import modin.pandas as pd
 import numpy as np
 import re
 import locale
+from . import CoreScript
+from ..models import ColumnModel
+from ..types import MimeType
 
 try:
     locale.setlocale(locale.LC_ALL, "en_US.UTF-8")
 except locale.Error:
     # Readthedocs has a problem, but difficult to replicate
     locale.setlocale(locale.LC_ALL, "")
-
-from . import CoreScript
-from ..models import ColumnModel
-from ..types import MimeType
 
 if TYPE_CHECKING:
     from ..schema import Schema
@@ -280,6 +281,9 @@ class WranglingScript:
             return x
         except pd.errors.OutOfBoundsDatetime:
             return pd.NaT
+
+    def parse_dates_coerced(self, x: Union[None, str]) -> Union[pd.NaT, pd.Timestamp]:
+        return pd.to_datetime(self.parse_dates(x), errors="coerce")
 
     def parse_float(self, x: Union[str, int, float]) -> Union[np.nan, float]:
         """

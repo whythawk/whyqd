@@ -1,8 +1,12 @@
 from __future__ import annotations
-from typing import Optional
-import pandas as pd
+from typing import Optional, TYPE_CHECKING
+
+# import pandas as pd
 
 from whyqd.base import BaseMorphAction
+
+if TYPE_CHECKING:
+    import modin.pandas as pd
 
 
 class Action(BaseMorphAction):

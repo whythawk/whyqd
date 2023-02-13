@@ -1,6 +1,8 @@
 from __future__ import annotations
 from typing import Dict, List, Union, TYPE_CHECKING
-import pandas as pd
+
+# import pandas as pd
+import modin.pandas as pd
 import numpy as np
 
 from . import CoreScript, ParserScript, WranglingScript
@@ -101,7 +103,7 @@ class CategoryScript:
         destination = self.parser.get_literal(parsed["destination"])
         destination = self.schema.get_field(destination)
         category = self.parser.get_literal(parsed["category"])
-        category = self.schema.get_field_category(destination.name, category)
+        category = self.schema.get_field_category(field=destination.name, category=category)
         if not destination and category:
             raise ValueError(
                 f"Destination field and category are not valid for this category action script ({parsed['destination']}, {parsed['category']})."

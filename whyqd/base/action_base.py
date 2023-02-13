@@ -1,10 +1,12 @@
 from __future__ import annotations
 from typing import List, Union, Optional, TYPE_CHECKING
-import pandas as pd
+
+# import pandas as pd
 
 from ..parsers import CoreScript, WranglingScript
 
 if TYPE_CHECKING:
+    import modin.pandas as pd
     from ..models import ModifierModel, FieldModel, SchemaActionModel, ColumnModel
 
 

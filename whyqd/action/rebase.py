@@ -1,10 +1,14 @@
 from __future__ import annotations
-from typing import Optional, List
-import pandas as pd
+from typing import Optional, List, TYPE_CHECKING
+
+# import pandas as pd
 import numpy as np
 import itertools
 
 from whyqd.base import BaseMorphAction
+
+if TYPE_CHECKING:
+    import modin.pandas as pd
 
 
 class Action(BaseMorphAction):
@@ -44,7 +48,7 @@ class Action(BaseMorphAction):
         Dataframe
             Containing the implementation of the Morph
         """
-        df.rename(columns=df.loc[rows[0]], inplace=True)
+        df.rename(columns=df.loc[rows[0]].to_dict(), inplace=True)
         idx_list = np.arange(0, rows[0] + 1)
         df = df.drop(df.index.intersection(idx_list))
         df.columns = df.columns.map(str)

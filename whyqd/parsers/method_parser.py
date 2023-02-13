@@ -1,12 +1,15 @@
 from __future__ import annotations
 from typing import Optional, Union, List, Tuple, Dict, TYPE_CHECKING
 from uuid import UUID
-import pandas as pd
+
+# import pandas as pd
 
 from . import ActionScript, ParserScript, CategoryScript, MorphScript, FilterScript
 from ..models import SchemaActionModel, MorphActionModel, CategoryActionModel, FilterActionModel, ColumnModel
 
 if TYPE_CHECKING:
+    import modin.pandas as pd
+
     # Adam Johnson, you're a hero. This took 6 hours to solve.
     # https://adamj.eu/tech/2021/05/13/python-type-hints-how-to-fix-circular-imports/
     from ..models import DataSourceModel, ActionScriptModel, MethodModel

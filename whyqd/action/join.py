@@ -1,10 +1,12 @@
 from __future__ import annotations
 from typing import List, Union, TYPE_CHECKING
-import pandas as pd
+
+# import pandas as pd
 
 from whyqd.base import BaseSchemaAction
 
 if TYPE_CHECKING:
+    import modin.pandas as pd
     from ..models import ColumnModel, FieldModel
 
 
@@ -51,7 +53,7 @@ class Action(BaseSchemaAction):
         """
         fields = [field.name for field in source]
         # https://stackoverflow.com/a/45976632
-        df.loc[:, destination.name] = df.loc[:, fields].apply(
+        df[destination.name] = df[fields].apply(
             lambda x: "" if x.isnull().all() else ", ".join(x.dropna().astype(str)).strip(), axis=1
         )
         return df

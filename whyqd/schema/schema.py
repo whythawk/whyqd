@@ -1,31 +1,32 @@
 """
 .. module:: schema
-   :synopsis: Create and manage a target data schema.
+   :synopsis: Create and manage a data schema.
 
 .. moduleauthor:: Gavin Chait <github.com/turukawa>
 
 Schema
 ======
 
-Creating a `schema` is the first part of the wrangling process. Your schema defines the structural
-metadata target for your wrangling process. This is not the format your input data arrive in, but
-it is what you require it to look like when you're done.
+A `schema` describes the structural organisation of tabular data. Each column is identified by a field name and defined
+by conformance to technical specifications. Field constraints and sensible defaults ensure interoperability.
 
-Your schema sets the requirements, constraints and sensible defaults available for creating each
-:doc:`method` that will describe the process for wrangling input data into the fields defined by the
-schema. It can be reused to create multiple `methods`. Once complete, automated scripts can perform
-further cleaning and validation.
+Start your wrangling process by specifying source and destination schema to define the structural metadata for each end
+of the wrangling process.
 
-In simple terms, the columns in an input CSV or Excel-file will be restructured into new columns
-defined by the fields in your schema. These target fields are likely to be those in your database,
-or in your analytical software. Until your input data conform to this structure, you can't do your
-real work.
+Your source schema may not correspond to your input data structure, which we'll unpack further when going through how
+to :doc:`refactor`. Your destination schema is what you require your input data to look like when you're done. In simple
+terms, the columns in an input CSV or Excel-file will be refactored into your source schema, then restructured into
+fields defined in your destination schema. These target fields are likely to be those in your database, or analytical
+software. Until your input data conform to this structure, you can't do your real work.
+
+A :doc:`method` describes the process for wrangling input data between fields defined by the schema. It can be reused to
+create multiple `methods`. Once complete, automated scripts can perform further cleaning and validation.
 
 Minimum valid requirements
 --------------------------
 
-A minimum valid schema requires a `name` to identify the schema, and a single, minimally-valid
-`field` containing a `name` and `type`::
+A minimum valid schema requires a `name` to identify the schema, and a single, minimally-valid `field` containing a
+`name` and `type`::
 
     {
         "name": "A simple name",
@@ -54,8 +55,8 @@ A human-readable version of the schema name.
 
 `description`
 ^^^^^^^^^^^^^
-A complete description of the schema. Depending on how complex your work becomes, try and be as
-helpful as possible to 'future-you'. You'll thank yourself later.
+A complete description of the schema. Depending on how complex your work becomes, try and be as helpful as possible to
+'future-you'. You'll thank yourself later.
 
 Field descriptors
 -----------------
@@ -114,8 +115,8 @@ Allowing you to declare your initial `schema`::
 
 `name`
 ^^^^^^
-This is a required term and is equivalent to a column header. Spaces will be replaced with `_` and
-the string will be lowercased.
+This is a required term and is equivalent to a column header. It must be defined exactly as it appears in the tabular
+source data. By convention, this should be lower-case with spaces replaced with underscore (e.g. `field_1`)
 
 `title`
 ^^^^^^^
@@ -123,22 +124,20 @@ A human-readable version of the field name.
 
 `description`
 ^^^^^^^^^^^^^
-A complete description of the field. As for the schema, try and be as helpful as possible to
-future-you.
+A complete description of the field. As for the schema, try and be as helpful as possible to future-you.
 
 `foreignKey`
 ^^^^^^^^^^^^
-This is a boolean term, only required if you need this field to be treated as a foreign-key or
-identifier for your destination data::
+This is a boolean term, only required if you need this field to be treated as a foreign-key or identifier for your
+destination data::
 
     "foreignKey": True
 
-Data in this field will not be tested for uniqueness. Instead, these data will remain immutable, not
-being 'forced' into a date or number type to preserve whatever fruity formatting are described in
-your input data.
+Data in this field will not be tested for uniqueness. Instead, these data will remain immutable, not being 'forced' into
+a date or number type to preserve whatever fruity formatting are described in your input data.
 
-During the wrangling process, this field can be used for merging with other input
-data, ensuring consistency between sources.
+During the wrangling process, this field can be used for merging with other input data, ensuring consistency between
+sources.
 
 `type`
 ^^^^^^
@@ -151,20 +150,18 @@ data, ensuring consistency between sources.
 * `object`: any valid JSON data.
 * `array`: any valid array-based data.
 * `date`: any date without a time. Must be in ISO8601 format, `YYYY-MM-DD`.
-* `datetime`: any date with a time. Must be in ISO8601 format, with UTC time specified (optionally) as
-  `YYYY-MM-DD hh:mm:ss Zz`.
+* `datetime`: any date with a time. Must be in ISO8601 format, with UTC time specified (optionally) as `YYYY-MM-DD hh:mm:ss Zz`.
 * `year`: any year, formatted as `YYYY`.
 
 `missing`
 ^^^^^^^^^
-`missing` defines the value to be used for any blank values in a column. This is normally `""` for
-text and `np.nan` for numbers or dates. You can, however, set your own defaults for each field.
+`missing` defines the value to be used for any blank values in a column. This is normally `""` for text and `np.nan`
+for numbers or dates. You can, however, set your own defaults for each field.
 
 Field constraints
 -----------------
-`Constraints` are optional parameters that refine input data wrangling and act as a primary form of
-validation. Not all of these are available to every `type`, and `default_field_settings(type)`
-will list constraints available to a specific field type.
+`Constraints` are optional parameters that act as a primary form of validation. Not all of these are available to every
+`type`, and `default_field_settings(type)` will list constraints available to a specific field type.
 
 Define these as part of your schema definition for a specific field::
 
@@ -216,10 +213,9 @@ Define these as part of your schema definition for a specific field::
 Each `category` can have a `name`, and a `description`, but the minimum is a `name`. You can also define a `default` to
 be used where source data are not defined.
 
-Each field `type` will have its own category constraints. For example, boolean categories can use a
-different term than True / False defined by the category, but only permits two terms. Others have
-a minimum of one term in a category, but require the list member type to be `string`, `number`, etc.
-Ordinarily, `category` terms must be unique.
+Each field `type` will have its own category constraints. For example, boolean categories can use a different term than
+True / False defined by the category, but only permits two terms. Others have a minimum of one term in a category, but
+require the list member type to be `string`, `number`, etc. Ordinarily, `category` terms must be unique.
 """
 
 from __future__ import annotations
@@ -236,20 +232,21 @@ class Schema:
 
     Parameters
     ----------
-    source: str, optional
-        Path to a json file containing a saved schema, default is None.
-    schema: SchemaModel, optional
-        A dictionary conforming to the SchemaModel, default is None.
+    source: str or SchemaModel, optional
+        A path to a json file containing a saved schema, or a dictionary
+        conforming to the SchemaModel, default is None.
     """
 
-    def __init__(self, source: Optional[str] = None, schema: Optional[SchemaModel] = None) -> None:
-        # self.default_filters = self.core.get_settings("filter")
+    def __init__(self, source: Optional[Union[str, SchemaModel]] = None) -> None:
         self.core = CoreScript()
         self._schema = None
         if source:
-            self._schema = SchemaModel(**self.core.load_json(source))
-        if schema:
-            self.set(schema)
+            if isinstance(source, str):
+                self._schema = SchemaModel(**self.core.load_json(source))
+            elif isinstance(source, (SchemaModel, Json, dict)):
+                self.set(source)
+            else:
+                raise ValueError("Source must either be a path to a source file, or a dictionary conforming to `SchemaModel`.")
 
     def __repr__(self) -> str:
         """Returns the string representation of the model."""
@@ -409,7 +406,7 @@ class Schema:
             raise ValueError(f"FieldModel {name} does not exist in the schema.")
         return field.constraints
 
-    def set_field_constraints(self, name: str, constraints: Union[ConstraintsModel, None]) -> None:
+    def set_field_constraints(self, *, name: str, constraints: Union[ConstraintsModel, None]) -> None:
         """Set the constraint parameters for a specific field to define this schema, called by a unique
         `name` already in the schema.
 
@@ -431,7 +428,7 @@ class Schema:
                 old_constraints = new_constraints
         self.get_field(name).constraints = old_constraints
 
-    def get_field_category(self, field: str, category: Union[bool, str]) -> Union[CategoryModel, None]:
+    def get_field_category(self, *, field: str, category: Union[bool, str]) -> Union[CategoryModel, None]:
         """Get a specific field from the list of fields defining this schema, called by a unique `name`.
 
         Parameters
@@ -470,7 +467,7 @@ class Schema:
     # SAVE AND EXPORT UTILITIES
     #########################################################################################
 
-    def get_json(self, hide_uuid: Optional[bool] = False) -> Union[Json, None]:
+    def get_json(self, *, hide_uuid: Optional[bool] = False) -> Union[Json, None]:
         """Get the json schema model.
 
         Parameters
@@ -510,6 +507,7 @@ class Schema:
 
     def save(
         self,
+        *,
         directory: str,
         filename: Optional[str] = None,
         created_by: Optional[str] = None,
@@ -519,7 +517,7 @@ class Schema:
 
         Parameters
         ----------
-        directory: strthe destination directory
+        directory: str, the destination directory
         filename: defaults to schema name
         overwrite: bool, True if overwrite existing file
         created_by: string, or None, to define the schema creator/updater

@@ -406,7 +406,9 @@ import string
 from typing import Optional, Union, List, Dict, Tuple, Type
 from pydantic import Json
 from uuid import UUID
-import pandas as pd
+
+# import pandas as pd
+import modin.pandas as pd
 
 from ..models import (
     DataSourceModel,
@@ -419,6 +421,9 @@ from ..models import (
 )
 from ..parsers import CoreScript, WranglingScript, MethodScript, ParserScript
 from ..schema import Schema
+from ..config.ray_init import ray_start
+
+ray_start()
 
 
 class Method:
@@ -516,7 +521,9 @@ class Method:
     # MANAGE INPUT DATA
     #########################################################################################
 
-    def add_data(self, source: Union[str, List[str], DataSourceModel, List[DataSourceModel]], get_row_count: bool = False) -> None:
+    def add_data(
+        self, source: Union[str, List[str], DataSourceModel, List[DataSourceModel]], get_row_count: bool = False
+    ) -> None:
         """Provide either a path string, list of path strings, or a dictionary conforming to the DataSourceModel data
         for wrangling.
 
@@ -571,7 +578,7 @@ class Method:
                     self.directory / data.source,
                     filetype=data.mime,
                     names=[d.name for d in data.names],
-                    preserve=[d.name for d in data.preserve]
+                    preserve=[d.name for d in data.preserve],
                 )
             if not isinstance(df_sample, dict):
                 # There weren't multiple sheets in MimeType.XLS/X
@@ -582,7 +589,8 @@ class Method:
                 if len(df_sample.keys()) > 1:
                     data_k = data.copy(deep=True, update={"sheet_name": k})
                 data_k.columns = df_columns
-                if get_row_count: data_k.row_count = len(df_sample[k])
+                if get_row_count:
+                    data_k.row_count = len(df_sample[k])
                 self._method.input_data.append(data_k)
 
     def remove_data(self, uid: UUID, sheet_name: Optional[str] = None) -> None:
@@ -1309,6 +1317,8 @@ class Method:
             raise ValueError(
                 f"Method build restructured table is missing required schema fields ({schema_required.difference(restructured_columns)})"
             )
-        # Keep only the columns from the schema, in that order
+        # Keep only the columns from the schema
         restructured_keep_columns = set([f.name for f in self._schema.get.fields if f.name in restructured_columns])
+        # and in that order
+        restructured_keep_columns = [f for f in restructured_columns if f in restructured_keep_columns]
         return df_restructured[restructured_keep_columns]
