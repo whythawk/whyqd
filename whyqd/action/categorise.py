@@ -1,8 +1,6 @@
 from __future__ import annotations
 
 # import pandas as pd
-# import ray
-import os
 import modin.pandas as pd
 import numpy as np
 from typing import List, Dict, Union, TYPE_CHECKING
@@ -11,9 +9,6 @@ from whyqd.base import BaseSchemaAction
 
 if TYPE_CHECKING:
     from ..models import ColumnModel, ModifierModel, FieldModel, CategoryModel, CategoryActionModel
-
-# ray.init(runtime_env={"env_vars": {"__MODIN_AUTOIMPORT_PANDAS__": "1"}}, ignore_reinit_error=True)
-# os.environ["MODIN_ENGINE"] = "ray"
 
 
 class Action(BaseSchemaAction):

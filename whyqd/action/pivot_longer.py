@@ -2,17 +2,12 @@ from __future__ import annotations
 from typing import Optional, List, TYPE_CHECKING
 
 # import pandas as pd
-# import ray
-import os
 import modin.pandas as pd
 
 from whyqd.base import BaseMorphAction
 
 if TYPE_CHECKING:
     from ..models import ColumnModel
-
-# ray.init(runtime_env={"env_vars": {"__MODIN_AUTOIMPORT_PANDAS__": "1"}}, ignore_reinit_error=True)
-# os.environ["MODIN_ENGINE"] = "ray"
 
 
 class Action(BaseMorphAction):

@@ -408,8 +408,6 @@ from pydantic import Json
 from uuid import UUID
 
 # import pandas as pd
-import ray
-import os
 import modin.pandas as pd
 
 from ..models import (
@@ -423,9 +421,9 @@ from ..models import (
 )
 from ..parsers import CoreScript, WranglingScript, MethodScript, ParserScript
 from ..schema import Schema
+from ..config.ray_init import ray_start
 
-ray.init(runtime_env={"env_vars": {"__MODIN_AUTOIMPORT_PANDAS__": "1"}}, ignore_reinit_error=True)
-os.environ["MODIN_ENGINE"] = "ray"
+ray_start()
 
 
 class Method:

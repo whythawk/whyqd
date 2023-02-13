@@ -7,23 +7,21 @@ from datetime import date, datetime
 from pathlib import Path, PurePath
 
 # import pandas as pd
-import ray
-import os
 import modin.pandas as pd
 from pandas.util import hash_pandas_object
 from typing import Dict
 import locale
 
 # from ..utilities.hashing import hash_pandas_object
+from ..config.ray_init import ray_start
+
+ray_start()
 
 try:
     locale.setlocale(locale.LC_ALL, "en_US.UTF-8")
 except locale.Error:
     # Readthedocs has a problem, but difficult to replicate
     locale.setlocale(locale.LC_ALL, "")
-
-ray.init(runtime_env={"env_vars": {"__MODIN_AUTOIMPORT_PANDAS__": "1"}}, ignore_reinit_error=True)
-os.environ["MODIN_ENGINE"] = "ray"
 
 
 class CoreScript:

@@ -3,8 +3,6 @@ from typing import Optional, Dict, List, Union, Type, TYPE_CHECKING
 from datetime import date, datetime
 
 # import pandas as pd
-# import ray
-# import os
 import modin.pandas as pd
 import numpy as np
 import re
@@ -12,9 +10,6 @@ import locale
 from . import CoreScript
 from ..models import ColumnModel
 from ..types import MimeType
-
-# ray.init(runtime_env={"env_vars": {"__MODIN_AUTOIMPORT_PANDAS__": "1"}}, ignore_reinit_error=True)
-# os.environ["MODIN_ENGINE"] = "ray"
 
 try:
     locale.setlocale(locale.LC_ALL, "en_US.UTF-8")

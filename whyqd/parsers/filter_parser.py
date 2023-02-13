@@ -2,8 +2,6 @@ from __future__ import annotations
 from typing import Dict, List, Union, Optional, Type, TYPE_CHECKING
 
 # import pandas as pd
-# import ray
-import os
 import modin.pandas as pd
 from datetime import date
 
@@ -14,9 +12,6 @@ if TYPE_CHECKING:
     from ..models import ColumnModel, FieldModel, DataSourceModel
     from ..schema import Schema
     from ..base import BaseFilterAction
-
-# ray.init(runtime_env={"env_vars": {"__MODIN_AUTOIMPORT_PANDAS__": "1"}}, ignore_reinit_error=True)
-# os.environ["MODIN_ENGINE"] = "ray"
 
 
 class FilterScript:

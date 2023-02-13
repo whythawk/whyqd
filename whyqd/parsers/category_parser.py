@@ -2,8 +2,6 @@ from __future__ import annotations
 from typing import Dict, List, Union, TYPE_CHECKING
 
 # import pandas as pd
-# import ray
-import os
 import modin.pandas as pd
 import numpy as np
 
@@ -13,9 +11,6 @@ from ..models import CategoryModel
 if TYPE_CHECKING:
     from ..models import ColumnModel, FieldModel, CategoryActionModel, DataSourceModel
     from ..schema import Schema
-
-# ray.init(runtime_env={"env_vars": {"__MODIN_AUTOIMPORT_PANDAS__": "1"}}, ignore_reinit_error=True)
-# os.environ["MODIN_ENGINE"] = "ray"
 
 
 class CategoryScript:
@@ -108,7 +103,7 @@ class CategoryScript:
         destination = self.parser.get_literal(parsed["destination"])
         destination = self.schema.get_field(destination)
         category = self.parser.get_literal(parsed["category"])
-        category = self.schema.get_field_category(destination.name, category)
+        category = self.schema.get_field_category(field=destination.name, category=category)
         if not destination and category:
             raise ValueError(
                 f"Destination field and category are not valid for this category action script ({parsed['destination']}, {parsed['category']})."
