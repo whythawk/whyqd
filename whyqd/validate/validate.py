@@ -162,7 +162,7 @@ class Validate:
                 "Please provide at least one of either a path to a method file, or a `json` object, to initialise validation."
             )
         self._method = MethodModel.construct(**self._method)
-        self._schema = Schema(schema={"name": f"schema_for_{self._method.name}", "fields": self._method.schema_fields})
+        self._schema = Schema(source={"name": f"schema_for_{self._method.name}", "fields": self._method.schema_fields})
 
     #########################################################################################
     # IMPORT SOURCE DATA
