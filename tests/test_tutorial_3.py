@@ -2,7 +2,7 @@ from pathlib import Path
 import numpy as np
 
 import whyqd
-from whyqd.parsers import CoreScript
+from whyqd.transform.parsers import CoreScript
 
 SOURCE_DIRECTORY = str(Path(__file__).resolve().parent)
 SOURCE_DATA = SOURCE_DIRECTORY + "/data/HDR-2007-2008-Table-03.xlsx"
@@ -14,7 +14,7 @@ class TestMethod:
         create a method, import data, perform actions and generate a schema-compliant output.
         Copies at: https://github.com/whythawk/data-wrangling-and-validation/tree/master/data/lesson-spreadsheet"""
         DIRECTORY = str(tmp_path) + "/"
-        CoreScript().check_path(DIRECTORY)
+        CoreScript().check_path(directory=DIRECTORY)
         # DEFINE SCHEMA
         details = {
             "name": "human-development-report",
@@ -26,7 +26,7 @@ class TestMethod:
                 human beings live. It is an approach that is focused on people and their opportunities and choices.""",
         }
         schema = whyqd.Schema()
-        schema.set(details)
+        schema.set(schema=details)
         fields = [
             {
                 "name": "year",
@@ -62,7 +62,7 @@ class TestMethod:
             },
         ]
         for field in fields:
-            schema.add_field(field)
+            schema.add_field(field=field)
         schema.save(directory=DIRECTORY)
         # CREATE METHOD
         SCHEMA_SOURCE = DIRECTORY + "human-development-report.json"
@@ -78,7 +78,7 @@ class TestMethod:
             "REBASE < [11]",
         ]
         source_data = method.get.input_data[0]
-        method.add_actions(schema_scripts, source_data.uuid.hex, sheet_name=source_data.sheet_name)
+        method.add_actions(actions=schema_scripts, uid=source_data.uuid.hex, sheet_name=source_data.sheet_name)
         # Get the index
         source_data = method.get.input_data[0]
         df = method.transform(source_data)
@@ -92,7 +92,7 @@ class TestMethod:
             "DEBLANK",
             "DEDUPE",
         ]
-        method.add_actions(schema_scripts, source_data.uuid.hex, sheet_name=source_data.sheet_name)
+        method.add_actions(actions=schema_scripts, uid=source_data.uuid.hex, sheet_name=source_data.sheet_name)
         # Get the column list
         reference_columns = [c.name for c in method.get.input_data[0].columns if c.name.startswith("Reference")]
         schema_scripts = [
@@ -102,6 +102,6 @@ class TestMethod:
             "RENAME > 'year' < ['SPLIT_idx_12_1']",
             "RENAME > 'values' < ['PIVOT_LONGER_values_idx_10']",
         ]
-        method.add_actions(schema_scripts, source_data.uuid.hex, sheet_name=source_data.sheet_name)
+        method.add_actions(actions=schema_scripts, uid=source_data.uuid.hex, sheet_name=source_data.sheet_name)
         method.build()
         assert method.validate()

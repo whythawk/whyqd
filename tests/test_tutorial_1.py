@@ -1,7 +1,7 @@
 from pathlib import Path
 
 import whyqd
-from whyqd.parsers import CoreScript
+from whyqd.transform.parsers import CoreScript
 
 SCHEMA_NAME = "/data/test_schema.json"
 SOURCE_DIRECTORY = str(Path(__file__).resolve().parent)
@@ -19,7 +19,7 @@ class TestMethod:
         """Portsmouth ratepayer data in multiple spreadsheets. Demonstrating create method, add date,
         actions and perform a merge, plus filter the final result."""
         DIRECTORY = str(tmp_path) + "/"
-        CoreScript().check_path(DIRECTORY)
+        CoreScript().check_path(directory=DIRECTORY)
         method = whyqd.Method(directory=DIRECTORY, schema=SCHEMA)
         method.set({"name": "test_method"})
         input_data = [{"path": d} for d in INPUT_DATA]
@@ -57,8 +57,8 @@ class TestMethod:
             "ORDER_NEW > 'occupation_state_date' < ['Current Prop Exemption Start Date' + 'Current Prop Exemption Start Date', 'Current Relief Award Start Date' + 'Current Relief Award Start Date', 'Account Start date_x' + 'Account Start date_x', 'Account Start date_y' + 'Account Start date_y']",
         ]
         source_data = method.get.working_data
-        method.add_actions(schema_scripts, source_data.uuid.hex)
+        method.add_actions(actions=schema_scripts, uid=source_data.uuid.hex)
         filter_script = "FILTER_AFTER > 'occupation_state_date'::'2010-01-01'"
-        method.add_actions(filter_script, source_data.uuid.hex)
+        method.add_actions(actions=filter_script, uid=source_data.uuid.hex)
         method.build()
         method.validate()

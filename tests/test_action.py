@@ -3,7 +3,7 @@ import numpy as np
 from uuid import uuid4
 
 import whyqd
-from whyqd.parsers import CoreScript
+from whyqd.transform.parsers import CoreScript
 
 SOURCE_DIRECTORY = str(Path(__file__).resolve().parent)
 
@@ -29,7 +29,7 @@ def _test_script_world_bank(DIRECTORY, script, rebase=False):
     # Run the test script
     scripts.append(script)
     source_data = method.get.input_data[0]
-    method.add_actions(scripts, source_data.uuid.hex, sheet_name=source_data.sheet_name)
+    method.add_actions(actions=scripts, uid=source_data.uuid.hex, sheet_name=source_data.sheet_name)
     method.transform(source_data)
     return True
 
@@ -47,7 +47,7 @@ def _test_script_portsmouth(DIRECTORY, script, test_filter=False):
     method.set({"name": "test_method"})
     method.add_data(source=INPUT_DATA)
     source_data = method.get.input_data[0]
-    method.add_actions(script, source_data.uuid.hex, sheet_name=source_data.sheet_name)
+    method.add_actions(actions=script, uid=source_data.uuid.hex, sheet_name=source_data.sheet_name)
     method.transform(source_data)
     return True
 
@@ -83,13 +83,13 @@ class TestAction:
 
     def test_calculate(self, tmp_path):
         DIRECTORY = str(tmp_path) + "/"
-        CoreScript().check_path(DIRECTORY)
+        CoreScript().check_path(directory=DIRECTORY)
         script = "CALCULATE > 'prop_ba_rates' < [+ 'Current Rateable Value_x', - 'Current Rateable Value_y', + 'Current Rateable Value']"
         assert _test_script_portsmouth(DIRECTORY, script)
 
     def test_categorise(self, tmp_path):
         DIRECTORY = str(tmp_path) + "/"
-        CoreScript().check_path(DIRECTORY)
+        CoreScript().check_path(directory=DIRECTORY)
         scripts = [
             "CATEGORISE > 'occupation_state' < [+ 'Current Property Exemption Code', + 'Current Relief Type']",
             "ASSIGN_CATEGORY_UNIQUES > 'occupation_state'::False < 'Current Property Exemption Code'::['EPRN', 'EPRI', 'VOID', 'EPCH', 'LIQUIDATE', 'DECEASED', 'PROHIBITED', 'BANKRUPT']",
@@ -107,49 +107,49 @@ class TestAction:
 
     def test_deblank(self, tmp_path):
         DIRECTORY = str(tmp_path) + "/"
-        CoreScript().check_path(DIRECTORY)
+        CoreScript().check_path(directory=DIRECTORY)
         script = "DEBLANK"
         assert _test_script_world_bank(DIRECTORY, script)
 
     def test_dedupe(self, tmp_path):
         DIRECTORY = str(tmp_path) + "/"
-        CoreScript().check_path(DIRECTORY)
+        CoreScript().check_path(directory=DIRECTORY)
         script = "DEDUPE"
         assert _test_script_world_bank(DIRECTORY, script)
 
     def test_delete_columns(self, tmp_path):
         DIRECTORY = str(tmp_path) + "/"
-        CoreScript().check_path(DIRECTORY)
+        CoreScript().check_path(directory=DIRECTORY)
         script = "DELETE_COLUMNS > ['1960.0', '1961.0', '1962.0']"
         assert _test_script_world_bank(DIRECTORY, script, rebase=True)
 
     def test_delete_rows(self, tmp_path):
         DIRECTORY = str(tmp_path) + "/"
-        CoreScript().check_path(DIRECTORY)
+        CoreScript().check_path(directory=DIRECTORY)
         script = f"DELETE_ROWS < {[int(i) for i in np.arange(144, 250)]}"
         assert _test_script_world_bank(DIRECTORY, script, rebase=True)
 
     def test_filter_after(self, tmp_path):
         DIRECTORY = str(tmp_path) + "/"
-        CoreScript().check_path(DIRECTORY)
+        CoreScript().check_path(directory=DIRECTORY)
         script = "FILTER_AFTER > 'occupation_state_date'::'2010-01-01'"
         assert _test_script_portsmouth(DIRECTORY, script, test_filter=True)
 
     def test_filter_before(self, tmp_path):
         DIRECTORY = str(tmp_path) + "/"
-        CoreScript().check_path(DIRECTORY)
+        CoreScript().check_path(directory=DIRECTORY)
         script = "FILTER_BEFORE > 'occupation_state_date'::'2018-01-01'"
         assert _test_script_portsmouth(DIRECTORY, script, test_filter=True)
 
     def test_filter_latest(self, tmp_path):
         DIRECTORY = str(tmp_path) + "/"
-        CoreScript().check_path(DIRECTORY)
+        CoreScript().check_path(directory=DIRECTORY)
         script = "FILTER_LATEST > 'occupation_state_date' < 'ba_ref'"
         assert _test_script_portsmouth(DIRECTORY, script, test_filter=True)
 
     def test_join(self, tmp_path):
         DIRECTORY = str(tmp_path) + "/"
-        CoreScript().check_path(DIRECTORY)
+        CoreScript().check_path(directory=DIRECTORY)
         script = "JOIN > 'indicator_name' < ['Country Code', 'Indicator Name', 'Indicator Code']"
         assert _test_script_world_bank(DIRECTORY, script, rebase=True)
 
@@ -157,7 +157,7 @@ class TestAction:
         """Portsmouth ratepayer data in multiple spreadsheets. Demonstrating create method, add date,
         actions and perform a merge, plus filter the final result."""
         DIRECTORY = str(tmp_path) + "/"
-        CoreScript().check_path(DIRECTORY)
+        CoreScript().check_path(directory=DIRECTORY)
         SCHEMA_NAME = "/data/test_schema.json"
         SCHEMA_SOURCE = SOURCE_DIRECTORY + SCHEMA_NAME
         SCHEMA = whyqd.Schema(source=SCHEMA_SOURCE)
@@ -186,49 +186,49 @@ class TestAction:
 
     def test_new(self, tmp_path):
         DIRECTORY = str(tmp_path) + "/"
-        CoreScript().check_path(DIRECTORY)
+        CoreScript().check_path(directory=DIRECTORY)
         script = "NEW > 'la_code' < ['E06000044']"
         assert _test_script_portsmouth(DIRECTORY, script)
 
     def test_order_new(self, tmp_path):
         DIRECTORY = str(tmp_path) + "/"
-        CoreScript().check_path(DIRECTORY)
+        CoreScript().check_path(directory=DIRECTORY)
         script = "ORDER_NEW > 'occupation_state_date' < ['Current Prop Exemption Start Date' + 'Current Prop Exemption Start Date', 'Current Relief Award Start Date' + 'Current Relief Award Start Date', 'Account Start date_x' + 'Account Start date_x', 'Account Start date_y' + 'Account Start date_y']"
         assert _test_script_portsmouth(DIRECTORY, script)
 
     def test_order_old(self, tmp_path):
         DIRECTORY = str(tmp_path) + "/"
-        CoreScript().check_path(DIRECTORY)
+        CoreScript().check_path(directory=DIRECTORY)
         script = "ORDER_OLD > 'occupation_state_date' < ['Current Prop Exemption Start Date' + 'Current Prop Exemption Start Date', 'Current Relief Award Start Date' + 'Current Relief Award Start Date', 'Account Start date_x' + 'Account Start date_x', 'Account Start date_y' + 'Account Start date_y']"
         assert _test_script_portsmouth(DIRECTORY, script)
 
     def test_order(self, tmp_path):
         DIRECTORY = str(tmp_path) + "/"
-        CoreScript().check_path(DIRECTORY)
+        CoreScript().check_path(directory=DIRECTORY)
         script = "ORDER > 'prop_ba_rates' < ['Current Rateable Value_x', 'Current Rateable Value_y', 'Current Rateable Value']"
         assert _test_script_portsmouth(DIRECTORY, script)
 
     def test_pivot_categories(self, tmp_path):
         DIRECTORY = str(tmp_path) + "/"
-        CoreScript().check_path(DIRECTORY)
+        CoreScript().check_path(directory=DIRECTORY)
         script = "JOIN > 'indicator_name' < ['Country Code', 'Indicator Name', 'Indicator Code']"
         assert _test_script_world_bank(DIRECTORY, script, rebase=True)
 
     def test_pivot_longer(self, tmp_path):
         DIRECTORY = str(tmp_path) + "/"
-        CoreScript().check_path(DIRECTORY)
+        CoreScript().check_path(directory=DIRECTORY)
         script = f"PIVOT_LONGER > {[f'{i}.0' for i in np.arange(1960, 2020)]}"
         assert _test_script_world_bank(DIRECTORY, script, rebase=True)
 
     def test_rebase(self, tmp_path):
         DIRECTORY = str(tmp_path) + "/"
-        CoreScript().check_path(DIRECTORY)
+        CoreScript().check_path(directory=DIRECTORY)
         script = "REBASE < [2]"
         assert _test_script_world_bank(DIRECTORY, script)
 
     def test_rename_all(self, tmp_path):
         DIRECTORY = str(tmp_path) + "/"
-        CoreScript().check_path(DIRECTORY)
+        CoreScript().check_path(directory=DIRECTORY)
         # Check length of columns in 'working_test_data.xlsx'
         renames = [uuid4().hex for _ in np.arange(16)]
         script = f"RENAME_ALL > {renames}"
@@ -236,18 +236,18 @@ class TestAction:
 
     def test_rename_new(self, tmp_path):
         DIRECTORY = str(tmp_path) + "/"
-        CoreScript().check_path(DIRECTORY)
+        CoreScript().check_path(directory=DIRECTORY)
         script = f"RENAME_NEW > '{uuid4().hex}'::['Current Rateable Value']"
         assert _test_script_portsmouth(DIRECTORY, script)
 
     def test_rename(self, tmp_path):
         DIRECTORY = str(tmp_path) + "/"
-        CoreScript().check_path(DIRECTORY)
+        CoreScript().check_path(directory=DIRECTORY)
         script = "RENAME > 'indicator_code' < ['Indicator Code']"
         assert _test_script_world_bank(DIRECTORY, script, rebase=True)
 
     def test_split(self, tmp_path):
         DIRECTORY = str(tmp_path) + "/"
-        CoreScript().check_path(DIRECTORY)
+        CoreScript().check_path(directory=DIRECTORY)
         script = "SPLIT > ' '::['Country Name']"
         assert _test_script_world_bank(DIRECTORY, script, rebase=True)

@@ -1,7 +1,7 @@
 import ray
 import os
 
-from .settings import settings
+from whyqd.config.settings import settings
 
 
 def ray_start():

@@ -1,11 +1,11 @@
 from pathlib import Path
 
 import whyqd
-from whyqd.parsers import CoreScript
+from whyqd.transform.parsers import CoreScript
 
 filename = "/data/test_schema.json"
 source = str(Path(__file__).resolve().parent) + filename
-data = CoreScript().load_json(source)
+data = CoreScript().load_json(source=source)
 
 
 class TestSchema:
@@ -26,8 +26,8 @@ class TestSchema:
         schema: whyqd.SchemaModel = {
             "name": "test_schema",
         }
-        s.set(schema)
-        s.add_field(field)
+        s.set(schema=schema)
+        s.add_field(field=field)
 
     def test_load(self):
         s = whyqd.Schema(source=source)

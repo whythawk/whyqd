@@ -113,7 +113,7 @@ transform any saved `method.json` files with:
 
 ```
 SCHEMA = whyqd.Schema(source=SCHEMA_SOURCE)
-schema_scripts = whyqd.parsers.LegacyScript().parse_legacy_method(
+schema_scripts = whyqd.transform.parsers.LegacyScript().parse_legacy_method(
             version="1", schema=SCHEMA, source_path=METHOD_SOURCE_V1
         )
 ```

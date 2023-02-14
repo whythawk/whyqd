@@ -1,7 +1,7 @@
 from pathlib import Path
 
 import whyqd
-from whyqd.parsers import CoreScript
+from whyqd.transform.parsers import CoreScript
 
 SOURCE_DIRECTORY = str(Path(__file__).resolve().parent)
 SOURCE_DATA = SOURCE_DIRECTORY + "/data/working_test_world_bank_data.xlsx"
@@ -13,7 +13,7 @@ class TestMethod:
         create a method, import data, perform actions and generate a schema-compliant output.
         From https://databank.worldbank.org/reports.aspx?source=2&type=metadata&series=SP.URB.TOTL"""
         DIRECTORY = str(tmp_path) + "/"
-        CoreScript().check_path(DIRECTORY)
+        CoreScript().check_path(directory=DIRECTORY)
         # DEFINE SCHEMA
         details = {
             "name": "urban_population",
@@ -21,7 +21,7 @@ class TestMethod:
             "description": "Urban population refers to people living in urban areas as defined by national statistical offices. It is calculated using World Bank population estimates and urban ratios from the United Nations World Urbanization Prospects. Aggregation of urban and rural population may not add up to total population because of different country coverages.",
         }
         schema = whyqd.Schema()
-        schema.set(details)
+        schema.set(schema=details)
         fields = [
             {
                 "name": "indicator_code",
@@ -67,7 +67,7 @@ class TestMethod:
             },
         ]
         for field in fields:
-            schema.add_field(field)
+            schema.add_field(field=field)
         schema.save(directory=DIRECTORY)
         # CREATE METHOD
         SCHEMA_SOURCE = DIRECTORY + "urban_population.json"
@@ -83,7 +83,7 @@ class TestMethod:
             "REBASE < [2]",
         ]
         source_data = method.get.input_data[0]
-        method.add_actions(schema_scripts, source_data.uuid.hex, sheet_name=source_data.sheet_name)
+        method.add_actions(actions=schema_scripts, uid=source_data.uuid.hex, sheet_name=source_data.sheet_name)
         # df = method.transform(source_data)
         source_data = method.get.input_data[0]
         source_columns = [c.name for c in source_data.columns]
@@ -96,7 +96,7 @@ class TestMethod:
             "RENAME > 'year' < ['PIVOT_LONGER_names_idx_4']",
             "RENAME > 'values' < ['PIVOT_LONGER_values_idx_5']",
         ]
-        method.add_actions(schema_scripts, source_data.uuid.hex, sheet_name=source_data.sheet_name)
+        method.add_actions(actions=schema_scripts, uid=source_data.uuid.hex, sheet_name=source_data.sheet_name)
         # Unambiguous deletion so they are not part of the research record
         for unwanted_data in method.get.input_data[1:]:
             method.remove_data(unwanted_data.uuid.hex, sheet_name=unwanted_data.sheet_name)
