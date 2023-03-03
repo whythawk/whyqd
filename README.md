@@ -124,20 +124,13 @@ Where SCHEMA_SOURCE is a path to your schema. Existing `schema.json` files shoul
 
 The version history can be found in the [changelog](https://github.com/whythawk/whyqd/blob/master/CHANGELOG).
 
-## Background
+## Background and funding
 
-**whyqd** was created to serve a continuous data wrangling process, including collaboration on more
-complex messy sources, ensuring the integrity of the source data, and producing a complete audit
-trail from data imported to our database, back to source. You can see the product of that at
-[Sqwyre.com](https://sqwyre.com).
+**whyqd** was created to serve a continuous data wrangling process, including collaboration on more complex messy sources, ensuring the integrity of the source data, and producing a complete audit trail from data imported to our database, back to source. You can see the product of that at [openLocal.uk](https://openlocal.uk).
 
-In 2021, **whyqd** received financial support from the [Mayor's Resilience Fund](https://challenges.org/mayors-resilience/),
-the Mayor of London's £1 million challenge fund to incentivize innovators to address socially impactful issues facing
-London. Sqwyre.com will be contributing to research tools needed during post-COVID economic development as part of the
-'Activating High Streets' challenge.
+[This project](https://eoscfuture-grants.eu/meet-the-grantees/implementation-no-code-method-schema-schema-data-transformations-interoperability) has received funding from the European Union's Horizon 2020 research and innovation programme under grant agreement No 101017536. Technical development support is from [EOSC Future](https://eoscfuture.eu/) through the [RDA Open Call mechanism](https://eoscfuture-grants.eu/provider/research-data-alliance), based on evaluations of external, independent experts.
 
-The 'backronym' for **whyqd** /wɪkɪd/ is _Whythawk Quantitative Data_, [Whythawk](https://whythawk.com)
-is an open data science and open research technical consultancy.
+The 'backronym' for **whyqd** `/wɪkɪd/` is _Whythawk Quantitative Data_, [Whythawk](https://whythawk.com) is an open data science and open research technical consultancy.
 
 ## Licence
 
