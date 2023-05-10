@@ -11,7 +11,7 @@
 [**whyqd**](https://whyqd.com) (/wɪkɪd/) is a curatorial toolkit intended to produce well-structured and predictable 
 data for research analysis.
 
-It provides an intuitive method creating schema-to-schema crosswalks for restructuring messy data to conform to a 
+It provides an intuitive method for creating schema-to-schema crosswalks for restructuring messy data to conform to a 
 standardised metadata schema. It supports rapid and continuous transformation of messy data using a simple series of 
 steps. Once complete, you can import wrangled data into more complex analytical or database systems.
 
