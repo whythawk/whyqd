@@ -6,20 +6,20 @@
 # Required
 version: 2
 
-# Build documentation in the docs/ directory with Sphinx
-sphinx:
-  configuration: docs/conf.py
-
 # Using test server while Python 3.9 not supported
 # https://github.com/readthedocs/readthedocs-docker-images/pull/159#issuecomment-785048185
 build:
-  image: testing
+  os: "ubuntu-20.04"
+  tools:
+    python: "3.9"
+
+# Build documentation for mkdocs
+mkdocs:
+  configuration: mkdocs.yml
 
 # Optionally set the version of Python and requirements required to build your docs
 python:
-  version: 3.9
   install:
     - method: pip
       path: .
-      extra_requirements:
-        - docs
+    - requirements: docs-requirements.txt

@@ -1,0 +1,1389 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Data wrangling simplicity, complete audit transparency, and at speed">
+      
+      
+        <meta name="author" content="Gavin Chait">
+      
+      
+        <link rel="canonical" href="https://whyqd.readthedocs.io/strategies/datasource/">
+      
+      
+        <link rel="prev" href="../schema/">
+      
+      
+        <link rel="next" href="../crosswalk/">
+      
+      <link rel="icon" href="../../assets/temp-logo.svg">
+      <meta name="generator" content="mkdocs-1.4.3, mkdocs-material-9.1.9">
+    
+    
+      
+        <title>Derive data and schema models from source data - Whyqd</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.85bb2934.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.a6bdf11c.min.css">
+      
+      
+
+    
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/_mkdocstrings.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="amber" data-md-color-accent="amber">
+  
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&"object"==typeof palette.color)for(var key of Object.keys(palette.color))document.body.setAttribute("data-md-color-"+key,palette.color[key])</script>
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#derive-data-schema-models-from-source-data" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="Whyqd" class="md-header__button md-logo" aria-label="Whyqd" data-md-component="logo">
+      
+  <img src="../../assets/temp-logo.svg" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2Z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Whyqd
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Derive data and schema models from source data
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+          
+            
+            
+            
+            <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="amber" data-md-color-accent="amber"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_1">
+            
+              <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_2" hidden>
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2a7 7 0 0 1 7 7c0 2.38-1.19 4.47-3 5.74V17a1 1 0 0 1-1 1H9a1 1 0 0 1-1-1v-2.26C6.19 13.47 5 11.38 5 9a7 7 0 0 1 7-7M9 21v-1h6v1a1 1 0 0 1-1 1h-4a1 1 0 0 1-1-1m3-17a5 5 0 0 0-5 5c0 2.05 1.23 3.81 3 4.58V16h4v-2.42c1.77-.77 3-2.53 3-4.58a5 5 0 0 0-5-5Z"/></svg>
+              </label>
+            
+          
+            
+            
+            
+            <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="amber" data-md-color-accent="amber"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_2">
+            
+              <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_1" hidden>
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2a7 7 0 0 0-7 7c0 2.38 1.19 4.47 3 5.74V17a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1v-2.26c1.81-1.27 3-3.36 3-5.74a7 7 0 0 0-7-7M9 21a1 1 0 0 0 1 1h4a1 1 0 0 0 1-1v-1H9v1Z"/></svg>
+              </label>
+            
+          
+        </form>
+      
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+      </label>
+      <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41Z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/whythawk/whyqd" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2023 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    whythawk/whyqd
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Whyqd" class="md-nav__button md-logo" aria-label="Whyqd" data-md-component="logo">
+      
+  <img src="../../assets/temp-logo.svg" alt="logo">
+
+    </a>
+    Whyqd
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/whythawk/whyqd" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2023 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    whythawk/whyqd
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        Overview
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../installation/" class="md-nav__link">
+        Install
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../quickstart/" class="md-nav__link">
+        Quick start
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+    
+  
+  
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" checked>
+      
+      
+      
+        <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+          Strategies
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
+        <label class="md-nav__title" for="__nav_4">
+          <span class="md-nav__icon md-icon"></span>
+          Strategies
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../curation/" class="md-nav__link">
+        Curation
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../schema/" class="md-nav__link">
+        Schema
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+    
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          Data source
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        Data source
+      </a>
+      
+        
+
+  
+
+<nav class="md-nav md-nav--secondary" aria-label="Contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#derive-a-data-model-from-source-data" class="md-nav__link">
+    Derive a data model from source data
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#derive-a-minimum-transformable-schema-from-ugly-data" class="md-nav__link">
+    Derive a minimum transformable schema from ugly data
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#derive-schema-models-from-data-models" class="md-nav__link">
+    Derive schema models from data models
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#pandas-attributes-are-available" class="md-nav__link">
+    Pandas attributes are available
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#schema-coersion-to-source-data" class="md-nav__link">
+    Schema coersion to source data
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#hashing-for-data-probity" class="md-nav__link">
+    Hashing for data probity
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#citation" class="md-nav__link">
+    Citation
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../crosswalk/" class="md-nav__link">
+        Crosswalks
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+          Tutorials
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_5">
+          <span class="md-nav__icon md-icon"></span>
+          Tutorials
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/tutorial1/" class="md-nav__link">
+        Multiple sources
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/tutorial2/" class="md-nav__link">
+        Pivoting to long
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/tutorial3/" class="md-nav__link">
+        Cthulhu data
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+          Definitions API
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_6">
+          <span class="md-nav__icon md-icon"></span>
+          Definitions API
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/schema/" class="md-nav__link">
+        SchemaDefinition
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/field/" class="md-nav__link">
+        CRUDField
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/datasource/" class="md-nav__link">
+        DataSourceDefinition
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/crosswalk/" class="md-nav__link">
+        CrosswalkDefinition
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/action/" class="md-nav__link">
+        CRUDAction
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/transform/" class="md-nav__link">
+        TransformDefinition
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/base/" class="md-nav__link">
+        BaseDefinition
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/basecrud/" class="md-nav__link">
+        CRUDBase
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="0">
+          Actions API
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_7">
+          <span class="md-nav__icon md-icon"></span>
+          Actions API
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../actions/calculate/" class="md-nav__link">
+        CALCULATE
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../actions/categorise/" class="md-nav__link">
+        CATEGORISE
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../actions/deblank/" class="md-nav__link">
+        DEBLANK
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../actions/dedupe/" class="md-nav__link">
+        DEDUPE
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../actions/delete_rows/" class="md-nav__link">
+        DELETE_ROWS
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../actions/new/" class="md-nav__link">
+        NEW
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../actions/pivot_categories/" class="md-nav__link">
+        PIVOT_CATEGORIES
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../actions/pivot_longer/" class="md-nav__link">
+        PIVOT_LONGER
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../actions/rename/" class="md-nav__link">
+        RENAME
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../actions/select/" class="md-nav__link">
+        SELECT
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../actions/select_newest/" class="md-nav__link">
+        SELECT_NEWEST
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../actions/select_oldest/" class="md-nav__link">
+        SELECT_OLDEST
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../actions/separate/" class="md-nav__link">
+        SEPARATE
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../actions/unite/" class="md-nav__link">
+        UNITE
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../contributing/" class="md-nav__link">
+        Contributing to whyqd
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../changelog/" class="md-nav__link">
+        Changelog
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+  
+
+<nav class="md-nav md-nav--secondary" aria-label="Contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#derive-a-data-model-from-source-data" class="md-nav__link">
+    Derive a data model from source data
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#derive-a-minimum-transformable-schema-from-ugly-data" class="md-nav__link">
+    Derive a minimum transformable schema from ugly data
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#derive-schema-models-from-data-models" class="md-nav__link">
+    Derive schema models from data models
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#pandas-attributes-are-available" class="md-nav__link">
+    Pandas attributes are available
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#schema-coersion-to-source-data" class="md-nav__link">
+    Schema coersion to source data
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#hashing-for-data-probity" class="md-nav__link">
+    Hashing for data probity
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#citation" class="md-nav__link">
+    Citation
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+  
+  
+
+
+<h1 id="derive-data-schema-models-from-source-data">Derive data &amp; schema models from source data<a class="headerlink" href="#derive-data-schema-models-from-source-data" title="Permanent link">&para;</a></h1>
+<p><strong>whyqd</strong> (/wɪkɪd/) recognises that the world data scientists operate in is far messier than your educators may have
+led you to believe.</p>
+<p>In most cases, standardised schemas are developed <em>post-hoc</em>, after data have been in use for some time. This is simply
+practical reality. It is often impossible to know what data you need to answer a research question until after you've 
+started trying to answer it.</p>
+<p>The majority of tabular data are stored in spreadsheets on people's desktop computers. For most people, Excel is both
+database and dashboard visualisation software. That also means that source data are designed, foremost, for 
+presentation.</p>
+<p>Such data can have any of:</p>
+<ul>
+<li>Merged headers spanning multiple columns and rows</li>
+<li>Random empty rows and columns</li>
+<li>Categorical terms defined as spacers inside data rows instead of as fields</li>
+<li>Joined values containing both quantitative and qualitative data (such as a term and a date)</li>
+<li>Non-numeric data in numeric fields (such as the multiple ways of showing "missing" values)</li>
+</ul>
+<p>Instead of fighting to get people, who have other concerns and responsibilities, to adopt some ideal schema, you'll need 
+to study your source and try and identify all the challenges in your way.</p>
+<p>You need to derive a schema from data, and then write a crosswalk to get to your archival destination schema standard.</p>
+<div class="admonition abstract">
+<p class="admonition-title">API</p>
+<p>Review the <code>class</code> API definitions: <a href="/api/datasource">DataSourceDefinition</a>.</p>
+</div>
+<h2 id="derive-a-data-model-from-source-data">Derive a data model from source data<a class="headerlink" href="#derive-a-data-model-from-source-data" title="Permanent link">&para;</a></h2>
+<p>Assume you have source data defined as follows:</p>
+<ul>
+<li><code>DATASOURCE_PATH</code> is the complete path, or URL to a source data file,</li>
+<li><code>MIMETYPE</code> is the source file type, whether <code>CSV</code>, <code>XLS</code>, <code>XLSX</code>, <code>PARQUET</code> or <code>FEATHER</code>,</li>
+<li><code>DIRECTORY</code> and the directory where you want to store your saved output.</li>
+</ul>
+<div class="admonition info">
+<p class="admonition-title">Info</p>
+<p><strong>whyqd</strong> supports any of the following file mime types:</p>
+<ul>
+<li><code>CSV</code>: "text/csv"</li>
+<li><code>XLS</code>: "application/vnd.ms-excel"</li>
+<li><code>XLSX</code>: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"</li>
+<li><code>PARQUET</code> (or <code>PRQ</code>): "application/vnd.apache.parquet"</li>
+<li><code>FEATHER</code> (or <code>FTR</code>): "application/vnd.apache.feather"</li>
+</ul>
+<p>Specify the mime type as a text string, uppper- or lower-case. Neither of
+<a href="https://parquet.apache.org/docs/overview/">Parquet</a> or <a href="https://arrow.apache.org/docs/python/feather.html">Feather</a>
+yet have official mimetypes, so this is what we're using for now.</p>
+</div>
+<p>Deriving a data model is as simple as:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span> <span class="nn">whyqd</span> <span class="k">as</span> <span class="nn">qd</span>
+
+<span class="n">datasource</span> <span class="o">=</span> <span class="n">qd</span><span class="o">.</span><span class="n">DataSourceDefinition</span><span class="p">()</span>
+<span class="n">datasource</span><span class="o">.</span><span class="n">derive_model</span><span class="p">(</span><span class="n">source</span><span class="o">=</span><span class="n">DATASOURCE_PATH</span><span class="p">,</span> <span class="n">mimetype</span><span class="o">=</span><span class="n">MIMETYPE</span><span class="p">)</span>
+<span class="n">datasource</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">directory</span><span class="o">=</span><span class="n">DIRECTORY</span><span class="p">)</span>
+<span class="n">datasource</span><span class="o">.</span><span class="n">validate</span><span class="p">()</span>
+</code></pre></div>
+<p><code>.save</code> will export a JSON-Schema compliant text file with <code>.data</code> as its filetype. This captures everything about your 
+source data, including a <a href="#citation">citation</a>. If your data are accessable via a persistent url, then distributing
+this file ensures that all metadata definitions associated with your source data are maintained.</p>
+<p><code>.validate</code> will repeat the derivation and test that the <a href="#derive-a-schema-from-source-data">checksum</a> derived for the 
+model is repeatable.</p>
+<p><strong>whyqd</strong> can import this file and produce schemas, crosswalks and data transformations.</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>If your source data are <code>Excel</code>, and that spreadsheet consists of multiple <code>sheets</code>, then <strong>whyqd</strong> will produce 
+multiple data models which will be returned as a list. Each model will reflect the metadata for each sheet.</p>
+<p>As always <em>look</em> at your data and test before implementing in code. You should see an additional <code>sheet_name</code> field.</p>
+</div>
+<p>You can read it:</p>
+<div class="highlight"><pre><span></span><code><span class="n">datasource</span><span class="o">.</span><span class="n">get</span><span class="o">.</span><span class="n">dict</span><span class="p">(</span><span class="n">by_alias</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exclude_defaults</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exclude_none</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="p">{</span><span class="s1">&#39;uuid&#39;</span><span class="p">:</span> <span class="n">UUID</span><span class="p">(</span><span class="s1">&#39;827941cb-fc89-4849-beea-5779fefb9f87&#39;</span><span class="p">),</span>
+ <span class="s1">&#39;path&#39;</span><span class="p">:</span> <span class="n">DATASOURCE_PATH</span><span class="p">,</span>
+ <span class="s1">&#39;mime&#39;</span><span class="p">:</span> <span class="s1">&#39;application/vnd.openxmlformats-officedocument.spreadsheetml.sheet&#39;</span><span class="p">,</span>
+ <span class="s1">&#39;columns&#39;</span><span class="p">:</span> <span class="p">[{</span><span class="s1">&#39;uuid&#39;</span><span class="p">:</span> <span class="n">UUID</span><span class="p">(</span><span class="s1">&#39;7809a86c-c888-4f68-8eb2-a53a3e90c569&#39;</span><span class="p">),</span>
+   <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;Property Reference Number&#39;</span><span class="p">},</span>
+  <span class="p">{</span><span class="s1">&#39;uuid&#39;</span><span class="p">:</span> <span class="n">UUID</span><span class="p">(</span><span class="s1">&#39;c4296371-4808-4e28-a04b-680c3ed0cd75&#39;</span><span class="p">),</span>
+   <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;Primary Liable party name&#39;</span><span class="p">},</span>
+  <span class="p">{</span><span class="s1">&#39;uuid&#39;</span><span class="p">:</span> <span class="n">UUID</span><span class="p">(</span><span class="s1">&#39;21688dd3-4b17-4420-8712-d40a85ea13f3&#39;</span><span class="p">),</span>
+   <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;Full Property Address&#39;</span><span class="p">},</span>
+  <span class="p">{</span><span class="s1">&#39;uuid&#39;</span><span class="p">:</span> <span class="n">UUID</span><span class="p">(</span><span class="s1">&#39;4a5ba635-6cdf-49d6-9347-8975cffbab61&#39;</span><span class="p">),</span>
+   <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;Current Relief Type&#39;</span><span class="p">},</span>
+  <span class="p">{</span><span class="s1">&#39;uuid&#39;</span><span class="p">:</span> <span class="n">UUID</span><span class="p">(</span><span class="s1">&#39;c4196d43-8c68-495b-bd1f-0e482485f5a2&#39;</span><span class="p">),</span>
+   <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;Account Start date&#39;</span><span class="p">},</span>
+  <span class="p">{</span><span class="s1">&#39;uuid&#39;</span><span class="p">:</span> <span class="n">UUID</span><span class="p">(</span><span class="s1">&#39;e5ac6524-77c4-4144-878d-5aea44c3ff22&#39;</span><span class="p">),</span>
+   <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;Current Relief Award Start Date&#39;</span><span class="p">},</span>
+  <span class="p">{</span><span class="s1">&#39;uuid&#39;</span><span class="p">:</span> <span class="n">UUID</span><span class="p">(</span><span class="s1">&#39;916b9f15-7638-41e4-96e6-7c1b88ea257e&#39;</span><span class="p">),</span>
+   <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;Current Rateable Value&#39;</span><span class="p">}],</span>
+ <span class="s1">&#39;preserve&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;Property Reference Number&#39;</span><span class="p">,</span>
+  <span class="s1">&#39;Primary Liable party name&#39;</span><span class="p">,</span>
+  <span class="s1">&#39;Full Property Address&#39;</span><span class="p">,</span>
+  <span class="s1">&#39;Current Relief Type&#39;</span><span class="p">,</span>
+  <span class="s1">&#39;Account Start date&#39;</span><span class="p">,</span>
+  <span class="s1">&#39;Current Relief Award Start Date&#39;</span><span class="p">,</span>
+  <span class="s1">&#39;Current Rateable Value&#39;</span><span class="p">],</span>
+ <span class="s1">&#39;attributes&#39;</span><span class="p">:</span> <span class="p">{},</span>
+ <span class="s1">&#39;checksum&#39;</span><span class="p">:</span> <span class="s1">&#39;c1a67eba4344aea0264a2375145ed0991ee7ec29574d04cdeba86e651dede21aa04a00547d121c57c16005c6bfa760b959f9cae116bcaf83dc36fcb1fddb01a4&#39;</span><span class="p">,</span>
+ <span class="s1">&#39;index&#39;</span><span class="p">:</span> <span class="mi">3421</span><span class="p">}</span>
+</code></pre></div>
+<div class="admonition tip">
+<p class="admonition-title">Strategy</p>
+<p>You can edit this data model, changing everything from the default generated name, to the types allocated to each 
+field. You should definitely update <code>description</code> and give greater depth.</p>
+<div class="highlight"><pre><span></span><code><span class="n">datasource</span><span class="o">.</span><span class="n">get</span><span class="o">.</span><span class="n">description</span> <span class="o">=</span> <span class="s2">&quot;Portsmouth ratepayer data in multiple sheets. Demonstrating create method, add date, actions and perform a merge, plus filter the final result.&quot;</span>
+</code></pre></div>
+<p>But, as far as the data <code>types</code> for each of the columns, I'm going to suggest that you leave this to your schema 
+definition.</p>
+<p>Machine-readability come in a variety of forms. As long as your source data meet the primary requirements of 
+<a href="/strategies/curation">curation</a>, you will be able to perform analysis or transformations. As for coercing your
+data types? Well, your <a href="#schema-coersion-to-source-data">schema will do that for you</a>.</p>
+</div>
+<p>This derivation assumed a clear header row indexed at <code>0</code>. Unfortunately, not all source data are so easy.</p>
+<h2 id="derive-a-minimum-transformable-schema-from-ugly-data">Derive a <em>minimum transformable schema</em> from ugly data<a class="headerlink" href="#derive-a-minimum-transformable-schema-from-ugly-data" title="Permanent link">&para;</a></h2>
+<p>Sometimes your source data are wild.</p>
+<p><img alt="UNDP Human Development Index 2007-2008" src="/images/undp-hdi-2007-8.jpg" /></p>
+<p><em>UNDP Human Development Index 2007-2008: a beautiful example of messy data.</em></p>
+<p>The 2007-8 HDI report was listed as a series of about 50 spreadsheets, each dataset aligned with the objectives of the 
+<a href="https://www.un.org/millenniumgoals/">Millennium Development Goals</a>. These supporting information were used to track 
+countries meeting the MDG targets. Analysis required rebuilding these spreadsheets into a single database aligned to a 
+common schema.</p>
+<p>The temptation is to dive straight in and start physically restructuring this until you have something that meets the 
+minimum criteria for machine readability. That is unnecessary, and commits the cardinal sin of data curation.</p>
+<div class="admonition danger">
+<p class="admonition-title">Ethics</p>
+<p>Never perform destructive changes to source data.</p>
+</div>
+<p>A <strong>destructive change</strong> is one which is undocumented, and - therefore - unreproducible by others.</p>
+<p>Instead derive a <strong>minimum transformable schema</strong> as follows:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span> <span class="nn">whyqd</span> <span class="k">as</span> <span class="nn">qd</span>
+
+<span class="n">datasource</span> <span class="o">=</span> <span class="n">qd</span><span class="o">.</span><span class="n">DataSourceDefinition</span><span class="p">()</span>
+<span class="n">datasource</span><span class="o">.</span><span class="n">derive_model</span><span class="p">(</span><span class="n">source</span><span class="o">=</span><span class="n">SOURCE_DATA</span><span class="p">,</span> <span class="n">mimetype</span><span class="o">=</span><span class="n">MIMETYPE</span><span class="p">,</span> <span class="n">header</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+</code></pre></div>
+<p>Row (0-indexed) to use for the column labels of the parsed DataFrame. If there are multiple sheets, then a list of 
+integers should be provided. If <code>header</code> is <code>None</code>, row 0 will be treated as values and a set of field names will be 
+generated indexed to the number of data columns.</p>
+<div class="highlight"><pre><span></span><code><span class="n">datasource</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">columns</span>
+
+    <span class="n">Index</span><span class="p">([</span><span class="s1">&#39;column_0&#39;</span><span class="p">,</span> <span class="s1">&#39;column_1&#39;</span><span class="p">,</span> <span class="s1">&#39;column_2&#39;</span><span class="p">,</span> <span class="s1">&#39;column_3&#39;</span><span class="p">,</span> <span class="s1">&#39;column_4&#39;</span><span class="p">,</span> <span class="s1">&#39;column_5&#39;</span><span class="p">,</span>
+           <span class="s1">&#39;column_6&#39;</span><span class="p">,</span> <span class="s1">&#39;column_7&#39;</span><span class="p">,</span> <span class="s1">&#39;column_8&#39;</span><span class="p">,</span> <span class="s1">&#39;column_9&#39;</span><span class="p">,</span> <span class="s1">&#39;column_10&#39;</span><span class="p">,</span>
+           <span class="s1">&#39;column_11&#39;</span><span class="p">,</span> <span class="s1">&#39;column_12&#39;</span><span class="p">,</span> <span class="s1">&#39;column_13&#39;</span><span class="p">,</span> <span class="s1">&#39;column_14&#39;</span><span class="p">,</span> <span class="s1">&#39;column_15&#39;</span><span class="p">,</span>
+           <span class="s1">&#39;column_16&#39;</span><span class="p">,</span> <span class="s1">&#39;column_17&#39;</span><span class="p">,</span> <span class="s1">&#39;column_18&#39;</span><span class="p">,</span> <span class="s1">&#39;column_19&#39;</span><span class="p">,</span> <span class="s1">&#39;column_20&#39;</span><span class="p">,</span>
+           <span class="s1">&#39;column_21&#39;</span><span class="p">],</span>
+          <span class="n">dtype</span><span class="o">=</span><span class="s1">&#39;object&#39;</span><span class="p">)</span>
+</code></pre></div>
+<div class="admonition tip">
+<p class="admonition-title">Strategy</p>
+<p>The <em>emphasis</em> is on <strong>minimum transformable</strong>. Your schema is going to need to validate. <code>string</code> field types will 
+preserve underlying data where a column contains a mix of types. The process of transformation between schemas 
+permits you to correct problems and restructure your source data. Transformation gets you to where you need to be to 
+perform more complex data restructuring and analysis.</p>
+</div>
+<div class="admonition info">
+<p class="admonition-title">Further learning</p>
+<p>Learn more about transforming <code>Cthulhu</code> data in the full worked <a href="/tutorials/tutorial3">tutorial</a> for this dataset.</p>
+</div>
+<h2 id="derive-schema-models-from-data-models">Derive schema models from data models<a class="headerlink" href="#derive-schema-models-from-data-models" title="Permanent link">&para;</a></h2>
+<p>A data model is useful for ensuring that source data are preserved, but <a href="/strategies/curation">schemas</a> are better for 
+defining data and ensuring validation and compliance with research objectives.</p>
+<p>Getting from a data model to a schema definition is straightforward:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span> <span class="nn">whyqd</span> <span class="k">as</span> <span class="nn">qd</span>
+
+<span class="n">datasource</span> <span class="o">=</span> <span class="n">qd</span><span class="o">.</span><span class="n">DataSourceDefinition</span><span class="p">()</span>
+<span class="n">datasource</span><span class="o">.</span><span class="n">derive_model</span><span class="p">(</span><span class="n">source</span><span class="o">=</span><span class="n">DATASOURCE_PATH</span><span class="p">,</span> <span class="n">mimetype</span><span class="o">=</span><span class="n">MIMETYPE</span><span class="p">)</span>
+<span class="n">schema_source</span> <span class="o">=</span> <span class="n">qd</span><span class="o">.</span><span class="n">SchemaDefinition</span><span class="p">()</span>
+<span class="n">schema_source</span><span class="o">.</span><span class="n">derive_model</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="n">datasource</span><span class="o">.</span><span class="n">get</span><span class="p">)</span>
+</code></pre></div>
+<p>If you review the <a href="/api/field">Field operations</a> you'll see you can now access the individual fields and apply 
+constraints and defaults.</p>
+<p>Here's how you'd derive categorical terms from a data model column:</p>
+<div class="highlight"><pre><span></span><code><span class="n">schema_source</span><span class="o">.</span><span class="n">fields</span><span class="o">.</span><span class="n">set_categories</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">CATEGORY_FIELD</span><span class="p">,</span> 
+                                    <span class="n">terms</span><span class="o">=</span><span class="n">datasource</span><span class="o">.</span><span class="n">get_data</span><span class="p">())</span>
+</code></pre></div>
+<p>Where the <code>CATEGORY_FIELD</code> is a <code>string</code> which identifies which data model column you want to get categorical terms from.
+This will identify all the unique terms in that table column and assign them as categorical terms to the field.</p>
+<p>You can also specify them <code>as_bool</code> (where terms are <code>[True, False]</code>), or you can treat terms <code>as_array</code>, where a row 
+may be assigned a list of categorical terms.</p>
+<p>An example of both of these types of categorical terms is explained in one of the <a href="/tutorials/tutorial1">worked tutorials</a>.</p>
+<table>
+<thead>
+<tr>
+<th align="left">la_code</th>
+<th align="left">ba_ref</th>
+<th align="left">occupant_name</th>
+<th align="left">postcode</th>
+<th align="left">occupation_state</th>
+<th align="left">occupation_state_date</th>
+<th align="left">prop_ba_rates</th>
+<th align="left">occupation_state_reliefs</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td align="left">E06000044</td>
+<td align="left">177500080710</td>
+<td align="left">A company</td>
+<td align="left">PO5 2SE</td>
+<td align="left">True</td>
+<td align="left">2019-04-01</td>
+<td align="left">98530</td>
+<td align="left">[small_business, retail]</td>
+</tr>
+</tbody>
+</table>
+<p>Categorical terms are not validated on assignment, so if you choose to set arbitrary terms, that'll happen:</p>
+<div class="highlight"><pre><span></span><code><span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;column_1&quot;</span>
+<span class="n">st</span><span class="o">.</span><span class="n">set_field_categories</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span> <span class="n">terms</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;fish&quot;</span><span class="p">,</span> <span class="s2">&quot;frog&quot;</span><span class="p">,</span> <span class="s2">&quot;fennel&quot;</span><span class="p">])</span>
+<span class="n">st</span><span class="o">.</span><span class="n">schema</span><span class="o">.</span><span class="n">fields</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">)</span><span class="o">.</span><span class="n">dict</span><span class="p">(</span><span class="n">by_alias</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exclude_defaults</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exclude_none</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="p">{</span><span class="s1">&#39;uuid&#39;</span><span class="p">:</span> <span class="n">UUID</span><span class="p">(</span><span class="s1">&#39;a43b7a94-ca6f-438d-83b9-4c84d9d7a0b7&#39;</span><span class="p">),</span>
+     <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;column_1&#39;</span><span class="p">,</span>
+     <span class="s1">&#39;title&#39;</span><span class="p">:</span> <span class="s1">&#39;column_1&#39;</span><span class="p">,</span>
+     <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;string&#39;</span><span class="p">,</span>
+     <span class="s1">&#39;constraints&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;enum&#39;</span><span class="p">:</span> <span class="p">[{</span><span class="s1">&#39;uuid&#39;</span><span class="p">:</span> <span class="n">UUID</span><span class="p">(</span><span class="s1">&#39;f9032145-6fb9-4873-b314-1a094b79f432&#39;</span><span class="p">),</span>
+        <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;fish&#39;</span><span class="p">},</span>
+       <span class="p">{</span><span class="s1">&#39;uuid&#39;</span><span class="p">:</span> <span class="n">UUID</span><span class="p">(</span><span class="s1">&#39;f88c29f4-809c-4aef-b885-a8e372cba48f&#39;</span><span class="p">),</span> <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;frog&#39;</span><span class="p">},</span>
+       <span class="p">{</span><span class="s1">&#39;uuid&#39;</span><span class="p">:</span> <span class="n">UUID</span><span class="p">(</span><span class="s1">&#39;ab1f0dff-c716-43df-9b00-179f211c7b04&#39;</span><span class="p">),</span> <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;fennel&#39;</span><span class="p">}]}}</span>
+</code></pre></div>
+<div class="admonition tip">
+<p class="admonition-title">Strategy</p>
+<p>The objective of specifying categorical terms is to support transformation, and associating categorical terms in a 
+source schema with those in a destination schema. You don't need to use all of them, but all terms in a source data 
+column must be listed in the source schema field.</p>
+</div>
+<h2 id="pandas-attributes-are-available">Pandas attributes are available<a class="headerlink" href="#pandas-attributes-are-available" title="Permanent link">&para;</a></h2>
+<p><strong>whyqd</strong> is <strong>NOT</strong> an analytical tool. It supports data curation, and so the default behaviours are to preserve source
+data and do as little as possible during transformation. That said, some source data - especially CSV files - are
+difficult to read and won't open at all without some help.</p>
+<p>As one example, CSV errors in opening a source file can be fixed by referencing quotation and end-of-line errors using
+<code>quoting=csv.QUOTE_NONE</code>. "CSV" is often a misnomer. Anything can be a separator, <code>sep='*'</code>.</p>
+<p>Arbitrary additional attributes used by Pandas for reading CSVs, Excel and other mime types supported by <strong>whyqd</strong> can 
+be included without limit:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span> <span class="nn">whyqd</span> <span class="k">as</span> <span class="nn">qd</span>
+
+<span class="n">datasource</span> <span class="o">=</span> <span class="n">qd</span><span class="o">.</span><span class="n">DataSourceDefinition</span><span class="p">()</span>
+<span class="n">datasource</span><span class="o">.</span><span class="n">derive_model</span><span class="p">(</span><span class="n">source</span><span class="o">=</span><span class="n">DATA</span><span class="p">,</span> <span class="n">mimetype</span><span class="o">=</span><span class="n">CSVTYPE</span><span class="p">,</span> <span class="n">quoting</span><span class="o">=</span><span class="n">csv</span><span class="o">.</span><span class="n">QUOTE_NONE</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="s2">&quot;*&quot;</span><span class="p">)</span>
+<span class="n">datasource</span><span class="o">.</span><span class="n">validate</span><span class="p">()</span>
+</code></pre></div>
+<p>Use this sparingly. <code>Exceptions</code> raised as a result of any additional attributes will be Pandas exceptions.</p>
+<h2 id="schema-coersion-to-source-data">Schema coersion to source data<a class="headerlink" href="#schema-coersion-to-source-data" title="Permanent link">&para;</a></h2>
+<p>Your source schema may not correspond to your input data structure immediately, and may need to be coerced. Categorical 
+data may need to be validated, date formats recognised, or integers converted to floats.</p>
+<p><strong>whyqd</strong> will do this automatically during transformation and your output data will be coerced to their schema-defined
+types and constraints.</p>
+<p>If any data fields do not match, or require coercion to match, then you will receive a warning:</p>
+<div class="highlight"><pre><span></span><code><span class="ne">UserWarning</span><span class="p">:</span> <span class="mi">1</span> <span class="n">columns</span> <span class="ow">in</span> <span class="n">Data</span> <span class="n">were</span> <span class="n">coerced</span> <span class="n">to</span> <span class="n">appropriate</span> <span class="n">dtypes</span> <span class="ow">in</span> <span class="n">Schema</span><span class="o">.</span> <span class="p">[</span><span class="s1">&#39;occupation_state_date&#39;</span><span class="p">]</span>
+<span class="ne">UserWarning</span><span class="p">:</span> <span class="mi">2</span> <span class="n">columns</span> <span class="ow">in</span> <span class="n">Data</span> <span class="n">were</span> <span class="n">coerced</span> <span class="n">to</span> <span class="n">appropriate</span> <span class="n">dtypes</span> <span class="ow">in</span> <span class="n">Schema</span><span class="o">.</span> <span class="p">[</span><span class="s1">&#39;occupation_state&#39;</span><span class="p">,</span> <span class="s1">&#39;occupation_state_reliefs&#39;</span><span class="p">]</span>
+</code></pre></div>
+<h2 id="hashing-for-data-probity">Hashing for data probity<a class="headerlink" href="#hashing-for-data-probity" title="Permanent link">&para;</a></h2>
+<p>Those of you familiar with Dataverse's <a href="http://guides.dataverse.org/en/latest/developers/unf/index.html">universal numerical fingerprint</a>
+may be wondering where it is? <strong>whyqd</strong>, similarly, produces a unique hash for each datasource. Ours is based on 
+<a href="https://en.wikipedia.org/wiki/BLAKE_(hash_function)">BLAKE2b</a> and is included in the data source model.</p>
+<div class="highlight"><pre><span></span><code><span class="n">datasource</span><span class="o">.</span><span class="n">get</span><span class="o">.</span><span class="n">checksum</span>
+
+<span class="s1">&#39;a8d03afd7d5b93163dac56ba23a7c75dedf42b8999295e560f3d633d54457e9de3ae95dea8181f238e549a7fba10a36723d2f1b1d94ef3f2273129a58bfc0751&#39;</span>
+</code></pre></div>
+<p>This is used for validation tests to ensure that source and transformed data both match those originally used and 
+produced as a result of a crosswalk.</p>
+<h2 id="citation">Citation<a class="headerlink" href="#citation" title="Permanent link">&para;</a></h2>
+<p><strong>whyqd</strong> is designed to support a research process and ensure citation of the incredible work done by research-based
+data scientists.</p>
+<p>A citation is a special set of fields, with options for:</p>
+<ul>
+<li><strong>author</strong>: The name(s) of the author(s) (in the case of more than one author, separated by <code>and</code>),</li>
+<li><strong>title</strong>: The title of the work,</li>
+<li><strong>url</strong>: The URL field is used to store the URL of a web page or FTP download. It is a non-standard BibTeX field,</li>
+<li><strong>publisher</strong>: The publisher's name,</li>
+<li><strong>institution</strong>: The institution that was involved in the publishing, but not necessarily the publisher,</li>
+<li><strong>doi</strong>: The doi field is used to store the digital object identifier (DOI) of a journal article, conference paper,
+  book chapter or book. It is a non-standard BibTeX field. It's recommended to simply use the DOI, and not a DOI link,</li>
+<li><strong>month</strong>: The month of publication (or, if unpublished, the month of creation). Use three-letter abbreviation,</li>
+<li><strong>year</strong>: The year of publication (or, if unpublished, the year of creation),</li>
+<li><strong>licence</strong>: The terms under which the associated resource are licenced for reuse,</li>
+<li><strong>note</strong>: Miscellaneous extra information.</li>
+</ul>
+<p>As an example:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span> <span class="nn">whyqd</span> <span class="k">as</span> <span class="nn">qd</span>
+
+<span class="n">datasource</span> <span class="o">=</span> <span class="n">qd</span><span class="o">.</span><span class="n">DataSourceDefinition</span><span class="p">()</span>
+<span class="n">datasource</span><span class="o">.</span><span class="n">derive_model</span><span class="p">(</span><span class="n">source</span><span class="o">=</span><span class="n">SOURCE_DATA</span><span class="p">,</span> <span class="n">mimetype</span><span class="o">=</span><span class="n">MIMETYPE</span><span class="p">)</span>
+<span class="n">citation</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;author&quot;</span><span class="p">:</span> <span class="s2">&quot;Gavin Chait&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;month&quot;</span><span class="p">:</span> <span class="s2">&quot;feb&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;year&quot;</span><span class="p">:</span> <span class="mi">2020</span><span class="p">,</span>
+    <span class="s2">&quot;title&quot;</span><span class="p">:</span> <span class="s2">&quot;Portsmouth City Council normalised database of commercial ratepayers&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;url&quot;</span><span class="p">:</span> <span class="s2">&quot;https://github.com/whythawk/whyqd/tree/master/tests/data&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;licence&quot;</span><span class="p">:</span> <span class="s2">&quot;Attribution 4.0 International (CC BY 4.0)&quot;</span><span class="p">,</span>
+<span class="p">}</span>
+<span class="n">datasource</span><span class="o">.</span><span class="n">set_citation</span><span class="p">(</span><span class="n">citation</span><span class="o">=</span><span class="n">citation</span><span class="p">)</span>
+</code></pre></div>
+<p>You can then get your citation report:</p>
+<div class="highlight"><pre><span></span><code><span class="n">datasource</span><span class="o">.</span><span class="n">get_citation</span><span class="p">()</span>
+
+<span class="p">{</span><span class="s1">&#39;author&#39;</span><span class="p">:</span> <span class="s1">&#39;Gavin Chait&#39;</span><span class="p">,</span>
+ <span class="s1">&#39;title&#39;</span><span class="p">:</span> <span class="s1">&#39;Portsmouth City Council normalised database of commercial ratepayers&#39;</span><span class="p">,</span>
+ <span class="s1">&#39;url&#39;</span><span class="p">:</span> <span class="n">AnyUrl</span><span class="p">(</span><span class="s1">&#39;https://github.com/whythawk/whyqd/tree/master/tests/data&#39;</span><span class="p">,</span> <span class="n">scheme</span><span class="o">=</span><span class="s1">&#39;https&#39;</span><span class="p">,</span> <span class="n">host</span><span class="o">=</span><span class="s1">&#39;github.com&#39;</span><span class="p">,</span> <span class="n">tld</span><span class="o">=</span><span class="s1">&#39;com&#39;</span><span class="p">,</span> <span class="n">host_type</span><span class="o">=</span><span class="s1">&#39;domain&#39;</span><span class="p">,</span> <span class="n">path</span><span class="o">=</span><span class="s1">&#39;/whythawk/whyqd/tree/master/tests/data&#39;</span><span class="p">),</span>
+ <span class="s1">&#39;month&#39;</span><span class="p">:</span> <span class="s1">&#39;feb&#39;</span><span class="p">,</span>
+ <span class="s1">&#39;year&#39;</span><span class="p">:</span> <span class="mi">2020</span><span class="p">,</span>
+ <span class="s1">&#39;licence&#39;</span><span class="p">:</span> <span class="s1">&#39;Attribution 4.0 International (CC BY 4.0)&#39;</span><span class="p">}</span>
+</code></pre></div>
+<p>This <code>citation</code> support is available in all <code>Definitions</code>, including <a href="/api/schema">SchemaDefinition</a>, 
+<a href="/api/crosswalk">CrosswalkDefinition</a>, <a href="/api/transform">TransformDefinition</a>, and <a href="/api/datasource">DataSourceDefinition</a>.</p>
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    <script id="__config" type="application/json">{"base": "../..", "features": ["navigation.path"], "search": "../../assets/javascripts/workers/search.208ed371.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.fac441b0.min.js"></script>
+      
+    
+  </body>
+</html>

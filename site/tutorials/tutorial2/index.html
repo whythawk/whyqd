@@ -1,0 +1,1318 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Data wrangling simplicity, complete audit transparency, and at speed">
+      
+      
+        <meta name="author" content="Gavin Chait">
+      
+      
+        <link rel="canonical" href="https://whyqd.readthedocs.io/tutorials/tutorial2/">
+      
+      
+        <link rel="prev" href="../tutorial1/">
+      
+      
+        <link rel="next" href="../tutorial3/">
+      
+      <link rel="icon" href="../../assets/temp-logo.svg">
+      <meta name="generator" content="mkdocs-1.4.3, mkdocs-material-9.1.9">
+    
+    
+      
+        <title>Tutorial 2 - Pivoting wide-format data into archival long-format - Whyqd</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.85bb2934.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.a6bdf11c.min.css">
+      
+      
+
+    
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/_mkdocstrings.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="amber" data-md-color-accent="amber">
+  
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&"object"==typeof palette.color)for(var key of Object.keys(palette.color))document.body.setAttribute("data-md-color-"+key,palette.color[key])</script>
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#tutorial-2-pivoting-wide-format-data-into-archival-long-format" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="Whyqd" class="md-header__button md-logo" aria-label="Whyqd" data-md-component="logo">
+      
+  <img src="../../assets/temp-logo.svg" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2Z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Whyqd
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Tutorial 2 - Pivoting wide-format data into archival long-format
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+          
+            
+            
+            
+            <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="amber" data-md-color-accent="amber"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_1">
+            
+              <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_2" hidden>
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2a7 7 0 0 1 7 7c0 2.38-1.19 4.47-3 5.74V17a1 1 0 0 1-1 1H9a1 1 0 0 1-1-1v-2.26C6.19 13.47 5 11.38 5 9a7 7 0 0 1 7-7M9 21v-1h6v1a1 1 0 0 1-1 1h-4a1 1 0 0 1-1-1m3-17a5 5 0 0 0-5 5c0 2.05 1.23 3.81 3 4.58V16h4v-2.42c1.77-.77 3-2.53 3-4.58a5 5 0 0 0-5-5Z"/></svg>
+              </label>
+            
+          
+            
+            
+            
+            <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="amber" data-md-color-accent="amber"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_2">
+            
+              <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_1" hidden>
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2a7 7 0 0 0-7 7c0 2.38 1.19 4.47 3 5.74V17a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1v-2.26c1.81-1.27 3-3.36 3-5.74a7 7 0 0 0-7-7M9 21a1 1 0 0 0 1 1h4a1 1 0 0 0 1-1v-1H9v1Z"/></svg>
+              </label>
+            
+          
+        </form>
+      
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+      </label>
+      <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41Z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/whythawk/whyqd" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2023 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    whythawk/whyqd
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Whyqd" class="md-nav__button md-logo" aria-label="Whyqd" data-md-component="logo">
+      
+  <img src="../../assets/temp-logo.svg" alt="logo">
+
+    </a>
+    Whyqd
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/whythawk/whyqd" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2023 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    whythawk/whyqd
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        Overview
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../installation/" class="md-nav__link">
+        Install
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../quickstart/" class="md-nav__link">
+        Quick start
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+          Strategies
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_4">
+          <span class="md-nav__icon md-icon"></span>
+          Strategies
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../strategies/curation/" class="md-nav__link">
+        Curation
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../strategies/schema/" class="md-nav__link">
+        Schema
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../strategies/datasource/" class="md-nav__link">
+        Data source
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../strategies/crosswalk/" class="md-nav__link">
+        Crosswalks
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+    
+  
+  
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" checked>
+      
+      
+      
+        <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+          Tutorials
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="true">
+        <label class="md-nav__title" for="__nav_5">
+          <span class="md-nav__icon md-icon"></span>
+          Tutorials
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorial1/" class="md-nav__link">
+        Multiple sources
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+    
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          Pivoting to long
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        Pivoting to long
+      </a>
+      
+        
+
+  
+
+<nav class="md-nav md-nav--secondary" aria-label="Contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#strategy" class="md-nav__link">
+    Strategy
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#define-a-destination-schema" class="md-nav__link">
+    Define a destination schema
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#source-data-and-source-schema-definitions" class="md-nav__link">
+    Source data and source schema definitions
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#defining-crosswalks" class="md-nav__link">
+    Defining crosswalks
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#transformations-with-crosswalks" class="md-nav__link">
+    Transformations with crosswalks
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#extending-the-tutorial" class="md-nav__link">
+    Extending the tutorial
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorial3/" class="md-nav__link">
+        Cthulhu data
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+          Definitions API
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_6">
+          <span class="md-nav__icon md-icon"></span>
+          Definitions API
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/schema/" class="md-nav__link">
+        SchemaDefinition
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/field/" class="md-nav__link">
+        CRUDField
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/datasource/" class="md-nav__link">
+        DataSourceDefinition
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/crosswalk/" class="md-nav__link">
+        CrosswalkDefinition
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/action/" class="md-nav__link">
+        CRUDAction
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/transform/" class="md-nav__link">
+        TransformDefinition
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/base/" class="md-nav__link">
+        BaseDefinition
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/basecrud/" class="md-nav__link">
+        CRUDBase
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="0">
+          Actions API
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_7">
+          <span class="md-nav__icon md-icon"></span>
+          Actions API
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../actions/calculate/" class="md-nav__link">
+        CALCULATE
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../actions/categorise/" class="md-nav__link">
+        CATEGORISE
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../actions/deblank/" class="md-nav__link">
+        DEBLANK
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../actions/dedupe/" class="md-nav__link">
+        DEDUPE
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../actions/delete_rows/" class="md-nav__link">
+        DELETE_ROWS
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../actions/new/" class="md-nav__link">
+        NEW
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../actions/pivot_categories/" class="md-nav__link">
+        PIVOT_CATEGORIES
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../actions/pivot_longer/" class="md-nav__link">
+        PIVOT_LONGER
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../actions/rename/" class="md-nav__link">
+        RENAME
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../actions/select/" class="md-nav__link">
+        SELECT
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../actions/select_newest/" class="md-nav__link">
+        SELECT_NEWEST
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../actions/select_oldest/" class="md-nav__link">
+        SELECT_OLDEST
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../actions/separate/" class="md-nav__link">
+        SEPARATE
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../actions/unite/" class="md-nav__link">
+        UNITE
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../contributing/" class="md-nav__link">
+        Contributing to whyqd
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../changelog/" class="md-nav__link">
+        Changelog
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+  
+
+<nav class="md-nav md-nav--secondary" aria-label="Contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#strategy" class="md-nav__link">
+    Strategy
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#define-a-destination-schema" class="md-nav__link">
+    Define a destination schema
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#source-data-and-source-schema-definitions" class="md-nav__link">
+    Source data and source schema definitions
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#defining-crosswalks" class="md-nav__link">
+    Defining crosswalks
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#transformations-with-crosswalks" class="md-nav__link">
+    Transformations with crosswalks
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#extending-the-tutorial" class="md-nav__link">
+    Extending the tutorial
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+  
+  
+
+
+<h1 id="tutorial-2-pivoting-wide-format-data-into-archival-long-format">Tutorial 2: Pivoting wide-format data into archival long-format<a class="headerlink" href="#tutorial-2-pivoting-wide-format-data-into-archival-long-format" title="Permanent link">&para;</a></h1>
+<p><strong>whyqd</strong> (/wɪkɪd/) helps with what is a frequent tension in data communication. The way we archive data is different
+from the way people need to see or use it.</p>
+<div class="admonition abstract">
+<p class="admonition-title">Learning outcomes</p>
+<ul>
+<li>Develop a sense of the difference between archival and presentation data</li>
+<li>Demonstrate how to define a schema</li>
+<li>Perform pivot-based crosswalks and generate a schema-compliant output</li>
+</ul>
+<p>Source data are from <a href="https://databank.worldbank.org/reports.aspx?source=2&amp;type=metadata&amp;series=SP.URB.TOTL">World Bank urban population time-series</a>
+and it is assumed you have familiarity with <a href="https://www.python.org/">Python</a> and <a href="https://docs.pydantic.dev/">Pydantic</a>.</p>
+</div>
+<h2 id="strategy">Strategy<a class="headerlink" href="#strategy" title="Permanent link">&para;</a></h2>
+<div class="admonition tip">
+<p class="admonition-title">Strategy</p>
+<p>Curation is about recognising contextual requirements. Updating rows in a database is far easier than adding in new
+columns / fields. Yet people find it easier to "read" data like text (so in the direction of travel - right-to-left
+or left-to-right, depending on language).</p>
+<p>This often means you need to 
+<a href="/strategies/curation/#requirements-for-machine-readable-tabular-data">pivot data from wide- to long- formats, and vice versa.</a></p>
+</div>
+<p>One of the most obvious uses for wide-format data is for visualisation. Libraries like <a href="https://d3js.org/">D3.js</a> expect
+data-series in lists. The World Bank has gotten into the habit of making their open data for their time-series data wide.
+Which is fine, but every year it gets wider.</p>
+<p>For archival, that's a problem. Instead of adding a few new rows, you would need to update your entire database; first
+add in a new year / value field, and then updating every row with data for the new field. That's frought with risk for
+destructive change to source data.</p>
+<p>Instead we will simply clean up and pivot the source data.</p>
+<p>There is an additional problem. Country names.</p>
+<div class="admonition tip">
+<p class="admonition-title">Strategy</p>
+<p>There is an almost perverse number of ways of spelling country names. </p>
+<p>Take <em>Côte d'Ivoire</em>, which can be spelled as <em>Côte d'Ivoire</em>, <em>Cote d'Ivoire</em>, <em>Republic of Côte d'Ivoire</em>, or - if 
+people are feeling extra churlish - <em>Ivory Coast</em>.</p>
+<p>And countries can decide to change their names too. <em>Turkey</em> is now known as <em>Türkiye</em>.</p>
+<p><strong>Good practice</strong> is to treat country names as categorical data so that you can rematch as required without needing
+an additional post-transformation step.</p>
+</div>
+<p>We won't be doing that here, merely to keep the tutorial shorter (you can review <a href="tutorials/tutorial1">the first tutorial</a>
+for guidance on categorical data assignment). We have a <code>country_code</code> field which does keep things ordered, so the 
+<code>country_name</code> field is mostly a human-aid. </p>
+<p>Keep it in mind, though. Consistent naming is a perpetual challenge.</p>
+<h2 id="define-a-destination-schema">Define a destination schema<a class="headerlink" href="#define-a-destination-schema" title="Permanent link">&para;</a></h2>
+<p>We want our destination data to conform to the following structure:</p>
+<table>
+<thead>
+<tr>
+<th align="left">indicator_code</th>
+<th align="left">indicator_name</th>
+<th align="left">country_code</th>
+<th align="left">country_name</th>
+<th align="left">year</th>
+<th align="left">values</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td align="left">SP.URB.TOTL</td>
+<td align="left">Urban population</td>
+<td align="left">ABW</td>
+<td align="left">Aruba</td>
+<td align="left">1960</td>
+<td align="left">27526</td>
+</tr>
+<tr>
+<td align="left">SP.URB.TOTL</td>
+<td align="left">Urban population</td>
+<td align="left">AFG</td>
+<td align="left">Afghanistan</td>
+<td align="left">1960</td>
+<td align="left">755836</td>
+</tr>
+<tr>
+<td align="left">SP.URB.TOTL</td>
+<td align="left">Urban population</td>
+<td align="left">AGO</td>
+<td align="left">Angola</td>
+<td align="left">1960</td>
+<td align="left">569222</td>
+</tr>
+<tr>
+<td align="left">SP.URB.TOTL</td>
+<td align="left">Urban population</td>
+<td align="left">ALB</td>
+<td align="left">Albania</td>
+<td align="left">1960</td>
+<td align="left">493982</td>
+</tr>
+</tbody>
+</table>
+<p>Review the <a href="/strategies/schema">schema documentation</a> for more details, but these are the <code>type</code> of data we need:</p>
+<ul>
+<li><code>string</code>: any text-based string.</li>
+<li><code>number</code>: any number-based value, including integers and floats.</li>
+<li><code>year</code>: Any year, formatted as <code>YYYY</code>.</li>
+</ul>
+<p>In addition, these data can be <code>constrained</code>:</p>
+<ul>
+<li><code>required</code>: boolean, indicates whether this field is compulsory.</li>
+</ul>
+<p>Let's start:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span> <span class="nn">whyqd</span> <span class="k">as</span> <span class="nn">qd</span>
+
+<span class="n">schema_destination</span> <span class="o">=</span> <span class="n">qd</span><span class="o">.</span><span class="n">SchemaDefinition</span><span class="p">()</span>
+<span class="c1"># Using Pydantic model validation</span>
+<span class="n">schema</span><span class="p">:</span> <span class="n">qd</span><span class="o">.</span><span class="n">models</span><span class="o">.</span><span class="n">SchemaModel</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;urban_population&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;title&quot;</span><span class="p">:</span> <span class="s2">&quot;Urban population&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;Urban population refers to people living in urban areas as defined by national statistical offices. It is calculated using World Bank population estimates and urban ratios from the United Nations World Urbanization Prospects. Aggregation of urban and rural population may not add up to total population because of different country coverages.&quot;</span><span class="p">,</span>
+<span class="p">}</span>
+<span class="n">schema_destination</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">schema</span><span class="o">=</span><span class="n">schema</span><span class="p">)</span>
+</code></pre></div>
+<p>We'll build a single fields dictionary and then iterate over the list to add each field:</p>
+<div class="highlight"><pre><span></span><code><span class="n">fields</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">qd</span><span class="o">.</span><span class="n">models</span><span class="o">.</span><span class="n">FieldModel</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="p">{</span>
+        <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;indicator_code&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;title&quot;</span><span class="p">:</span> <span class="s2">&quot;Indicator Code&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;string&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;World Bank code reference for Indicator Name.&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;constraints&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;required&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">},</span>
+    <span class="p">},</span>
+    <span class="p">{</span>
+        <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;country_name&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;title&quot;</span><span class="p">:</span> <span class="s2">&quot;Country Name&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;string&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;Official country names.&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;constraints&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;required&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">},</span>
+    <span class="p">},</span>
+    <span class="p">{</span>
+        <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;country_code&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;title&quot;</span><span class="p">:</span> <span class="s2">&quot;Country Code&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;string&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;UN ISO 3-letter country code.&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;constraints&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;required&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">},</span>
+    <span class="p">},</span>
+    <span class="p">{</span>
+        <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;indicator_name&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;title&quot;</span><span class="p">:</span> <span class="s2">&quot;Indicator Name&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;string&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;Indicator described in the data series.&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;constraints&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;required&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">},</span>
+    <span class="p">},</span>
+    <span class="p">{</span>
+        <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;year&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;title&quot;</span><span class="p">:</span> <span class="s2">&quot;Year&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;year&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;Year of release.&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;constraints&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;required&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">},</span>
+    <span class="p">},</span>
+    <span class="p">{</span>
+        <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;values&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;title&quot;</span><span class="p">:</span> <span class="s2">&quot;Values&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;number&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;Value for the Year and Indicator Name.&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;constraints&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;required&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">},</span>
+    <span class="p">},</span>
+<span class="p">]</span>
+<span class="n">schema_destination</span><span class="o">.</span><span class="n">fields</span><span class="o">.</span><span class="n">add_multi</span><span class="p">(</span><span class="n">terms</span><span class="o">=</span><span class="n">fields</span><span class="p">)</span>
+</code></pre></div>
+<p>This is our curation foundation and we can save it, ensuring citation and version control.</p>
+<div class="highlight"><pre><span></span><code><span class="n">schema_destination</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">directory</span><span class="o">=</span><span class="n">DIRECTORY</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="n">FILENAME</span><span class="p">,</span> <span class="n">created_by</span><span class="o">=</span><span class="n">CREATOR</span><span class="p">)</span>
+</code></pre></div>
+<p>We'll reference this definition as <code>SCHEMA_DESTINATION</code> in the rest of the tutorial.</p>
+<h2 id="source-data-and-source-schema-definitions">Source data and source schema definitions<a class="headerlink" href="#source-data-and-source-schema-definitions" title="Permanent link">&para;</a></h2>
+<p>There's a set of challenges when you review the source data:</p>
+<p><img alt="Semi-structured World Bank source data" src="/images/world-bank-urban-population.jpg" /></p>
+<p>The <code>header row</code> doesn't start at <code>index 0</code>. It starts at <code>index 3</code>. Oh, and there are multiple tabs with additional
+contextual metadata on each. We won't use that in this tutorial, but it's not irrelevant.</p>
+<p>Reviewing this allows us to derive our source schema as follows:</p>
+<div class="highlight"><pre><span></span><code><span class="n">datasource</span> <span class="o">=</span> <span class="n">qd</span><span class="o">.</span><span class="n">DataSourceDefinition</span><span class="p">()</span>
+<span class="c1"># There are three sheets:</span>
+<span class="c1"># - Data, index 3</span>
+<span class="c1"># - Metadata - Countries</span>
+<span class="c1"># - Metadata - Indicators</span>
+<span class="c1"># We&#39;re only going to use the first</span>
+<span class="n">datasource</span><span class="o">.</span><span class="n">derive_model</span><span class="p">(</span><span class="n">source</span><span class="o">=</span><span class="n">SOURCE_DATA</span><span class="p">,</span> <span class="n">mimetype</span><span class="o">=</span><span class="n">MIMETYPE</span><span class="p">,</span> <span class="n">header</span><span class="o">=</span><span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">])</span>
+<span class="n">schema_source</span> <span class="o">=</span> <span class="n">qd</span><span class="o">.</span><span class="n">SchemaDefinition</span><span class="p">()</span>
+<span class="n">schema_source</span><span class="o">.</span><span class="n">derive_model</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="n">datasource</span><span class="o">.</span><span class="n">get</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+</code></pre></div>
+<div class="admonition tip">
+<p class="admonition-title">Strategy</p>
+<p>You will have spotted <code>header=[3, 0, 0]</code> defining where the header row can be found. You could even use <code>None</code> if 
+there is no header row at all and the data start at 0.</p>
+<p>This isn't some way to skip a crosswalk step. <strong>whyqd</strong> aims for two key affordances:</p>
+<ul>
+<li><em>Explicit rather than implicit</em> - the software won't automagically derive things without your say-so. It will only
+  do what you tell it to do.</li>
+<li><em>Consistency and predictability</em> - it will always do things the same way each time.</li>
+</ul>
+<p>You will need to remove those unnecessary rows in your crosswalk.</p>
+</div>
+<h2 id="defining-crosswalks">Defining crosswalks<a class="headerlink" href="#defining-crosswalks" title="Permanent link">&para;</a></h2>
+<p>Except for that iffy requirement of removing those redundant rows above the header (and that header itself), the 
+crosswalk is straightforward.</p>
+<div class="highlight"><pre><span></span><code><span class="n">crosswalk</span> <span class="o">=</span> <span class="n">qd</span><span class="o">.</span><span class="n">CrosswalkDefinition</span><span class="p">()</span>
+<span class="n">crosswalk</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">schema_source</span><span class="o">=</span><span class="n">schema_source</span><span class="p">,</span> <span class="n">schema_destination</span><span class="o">=</span><span class="n">schema_destination</span><span class="p">)</span>
+<span class="c1"># Create the crosswalk</span>
+<span class="n">schema_scripts</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s2">&quot;DEBLANK&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;DEDUPE&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;DELETE_ROWS &lt; [0, 1, 2, 3]&quot;</span><span class="p">,</span>
+    <span class="sa">f</span><span class="s2">&quot;PIVOT_LONGER &gt; [&#39;year&#39;, &#39;values&#39;] &lt; </span><span class="si">{</span><span class="n">datasource</span><span class="o">.</span><span class="n">get</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">names</span><span class="p">[</span><span class="mi">4</span><span class="p">:]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;RENAME &gt; &#39;indicator_code&#39; &lt; [&#39;Indicator Code&#39;]&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;RENAME &gt; &#39;indicator_name&#39; &lt; [&#39;Indicator Name&#39;]&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;RENAME &gt; &#39;country_code&#39; &lt; [&#39;Country Code&#39;]&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;RENAME &gt; &#39;country_name&#39; &lt; [&#39;Country Name&#39;]&quot;</span><span class="p">,</span>
+<span class="p">]</span>
+<span class="n">crosswalk</span><span class="o">.</span><span class="n">actions</span><span class="o">.</span><span class="n">add_multi</span><span class="p">(</span><span class="n">terms</span><span class="o">=</span><span class="n">schema_scripts</span><span class="p">)</span>
+</code></pre></div>
+<p><code>DEBLANK</code> and <code>DEDUPE</code> are useful housekeeping actions, removing all blank rows and columns, and then removing any 
+completely duplicated rows.</p>
+<p>The only potentially challenging action is the pivot:</p>
+<div class="highlight"><pre><span></span><code><span class="sa">f</span><span class="s2">&quot;PIVOT_LONGER &gt; [&#39;year&#39;, &#39;values&#39;] &lt; </span><span class="si">{</span><span class="n">datasource</span><span class="o">.</span><span class="n">get</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">names</span><span class="p">[</span><span class="mi">4</span><span class="p">:]</span><span class="si">}</span><span class="s2">&quot;</span>
+</code></pre></div>
+<p>Firstly, the data source model has a <code>names</code> field which is only populated when the header row is to be replaced (i.e.
+we're not using whatever is at <code>index 0</code> as the header). This is just a list of text terms.</p>
+<p>We already know the data structure, where the first four columns are 'Country Name', 'Country Code', 'Indicator Name',
+and 'Indicator Code'. Everything that follows - <code>datasource.get[0].names[4:]</code> - is a <code>year</code> field with <code>values</code> in the
+rows beneath.</p>
+<p><code>PIVOT_LONGER</code> transforms each field in the source into terms in two new fields. The first is for the name of the 
+original field, and the second is for the values beneath it.</p>
+<h2 id="transformations-with-crosswalks">Transformations with crosswalks<a class="headerlink" href="#transformations-with-crosswalks" title="Permanent link">&para;</a></h2>
+<p>We can now assign a crosswalk and produce our transformation:</p>
+<div class="highlight"><pre><span></span><code><span class="n">transform</span> <span class="o">=</span> <span class="n">qd</span><span class="o">.</span><span class="n">TransformDefinition</span><span class="p">(</span><span class="n">crosswalk</span><span class="o">=</span><span class="n">crosswalk</span><span class="p">,</span> <span class="n">data_source</span><span class="o">=</span><span class="n">datasource</span><span class="o">.</span><span class="n">get</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+<span class="n">transform</span><span class="o">.</span><span class="n">process</span><span class="p">()</span>
+<span class="n">transform</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">directory</span><span class="o">=</span><span class="n">DIRECTORY</span><span class="p">)</span>
+</code></pre></div>
+<p>You can validate your transform as well:</p>
+<div class="highlight"><pre><span></span><code><span class="n">DESTINATION_DATA</span> <span class="o">=</span> <span class="n">DIRECTORY</span> <span class="o">/</span> <span class="n">transform</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">dataDestination</span><span class="o">.</span><span class="n">name</span>
+<span class="n">DESTINATION_MIMETYPE</span> <span class="o">=</span> <span class="s2">&quot;parquet&quot;</span>
+<span class="n">TRANSFORM</span> <span class="o">=</span> <span class="n">DIRECTORY</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">transform</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">.transform&quot;</span>
+<span class="n">valiform</span> <span class="o">=</span> <span class="n">qd</span><span class="o">.</span><span class="n">TransformDefinition</span><span class="p">()</span>
+<span class="n">valiform</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span>
+    <span class="n">transform</span><span class="o">=</span><span class="n">TRANSFORM</span><span class="p">,</span> <span class="n">data_destination</span><span class="o">=</span><span class="n">DESTINATION_DATA</span><span class="p">,</span> <span class="n">mimetype_destination</span><span class="o">=</span><span class="n">DESTINATION_MIMETYPE</span>
+<span class="p">)</span>
+</code></pre></div>
+<p>And your data are ready for archival.</p>
+<h2 id="extending-the-tutorial">Extending the tutorial<a class="headerlink" href="#extending-the-tutorial" title="Permanent link">&para;</a></h2>
+<p>In the <a href="#strategy">Strategy</a> section, best practice indicates we should derive the country names as categorical terms so
+that we can support future country-naming variations or changes.</p>
+<p>This is left to you as an exercise.</p>
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    <script id="__config" type="application/json">{"base": "../..", "features": ["navigation.path"], "search": "../../assets/javascripts/workers/search.208ed371.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.fac441b0.min.js"></script>
+      
+    
+  </body>
+</html>

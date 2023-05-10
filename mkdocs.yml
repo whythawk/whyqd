@@ -1,0 +1,94 @@
+site_name: Whyqd
+site_description: Data wrangling simplicity, complete audit transparency, and at speed
+site_url: https://whyqd.readthedocs.io/
+site_author: Gavin Chait
+
+theme:
+  name: material
+  palette:
+  - media: "(prefers-color-scheme: light)"
+    scheme: default
+    primary: amber
+    accent: amber
+    toggle:
+      icon: material/lightbulb-outline
+      name: "Switch to dark mode"
+  - media: "(prefers-color-scheme: dark)"
+    scheme: slate
+    primary: amber
+    accent: amber
+    toggle:
+      icon: material/lightbulb
+      name: "Switch to light mode"
+  features:
+    - navigation.path
+  logo: "assets/temp-logo.svg"
+  favicon: "assets/temp-logo.svg"
+
+repo_name: whythawk/whyqd
+repo_url: https://github.com/whythawk/whyqd
+edit_uri: blob/master/docs/
+
+nav:
+- Overview: index.md
+- Install: installation.md
+- Quick start: quickstart.md
+- Strategies:
+  - Curation: strategies/curation.md
+  - Schema: strategies/schema.md
+  - Data source: strategies/datasource.md
+  - Crosswalks: strategies/crosswalk.md
+- Tutorials:
+  - Multiple sources: tutorials/tutorial1.md
+  - Pivoting to long: tutorials/tutorial2.md
+  - Cthulhu data: tutorials/tutorial3.md
+- Definitions API:
+  - SchemaDefinition: api/schema.md
+  - CRUDField: api/field.md
+  - DataSourceDefinition: api/datasource.md
+  - CrosswalkDefinition: api/crosswalk.md
+  - CRUDAction: api/action.md
+  - TransformDefinition: api/transform.md
+  - BaseDefinition: api/base.md
+  - CRUDBase: api/basecrud.md
+- Actions API:
+  - CALCULATE: actions/calculate.md
+  - CATEGORISE: actions/categorise.md
+  - DEBLANK: actions/deblank.md
+  - DEDUPE: actions/dedupe.md
+  - DELETE_ROWS: actions/delete_rows.md
+  - NEW: actions/new.md
+  - PIVOT_CATEGORIES: actions/pivot_categories.md
+  - PIVOT_LONGER: actions/pivot_longer.md
+  - RENAME: actions/rename.md
+  - SELECT: actions/select.md
+  - SELECT_NEWEST: actions/select_newest.md
+  - SELECT_OLDEST: actions/select_oldest.md
+  - SEPARATE: actions/separate.md
+  - UNITE: actions/unite.md
+- Contributing to whyqd: contributing.md
+- Changelog: changelog.md
+
+markdown_extensions:
+- tables
+- toc:
+    permalink: true
+    title: Contents
+- admonition
+- pymdownx.highlight
+- pymdownx.extra
+- pymdownx.emoji:
+    emoji_index: !!python/name:materialx.emoji.twemoji
+    emoji_generator: !!python/name:materialx.emoji.to_svg
+- pymdownx.tabbed:
+    alternate_style: true
+
+watch:
+- whyqd
+
+plugins:
+- search
+- mkdocstrings:
+    handlers:
+      python:
+        path: .

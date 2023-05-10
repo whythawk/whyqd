@@ -44,8 +44,10 @@ pip-log.txt
 # Whyqd
 ###############################
 __pycache__/
-*.komodoproject
+.pytest_cache/
+deprecated/
 .ipynb_checkpoints/
 *.ipynb
+.env
 
 setup and distribution.txt

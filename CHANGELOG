@@ -1,3 +1,4 @@
+- 1.0.0: Complete refactor with breaking changes. See documentation changelog.
 - 0.6.2: Fix for parsing ambiguity errors, plus Excel row-count exceeded on save.
 - 0.6.1: Minor correction for row count.
 - 0.6.0: Ensuring consistent optional column 'name' change for header row, plus new row-count in input and working data.
