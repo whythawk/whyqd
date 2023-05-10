@@ -119,7 +119,7 @@ schema_source.save()
 
 The version history can be found in the [changelog](https://whyqd.readthedocs.io/changelog).
 
-## Background
+## Background and funding
 
 **whyqd** was created to serve a continuous data wrangling process, including collaboration on more complex messy 
 sources, ensuring the integrity of the source data, and producing a complete audit trail from data imported to our 
