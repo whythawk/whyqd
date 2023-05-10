@@ -1296,7 +1296,7 @@ business <a href="https://www.gov.uk/apply-for-business-rate-relief">rates relie
 <p>We'll reference this definition saved source path as <code>SCHEMA_DESTINATION</code> in the rest of the tutorial.</p>
 <h2 id="source-data-and-source-schema-definitions">Source data and source schema definitions<a class="headerlink" href="#source-data-and-source-schema-definitions" title="Permanent link">&para;</a></h2>
 <p>Portsmouth data are reasonably well-structured:</p>
-<p><img alt="Semi-ideal primary source data" src="/images/ideal-primary-data.png" /></p>
+<p><img alt="Semi-ideal primary source data" src="https://raw.githubusercontent.com/whythawk/whyqd/master/docs/images/ideal-primary-data.png" /></p>
 <p>However, once you import and derive its data model you'll discover a slight hiccough:</p>
 <div class="highlight"><pre><span></span><code><span class="n">datasource</span> <span class="o">=</span> <span class="n">qd</span><span class="o">.</span><span class="n">DataSourceDefinition</span><span class="p">()</span>
 <span class="n">datasource</span><span class="o">.</span><span class="n">derive_model</span><span class="p">(</span><span class="n">source</span><span class="o">=</span><span class="n">SOURCE_DATA</span><span class="p">,</span> <span class="n">mimetype</span><span class="o">=</span><span class="n">MIMETYPE</span><span class="p">)</span>

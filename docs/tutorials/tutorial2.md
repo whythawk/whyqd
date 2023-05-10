@@ -156,7 +156,7 @@ We'll reference this definition as `SCHEMA_DESTINATION` in the rest of the tutor
 
 There's a set of challenges when you review the source data:
 
-![Semi-structured World Bank source data](/images/world-bank-urban-population.jpg)
+![Semi-structured World Bank source data](https://raw.githubusercontent.com/whythawk/whyqd/master/docs/images/world-bank-urban-population.jpg)
 
 The `header row` doesn't start at `index 0`. It starts at `index 3`. Oh, and there are multiple tabs with additional
 contextual metadata on each. We won't use that in this tutorial, but it's not irrelevant.

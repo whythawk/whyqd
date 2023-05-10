@@ -39,7 +39,7 @@ countries meeting the MDG targets.
 These days it's a slick affair with beautifully-prepared open data in a standardised format. Back then open data was
 in its infancy, and these data were a constantly-changing mess of non-standard Excel spreadsheets.
 
-![UNDP Human Development Index 2007-2008](/images/undp-hdi-2007-8.jpg)
+![UNDP Human Development Index 2007-2008](https://raw.githubusercontent.com/whythawk/whyqd/master/docs/images/undp-hdi-2007-8.jpg)
 
 *UNDP Human Development Index 2007-2008: a beautiful example of messy data.*
 
@@ -123,7 +123,7 @@ We're going to want to preserve as much as possible, so we're going to define ev
 
 Notice that headers define a number of concepts simultaneously:
 
-![UNDP Human Development Index 2007-2008 composite header](/images/undp-hdi-composite-header.jpg)
+![UNDP Human Development Index 2007-2008 composite header](https://raw.githubusercontent.com/whythawk/whyqd/master/docs/images/undp-hdi-composite-header.jpg)
 
 *UNDP Human Development Index 2007-2008: composite header over multiple lines and columns*
 
@@ -316,7 +316,7 @@ transform_interim.save(directory=DIRECTORY)
 
 We save it since we'll need the interim data as an import.
 
-![Interim crosswalked data output](/images/world-bank-urban-population-interim.jpg)
+![Interim crosswalked data output](https://raw.githubusercontent.com/whythawk/whyqd/master/docs/images/world-bank-urban-population-interim.jpg)
 
 *UNDP Human Development Index 2007-2008: interim crosswalked data outpu*
 

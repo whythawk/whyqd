@@ -137,7 +137,7 @@ This derivation assumed a clear header row indexed at `0`. Unfortunately, not al
 
 Sometimes your source data are wild.
 
-![UNDP Human Development Index 2007-2008](/images/undp-hdi-2007-8.jpg)
+![UNDP Human Development Index 2007-2008](https://raw.githubusercontent.com/whythawk/whyqd/master/docs/images/undp-hdi-2007-8.jpg)
 
 *UNDP Human Development Index 2007-2008: a beautiful example of messy data.*
 

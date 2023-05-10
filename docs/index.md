@@ -39,7 +39,7 @@ pandas, having to change your code every time your source data changes is really
 
 If you want to go from a [Cthulhu dataset](/tutorials/tutorial3) like this:
 
-![UNDP Human Development Index 2007-2008](/images/undp-hdi-2007-8.jpg)
+![UNDP Human Development Index 2007-2008](https://raw.githubusercontent.com/whythawk/whyqd/master/docs/images/undp-hdi-2007-8.jpg)
 
 *UNDP Human Development Index 2007-2008: a beautiful example of messy data.*
 

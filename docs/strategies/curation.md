@@ -276,12 +276,12 @@ Spreadsheets and distributed data systems often lack an agreed data structure. A
 with other data first needs to normalise it and then decide on standardised terms to define the columns and data-types 
 in those columns.
 
-![A typical "human-readable" structured table of data](/images/undp-hdi-2007-8-demographic-trends.jpg)
+![A typical "human-readable" structured table of data](https://raw.githubusercontent.com/whythawk/whyqd/master/docs/images/undp-hdi-2007-8-demographic-trends.jpg)
 
 Converting semi-structured tabular data into a typical machine-readable format results in the comma-separated-value 
 (CSV) file. These are tabular files with a header row which defines each of the data in the columns and rows below.
 
-![A CSV-structured table of data](/images/synthetic-patient-data.jpg)
+![A CSV-structured table of data](https://raw.githubusercontent.com/whythawk/whyqd/master/docs/images/synthetic-patient-data.jpg)
 
 Ignoring any further standards compliance, CSV files can be so arranged that they are "joined" on a common column. For 
 example, a set of geospatial coordinates can be used to connect a number of similar files covering different data 

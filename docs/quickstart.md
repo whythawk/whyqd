@@ -108,7 +108,7 @@ schema_destination.save()
 
 Assume we have multiple data sources with a variety of formats. One could be this:
 
-![Semi-ideal primary source data](/images/ideal-primary-data.png)
+![Semi-ideal primary source data](https://raw.githubusercontent.com/whythawk/whyqd/master/docs/images/ideal-primary-data.png)
 
 We import it from `DATASOURCE_PATH`, define its `MIMETYPE`, and derive a schema:
 

@@ -93,7 +93,7 @@ When you look at source data, do so with an eye to **structure** and not **analy
 When data are particularly messy, don't try and go straight to your final schema. First transform your source into an 
 **interim** form which supports its actual structure.
 
-![UNDP Human Development Index 2007-2008](/images/undp-hdi-2007-8.jpg)
+![UNDP Human Development Index 2007-2008](https://raw.githubusercontent.com/whythawk/whyqd/master/docs/images/undp-hdi-2007-8.jpg)
 
 This spreadsheet is in **wide** format. Creating a crosswalk to get it into a well-behaved interim form will make 
 pivoting into a **long** form *much* easier.

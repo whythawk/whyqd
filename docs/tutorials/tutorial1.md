@@ -257,7 +257,7 @@ We'll reference this definition saved source path as `SCHEMA_DESTINATION` in the
 
 Portsmouth data are reasonably well-structured:
 
-![Semi-ideal primary source data](/images/ideal-primary-data.png)
+![Semi-ideal primary source data](https://raw.githubusercontent.com/whythawk/whyqd/master/docs/images/ideal-primary-data.png)
 
 However, once you import and derive its data model you'll discover a slight hiccough:
 
