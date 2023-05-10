@@ -1,0 +1,1585 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Data wrangling simplicity, complete audit transparency, and at speed">
+      
+      
+        <meta name="author" content="Gavin Chait">
+      
+      
+        <link rel="canonical" href="https://whyqd.readthedocs.io/tutorials/tutorial1/">
+      
+      
+        <link rel="prev" href="../../strategies/crosswalk/">
+      
+      
+        <link rel="next" href="../tutorial2/">
+      
+      <link rel="icon" href="../../assets/temp-logo.svg">
+      <meta name="generator" content="mkdocs-1.4.3, mkdocs-material-9.1.9">
+    
+    
+      
+        <title>Tutorial - Aligning multiple sources of local government data to a single schema - Whyqd</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.85bb2934.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.a6bdf11c.min.css">
+      
+      
+
+    
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/_mkdocstrings.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="amber" data-md-color-accent="amber">
+  
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&"object"==typeof palette.color)for(var key of Object.keys(palette.color))document.body.setAttribute("data-md-color-"+key,palette.color[key])</script>
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#tutorial-1-aligning-multiple-sources-of-local-government-data-to-a-single-schema" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="Whyqd" class="md-header__button md-logo" aria-label="Whyqd" data-md-component="logo">
+      
+  <img src="../../assets/temp-logo.svg" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2Z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Whyqd
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Tutorial - Aligning multiple sources of local government data to a single schema
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+          
+            
+            
+            
+            <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="amber" data-md-color-accent="amber"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_1">
+            
+              <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_2" hidden>
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2a7 7 0 0 1 7 7c0 2.38-1.19 4.47-3 5.74V17a1 1 0 0 1-1 1H9a1 1 0 0 1-1-1v-2.26C6.19 13.47 5 11.38 5 9a7 7 0 0 1 7-7M9 21v-1h6v1a1 1 0 0 1-1 1h-4a1 1 0 0 1-1-1m3-17a5 5 0 0 0-5 5c0 2.05 1.23 3.81 3 4.58V16h4v-2.42c1.77-.77 3-2.53 3-4.58a5 5 0 0 0-5-5Z"/></svg>
+              </label>
+            
+          
+            
+            
+            
+            <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="amber" data-md-color-accent="amber"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_2">
+            
+              <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_1" hidden>
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2a7 7 0 0 0-7 7c0 2.38 1.19 4.47 3 5.74V17a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1v-2.26c1.81-1.27 3-3.36 3-5.74a7 7 0 0 0-7-7M9 21a1 1 0 0 0 1 1h4a1 1 0 0 0 1-1v-1H9v1Z"/></svg>
+              </label>
+            
+          
+        </form>
+      
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+      </label>
+      <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41Z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/whythawk/whyqd" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2023 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    whythawk/whyqd
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Whyqd" class="md-nav__button md-logo" aria-label="Whyqd" data-md-component="logo">
+      
+  <img src="../../assets/temp-logo.svg" alt="logo">
+
+    </a>
+    Whyqd
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/whythawk/whyqd" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2023 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    whythawk/whyqd
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        Overview
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../installation/" class="md-nav__link">
+        Install
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../quickstart/" class="md-nav__link">
+        Quick start
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+          Strategies
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_4">
+          <span class="md-nav__icon md-icon"></span>
+          Strategies
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../strategies/curation/" class="md-nav__link">
+        Curation
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../strategies/schema/" class="md-nav__link">
+        Schema
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../strategies/datasource/" class="md-nav__link">
+        Data source
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../strategies/crosswalk/" class="md-nav__link">
+        Crosswalks
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+    
+  
+  
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" checked>
+      
+      
+      
+        <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+          Tutorials
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="true">
+        <label class="md-nav__title" for="__nav_5">
+          <span class="md-nav__icon md-icon"></span>
+          Tutorials
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+    
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          Multiple sources
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        Multiple sources
+      </a>
+      
+        
+
+  
+
+<nav class="md-nav md-nav--secondary" aria-label="Contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#background" class="md-nav__link">
+    Background
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#strategy" class="md-nav__link">
+    Strategy
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#define-a-destination-schema" class="md-nav__link">
+    Define a destination schema
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#source-data-and-source-schema-definitions" class="md-nav__link">
+    Source data and source schema definitions
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#defining-crosswalks" class="md-nav__link">
+    Defining crosswalks
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#transformations-with-crosswalks" class="md-nav__link">
+    Transformations with crosswalks
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#preparing-a-citation" class="md-nav__link">
+    Preparing a Citation
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#extending-the-tutorial" class="md-nav__link">
+    Extending the tutorial
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorial2/" class="md-nav__link">
+        Pivoting to long
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorial3/" class="md-nav__link">
+        Cthulhu data
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+          Definitions API
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_6">
+          <span class="md-nav__icon md-icon"></span>
+          Definitions API
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/schema/" class="md-nav__link">
+        SchemaDefinition
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/field/" class="md-nav__link">
+        CRUDField
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/datasource/" class="md-nav__link">
+        DataSourceDefinition
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/crosswalk/" class="md-nav__link">
+        CrosswalkDefinition
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/action/" class="md-nav__link">
+        CRUDAction
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/transform/" class="md-nav__link">
+        TransformDefinition
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/base/" class="md-nav__link">
+        BaseDefinition
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/basecrud/" class="md-nav__link">
+        CRUDBase
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="0">
+          Actions API
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_7">
+          <span class="md-nav__icon md-icon"></span>
+          Actions API
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../actions/calculate/" class="md-nav__link">
+        CALCULATE
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../actions/categorise/" class="md-nav__link">
+        CATEGORISE
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../actions/deblank/" class="md-nav__link">
+        DEBLANK
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../actions/dedupe/" class="md-nav__link">
+        DEDUPE
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../actions/delete_rows/" class="md-nav__link">
+        DELETE_ROWS
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../actions/new/" class="md-nav__link">
+        NEW
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../actions/pivot_categories/" class="md-nav__link">
+        PIVOT_CATEGORIES
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../actions/pivot_longer/" class="md-nav__link">
+        PIVOT_LONGER
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../actions/rename/" class="md-nav__link">
+        RENAME
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../actions/select/" class="md-nav__link">
+        SELECT
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../actions/select_newest/" class="md-nav__link">
+        SELECT_NEWEST
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../actions/select_oldest/" class="md-nav__link">
+        SELECT_OLDEST
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../actions/separate/" class="md-nav__link">
+        SEPARATE
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../actions/unite/" class="md-nav__link">
+        UNITE
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../contributing/" class="md-nav__link">
+        Contributing to whyqd
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../changelog/" class="md-nav__link">
+        Changelog
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+  
+
+<nav class="md-nav md-nav--secondary" aria-label="Contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#background" class="md-nav__link">
+    Background
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#strategy" class="md-nav__link">
+    Strategy
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#define-a-destination-schema" class="md-nav__link">
+    Define a destination schema
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#source-data-and-source-schema-definitions" class="md-nav__link">
+    Source data and source schema definitions
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#defining-crosswalks" class="md-nav__link">
+    Defining crosswalks
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#transformations-with-crosswalks" class="md-nav__link">
+    Transformations with crosswalks
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#preparing-a-citation" class="md-nav__link">
+    Preparing a Citation
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#extending-the-tutorial" class="md-nav__link">
+    Extending the tutorial
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+  
+  
+
+
+<h1 id="tutorial-1-aligning-multiple-sources-of-local-government-data-to-a-single-schema">Tutorial 1: Aligning multiple sources of local government data to a single schema<a class="headerlink" href="#tutorial-1-aligning-multiple-sources-of-local-government-data-to-a-single-schema" title="Permanent link">&para;</a></h1>
+<p><strong>whyqd</strong> (/wɪkɪd/) was developed to solve a daily, grinding need. This tutorial is based on a real-world problem.</p>
+<div class="admonition abstract">
+<p class="admonition-title">Learning outcomes</p>
+<ul>
+<li>Develop and apply a transformation strategy</li>
+<li>Design and create a standardised destination schema</li>
+<li>Extract source data and derived individual source schemas</li>
+<li>Perform crosswalks and validations</li>
+</ul>
+<p>Source data are from <a href="https://www.portsmouth.gov.uk/ext/business/running-a-business/business-rates-foi-requests">Portsmouth City Council</a>
+and it is assumed you have familiarity with <a href="https://www.python.org/">Python</a> and <a href="https://docs.pydantic.dev/">Pydantic</a>.</p>
+</div>
+<h2 id="background">Background<a class="headerlink" href="#background" title="Permanent link">&para;</a></h2>
+<p>Our <a href="https://openlocal.uk">openLocal.uk</a> project is a quarterly-updated commercial location database, aggregating open 
+data on vacancies, rental valuations, rates and ratepayers, into an integrated time-series database of individual 
+retail, industrial, office and leisure business units. </p>
+<p>Every three months, we import about 300 very messy spreadsheets from local authorities across the UK. These need to be 
+restructured to conform to a single schema, including redefining whatever weird terms they use to describe categorical 
+data, and only then can we begin the automated process of cleaning and validation.</p>
+<p>Our work is mainly used by researchers and the UK government but, during COVID in 2020-21, these data took on political
+and economic heft when they were part of the research base informing impact assessment for the various lockdowns and 
+the economic recovery afterwards.</p>
+<p><a href="https://commonslibrary.parliament.uk/which-areas-have-benefited-from-the-levelling-up-fund/">Levelling Up</a> awarded
+almost £4 billion to projects across the UK. But for some to get, others had their requests refused.</p>
+<p>The rejected began to aggressively question the entire evidence supporting the allocation, and openLocal was targeted. 
+The strategy and approach presented here made it straightforward for us to demonstrate how we ensure data probity. We 
+<a href="https://github.com/whythawk/barnsley-location-data-review">wrote up our methods</a>.</p>
+<p>Curation makes your workflow more efficient, but it can also keep you out of legal peril.</p>
+<h2 id="strategy">Strategy<a class="headerlink" href="#strategy" title="Permanent link">&para;</a></h2>
+<div class="admonition tip">
+<p class="admonition-title">Strategy</p>
+<p>Our objective is a sequential event-based data series, capturing everything that happened for every commercial 
+address in a particular source authority. Since multiple things can happen on a single date which may be presented
+in an ambiguous way from the source, we may end up "losing" some data but as long as we can recover information 
+from the sequence, we're good.</p>
+</div>
+<p>Our source data can be in any tabular format (XLS, XLSX and CSV). There are no common rates data management systems, no 
+agreed schema or terminology, and high staff turnover means change in data structure from the same sources between 
+releases.</p>
+<p>Given this diversity, we have a single <strong>acceptance criterion</strong> to include a source in an update process: it <strong>must</strong>
+include a field for the data we use as a <strong>foreign key</strong> for cross-data merging. It doesn't matter if it's in poor
+quality, but it must be there.</p>
+<p>We also need a single <strong>destination schema</strong> which is common across the project.</p>
+<p>If we're really lucky, our data source don't change their definitions or structure from release-to-release and we can 
+reuse our crosswalks. In our experience that is like searching for unicorns.</p>
+<h2 id="define-a-destination-schema">Define a destination schema<a class="headerlink" href="#define-a-destination-schema" title="Permanent link">&para;</a></h2>
+<p>We want our destination data to conform to the following structure:</p>
+<table>
+<thead>
+<tr>
+<th align="left">la_code</th>
+<th align="left">ba_ref</th>
+<th align="left">occupant_name</th>
+<th align="left">postcode</th>
+<th align="left">occupation_state</th>
+<th align="left">occupation_state_date</th>
+<th align="left">prop_ba_rates</th>
+<th align="left">occupation_state_reliefs</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td align="left">E06000044</td>
+<td align="left">177500080710</td>
+<td align="left">A company</td>
+<td align="left">PO5 2SE</td>
+<td align="left">True</td>
+<td align="left">2019-04-01</td>
+<td align="left">98530</td>
+<td align="left">[small_business, retail]</td>
+</tr>
+</tbody>
+</table>
+<p>Review the <a href="/strategies/schema">schema documentation</a> for more details, but these are the <code>type</code> of data we need here:</p>
+<ul>
+<li><code>string</code>: any text-based string.</li>
+<li><code>number</code>: any number-based value, including integers and floats.</li>
+<li><code>boolean</code>: a boolean [<code>True</code>, <code>False</code>] value. Can set category constraints to fix term used.</li>
+<li><code>array</code>: any valid array-based data (used for a list of categorical terms).</li>
+<li><code>date</code>: any date without a time. Must be in ISO8601 format, <code>YYYY-MM-DD</code>.</li>
+</ul>
+<p>In addition, these data can be <code>constrained</code>:</p>
+<ul>
+<li><code>required</code>: boolean, indicates whether this field is compulsory (but blank values in the input column are permitted 
+  and will be set to the missing default),</li>
+<li><code>category</code>: the set of unique category terms permitted in this field.</li>
+</ul>
+<p>Let's start:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span> <span class="nn">whyqd</span> <span class="k">as</span> <span class="nn">qd</span>
+
+<span class="n">schema_destination</span> <span class="o">=</span> <span class="n">qd</span><span class="o">.</span><span class="n">SchemaDefinition</span><span class="p">()</span>
+<span class="c1"># Using Pydantic model validation</span>
+<span class="n">schema</span><span class="p">:</span> <span class="n">qd</span><span class="o">.</span><span class="n">models</span><span class="o">.</span><span class="n">SchemaModel</span> <span class="o">=</span> <span class="p">{</span>
+  <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;rates_data_schema&quot;</span><span class="p">,</span>
+  <span class="s2">&quot;title&quot;</span><span class="p">:</span> <span class="s2">&quot;UK Ratepayer data schema&quot;</span><span class="p">,</span>
+  <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;Structural metadata target for imported messy data from the 348 local authorities in England &amp; Wales.&quot;</span>
+<span class="p">}</span>
+<span class="n">schema_destination</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">schema</span><span class="o">=</span><span class="n">schema</span><span class="p">)</span>
+</code></pre></div>
+<p>We'll build a single fields dictionary and then iterate over the list to add each field:</p>
+<div class="highlight"><pre><span></span><code><span class="n">fields</span> <span class="o">=</span> <span class="p">[</span>
+  <span class="p">{</span>
+    <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;la_code&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;title&quot;</span><span class="p">:</span> <span class="s2">&quot;Local authority code&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;string&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;Standard code for local authority.&quot;</span>
+  <span class="p">},</span>
+  <span class="p">{</span>
+    <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;ba_ref&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;title&quot;</span><span class="p">:</span> <span class="s2">&quot;Billing reference&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;string&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;Unique code for a specific hereditament. May be multiple rows for history.&quot;</span>
+  <span class="p">},</span>
+  <span class="p">{</span>
+    <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;prop_ba_rates&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;title&quot;</span><span class="p">:</span> <span class="s2">&quot;Property billing rates&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;number&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;Actual rates paid by a specific ratepayer.&quot;</span>
+  <span class="p">},</span>
+  <span class="p">{</span>
+    <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;occupant_name&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;title&quot;</span><span class="p">:</span> <span class="s2">&quot;Occupier name&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;string&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;Name of the ratepayer.&quot;</span>
+  <span class="p">},</span>
+  <span class="p">{</span>
+    <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;postcode&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;title&quot;</span><span class="p">:</span> <span class="s2">&quot;Postcode&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;string&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;Full address or postcode of ratepayer.&quot;</span>
+  <span class="p">},</span>
+  <span class="p">{</span>
+    <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;occupation_state&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;title&quot;</span><span class="p">:</span> <span class="s2">&quot;Occupation state&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;boolean&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;Occupation status, void or occupied.&quot;</span>
+  <span class="p">},</span>
+  <span class="p">{</span>
+    <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;occupation_state_date&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;title&quot;</span><span class="p">:</span> <span class="s2">&quot;Date of occupation state&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;date&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;Date of the start of status in occupation_state.&quot;</span>
+  <span class="p">},</span>
+  <span class="p">{</span>
+    <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;occupation_state_reliefs&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;title&quot;</span><span class="p">:</span> <span class="s2">&quot;Occupation state reliefs&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;array&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;Array of the categories of reliefs / exemptions applied.&quot;</span>
+  <span class="p">}</span>
+<span class="p">]</span>
+<span class="n">schema_destination</span><span class="o">.</span><span class="n">fields</span><span class="o">.</span><span class="n">add_multi</span><span class="p">(</span><span class="n">terms</span><span class="o">=</span><span class="n">fields</span><span class="p">)</span>
+</code></pre></div>
+<p>From here on we can access any <code>field</code> by calling it by <code>name</code> and then updating it as required:</p>
+<div class="highlight"><pre><span></span><code><span class="n">schema_destination</span><span class="o">.</span><span class="n">fields</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;occupation_state_reliefs&quot;</span><span class="p">)</span>
+</code></pre></div>
+<p>Let's add a list of <code>category</code> terms as a constraint for <code>occupation_state_reliefs</code>. These are derived from the official 
+business <a href="https://www.gov.uk/apply-for-business-rate-relief">rates reliefs</a>:</p>
+<div class="highlight"><pre><span></span><code><span class="n">categories</span> <span class="o">=</span> <span class="p">[</span>
+  <span class="s2">&quot;small_business&quot;</span><span class="p">,</span> <span class="s2">&quot;rural&quot;</span><span class="p">,</span> <span class="s2">&quot;charity&quot;</span><span class="p">,</span> <span class="s2">&quot;enterprise_zone&quot;</span><span class="p">,</span> <span class="s2">&quot;vacancy&quot;</span><span class="p">,</span> 
+  <span class="s2">&quot;hardship&quot;</span><span class="p">,</span> <span class="s2">&quot;retail&quot;</span><span class="p">,</span> <span class="s2">&quot;discretionary&quot;</span><span class="p">,</span> <span class="s2">&quot;exempt&quot;</span><span class="p">,</span> <span class="s2">&quot;transitional&quot;</span><span class="p">,</span> <span class="s2">&quot;other&quot;</span>
+<span class="p">]</span>
+<span class="n">constraints</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;categories&quot;</span><span class="p">:</span> <span class="p">[{</span>
+      <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="n">category</span> <span class="k">for</span> <span class="n">category</span> <span class="ow">in</span> <span class="n">categories</span>
+    <span class="p">}]</span>
+  <span class="p">}</span>
+<span class="n">schema_destination</span><span class="o">.</span><span class="n">fields</span><span class="o">.</span><span class="n">set_constraints</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;occupation_state_reliefs&quot;</span><span class="p">,</span> <span class="n">constraints</span><span class="o">=</span><span class="n">constraints</span><span class="p">)</span>
+</code></pre></div>
+<p>Use <code>.dict(by_alias=True, exclude_defaults=True, exclude_none=True)</code> to extract a dictionary format from the underlying
+<a href="https://pydantic-docs.helpmanual.io/">Pydantic</a> model.</p>
+<div class="highlight"><pre><span></span><code><span class="n">schema_destination</span><span class="o">.</span><span class="n">fields</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;occupation_state_reliefs&quot;</span>
+                              <span class="p">)</span><span class="o">.</span><span class="n">dict</span><span class="p">(</span>
+                                <span class="n">by_alias</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> 
+                                <span class="n">exclude_defaults</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> 
+                                <span class="n">exclude_none</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="p">{</span>
+  <span class="s1">&#39;uuid&#39;</span><span class="p">:</span> <span class="n">UUID</span><span class="p">(</span><span class="s1">&#39;cf4d066e-22a8-4b76-8956-f6120eec4c52&#39;</span><span class="p">),</span>
+  <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;occupation_state_reliefs&#39;</span><span class="p">,</span>
+  <span class="s1">&#39;title&#39;</span><span class="p">:</span> <span class="s1">&#39;Occupation state reliefs&#39;</span><span class="p">,</span>
+  <span class="s1">&#39;description&#39;</span><span class="p">:</span> <span class="s1">&#39;Array of the categories of reliefs / exemptions applied.&#39;</span><span class="p">,</span>
+  <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;array&#39;</span><span class="p">,</span>
+  <span class="s1">&#39;constraints&#39;</span><span class="p">:</span> <span class="p">{</span>
+    <span class="s1">&#39;enum&#39;</span><span class="p">:</span> <span class="p">[</span>
+      <span class="p">{</span>
+        <span class="s1">&#39;uuid&#39;</span><span class="p">:</span> <span class="n">UUID</span><span class="p">(</span><span class="s1">&#39;daa206a9-ac8c-41a9-a504-06410780ee50&#39;</span><span class="p">),</span>
+        <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;small_business&#39;</span>
+      <span class="p">},</span>
+      <span class="p">{</span>
+        <span class="s1">&#39;uuid&#39;</span><span class="p">:</span> <span class="n">UUID</span><span class="p">(</span><span class="s1">&#39;5964e9fc-dd50-4856-acdc-2326ea48ef1d&#39;</span><span class="p">),</span> 
+        <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;rural&#39;</span>
+      <span class="p">},</span>
+      <span class="p">{</span>
+        <span class="s1">&#39;uuid&#39;</span><span class="p">:</span> <span class="n">UUID</span><span class="p">(</span><span class="s1">&#39;498654f9-8825-4f3d-a573-0c110726fba4&#39;</span><span class="p">),</span> 
+        <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;charity&#39;</span>
+      <span class="p">},</span>
+      <span class="p">{</span>
+        <span class="s1">&#39;uuid&#39;</span><span class="p">:</span> <span class="n">UUID</span><span class="p">(</span><span class="s1">&#39;f94353ce-a489-4fb1-ad78-5435b3dd54a4&#39;</span><span class="p">),</span>
+        <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;enterprise_zone&#39;</span>
+      <span class="p">},</span>
+      <span class="p">{</span>
+        <span class="s1">&#39;uuid&#39;</span><span class="p">:</span> <span class="n">UUID</span><span class="p">(</span><span class="s1">&#39;41285fc0-2321-4542-b7f1-e8e535588559&#39;</span><span class="p">),</span> 
+        <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;vacancy&#39;</span>
+      <span class="p">},</span>
+      <span class="p">{</span>
+        <span class="s1">&#39;uuid&#39;</span><span class="p">:</span> <span class="n">UUID</span><span class="p">(</span><span class="s1">&#39;28068ff2-15ff-409a-9a8f-f97c39407812&#39;</span><span class="p">),</span> 
+        <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;hardship&#39;</span>
+      <span class="p">},</span>
+      <span class="p">{</span>
+        <span class="s1">&#39;uuid&#39;</span><span class="p">:</span> <span class="n">UUID</span><span class="p">(</span><span class="s1">&#39;b8041d21-f8ca-47b9-b3fe-7b9077388459&#39;</span><span class="p">),</span> 
+        <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;retail&#39;</span>
+      <span class="p">},</span>
+      <span class="p">{</span>
+        <span class="s1">&#39;uuid&#39;</span><span class="p">:</span> <span class="n">UUID</span><span class="p">(</span><span class="s1">&#39;83bda0d4-3d94-4738-a580-cfe0881c8e4d&#39;</span><span class="p">),</span>
+        <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;discretionary&#39;</span>
+      <span class="p">},</span>
+      <span class="p">{</span>
+        <span class="s1">&#39;uuid&#39;</span><span class="p">:</span> <span class="n">UUID</span><span class="p">(</span><span class="s1">&#39;ff2cbc0c-839b-430c-bdca-ac4238634f05&#39;</span><span class="p">),</span> 
+        <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;exempt&#39;</span>
+      <span class="p">},</span>
+      <span class="p">{</span>
+        <span class="s1">&#39;uuid&#39;</span><span class="p">:</span> <span class="n">UUID</span><span class="p">(</span><span class="s1">&#39;f4300571-c04b-4cbf-b835-16c5ae3343b0&#39;</span><span class="p">),</span>
+        <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;transitional&#39;</span>
+      <span class="p">},</span>
+      <span class="p">{</span>
+        <span class="s1">&#39;uuid&#39;</span><span class="p">:</span> <span class="n">UUID</span><span class="p">(</span><span class="s1">&#39;8a3af6f4-f48c-4614-83f2-ba472b2129e9&#39;</span><span class="p">),</span> 
+        <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;other&#39;</span>
+      <span class="p">}</span>
+    <span class="p">]</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
+<p>This is our curation foundation and we can save it, ensuring citation and version control.</p>
+<div class="highlight"><pre><span></span><code><span class="n">schema_destination</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">directory</span><span class="o">=</span><span class="n">DIRECTORY</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="n">FILENAME</span><span class="p">,</span> <span class="n">created_by</span><span class="o">=</span><span class="n">CREATOR</span><span class="p">)</span>
+</code></pre></div>
+<p>We'll reference this definition saved source path as <code>SCHEMA_DESTINATION</code> in the rest of the tutorial.</p>
+<h2 id="source-data-and-source-schema-definitions">Source data and source schema definitions<a class="headerlink" href="#source-data-and-source-schema-definitions" title="Permanent link">&para;</a></h2>
+<p>Portsmouth data are reasonably well-structured:</p>
+<p><img alt="Semi-ideal primary source data" src="/images/ideal-primary-data.png" /></p>
+<p>However, once you import and derive its data model you'll discover a slight hiccough:</p>
+<div class="highlight"><pre><span></span><code><span class="n">datasource</span> <span class="o">=</span> <span class="n">qd</span><span class="o">.</span><span class="n">DataSourceDefinition</span><span class="p">()</span>
+<span class="n">datasource</span><span class="o">.</span><span class="n">derive_model</span><span class="p">(</span><span class="n">source</span><span class="o">=</span><span class="n">SOURCE_DATA</span><span class="p">,</span> <span class="n">mimetype</span><span class="o">=</span><span class="n">MIMETYPE</span><span class="p">)</span>
+
+<span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">datasource</span><span class="o">.</span><span class="n">get</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+  <span class="nb">print</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">datasource</span><span class="o">.</span><span class="n">get</span><span class="p">))</span>
+
+<span class="mi">3</span>
+</code></pre></div>
+<p>If you look at the spreadsheet at the same time, you'll see it's an Excel file with three tabs. <strong>whyqd</strong> has
+automatically imported all three, and derived the data model for each. Let's review:</p>
+<ul>
+<li>Each data model has a different set of columns, meaning there is no common source schema or crosswalk,</li>
+<li>There <strong>is</strong> a foreign key for each, so they meet our minimum acceptance criteria.</li>
+</ul>
+<p>Turns out you don't have <em>one</em> transformation, you need to do three.</p>
+<p>Now <em>technically</em>, because there are so many common fields, we could create a single source schema and use it for all
+three source tabs, but let's use a verbose approach for this tutorial and create three separate source schemas.</p>
+<p>We also recognise that two columns are used to define our categorical data. We need to extract the terms used in these
+columns so we can assign them appropriately later:</p>
+<div class="highlight"><pre><span></span><code><span class="n">CATEGORY_FIELDS</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;Current Relief Type&quot;</span><span class="p">,</span> <span class="s2">&quot;Current Property Exemption Code&quot;</span><span class="p">]</span>
+<span class="n">SCHEMA_SOURCE</span> <span class="o">=</span> <span class="p">{}</span>
+<span class="n">DATA_SOURCE</span> <span class="o">=</span> <span class="p">{}</span>
+
+<span class="k">for</span> <span class="n">ds</span> <span class="ow">in</span> <span class="n">datasource</span><span class="o">.</span><span class="n">get</span><span class="p">:</span>
+    <span class="n">DATA_SOURCE</span><span class="p">[</span><span class="n">ds</span><span class="o">.</span><span class="n">sheet_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">ds</span>
+    <span class="n">schema_source</span> <span class="o">=</span> <span class="n">qd</span><span class="o">.</span><span class="n">SchemaDefinition</span><span class="p">(</span><span class="n">source</span><span class="o">=</span><span class="p">{</span>
+          <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;portsmouth-</span><span class="si">{</span><span class="n">ds</span><span class="o">.</span><span class="n">sheet_name</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span>
+    <span class="p">})</span>
+    <span class="n">schema_source</span><span class="o">.</span><span class="n">derive_model</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="n">ds</span><span class="p">)</span>
+    <span class="n">field_names</span> <span class="o">=</span> <span class="p">[</span><span class="n">c</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">ds</span><span class="o">.</span><span class="n">columns</span><span class="p">]</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">set</span><span class="p">(</span><span class="n">CATEGORY_FIELDS</span><span class="p">)</span><span class="o">.</span><span class="n">isdisjoint</span><span class="p">(</span><span class="n">field_names</span><span class="p">):</span>
+        <span class="c1"># we don&#39;t want to load the data if don&#39;t need</span>
+        <span class="c1"># whyqd will only load the needed sheet as defined in the data model</span>
+        <span class="n">df</span> <span class="o">=</span> <span class="n">datasource</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">source</span><span class="o">=</span><span class="n">ds</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">category_field</span> <span class="ow">in</span> <span class="n">CATEGORY_FIELDS</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">category_field</span> <span class="ow">in</span> <span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+                <span class="n">schema_source</span><span class="o">.</span><span class="n">fields</span><span class="o">.</span><span class="n">set_categories</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">category_field</span><span class="p">,</span> <span class="n">terms</span><span class="o">=</span><span class="n">df</span><span class="p">)</span>
+    <span class="n">SCHEMA_SOURCE</span><span class="p">[</span><span class="n">ds</span><span class="o">.</span><span class="n">sheet_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">schema_source</span>
+</code></pre></div>
+<p>Leaving us with a list of source schema, along with their appropriate categories:</p>
+<div class="highlight"><pre><span></span><code><span class="n">SCHEMA_SOURCE</span><span class="p">[</span><span class="s2">&quot;Report1&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="o">.</span><span class="n">dict</span><span class="p">(</span><span class="n">by_alias</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exclude_defaults</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exclude_none</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="p">{</span><span class="s1">&#39;uuid&#39;</span><span class="p">:</span> <span class="n">UUID</span><span class="p">(</span><span class="s1">&#39;a25091ef-2bad-4207-8e04-dc50760de5f9&#39;</span><span class="p">),</span>
+ <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;portsmouth-report1&#39;</span><span class="p">,</span>
+ <span class="s1">&#39;fields&#39;</span><span class="p">:</span> <span class="p">[{</span><span class="s1">&#39;uuid&#39;</span><span class="p">:</span> <span class="n">UUID</span><span class="p">(</span><span class="s1">&#39;b5a4592c-46a3-41fb-aa22-9f48400e09ae&#39;</span><span class="p">),</span>
+   <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;Property Reference Number&#39;</span><span class="p">,</span>
+   <span class="s1">&#39;title&#39;</span><span class="p">:</span> <span class="s1">&#39;Property Reference Number&#39;</span><span class="p">,</span>
+   <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;string&#39;</span><span class="p">},</span>
+  <span class="p">{</span><span class="s1">&#39;uuid&#39;</span><span class="p">:</span> <span class="n">UUID</span><span class="p">(</span><span class="s1">&#39;3c31d709-4c37-4830-9781-391bf3a990cb&#39;</span><span class="p">),</span>
+   <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;Primary Liable party name&#39;</span><span class="p">,</span>
+   <span class="s1">&#39;title&#39;</span><span class="p">:</span> <span class="s1">&#39;Primary Liable party name&#39;</span><span class="p">,</span>
+   <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;string&#39;</span><span class="p">},</span>
+  <span class="p">{</span><span class="s1">&#39;uuid&#39;</span><span class="p">:</span> <span class="n">UUID</span><span class="p">(</span><span class="s1">&#39;86145ff6-973f-4f6e-85ce-f5c73d3da9ca&#39;</span><span class="p">),</span>
+   <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;Full Property Address&#39;</span><span class="p">,</span>
+   <span class="s1">&#39;title&#39;</span><span class="p">:</span> <span class="s1">&#39;Full Property Address&#39;</span><span class="p">,</span>
+   <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;string&#39;</span><span class="p">},</span>
+  <span class="p">{</span><span class="s1">&#39;uuid&#39;</span><span class="p">:</span> <span class="n">UUID</span><span class="p">(</span><span class="s1">&#39;f6690650-908b-4b1c-90e1-1f81470bb7e4&#39;</span><span class="p">),</span>
+   <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;Current Relief Type&#39;</span><span class="p">,</span>
+   <span class="s1">&#39;title&#39;</span><span class="p">:</span> <span class="s1">&#39;Current Relief Type&#39;</span><span class="p">,</span>
+   <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;string&#39;</span><span class="p">,</span>
+   <span class="s1">&#39;constraints&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;enum&#39;</span><span class="p">:</span> <span class="p">[{</span><span class="s1">&#39;uuid&#39;</span><span class="p">:</span> <span class="n">UUID</span><span class="p">(</span><span class="s1">&#39;619941f4-719c-43d9-be70-30343366e51d&#39;</span><span class="p">),</span>
+      <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;Retail Discount&#39;</span><span class="p">},</span>
+     <span class="p">{</span><span class="s1">&#39;uuid&#39;</span><span class="p">:</span> <span class="n">UUID</span><span class="p">(</span><span class="s1">&#39;dcaccfdc-cdec-4e60-a3ab-bcade51260cf&#39;</span><span class="p">),</span>
+      <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;Small Business Relief England&#39;</span><span class="p">},</span>
+     <span class="p">{</span><span class="s1">&#39;uuid&#39;</span><span class="p">:</span> <span class="n">UUID</span><span class="p">(</span><span class="s1">&#39;436bc5c4-c627-4b99-b82e-cde5c2f8a329&#39;</span><span class="p">),</span>
+      <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;Mandatory&#39;</span><span class="p">},</span>
+     <span class="p">{</span><span class="s1">&#39;uuid&#39;</span><span class="p">:</span> <span class="n">UUID</span><span class="p">(</span><span class="s1">&#39;0e228796-815b-404e-99e8-c19572e6a414&#39;</span><span class="p">),</span>
+      <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;Empty Property Rate Non-Industrial&#39;</span><span class="p">},</span>
+     <span class="p">{</span><span class="s1">&#39;uuid&#39;</span><span class="p">:</span> <span class="n">UUID</span><span class="p">(</span><span class="s1">&#39;76f56e35-9c70-4d5c-85ce-c8fe61479944&#39;</span><span class="p">),</span>
+      <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;Empty Property Rate Industrial&#39;</span><span class="p">},</span>
+     <span class="p">{</span><span class="s1">&#39;uuid&#39;</span><span class="p">:</span> <span class="n">UUID</span><span class="p">(</span><span class="s1">&#39;3d1b5668-f14e-42a8-80f3-ca60b0cccbc3&#39;</span><span class="p">),</span>
+      <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;Supporting Small Business Relief&#39;</span><span class="p">},</span>
+     <span class="p">{</span><span class="s1">&#39;uuid&#39;</span><span class="p">:</span> <span class="n">UUID</span><span class="p">(</span><span class="s1">&#39;1deb0ab9-b630-4b61-8fb6-8a78fea8dfac&#39;</span><span class="p">),</span>
+      <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;Sports Club (Registered CASC)&#39;</span><span class="p">},</span>
+     <span class="p">{</span><span class="s1">&#39;uuid&#39;</span><span class="p">:</span> <span class="n">UUID</span><span class="p">(</span><span class="s1">&#39;a8ad1f3f-fea6-4e2f-b5cf-000c0b53e900&#39;</span><span class="p">),</span>
+      <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;Sbre Extension For 12 Months&#39;</span><span class="p">},</span>
+     <span class="p">{</span><span class="s1">&#39;uuid&#39;</span><span class="p">:</span> <span class="n">UUID</span><span class="p">(</span><span class="s1">&#39;01c067be-3ce9-4059-a8dd-c0bcfe664fc3&#39;</span><span class="p">),</span>
+      <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;Empty Property Rate Charitable&#39;</span><span class="p">}]}},</span>
+  <span class="p">{</span><span class="s1">&#39;uuid&#39;</span><span class="p">:</span> <span class="n">UUID</span><span class="p">(</span><span class="s1">&#39;ab9a4381-657c-419d-995f-28d2ec1eda87&#39;</span><span class="p">),</span>
+   <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;Account Start date&#39;</span><span class="p">,</span>
+   <span class="s1">&#39;title&#39;</span><span class="p">:</span> <span class="s1">&#39;Account Start date&#39;</span><span class="p">,</span>
+   <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;string&#39;</span><span class="p">},</span>
+  <span class="p">{</span><span class="s1">&#39;uuid&#39;</span><span class="p">:</span> <span class="n">UUID</span><span class="p">(</span><span class="s1">&#39;646743e4-b70b-4f9d-b891-c856b7755296&#39;</span><span class="p">),</span>
+   <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;Current Relief Award Start Date&#39;</span><span class="p">,</span>
+   <span class="s1">&#39;title&#39;</span><span class="p">:</span> <span class="s1">&#39;Current Relief Award Start Date&#39;</span><span class="p">,</span>
+   <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;string&#39;</span><span class="p">},</span>
+  <span class="p">{</span><span class="s1">&#39;uuid&#39;</span><span class="p">:</span> <span class="n">UUID</span><span class="p">(</span><span class="s1">&#39;4f814e7a-8c29-4736-a7de-59a54b138236&#39;</span><span class="p">),</span>
+   <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;Current Rateable Value&#39;</span><span class="p">,</span>
+   <span class="s1">&#39;title&#39;</span><span class="p">:</span> <span class="s1">&#39;Current Rateable Value&#39;</span><span class="p">,</span>
+   <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;string&#39;</span><span class="p">}],</span>
+ <span class="s1">&#39;attributes&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;rowCount&#39;</span><span class="p">:</span> <span class="mi">3421</span><span class="p">}}</span>
+</code></pre></div>
+<h2 id="defining-crosswalks">Defining crosswalks<a class="headerlink" href="#defining-crosswalks" title="Permanent link">&para;</a></h2>
+<p>Fortunately, this isn't a particularly difficult crosswalk, with only the categorisations requiring any complexity, and
+we need to create one column for the local authority itself so that we can track each dataset when we do the eventual
+merge into the database.</p>
+<p>Portsmouth has the <a href="https://www.ons.gov.uk/geography/local-authority/E06000044">census code <code>E06000044</code></a> which we use as
+an additional foreign key. </p>
+<p>Let's define our three crosswalks and then review:</p>
+<div class="highlight"><pre><span></span><code><span class="n">SCHEMA_SCRIPTS</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;Report1&quot;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="s2">&quot;NEW &gt; &#39;la_code&#39; &lt; [&#39;E06000044&#39;]&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;RENAME &gt; &#39;ba_ref&#39; &lt; [&#39;Property Reference Number&#39;]&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;RENAME &gt; &#39;prop_ba_rates&#39; &lt; [&#39;Current Rateable Value&#39;]&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;RENAME &gt; &#39;occupant_name&#39; &lt; [&#39;Primary Liable party name&#39;]&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;RENAME &gt; &#39;postcode&#39; &lt; [&#39;Full Property Address&#39;]&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;CATEGORISE &gt; &#39;occupation_state&#39;::False &lt; &#39;Current Relief Type&#39;::[&#39;Empty Property Rate Non-Industrial&#39;, &#39;Empty Property Rate Industrial&#39;, &#39;Empty Property Rate Charitable&#39;]&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;CATEGORISE &gt; &#39;occupation_state_reliefs&#39;::&#39;small_business&#39; &lt; &#39;Current Relief Type&#39;::[&#39;Small Business Relief England&#39;, &#39;Sbre Extension For 12 Months&#39;, &#39;Supporting Small Business Relief&#39;]&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;CATEGORISE &gt; &#39;occupation_state_reliefs&#39;::&#39;vacancy&#39; &lt; &#39;Current Relief Type&#39;::[&#39;Empty Property Rate Non-Industrial&#39;, &#39;Empty Property Rate Industrial&#39;, &#39;Empty Property Rate Charitable&#39;]&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;CATEGORISE &gt; &#39;occupation_state_reliefs&#39;::&#39;retail&#39; &lt; &#39;Current Relief Type&#39;::[&#39;Retail Discount&#39;]&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;CATEGORISE &gt; &#39;occupation_state_reliefs&#39;::&#39;other&#39; &lt; &#39;Current Relief Type&#39;::[&#39;Sports Club (Registered CASC)&#39;, &#39;Mandatory&#39;]&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;SELECT_NEWEST &gt; &#39;occupation_state_date&#39; &lt; [&#39;Current Relief Award Start Date&#39; + &#39;Current Relief Award Start Date&#39;, &#39;Account Start date&#39; + &#39;Account Start date&#39;]&quot;</span><span class="p">,</span>
+    <span class="p">],</span>
+    <span class="s2">&quot;Report2&quot;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="s2">&quot;NEW &gt; &#39;la_code&#39; &lt; [&#39;E06000044&#39;]&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;RENAME &gt; &#39;ba_ref&#39; &lt; [&#39;Property Reference Number&#39;]&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;RENAME &gt; &#39;prop_ba_rates&#39; &lt; [&#39;Current Rateable Value&#39;]&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;RENAME &gt; &#39;occupant_name&#39; &lt; [&#39;Primary Liable party name&#39;]&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;RENAME &gt; &#39;postcode&#39; &lt; [&#39;Full Property Address&#39;]&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;CATEGORISE &gt; &#39;occupation_state&#39;::False &lt; &#39;Current Property Exemption Code&#39;::[&#39;EPRN&#39;, &#39;EPRI&#39;, &#39;VOID&#39;, &#39;EPCH&#39;, &#39;LIQUIDATE&#39;, &#39;DECEASED&#39;, &#39;PROHIBITED&#39;, &#39;BANKRUPT&#39;]&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;CATEGORISE &gt; &#39;occupation_state_reliefs&#39;::&#39;enterprise_zone&#39; &lt; &#39;Current Property Exemption Code&#39;::[&#39;INDUSTRIAL&#39;]&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;CATEGORISE &gt; &#39;occupation_state_reliefs&#39;::&#39;vacancy&#39; &lt; &#39;Current Property Exemption Code&#39;::[&#39;EPRN&#39;, &#39;EPRI&#39;, &#39;VOID&#39;, &#39;EPCH&#39;, &#39;LIQUIDATE&#39;, &#39;DECEASED&#39;, &#39;PROHIBITED&#39;, &#39;BANKRUPT&#39;]&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;CATEGORISE &gt; &#39;occupation_state_reliefs&#39;::&#39;exempt&#39; &lt; &#39;Current Property Exemption Code&#39;::[&#39;C&#39;, &#39;LOW RV&#39;, &#39;LAND&#39;]&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;RENAME &gt; &#39;occupation_state_date&#39; &lt; [&#39;Current Prop Exemption Start Date&#39;]&quot;</span><span class="p">,</span>
+    <span class="p">],</span>
+    <span class="s2">&quot;Report3&quot;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="s2">&quot;NEW &gt; &#39;la_code&#39; &lt; [&#39;E06000044&#39;]&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;RENAME &gt; &#39;ba_ref&#39; &lt; [&#39;Property ref no&#39;]&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;RENAME &gt; &#39;prop_ba_rates&#39; &lt; [&#39;Current Rateable Value&#39;]&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;RENAME &gt; &#39;occupant_name&#39; &lt; [&#39;Primary Liable party name&#39;]&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;RENAME &gt; &#39;postcode&#39; &lt; [&#39;Full Property Address&#39;]&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;RENAME &gt; &#39;occupation_state_date&#39; &lt; [&#39;Account Start date&#39;]&quot;</span><span class="p">,</span>
+    <span class="p">],</span>
+<span class="p">}</span>
+</code></pre></div>
+<p>Remember the basic structure of an <code>script</code>: <code>ACTION &gt; DESTINATION &lt; [SOURCE]</code>.</p>
+<p>We're using only four types of action. <code>NEW</code> and <code>RENAME</code> should be self-explanatory, but let's look at two the others.</p>
+<p>The <code>Report1</code> tab has two date fields. One for the date a specific relief was awarded, and the other for when the 
+ratepayer became responsible for the account. It may happen that a ratepayer starts on the same day they receive a
+relief. They may also be discrete events, meaning that there'd be an entry when they become the account-holder and 
+another when they are awarded the relief. We get both dates on each row. How to choose which is relevant?</p>
+<div class="highlight"><pre><span></span><code><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">SELECT_NEWEST &gt; &#39;occupation_state_date&#39; </span>
+<span class="sd">          &lt; </span>
+<span class="sd">          [&#39;Current Relief Award Start Date&#39; + &#39;Current Relief Award Start Date&#39;, </span>
+<span class="sd">          &#39;Account Start date&#39; + &#39;Account Start date&#39;]</span>
+<span class="sd">&quot;&quot;&quot;</span>
+</code></pre></div>
+<p><code>SELECT_NEWEST</code> means take the latest field from the list of fields. We create a list of source choices with a <code>MODIFIER</code>.</p>
+<p>The format is <code>'target_field' + 'date_field'</code>. <code>SELECT_NEWEST</code> will compare the <code>date_field</code> terms, pick the latest, and 
+assign it's associated <code>target_field</code> to the <code>destination_field</code>. In our case, both <code>target_field</code> and <code>date_field</code> 
+are the same field. We want the most recent date from the choice of each column.</p>
+<p>We have two categorical destination fields. <code>occupation_state</code> takes a <code>boolean</code> category, while <code>occupation_state_reliefs</code>
+requires a list of terms.</p>
+<p><code>CATEGORISE</code> has the form: </p>
+<div class="highlight"><pre><span></span><code>CATEGORISE &gt; &#39;destination_field&#39;::&#39;destination_category&#39; 
+           &lt; &#39;source_field&#39;::[&#39;source_category&#39;, source_category&#39;]
+</code></pre></div>
+<p>The <code>destination_category</code> can be boolean, and we need to be sure we understand whether the source data defines an 
+address as occupied (<code>True</code>) or vacant / void (<code>False</code>). Getting things the wrong with booleans is a frustratingly 
+common curation error.</p>
+<p>After this, it all comes together very quickly.</p>
+<h2 id="transformations-with-crosswalks">Transformations with crosswalks<a class="headerlink" href="#transformations-with-crosswalks" title="Permanent link">&para;</a></h2>
+<p>We can now loop through our source schema, assign its corresponding crosswalk and produce transformations:</p>
+<div class="highlight"><pre><span></span><code><span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">schema_source</span> <span class="ow">in</span> <span class="n">SCHEMA_SOURCE</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+    <span class="c1"># Define a Crosswalk</span>
+    <span class="n">crosswalk</span> <span class="o">=</span> <span class="n">qd</span><span class="o">.</span><span class="n">CrosswalkDefinition</span><span class="p">()</span>
+    <span class="n">crosswalk</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">schema_source</span><span class="o">=</span><span class="n">schema_source</span><span class="p">,</span> <span class="n">schema_destination</span><span class="o">=</span><span class="n">SCHEMA_DESTINATION</span><span class="p">)</span>
+    <span class="n">crosswalk</span><span class="o">.</span><span class="n">actions</span><span class="o">.</span><span class="n">add_multi</span><span class="p">(</span><span class="n">terms</span><span class="o">=</span><span class="n">SCHEMA_SCRIPTS</span><span class="p">[</span><span class="n">key</span><span class="p">])</span>
+    <span class="c1"># Transform a data source</span>
+    <span class="n">transform</span> <span class="o">=</span> <span class="n">qd</span><span class="o">.</span><span class="n">TransformDefinition</span><span class="p">(</span><span class="n">crosswalk</span><span class="o">=</span><span class="n">crosswalk</span><span class="p">,</span> <span class="n">data_source</span><span class="o">=</span><span class="n">DATA_SOURCE</span><span class="p">[</span><span class="n">key</span><span class="p">])</span>
+    <span class="n">transform</span><span class="o">.</span><span class="n">process</span><span class="p">()</span>
+    <span class="n">transform</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">directory</span><span class="o">=</span><span class="n">DIRECTORY</span><span class="p">)</span>
+    <span class="c1"># Validate a data source</span>
+    <span class="n">DESTINATION_DATA</span> <span class="o">=</span> <span class="n">DIRECTORY</span> <span class="o">/</span> <span class="n">transform</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">dataDestination</span><span class="o">.</span><span class="n">name</span>
+    <span class="n">TRANSFORM</span> <span class="o">=</span> <span class="n">DIRECTORY</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">transform</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">.transform&quot;</span>
+    <span class="n">valiform</span> <span class="o">=</span> <span class="n">qd</span><span class="o">.</span><span class="n">TransformDefinition</span><span class="p">()</span>
+    <span class="n">valiform</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span>
+        <span class="n">transform</span><span class="o">=</span><span class="n">TRANSFORM</span><span class="p">,</span> <span class="n">data_destination</span><span class="o">=</span><span class="n">DESTINATION_DATA</span><span class="p">,</span> <span class="n">mimetype_destination</span><span class="o">=</span><span class="n">DESTINATION_MIMETYPE</span>
+    <span class="p">)</span>
+</code></pre></div>
+<p>The default transformation destination data saved mimetype is <code>parquet</code>. You can specify something else.</p>
+<p>The validation step isn't necessary, but is a sanity check. It will compare the result of your transform by rerunning
+the script and comparing the result to your original save destination file.</p>
+<p>Despite all this coding and activity, you've actually made no changes to the source data. Everything you've done has 
+been about documenting a process. This process is the only thing that will eventually execute and produce your output.</p>
+<h2 id="preparing-a-citation">Preparing a Citation<a class="headerlink" href="#preparing-a-citation" title="Permanent link">&para;</a></h2>
+<p>Research-based data scientists are not always treated well in the research community. Data are hoarded by researchers, 
+which also means that the people who produced that data don't get referenced or recognised.</p>
+<p><strong>whyqd</strong> is designed to support a research process and ensure citation of the incredible work done by research-based
+data scientists.</p>
+<p>A citation is a special set of fields, with options for:</p>
+<ul>
+<li><strong>author</strong>: The name(s) of the author(s) (in the case of more than one author, separated by <code>and</code>),</li>
+<li><strong>title</strong>: The title of the work,</li>
+<li><strong>url</strong>: The URL field is used to store the URL of a web page or FTP download. It is a non-standard BibTeX field,</li>
+<li><strong>publisher</strong>: The publisher's name,</li>
+<li><strong>institution</strong>: The institution that was involved in the publishing, but not necessarily the publisher,</li>
+<li><strong>doi</strong>: The doi field is used to store the digital object identifier (DOI) of a journal article, conference paper,
+  book chapter or book. It is a non-standard BibTeX field. It's recommended to simply use the DOI, and not a DOI link,</li>
+<li><strong>month</strong>: The month of publication (or, if unpublished, the month of creation). Use three-letter abbreviation,</li>
+<li><strong>year</strong>: The year of publication (or, if unpublished, the year of creation),</li>
+<li><strong>licence</strong>: The terms under which the associated resource are licenced for reuse. It is a non-standard BibTeX field,</li>
+<li><strong>note</strong>: Miscellaneous extra information.</li>
+</ul>
+<p>Let's set up a citation for this tutorial:</p>
+<div class="highlight"><pre><span></span><code><span class="n">citation</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;author&quot;</span><span class="p">:</span> <span class="s2">&quot;Gavin Chait&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;month&quot;</span><span class="p">:</span> <span class="s2">&quot;feb&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;year&quot;</span><span class="p">:</span> <span class="mi">2020</span><span class="p">,</span>
+            <span class="s2">&quot;title&quot;</span><span class="p">:</span> <span class="s2">&quot;Portsmouth City Council normalised database of commercial ratepayers&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;url&quot;</span><span class="p">:</span> <span class="s2">&quot;https://github.com/whythawk/whyqd/tree/master/tests/data&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;licence&quot;</span><span class="p">:</span> <span class="s2">&quot;Attribution 4.0 International (CC BY 4.0)&quot;</span>
+        <span class="p">}</span>
+<span class="n">transform</span><span class="o">.</span><span class="n">set_citation</span><span class="p">(</span><span class="n">citation</span><span class="o">=</span><span class="n">citation</span><span class="p">)</span>
+</code></pre></div>
+<p>You can then get your citation report:</p>
+<div class="highlight"><pre><span></span><code><span class="n">transform</span><span class="o">.</span><span class="n">get_citation</span><span class="p">()</span>
+
+<span class="p">{</span><span class="s1">&#39;author&#39;</span><span class="p">:</span> <span class="s1">&#39;Gavin Chait&#39;</span><span class="p">,</span>
+<span class="s1">&#39;title&#39;</span><span class="p">:</span> <span class="s1">&#39;Portsmouth City Council normalised database of commercial ratepayers&#39;</span><span class="p">,</span>
+<span class="s1">&#39;url&#39;</span><span class="p">:</span> <span class="n">AnyUrl</span><span class="p">(</span><span class="s1">&#39;https://github.com/whythawk/whyqd/tree/master/tests/data&#39;</span><span class="p">,</span> <span class="n">scheme</span><span class="o">=</span><span class="s1">&#39;https&#39;</span><span class="p">,</span> <span class="n">host</span><span class="o">=</span><span class="s1">&#39;github.com&#39;</span><span class="p">,</span> <span class="n">tld</span><span class="o">=</span><span class="s1">&#39;com&#39;</span><span class="p">,</span> <span class="n">host_type</span><span class="o">=</span><span class="s1">&#39;domain&#39;</span><span class="p">,</span> <span class="n">path</span><span class="o">=</span><span class="s1">&#39;/whythawk/whyqd/tree/master/tests/data&#39;</span><span class="p">),</span>
+<span class="s1">&#39;month&#39;</span><span class="p">:</span> <span class="s1">&#39;feb&#39;</span><span class="p">,</span>
+<span class="s1">&#39;year&#39;</span><span class="p">:</span> <span class="mi">2020</span><span class="p">,</span>
+<span class="s1">&#39;licence&#39;</span><span class="p">:</span> <span class="s1">&#39;Attribution 4.0 International (CC BY 4.0)&#39;</span><span class="p">}</span>
+</code></pre></div>
+<p>Those of you familiar with Dataverse's <a href="http://guides.dataverse.org/en/latest/developers/unf/index.html">universal numerical fingerprint</a>
+may be wondering where it is? <strong>whyqd</strong>, similarly, produces a unique hash for each datasource. Ours is based on 
+<a href="https://en.wikipedia.org/wiki/BLAKE_(hash_function)">BLAKE2b</a> and is included in the data source model saved in the 
+transform.</p>
+<div class="highlight"><pre><span></span><code><span class="n">transform</span><span class="o">.</span><span class="n">get</span><span class="o">.</span><span class="n">dataDestination</span><span class="o">.</span><span class="n">checksum</span>
+
+<span class="s1">&#39;a8d03afd7d5b93163dac56ba23a7c75dedf42b8999295e560f3d633d54457e9de3ae95dea8181f238e549a7fba10a36723d2f1b1d94ef3f2273129a58bfc0751&#39;</span>
+</code></pre></div>
+<h2 id="extending-the-tutorial">Extending the tutorial<a class="headerlink" href="#extending-the-tutorial" title="Permanent link">&para;</a></h2>
+<p>There are three source data schema, but these share a fair number of common fields. They're not ambiguous, either. The
+spelling and definitions are identical. You could merge these into one and then any imported datasource could use a
+single source schema. You could even work out a way to add source-specific crosswalk scripts algorithmically (I'm 
+thinking of the categorical scripts, and the ordering of multi-date fields).</p>
+<p>This is left to you as an exercise.</p>
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    <script id="__config" type="application/json">{"base": "../..", "features": ["navigation.path"], "search": "../../assets/javascripts/workers/search.208ed371.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.fac441b0.min.js"></script>
+      
+    
+  </body>
+</html>

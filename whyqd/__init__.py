@@ -1,7 +1,8 @@
 from pathlib import Path
 
-from .schema import Schema
-from .method import Method
-from .validate import Validate
+from whyqd.core.schema import SchemaDefinition
+from whyqd.core.datasource import DataSourceDefinition
+from whyqd.core.crosswalk import CrosswalkDefinition
+from whyqd.core.transform import TransformDefinition
 
 __version__ = (Path(__file__).resolve().parent / "VERSION").read_text()

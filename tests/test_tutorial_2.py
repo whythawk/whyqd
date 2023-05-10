@@ -1,28 +1,37 @@
 from pathlib import Path
 
-import whyqd
-from whyqd.parsers import CoreScript
+import whyqd as qd
+from whyqd.parsers import CoreParser
 
-SOURCE_DIRECTORY = str(Path(__file__).resolve().parent)
-SOURCE_DATA = SOURCE_DIRECTORY + "/data/working_test_world_bank_data.xlsx"
+SOURCE_DIRECTORY = Path(__file__).resolve().parent / "data"
+SOURCE_DATA = SOURCE_DIRECTORY / "working_test_world_bank_data.xlsx"
+MIMETYPE = "xlsx"
 
 
-class TestMethod:
-    def test_tutorial(self, tmp_path):
+class TestTutorialPopulation:
+    def test_tutorial_urban_population(self, tmp_path):
         """World Bank urban population time-series, in wide format. Demonstrate define a schema,
         create a method, import data, perform actions and generate a schema-compliant output.
         From https://databank.worldbank.org/reports.aspx?source=2&type=metadata&series=SP.URB.TOTL"""
-        DIRECTORY = str(tmp_path) + "/"
-        CoreScript().check_path(DIRECTORY)
-        # DEFINE SCHEMA
-        details = {
+        DIRECTORY = tmp_path
+        CoreParser().check_path(directory=DIRECTORY)
+        # 1. Import a data source and derive a source schema
+        datasource = qd.DataSourceDefinition()
+        # There are three sheets:
+        # - Data, header row + 3
+        # - Metadata - Countries
+        # - Metadata - Indicators
+        # We're only going to use the first
+        datasource.derive_model(source=SOURCE_DATA, mimetype=MIMETYPE, header=[3, 0, 0])
+        schema_source = qd.SchemaDefinition()
+        schema_source.derive_model(data=datasource.get[0])
+        # 2. Create a destination schema
+        schema: qd.models.SchemaModel = {
             "name": "urban_population",
             "title": "Urban population",
             "description": "Urban population refers to people living in urban areas as defined by national statistical offices. It is calculated using World Bank population estimates and urban ratios from the United Nations World Urbanization Prospects. Aggregation of urban and rural population may not add up to total population because of different country coverages.",
         }
-        schema = whyqd.Schema()
-        schema.set(details)
-        fields = [
+        fields: list[qd.models.FieldModel] = [
             {
                 "name": "indicator_code",
                 "title": "Indicator Code",
@@ -66,39 +75,33 @@ class TestMethod:
                 "constraints": {"required": True},
             },
         ]
-        for field in fields:
-            schema.add_field(field)
-        schema.save(directory=DIRECTORY)
-        # CREATE METHOD
-        SCHEMA_SOURCE = DIRECTORY + "urban_population.json"
-        SCHEMA = whyqd.Schema(source=SCHEMA_SOURCE)
-        method = whyqd.Method(directory=DIRECTORY, schema=SCHEMA)
-        method.set({"name": "urban_population_method"})
-        input_data = {"path": SOURCE_DATA}
-        method.add_data(source=input_data)
-        # Define actions
+        schema_destination = qd.SchemaDefinition()
+        schema_destination.set(schema=schema)
+        schema_destination.fields.add_multi(terms=fields)
+        # 3. Define a Crosswalk
+        crosswalk = qd.CrosswalkDefinition()
+        crosswalk.set(schema_source=schema_source, schema_destination=schema_destination)
+        # Create the crosswalk
         schema_scripts = [
             "DEBLANK",
             "DEDUPE",
-            "REBASE < [2]",
-        ]
-        source_data = method.get.input_data[0]
-        method.add_actions(schema_scripts, source_data.uuid.hex, sheet_name=source_data.sheet_name)
-        # df = method.transform(source_data)
-        source_data = method.get.input_data[0]
-        source_columns = [c.name for c in source_data.columns]
-        schema_scripts = [
-            f"PIVOT_LONGER > {source_columns[4:]}",
+            "DELETE_ROWS < [0, 1, 2, 3]",
+            f"PIVOT_LONGER > ['year', 'values'] < {datasource.model[0].names[4:]}",
             "RENAME > 'indicator_code' < ['Indicator Code']",
             "RENAME > 'indicator_name' < ['Indicator Name']",
             "RENAME > 'country_code' < ['Country Code']",
             "RENAME > 'country_name' < ['Country Name']",
-            "RENAME > 'year' < ['PIVOT_LONGER_names_idx_4']",
-            "RENAME > 'values' < ['PIVOT_LONGER_values_idx_5']",
         ]
-        method.add_actions(schema_scripts, source_data.uuid.hex, sheet_name=source_data.sheet_name)
-        # Unambiguous deletion so they are not part of the research record
-        for unwanted_data in method.get.input_data[1:]:
-            method.remove_data(unwanted_data.uuid.hex, sheet_name=unwanted_data.sheet_name)
-        method.build()
-        assert method.validate()
+        crosswalk.actions.add_multi(terms=schema_scripts)
+        # 4. Transform a data source
+        transform = qd.TransformDefinition(crosswalk=crosswalk, data_source=datasource.get[0])
+        transform.process()
+        transform.save(directory=DIRECTORY)
+        # 5. Validate a data source
+        DESTINATION_DATA = DIRECTORY / transform.model.dataDestination.name
+        DESTINATION_MIMETYPE = "parquet"
+        TRANSFORM = DIRECTORY / f"{transform.model.name}.transform"
+        valiform = qd.TransformDefinition()
+        valiform.validate(
+            transform=TRANSFORM, data_destination=DESTINATION_DATA, mimetype_destination=DESTINATION_MIMETYPE
+        )
