@@ -136,6 +136,12 @@ This will identify all the unique terms in that table column and assign them as 
     - `PARQUET` (or `PRQ`): "application/vnd.apache.parquet"
     - `FEATHER` (or `FTR`): "application/vnd.apache.feather"
 
+    Declare it like so:
+
+    ```python
+    MIMETYPE = "xlsx" # upper- or lower-case is fine
+    ```
+    
     Specify the mime type as a text string, uppper- or lower-case. Neither of
     [Parquet](https://parquet.apache.org/docs/overview/) or [Feather](https://arrow.apache.org/docs/python/feather.html)
     yet have official mimetypes, so this is what we're using for now.

@@ -29,6 +29,12 @@ class DataSourceDefinition(BaseDefinition):
         - `PARQUET` (or `PRQ`): "application/vnd.apache.parquet"
         - `FEATHER` (or `FTR`): "application/vnd.apache.feather"
 
+        Declare it like so:
+
+        ```python
+        MIMETYPE = "xlsx" # upper- or lower-case is fine
+        ```
+
         Specify the mime type as a text string, uppper- or lower-case. Neither of
         [Parquet](https://parquet.apache.org/docs/overview/) or [Feather](https://arrow.apache.org/docs/python/feather.html)
         yet have official mimetypes, so this is what we're using for now.
@@ -108,19 +114,6 @@ class DataSourceDefinition(BaseDefinition):
     ) -> DataSourceModel | list[DataSourceModel]:
         """Derive a data model schema (or list) from a data source. All columns will be coerced to `string` type to
         preserve data quality even though this is far less efficient.
-
-        !!! info
-            **whyqd** supports any of the following file mime types:
-
-            - `CSV`: "text/csv"
-            - `XLS`: "application/vnd.ms-excel"
-            - `XLSX`: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-            - `PARQUET` (or `PRQ`): "application/vnd.apache.parquet"
-            - `FEATHER` (or `FTR`): "application/vnd.apache.feather"
-
-            Specify the mime type as a text string, uppper- or lower-case. Neither of
-            [Parquet](https://parquet.apache.org/docs/overview/) or [Feather](https://arrow.apache.org/docs/python/feather.html)
-            yet have official mimetypes, so this is what we're using for now.
 
         Parameters:
           source:  Source filename.

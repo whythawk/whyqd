@@ -50,6 +50,12 @@ The following can be set in your root `.env` project file:
 - `PARQUET` (or `PRQ`): "application/vnd.apache.parquet"
 - `FEATHER` (or `FTR`): "application/vnd.apache.feather"
 
+Declare it like so:
+
+```python
+MIMETYPE = "xlsx" # upper- or lower-case is fine
+```
+
 Neither of [Parquet](https://parquet.apache.org/docs/overview/) or 
 [Feather](https://arrow.apache.org/docs/python/feather.html) yet have official mimetypes, so this is what we're using 
 for now.

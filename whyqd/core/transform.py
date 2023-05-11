@@ -201,19 +201,14 @@ class TransformDefinition(BaseDefinition):
         """Save model as a json file, and save crosswalked destination dataframe as a chosen mimetype.
 
         !!! info
-            **whyqd** supports any of the following file mime types:
-
-            - `CSV`: "text/csv"
-            - `XLS`: "application/vnd.ms-excel"
-            - `XLSX`: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-            - `PARQUET` (or `PRQ`): "application/vnd.apache.parquet"
-            - `FEATHER` (or `FTR`): "application/vnd.apache.feather"
-
-            Specify the mime type as a text string, uppper- or lower-case. Neither of
-            [Parquet](https://parquet.apache.org/docs/overview/) or [Feather](https://arrow.apache.org/docs/python/feather.html)
-            yet have official mimetypes, so this is what we're using for now.
-
             **NOTE:** by default, transformed data are saved as `PARQUET` as this is the most efficient.
+
+            Declare your mime type like so:
+
+            ```python
+            MIMETYPE = "csv" # upper- or lower-case is fine
+            ```
+
 
         Parameters:
           directory:  Defaults to working directory
