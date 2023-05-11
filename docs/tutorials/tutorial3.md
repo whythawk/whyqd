@@ -16,9 +16,14 @@ strategy.
     - Explain and describe reproducible crosswalks for complex data transformation
     - Perform staged pivot-based crosswalks and generate a schema-compliant output
 
-    Source data are from [Human Development Report 2007 - 2008](https://github.com/whythawk/data-wrangling-and-validation/tree/master/data/lesson-spreadsheet).
+    `SOURCE_DATA` are from [Human Development Report 2007 - 2008](https://github.com/whythawk/data-wrangling-and-validation/tree/master/data/lesson-spreadsheet).
     These data are long lost from the internet, and I maintain a repository for educational use. It is assumed you have 
     familiarity with [Python](https://www.python.org/) and [Pydantic](https://docs.pydantic.dev/).
+    
+    ```python
+    SOURCE_DATA = "https://github.com/whythawk/whyqd/blob/d95b9a8dc917ed119f0b64cb2a3f699e4fee7a8d/tests/data/HDR-2007-2008-Table-03.xlsx"
+    MIMETYPE = "xlsx"
+    ```
 
 ## Background
 

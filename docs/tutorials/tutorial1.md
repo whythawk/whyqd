@@ -16,8 +16,13 @@ tags: wrangling, crosswalks, curation
     - Extract source data and derived individual source schemas
     - Perform crosswalks and validations
 
-    Source data are from [Portsmouth City Council](https://www.portsmouth.gov.uk/ext/business/running-a-business/business-rates-foi-requests)
+    `SOURCE_DATA` are from [Portsmouth City Council](https://www.portsmouth.gov.uk/ext/business/running-a-business/business-rates-foi-requests)
     and it is assumed you have familiarity with [Python](https://www.python.org/) and [Pydantic](https://docs.pydantic.dev/).
+
+    ```python
+    SOURCE_DATA = "https://github.com/whythawk/whyqd/blob/d95b9a8dc917ed119f0b64cb2a3f699e4fee7a8d/tests/data/raw_multi_E06000044_014.xlsx"
+    MIMETYPE = "xlsx"
+    ```
 
 ## Background
 

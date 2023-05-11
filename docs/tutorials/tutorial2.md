@@ -16,8 +16,13 @@ from the way people need to see or use it.
     - Demonstrate how to define a schema
     - Perform pivot-based crosswalks and generate a schema-compliant output
 
-    Source data are from [World Bank urban population time-series](https://databank.worldbank.org/reports.aspx?source=2&type=metadata&series=SP.URB.TOTL)
+    `SOURCE_DATA` are from [World Bank urban population time-series](https://databank.worldbank.org/reports.aspx?source=2&type=metadata&series=SP.URB.TOTL)
     and it is assumed you have familiarity with [Python](https://www.python.org/) and [Pydantic](https://docs.pydantic.dev/).
+    
+    ```python
+    SOURCE_DATA = "https://github.com/whythawk/whyqd/blob/d95b9a8dc917ed119f0b64cb2a3f699e4fee7a8d/tests/data/working_test_world_bank_data.xlsx"
+    MIMETYPE = "xlsx"
+    ```
 
 ## Strategy
 
