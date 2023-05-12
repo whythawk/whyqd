@@ -34,7 +34,7 @@ If you don't want to spend days or weeks slogging through data when all you want
 data are even useful. If you already have a workflow and established software which includes Python and pandas, and 
 don't want to change your code every time your source data changes.
 
-If you want to go from a [Cthulhu dataset](docs/tutorials/tutorial3.md) like this:
+If you want to go from a [Cthulhu dataset](https://whyqd.readthedocs.io/en/latest/tutorials/tutorial3) like this:
 
 ![UNDP Human Development Index 2007-2008: a beautiful example of messy data.](docs/images/undp-hdi-2007-8.jpg)
 *UNDP Human Development Index 2007-2008: a beautiful example of messy data.*
@@ -68,7 +68,7 @@ Then **whyqd** may be for you.
 ## How does it work?
 
 > Crosswalks are mappings of the relationships between fields defined in different metadata 
-> [schemas](docs/strategies/schema.md). Ideally, these are one-to-one, where a field in 
+> [schemas](https://whyqd.readthedocs.io/en/latest/strategies/schema). Ideally, these are one-to-one, where a field in 
 > one has an exact match in the other. In practice, it's more complicated than that.
 
 Your workflow is:
@@ -86,13 +86,13 @@ It starts like this:
 import whyqd as qd
 ```
 
-[Install](docs/installation.md) and then read the [quickstart](docs/quickstart.md).
+[Install](https://whyqd.readthedocs.io/en/latest/installation) and then read the [quickstart](https://whyqd.readthedocs.io/en/latest/quickstart).
 
 There are three worked tutorials to guide you through three typical scenarios:
 
-- [Aligning multiple disparate data sources to a single schema](docs/tutorials/tutorial1.md)
-- [Pivoting wide-format data into archival long-format](docs/tutorials/tutorial2.md)
-- [Wrangling Cthulhu data without losing your mind](docs/tutorials/tutorial3.md)
+- [Aligning multiple disparate data sources to a single schema](https://whyqd.readthedocs.io/en/latest/tutorials/tutorial1)
+- [Pivoting wide-format data into archival long-format](https://whyqd.readthedocs.io/en/latest/tutorials/tutorial2)
+- [Wrangling Cthulhu data without losing your mind](https://whyqd.readthedocs.io/en/latest/tutorials/tutorial3)
 
 ## Installation
 
@@ -116,11 +116,11 @@ schema_source.fields.set_categories(name=CATEGORY_FIELD,
 schema_source.save()
 ```
 
-[Get started...](docs/quickstart.md)
+[Get started...](https://whyqd.readthedocs.io/en/latest/quickstart)
 
 ## Changelog
 
-The version history can be found in the [changelog](docs/changelog.md).
+The version history can be found in the [changelog](https://whyqd.readthedocs.io/en/latest/changelog).
 
 ## Background and funding
 
