@@ -20,7 +20,7 @@ being present. Data validation with your schema are a separate process and permi
 your project and data management.
 
 !!! abstract "API"
-    Review the `class` API definitions: [SchemaDefinition](/api/schema) and [CRUDFields](/api/field).
+    Review the `class` API definitions: [SchemaDefinition](../api/schema.md) and [CRUDFields](../api/field.md).
 
 ## Minimum valid requirements
 
@@ -69,7 +69,7 @@ a date or number type to preserve whatever fruity formatting are described in yo
 Maximum value of a zero-base index for tabular data defined by this schema. Necessary where `actions` apply row-level transforms.
 
 ### `citation`
-Full citation for definition. More information can be found in the [data source section](strategies/datasource/#citation).
+Full citation for definition. More information can be found in the [data source section](datasource.md#citation).
 
 ### `version`
 Version and update history for the schema. This is automatically generated when you save the definition. It includes a
@@ -483,4 +483,4 @@ schema.get.dict(by_alias=True, exclude_defaults=True, exclude_none=True)
 schema.save(directory=directory, filename=filename, created_by="Gavin Chait")
 ```
 
-Whyqd's [data source strategies](/strategies/datasource) show you how to derive a schema to reflect source data.
+Whyqd's [data source strategies](datasource.md) show you how to derive a schema to reflect source data.

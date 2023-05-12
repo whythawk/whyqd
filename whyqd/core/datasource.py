@@ -18,7 +18,7 @@ class DataSourceDefinition(BaseDefinition):
 
     !!! tip "Strategy"
         Guidance on how to use this definition is in the strategies section on
-        [DataSource Strategies](/strategies/datasource).
+        [DataSource Strategies](../strategies/datasource.md).
 
     !!! info
         **whyqd** supports any of the following file mime types:

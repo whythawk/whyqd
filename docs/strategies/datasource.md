@@ -33,7 +33,7 @@ to study your source and try and identify all the challenges in your way.
 You need to derive a schema from data, and then write a crosswalk to get to your archival destination schema standard.
 
 !!! abstract "API"
-    Review the `class` API definitions: [DataSourceDefinition](/api/datasource).
+    Review the `class` API definitions: [DataSourceDefinition](../api/datasource.md).
 
 ## Derive a data model from source data
     
@@ -134,7 +134,7 @@ datasource.get.dict(by_alias=True, exclude_defaults=True, exclude_none=True)
     definition.
 
     Machine-readability come in a variety of forms. As long as your source data meet the primary requirements of 
-    [curation](/strategies/curation), you will be able to perform analysis or transformations. As for coercing your
+    [curation](curation.md), you will be able to perform analysis or transformations. As for coercing your
     data types? Well, your [schema will do that for you](#schema-coersion-to-source-data).
 
 This derivation assumed a clear header row indexed at `0`. Unfortunately, not all source data are so easy.
@@ -143,7 +143,7 @@ This derivation assumed a clear header row indexed at `0`. Unfortunately, not al
 
 Sometimes your source data are wild.
 
-![UNDP Human Development Index 2007-2008](https://raw.githubusercontent.com/whythawk/whyqd/master/docs/images/undp-hdi-2007-8.jpg)
+![UNDP Human Development Index 2007-2008](../images/undp-hdi-2007-8.jpg)
 
 *UNDP Human Development Index 2007-2008: a beautiful example of messy data.*
 
@@ -191,11 +191,11 @@ datasource.data.columns
     perform more complex data restructuring and analysis.
 
 !!! info "Further learning"
-    Learn more about transforming `Cthulhu` data in the full worked [tutorial](/tutorials/tutorial3) for this dataset.
+    Learn more about transforming `Cthulhu` data in the full worked [tutorial](../tutorials/tutorial3.md) for this dataset.
 
 ## Derive schema models from data models
 
-A data model is useful for ensuring that source data are preserved, but [schemas](/strategies/curation) are better for 
+A data model is useful for ensuring that source data are preserved, but [schemas](curation.md) are better for 
 defining data and ensuring validation and compliance with research objectives.
 
 Getting from a data model to a schema definition is straightforward:
@@ -209,7 +209,7 @@ schema_source = qd.SchemaDefinition()
 schema_source.derive_model(data=datasource.get)
 ```
 
-If you review the [Field operations](/api/field) you'll see you can now access the individual fields and apply 
+If you review the [Field operations](../api/field.md) you'll see you can now access the individual fields and apply 
 constraints and defaults.
 
 Here's how you'd derive categorical terms from a data model column:
@@ -225,7 +225,7 @@ This will identify all the unique terms in that table column and assign them as 
 You can also specify them `as_bool` (where terms are `[True, False]`), or you can treat terms `as_array`, where a row 
 may be assigned a list of categorical terms.
 
-An example of both of these types of categorical terms is explained in one of the [worked tutorials](/tutorials/tutorial1).
+An example of both of these types of categorical terms is explained in one of the [worked tutorials](../tutorials/tutorial1.md).
 
 | la_code  | ba_ref       | occupant_name | postcode | occupation_state | occupation_state_date | prop_ba_rates | occupation_state_reliefs |
 |:---------|:-------------|:--------------|:-------- |:-----------------|:----------------------|:--------------|:-------------------------|
@@ -355,5 +355,5 @@ datasource.get_citation()
  'licence': 'Attribution 4.0 International (CC BY 4.0)'}
 ```
 
-This `citation` support is available in all `Definitions`, including [SchemaDefinition](/api/schema), 
-[CrosswalkDefinition](/api/crosswalk), [TransformDefinition](/api/transform), and [DataSourceDefinition](/api/datasource).
+This `citation` support is available in all `Definitions`, including [SchemaDefinition](../api/schema.md), 
+[CrosswalkDefinition](../api/crosswalk.md), [TransformDefinition](../api/transform.md), and [DataSourceDefinition](../api/datasource.md).

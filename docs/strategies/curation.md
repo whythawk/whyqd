@@ -240,7 +240,7 @@ data. **whyqd** uses a variation of JSON Schema, called [Table Schema](https://s
 }
 ```
 
-**whyqd's** [schema definitions](/strategies/schema) show you how to create, or derive, a schema to reflect source data.
+**whyqd's** [schema definitions](schema.md) show you how to create, or derive, a schema to reflect source data.
 
 ## Auditable data transformation
 
@@ -257,9 +257,8 @@ of all source data.
 Researchers may disagree on conclusions derived from analytical results. What they should not have cause for 
 disagreement on is the probity of the underlying data used to produce those analytical results.
 
-The strategy guides for [schemas](/strategies/schema), [data sources](/strategies/datasource), 
-[crosswalks](/strategies/crosswalk), and [transforms](/strategies/transform) cover the process for transforming source 
-data to conform to a base schema, crosswalks, and transformation and validation.
+The strategy guides for [schemas](schema.md), [data sources](datasource.md), and [crosswalks](crosswalk.md) cover the 
+process for transforming source data to conform to a base schema, crosswalks, and transformation and validation.
 
 ## Data structure and machine-readable standards
 
@@ -276,12 +275,12 @@ Spreadsheets and distributed data systems often lack an agreed data structure. A
 with other data first needs to normalise it and then decide on standardised terms to define the columns and data-types 
 in those columns.
 
-![A typical "human-readable" structured table of data](https://raw.githubusercontent.com/whythawk/whyqd/master/docs/images/undp-hdi-2007-8-demographic-trends.jpg)
+![A typical "human-readable" structured table of data](../images/undp-hdi-2007-8-demographic-trends.jpg)
 
 Converting semi-structured tabular data into a typical machine-readable format results in the comma-separated-value 
 (CSV) file. These are tabular files with a header row which defines each of the data in the columns and rows below.
 
-![A CSV-structured table of data](https://raw.githubusercontent.com/whythawk/whyqd/master/docs/images/synthetic-patient-data.jpg)
+![A CSV-structured table of data](../images/synthetic-patient-data.jpg)
 
 Ignoring any further standards compliance, CSV files can be so arranged that they are "joined" on a common column. For 
 example, a set of geospatial coordinates can be used to connect a number of similar files covering different data 

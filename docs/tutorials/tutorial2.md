@@ -32,7 +32,7 @@ from the way people need to see or use it.
     or left-to-right, depending on language).
 
     This often means you need to 
-    [pivot data from wide- to long- formats, and vice versa.](/strategies/curation/#requirements-for-machine-readable-tabular-data)
+    [pivot data from wide- to long- formats, and vice versa.](../strategies/curation.md#requirements-for-machine-readable-tabular-data)
 
 One of the most obvious uses for wide-format data is for visualisation. Libraries like [D3.js](https://d3js.org/) expect
 data-series in lists. The World Bank has gotten into the habit of making their open data for their time-series data wide.
@@ -57,7 +57,7 @@ There is an additional problem. Country names.
     **Good practice** is to treat country names as categorical data so that you can rematch as required without needing
     an additional post-transformation step.
 
-We won't be doing that here, merely to keep the tutorial shorter (you can review [the first tutorial](tutorials/tutorial1)
+We won't be doing that here, merely to keep the tutorial shorter (you can review [the first tutorial](tutorial1.md)
 for guidance on categorical data assignment). We have a `country_code` field which does keep things ordered, so the 
 `country_name` field is mostly a human-aid. 
 
@@ -74,7 +74,7 @@ We want our destination data to conform to the following structure:
 | SP.URB.TOTL    | Urban population | AGO          | Angola         | 1960 | 569222 |
 | SP.URB.TOTL    | Urban population | ALB          | Albania        | 1960 | 493982 |
 
-Review the [schema documentation](/strategies/schema) for more details, but these are the `type` of data we need:
+Review the [schema documentation](../strategies/schema.md) for more details, but these are the `type` of data we need:
 
 - `string`: any text-based string.
 - `number`: any number-based value, including integers and floats.
@@ -161,7 +161,7 @@ We'll reference this definition as `SCHEMA_DESTINATION` in the rest of the tutor
 
 There's a set of challenges when you review the source data:
 
-![Semi-structured World Bank source data](https://raw.githubusercontent.com/whythawk/whyqd/master/docs/images/world-bank-urban-population.jpg)
+![Semi-structured World Bank source data](../images/world-bank-urban-population.jpg)
 
 The `header row` doesn't start at `index 0`. It starts at `index 3`. Oh, and there are multiple tabs with additional
 contextual metadata on each. We won't use that in this tutorial, but it's not irrelevant.

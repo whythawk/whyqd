@@ -21,10 +21,10 @@ Your workflow is:
 6. Share your output data, transform definitions, and a citation.
 
 !!! abstract "Quick links"
-    - [Define a schema model](/api/schema)
-    - [Derive a schema from a datasource](/api/datasource)
-    - [Define a crosswalk to link source to destination](/api/crosswalk)
-    - [Process your transform](/api/transform)
+    - [Define a schema model](api/schema.md)
+    - [Derive a schema from a datasource](api/datasource.md)
+    - [Define a crosswalk to link source to destination](api/crosswalk.md)
+    - [Process your transform](api/transform.md)
 
 ## Define a schema model
 
@@ -101,14 +101,14 @@ schema_destination.save()
 ```
 
 !!! abstract "Strategy quick links"
-    - [Schema](/strategies/schema)
-    - [Fields](/api/field)
+    - [Schema](strategies/schema.md)
+    - [Fields](api/field.md)
 
 ## Derive a source schema from data
 
 Assume we have multiple data sources with a variety of formats. One could be this:
 
-![Semi-ideal primary source data](https://raw.githubusercontent.com/whythawk/whyqd/master/docs/images/ideal-primary-data.png)
+![Semi-ideal primary source data](images/ideal-primary-data.png)
 
 We import it from `DATASOURCE_PATH`, define its `MIMETYPE`, and derive a schema:
 
@@ -147,7 +147,7 @@ This will identify all the unique terms in that table column and assign them as 
     yet have official mimetypes, so this is what we're using for now.
 
 !!! abstract "Strategy quick links"
-    - [Datasource](/strategies/datasource)
+    - [Datasource](strategies/datasource.md)
 
 ## Crosswalk scripting language
 
@@ -165,22 +165,22 @@ All scripts are written as a text string conforming to a standardised template:
 Actions use similar naming conventions as for R's [Tidyr](https://tidyr.tidyverse.org/articles/tidy-data.html). Each 
 has definitions and examples you can review:
 
-| Action                                        | `>` Field | `>` Term | `<` Term | `<` Field | `<` Rows |
-|:--------------------------------------------- |:---------:|:--------:|:--------:|:---------:|:--------:|
-| [CALCULATE](/actions/calculate)               | X         |          |          | [m X,]    |          |
-| [CATEGORISE](/actions/categorise)             | X         | X        | [X,]     | X         |          |
-| [DEBLANK](/actions/deblank)                   |           |          |          |           |          |
-| [DEDUPE](/actions/dedupe)                     |           |          |          |           |          |
-| [DELETE_ROWS](/actions/delete_rows)           |           |          |          |           | [X,]     |
-| [NEW](/actions/new)                           |           |          | [X]      |           |          |
-| [PIVOT_CATEGORIES](/actions/pivot_categories) | X         |          |          | X         | [X,]     |
-| [PIVOT_LONGER](/actions/pivot_longer)         | [X, X]    |          |          | [X,]      |          |
-| [RENAME](/actions/rename)                     | X         |          |          | [X]       |          |
-| [SELECT](/actions/select)                     | X         |          |          | [X,]      |          |
-| [SELECT_NEWEST](/actions/select_newest)       | X         |          |          | [X m X,]  | X        |
-| [SELECT_OLDEST](/actions/select_oldest)       | X         |          |          | [X m X,]  |          |
-| [SEPARATE](/actions/separate)                 | [X,]      |          | X        | [X]       |          |
-| [UNITE](/actions/unite)                       | X         |          | X        | [X,]      |          |
+| Action                                          | `>` Field | `>` Term | `<` Term | `<` Field | `<` Rows |
+|:----------------------------------------------- |:---------:|:--------:|:--------:|:---------:|:--------:|
+| [CALCULATE](actions/calculate.md)               | X         |          |          | [m X,]    |          |
+| [CATEGORISE](actions/categorise.md)             | X         | X        | [X,]     | X         |          |
+| [DEBLANK](actions/deblank.md)                   |           |          |          |           |          |
+| [DEDUPE](actions/dedupe.md)                     |           |          |          |           |          |
+| [DELETE_ROWS](actions/delete_rows.md)           |           |          |          |           | [X,]     |
+| [NEW](actions/new.md)                           |           |          | [X]      |           |          |
+| [PIVOT_CATEGORIES](actions/pivot_categories.md) | X         |          |          | X         | [X,]     |
+| [PIVOT_LONGER](actions/pivot_longer.md)         | [X, X]    |          |          | [X,]      |          |
+| [RENAME](actions/rename.md)                     | X         |          |          | [X]       |          |
+| [SELECT](actions/select.md)                     | X         |          |          | [X,]      |          |
+| [SELECT_NEWEST](actions/select_newest.md)       | X         |          |          | [X m X,]  | X        |
+| [SELECT_OLDEST](actions/select_oldest.md)       | X         |          |          | [X m X,]  |          |
+| [SEPARATE](actions/separate.md)                 | [X,]      |          | X        | [X]       |          |
+| [UNITE](actions/unite.md)                       | X         |          | X        | [X,]      |          |
 
 Here:
 
@@ -221,7 +221,7 @@ crosswalk.save()
 ```
 
 !!! abstract "Strategy quick links"
-    - [Crosswalk](/strategies/crosswalk)
+    - [Crosswalk](strategies/crosswalk.md)
 
 ## Transforms and validations
 
@@ -246,4 +246,4 @@ valiform.validate(
 The code itself is relatively trivial. Where you need to spend time is in internalising the techniques you need to 
 write concise crosswalk scripts.
 
-You can continue from here with learning [curation strategies](/strategies/curation) and then reviewing the APIs.
+You can continue from here with learning [curation strategies](strategies/curation.md) and then reviewing the APIs.

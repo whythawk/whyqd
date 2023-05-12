@@ -15,9 +15,9 @@ if TYPE_CHECKING:
 
 class CRUDAction(CRUDBase[ActionScriptModel]):
     """Create, Read, Update and Delete Field Models. Usually instantiated as part of a
-    [CrosswalkDefinition](/api/crosswalk) and accessed as `.actions`.
+    [CrosswalkDefinition](crosswalk.md) and accessed as `.actions`.
 
-    [Base CRUD operations](/api/basecrud) are common for both `CRUDField` and `CRUDAction`.
+    [Base CRUD operations](basecrud.md) are common for both `CRUDField` and `CRUDAction`.
 
     Example:
       ```python
@@ -40,8 +40,8 @@ class CRUDAction(CRUDBase[ActionScriptModel]):
       ```
 
     Parameters:
-      schema_source: A [SchemaDefinition](/api/schema) for access to source schema definitions and operations.
-      schema_destination: A [SchemaDefinition](/api/schema) for access to destination schema definitions and operations.
+      schema_source: A [SchemaDefinition](schema.md) for access to source schema definitions and operations.
+      schema_destination: A [SchemaDefinition](schema.md) for access to destination schema definitions and operations.
     """
 
     def __init__(self, *, schema_source: SchemaDefinition = None, schema_destination: SchemaDefinition = None):
@@ -230,8 +230,8 @@ class CRUDAction(CRUDBase[ActionScriptModel]):
         """Set SchemaDefinitions.
 
         Parameters:
-          schema_source: A [SchemaDefinition](/api/schema) for access to source schema definitions and operations.
-          schema_destination: A [SchemaDefinition](/api/schema) for access to destination schema definitions and operations.
+          schema_source: A [SchemaDefinition](schema.md) for access to source schema definitions and operations.
+          schema_destination: A [SchemaDefinition](schema.md) for access to destination schema definitions and operations.
         """
         if not schema_source or not schema_destination:
             raise ValueError("Schema for both source and destination has not been provided.")
@@ -267,7 +267,7 @@ class CRUDAction(CRUDBase[ActionScriptModel]):
           ValueError: If the script can't be parsed.
 
         Returns:
-          Parser for Action type, and used in [TransformDefinition](/api/transform) and [CrosswalkDefinition](/api/crosswalk).
+          Parser for Action type, and used in [TransformDefinition](transform.md) and [CrosswalkDefinition](crosswalk.md).
         """
         if not action:
             action = self.get_action(script=script)

@@ -44,7 +44,7 @@ countries meeting the MDG targets.
 These days it's a slick affair with beautifully-prepared open data in a standardised format. Back then open data was
 in its infancy, and these data were a constantly-changing mess of non-standard Excel spreadsheets.
 
-![UNDP Human Development Index 2007-2008](https://raw.githubusercontent.com/whythawk/whyqd/master/docs/images/undp-hdi-2007-8.jpg)
+![UNDP Human Development Index 2007-2008](../images/undp-hdi-2007-8.jpg)
 
 *UNDP Human Development Index 2007-2008: a beautiful example of messy data.*
 
@@ -128,7 +128,7 @@ We're going to want to preserve as much as possible, so we're going to define ev
 
 Notice that headers define a number of concepts simultaneously:
 
-![UNDP Human Development Index 2007-2008 composite header](https://raw.githubusercontent.com/whythawk/whyqd/master/docs/images/undp-hdi-composite-header.jpg)
+![UNDP Human Development Index 2007-2008 composite header](../images/undp-hdi-composite-header.jpg)
 
 *UNDP Human Development Index 2007-2008: composite header over multiple lines and columns*
 
@@ -321,7 +321,7 @@ transform_interim.save(directory=DIRECTORY)
 
 We save it since we'll need the interim data as an import.
 
-![Interim crosswalked data output](https://raw.githubusercontent.com/whythawk/whyqd/master/docs/images/world-bank-urban-population-interim.jpg)
+![Interim crosswalked data output](../images/world-bank-urban-population-interim.jpg)
 
 *UNDP Human Development Index 2007-2008: interim crosswalked data outpu*
 
@@ -355,7 +355,7 @@ crosswalk_destination.actions.add_multi(terms=schema_scripts)
 `UNITE` will join all the string terms in the `reference_columns` into the `reference` field. By default, this is
 comma-separated: `e, f, g`.
 
-`PIVOT_LONGER` you've seen before in the [second tutorial](/tutorials/tutorial2), but simply pivots all the wide-format
+`PIVOT_LONGER` you've seen before in the [second tutorial](tutorial2.md), but simply pivots all the wide-format
 headers into an `indicator_name` term, and their corresponding `values`.
 
 But ... we set up a clever twist for ourselves. Some of the new `indicator_name` terms can be split to extract the `year`

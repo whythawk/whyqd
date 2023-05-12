@@ -76,7 +76,7 @@ We want our destination data to conform to the following structure:
 |:---------|:-------------|:--------------|:-------- |:-----------------|:----------------------|:--------------|:-------------------------|
 |E06000044 | 177500080710 | A company     | PO5 2SE  | True             | 2019-04-01            | 98530         | [small_business, retail] |
 
-Review the [schema documentation](/strategies/schema) for more details, but these are the `type` of data we need here:
+Review the [schema documentation](../strategies/schema.md) for more details, but these are the `type` of data we need here:
 
 - `string`: any text-based string.
 - `number`: any number-based value, including integers and floats.
@@ -262,7 +262,7 @@ We'll reference this definition saved source path as `SCHEMA_DESTINATION` in the
 
 Portsmouth data are reasonably well-structured:
 
-![Semi-ideal primary source data](https://raw.githubusercontent.com/whythawk/whyqd/master/docs/images/ideal-primary-data.png)
+![Semi-ideal primary source data](../images/ideal-primary-data.png)
 
 However, once you import and derive its data model you'll discover a slight hiccough:
 

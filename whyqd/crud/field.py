@@ -9,9 +9,9 @@ from whyqd.dtypes import FieldType
 
 class CRUDField(CRUDBase[FieldModel]):
     """Create, Read, Update and Delete Field Models. Usually instantiated as part of a
-    [SchemaDefinition](/api/schema) and accessed as `.fields`.
+    [SchemaDefinition](schema.md) and accessed as `.fields`.
 
-    [Base CRUD operations](/api/basecrud) are common for both `CRUDField` and `CRUDAction`.
+    [Base CRUD operations](basecrud.md) are common for both `CRUDField` and `CRUDAction`.
 
     Example:
       ```python

@@ -12,7 +12,7 @@ class CrosswalkDefinition(BaseDefinition):
 
     !!! tip "Strategy"
         Guidance on how to use this definition is in the strategies section on
-        [Crosswalk Strategies](/strategies/crosswalk).
+        [Crosswalk Strategies](../strategies/crosswalk.md).
 
     Parameters:
       crosswalk: A dictionary conforming to the CrosswalkModel, or a path to a saved definition.
@@ -108,7 +108,7 @@ class CrosswalkDefinition(BaseDefinition):
 
     @property
     def actions(self) -> CRUDAction:
-        """Returns the active crud model for all Action operations. See [Action CRUD](/api/action) for API.
+        """Returns the active crud model for all Action operations. See [Action CRUD](action.md) for API.
 
         Returns:
           For all Action CRUD behaviours.

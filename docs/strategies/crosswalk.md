@@ -10,7 +10,7 @@ tags: wrangling, crosswalks, curation
 
 !!! quote "Definition"
     Crosswalks are mappings of the relationships between fields defined in different metadata 
-    [schemas](/strategies/schema). Ideally, these are one-to-one, where a field in one has an exact match in
+    [schemas](schema.md). Ideally, these are one-to-one, where a field in one has an exact match in
     the other. In practice, it's more complicated than that.
 
 **whyqd** (/wɪkɪd/) reduces crosswalks to a series of action scripts, each defining an individual step which must be 
@@ -64,8 +64,8 @@ Actions are a wrapper around the underlying Pandas API.
     ```
 
 !!! abstract "API"
-    Review the `class` API definitions: [CrosswalkDefinition](/api/schema), [CRUDAction](/api/action) and 
-    [TransformDefinition](/api/transform).
+    Review the `class` API definitions: [CrosswalkDefinition](../api/schema.md), [CRUDAction](../api/action.md) and 
+    [TransformDefinition](../api/transform.md).
 
 ### Strategy & purpose for crosswalk transforms
 
@@ -88,12 +88,12 @@ When you look at source data, do so with an eye to **structure** and not **analy
 - Are categorical terms defined as sub-header data rows instead of as independent fields?
 - Are values overloaded, containing both quantitative and qualitative data (such as a term and a date)?
 - Has contextual information been included as redundant rows above or below your data?
-- Are your data [wide or long](/strategies/curation/#long-vs-wide-data-formats-for-archival-and-presentation)?
+- Are your data [wide or long](curation.md#long-vs-wide-data-formats-for-archival-and-presentation)?
 
 When data are particularly messy, don't try and go straight to your final schema. First transform your source into an 
 **interim** form which supports its actual structure.
 
-![UNDP Human Development Index 2007-2008](https://raw.githubusercontent.com/whythawk/whyqd/master/docs/images/undp-hdi-2007-8.jpg)
+![UNDP Human Development Index 2007-2008](../images/undp-hdi-2007-8.jpg)
 
 This spreadsheet is in **wide** format. Creating a crosswalk to get it into a well-behaved interim form will make 
 pivoting into a **long** form *much* easier.
@@ -105,22 +105,22 @@ pivoting into a **long** form *much* easier.
 Actions use similar naming conventions as for R's [Tidyr](https://tidyr.tidyverse.org/articles/tidy-data.html) and
 should be self-explanatory. Each has definitions and examples you can review:
 
-| Action                                        | `>` Field | `>` Term | `<` Term | `<` Field | `<` Rows |
-|:--------------------------------------------- |:---------:|:--------:|:--------:|:---------:|:--------:|
-| [CALCULATE](/actions/calculate)               | X         |          |          | [m X,]    |          |
-| [CATEGORISE](/actions/categorise)             | X         | X        | [X,]     | X         |          |
-| [DEBLANK](/actions/deblank)                   |           |          |          |           |          |
-| [DEDUPE](/actions/dedupe)                     |           |          |          |           |          |
-| [DELETE_ROWS](/actions/delete_rows)           |           |          |          |           | [X,]     |
-| [NEW](/actions/new)                           |           |          | [X]      |           |          |
-| [PIVOT_CATEGORIES](/actions/pivot_categories) | X         |          |          | X         | [X,]     |
-| [PIVOT_LONGER](/actions/pivot_longer)         | [X, X]    |          |          | [X,]      |          |
-| [RENAME](/actions/rename)                     | X         |          |          | [X]       |          |
-| [SELECT](/actions/select)                     | X         |          |          | [X,]      |          |
-| [SELECT_NEWEST](/actions/select_newest)       | X         |          |          | [X m X,]  | X        |
-| [SELECT_OLDEST](/actions/select_oldest)       | X         |          |          | [X m X,]  |          |
-| [SEPARATE](/actions/separate)                 | [X,]      |          | X        | [X]       |          |
-| [UNITE](/actions/unite)                       | X         |          | X        | [X,]      |          |
+| Action                                             | `>` Field | `>` Term | `<` Term | `<` Field | `<` Rows |
+|:-------------------------------------------------- |:---------:|:--------:|:--------:|:---------:|:--------:|
+| [CALCULATE](../actions/calculate.md)               | X         |          |          | [m X,]    |          |
+| [CATEGORISE](../actions/categorise.md)             | X         | X        | [X,]     | X         |          |
+| [DEBLANK](../actions/deblank.md)                   |           |          |          |           |          |
+| [DEDUPE](../actions/dedupe.md)                     |           |          |          |           |          |
+| [DELETE_ROWS](../actions/delete_rows.md)           |           |          |          |           | [X,]     |
+| [NEW](../actions/new.md)                           |           |          | [X]      |           |          |
+| [PIVOT_CATEGORIES](../actions/pivot_categories.md) | X         |          |          | X         | [X,]     |
+| [PIVOT_LONGER](../actions/pivot_longer.md)         | [X, X]    |          |          | [X,]      |          |
+| [RENAME](../actions/rename.md)                     | X         |          |          | [X]       |          |
+| [SELECT](../actions/select.md)                     | X         |          |          | [X,]      |          |
+| [SELECT_NEWEST](../actions/select_newest.md)       | X         |          |          | [X m X,]  | X        |
+| [SELECT_OLDEST](../actions/select_oldest.md)       | X         |          |          | [X m X,]  |          |
+| [SEPARATE](../actions/separate.md)                 | [X,]      |          | X        | [X]       |          |
+| [UNITE](../actions/unite.md)                       | X         |          | X        | [X,]      |          |
 
 Here:
 
@@ -151,9 +151,9 @@ specific.
 
     There are three worked tutorials that guide you through three typical scenarios, and you may find them helpful:
 
-    - [Aligning multiple sources of local government data to a single schema](/tutorials/tutorial1)
-    - [Pivoting wide-format data into archival long-format](/tutorials/tutorial2)
-    - [Wrangling Cthulhu data without losing your mind](/tutorials/tutorial3)
+    - [Aligning multiple sources of local government data to a single schema](../tutorials/tutorial1.md)
+    - [Pivoting wide-format data into archival long-format](../tutorials/tutorial2.md)
+    - [Wrangling Cthulhu data without losing your mind](../tutorials/tutorial3.md)
 
 ## Continuous Integration and automating crosswalks
 
@@ -186,7 +186,7 @@ Your workflow is:
 3. Review the data structure and develop a crosswalk,
 4. Transform and validate your outputs.
 
-There is a complete [tutorial](/tutorials/tutorial2), and we'll focus only on the last two steps.
+There is a complete [tutorial](../tutorials/tutorial2.md), and we'll focus only on the last two steps.
 
 Assume the list of `year` headers is `HEADER_YEARS`. Your crosswalk scripts are:
 

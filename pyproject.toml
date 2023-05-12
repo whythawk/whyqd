@@ -62,4 +62,4 @@ line-length = 120
 target-version = ["py38"]
 
 [tool.poetry.extras]
-docs = ["Sphinx"]
+docs = ["MKDocs"]

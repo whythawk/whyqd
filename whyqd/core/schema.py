@@ -11,7 +11,7 @@ class SchemaDefinition(BaseDefinition):
 
     !!! tip "Strategy"
         Guidance on how to use this definition is in the strategies section on
-        [Schema Strategies](/strategies/schema).
+        [Schema Strategies](../strategies/schema.md).
 
     Parameters:
       source: A path to a json file containing a saved schema, or a dictionary conforming to the SchemaModel.
@@ -76,7 +76,7 @@ class SchemaDefinition(BaseDefinition):
 
     @property
     def fields(self) -> CRUDField:
-        """Returns the active crud model for all Field operations. See [Field CRUD](/api/field) for API.
+        """Returns the active crud model for all Field operations. See [Field CRUD](field.md) for API.
 
         Returns:
           For all Field CRUD behaviours.
