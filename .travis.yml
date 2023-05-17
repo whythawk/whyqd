@@ -8,8 +8,8 @@ before_install:
   - sudo apt-get update
   - curl -sSL https://install.python-poetry.org | python3 -
 install:
-  - travis_wait 20 poetry install
-  - poetry shell
+  - poetry install
+  - travis_wait 20 poetry shell
 # command to run tests
 script:
-  - pytest
+  - travis_wait 20 pytest
