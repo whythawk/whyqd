@@ -2038,7 +2038,7 @@ docs = []
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.8.1,<4.0"
-content-hash = "79c0d5784b58b66b71b4368504c045686ffb8cb329a8800f74c8cb5a9ec65a82"
+content-hash = "d194221cf64f4a1124284dab23593101d28a010de7e65a81efa4a3838e038956"
 
 [metadata.files]
 aiofiles = [
