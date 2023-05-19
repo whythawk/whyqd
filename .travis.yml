@@ -1,4 +1,4 @@
-sudo: required
+dist: xenial
 language: python
 python:
   - 3.8
@@ -8,10 +8,8 @@ before_install:
   - sudo apt-get update
   - curl -sSL https://install.python-poetry.org | python3 -
 install:
-  - "travis_wait 30 sleep 1800 &"
-  - poetry install
+  - poetry install -vv
   - poetry shell
 # command to run tests
 script:
-  - "travis_wait 30 sleep 1800 &"
   - pytest
