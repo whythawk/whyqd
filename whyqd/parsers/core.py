@@ -6,6 +6,8 @@ import sys
 import hashlib
 from urllib.parse import urlparse
 import urllib
+import posixpath
+from uuid import uuid4
 from datetime import date, datetime
 from pathlib import Path, PurePath
 import modin.pandas as pd
@@ -161,6 +163,13 @@ class CoreParser:
         request = urllib.request.Request(source, method="HEAD")
         request = urllib.request.urlopen(request).info()
         filename = request.get_filename()
+        if not filename:
+            #  https://stackoverflow.com/a/11783319/295606
+            source_path = urllib.request.urlsplit(source).path
+            filename = posixpath.basename(source_path)
+        if not filename:
+            # Make something up ...
+            filename = f"temporary-{uuid4()}"
         if not directory:
             directory = self.default_directory
         local_source = Path(directory) / filename
