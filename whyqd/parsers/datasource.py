@@ -5,6 +5,8 @@ from datetime import date, datetime
 import pandas as _pd
 import modin.pandas as pd
 import numpy as np
+from pyarrow.parquet import ParquetFile
+import pyarrow as pa
 import re
 import locale
 import ast
@@ -75,8 +77,14 @@ class DataSourceParser:
             df = pd.concat(df_iterator, ignore_index=True)
         return df
 
-    def read_parquet(self, *, source: str | Path, **kwargs) -> pd.DataFrame:
+    def read_parquet(self, *, source: str | Path, nrows: int | None = None, **kwargs) -> pd.DataFrame:
         # https://pandas.pydata.org/docs/reference/api/pandas.read_parquet.html
+        if nrows:
+            # https://stackoverflow.com/a/69888274/295606
+            pf = ParquetFile(str(source))
+            pf = next(pf.iter_batches(batch_size=nrows))
+            # https://arrow.apache.org/docs/python/generated/pyarrow.Table.html#pyarrow.Table.to_pandas
+            return pa.Table.from_batches([pf]).to_pandas(**kwargs)
         ray_start()
         if "engine" not in kwargs:
             kwargs["engine"] = "pyarrow"
@@ -161,7 +169,7 @@ class DataSourceParser:
         # These, currently, don't accept any additional parameters.
         mimetype = self.get_mimetype(mimetype=mimetype)
         if mimetype in [MimeType.PRQ, MimeType.PARQUET]:
-            return self.read_parquet(source=source, **kwargs)
+            return self.read_parquet(source=source, nrows=nrows, **kwargs)
         if mimetype in [MimeType.FTR, MimeType.FEATHER]:
             return self.read_feather(source=source, **kwargs)
         # If the dtypes have not been set, then ensure that any provided preserved columns remain untouched
