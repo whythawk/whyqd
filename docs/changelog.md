@@ -3,10 +3,14 @@ title: Change log
 summary: Version history, including for legacy versions.
 authors:
   - Gavin Chait
-date: 2023-05-03
+date: 2023-07-05
 tags: wrangling, crosswalks, versions
 ---
 # Change log
+
+## Version 1.0.1 (2023-07-05)
+
+- Permitting `nrow` limit on Parquet files.
 
 ## Version 1.0.0 (2023-05-10)
 
