@@ -8,6 +8,10 @@ tags: wrangling, crosswalks, versions
 ---
 # Change log
 
+## Version 1.0.2 (2023-07-05)
+
+- Dependency updates.
+
 ## Version 1.0.1 (2023-07-05)
 
 - Permitting `nrow` limit on Parquet files.

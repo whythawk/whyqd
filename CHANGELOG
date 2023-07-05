@@ -1,3 +1,4 @@
+- 1.0.2: Dependency updates.
 - 1.0.1: Permitting `nrow` limit on Parquet files.
 - 1.0.0: Complete refactor with breaking changes. See documentation changelog.
 - 0.6.2: Fix for parsing ambiguity errors, plus Excel row-count exceeded on save.
