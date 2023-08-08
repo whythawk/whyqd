@@ -3,10 +3,14 @@ title: Change log
 summary: Version history, including for legacy versions.
 authors:
   - Gavin Chait
-date: 2023-08-07
+date: 2023-08-08
 tags: wrangling, crosswalks, versions
 ---
 # Change log
+
+## Version 1.0.4 (2023-08-08)
+
+- Ambiguity checks for string blank space. If source data includes, should not be removed to preserve original structure.
 
 ## Version 1.0.3 (2023-08-07)
 
