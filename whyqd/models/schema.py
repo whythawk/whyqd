@@ -37,7 +37,7 @@ class SchemaModel(BaseModel):
     version: List[VersionModel] = Field(default=[], description="Version and update history for the schema.")
 
     class Config:
-        anystr_strip_whitespace = True
+        # anystr_strip_whitespace = True
         validate_assignment = True
 
     @validator("name")

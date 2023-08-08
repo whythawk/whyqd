@@ -39,7 +39,7 @@ class CitationModel(BaseModel):
     note: Optional[str] = Field(None, description="Miscellaneous extra information.")
 
     class Config:
-        anystr_strip_whitespace = True
+        # anystr_strip_whitespace = True
         validate_assignment = True
 
     @validator("month")

@@ -118,6 +118,9 @@ class CategoryParser:
             if not category:
               category = self.parser.get_literal(text=parsed["category"])
               category = self.schema_source.fields.get_category(name=source.uuid.hex, category=category)
+              if category:
+                # Check for same name
+                category = self.schema_destination.fields.get_category(name=destination.uuid.hex, category=category.name)
         if not destination and category:
             raise ValueError(
                 f"Destination field and category are not valid for this category action script ({parsed['destination']}, {parsed['category']})."

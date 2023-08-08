@@ -9,7 +9,7 @@ class ModifierModel(BaseModel):
     class Config:
         validate_assignment = True
         use_enum_values = True
-        anystr_strip_whitespace = True
+        # anystr_strip_whitespace = True
 
     @validator("name")
     def check_name(cls, v):

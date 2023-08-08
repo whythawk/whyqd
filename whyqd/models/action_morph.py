@@ -16,7 +16,7 @@ class MorphActionModel(BaseModel):
 
     class Config:
         use_enum_values = True
-        anystr_strip_whitespace = True
+        # anystr_strip_whitespace = True
         validate_assignment = True
 
     @validator("structure")
