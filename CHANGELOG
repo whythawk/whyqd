@@ -1,3 +1,5 @@
+- 1.0.5: Additional ambiguity checks for category term edge case where source or destination fields can share category names.
+- 1.0.4: Ambiguity checks for string blank space. If source data includes, should not be removed to preserve original structure.
 - 1.0.3: Disambiguation where schema subject and object field categories have the same name.
 - 1.0.2: Dependency updates.
 - 1.0.1: Permitting `nrow` limit on Parquet files.

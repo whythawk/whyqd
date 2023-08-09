@@ -8,6 +8,10 @@ tags: wrangling, crosswalks, versions
 ---
 # Change log
 
+## Version 1.0.5 (2023-08-09)
+
+- Additional ambiguity checks for category term edge case where source or destination fields can share category names.
+
 ## Version 1.0.4 (2023-08-08)
 
 - Ambiguity checks for string blank space. If source data includes, should not be removed to preserve original structure.

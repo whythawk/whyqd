@@ -93,7 +93,7 @@ class CategoryParser:
                 failed = []
                 assigned_uniques = self.get_assigned_uniques(text=parsed["source_category"])
                 for c in assigned_uniques:
-                    category = self.schema_source.fields.get_category(name=source.uuid.hex, category=c)
+                    category = self.get_schema_field_category(field=source, term=c, is_source=True)
                     if category:
                         assigned.append(category)
                     elif not category and isinstance(c, bool) and len(assigned_uniques) == 1:
@@ -112,15 +112,8 @@ class CategoryParser:
         destination = self.parser.get_literal(text=parsed["destination"])
         destination = self.schema_destination.fields.get(name=destination)
         if parsed.get("category"):
-            category = self.parser.get_literal(text=parsed["category"])
-            category = self.schema_destination.fields.get_category(name=destination.uuid.hex, category=category)
-            # Disambiguation step ... source and destination can have identical category names
-            if not category:
-              category = self.parser.get_literal(text=parsed["category"])
-              category = self.schema_source.fields.get_category(name=source.uuid.hex, category=category)
-              if category:
-                # Check for same name
-                category = self.schema_destination.fields.get_category(name=destination.uuid.hex, category=category.name)
+            parsed_category = self.parser.get_literal(text=parsed["category"])
+            category = self.get_schema_field_category(field=destination, term=parsed_category, is_source=False)
         if not destination and category:
             raise ValueError(
                 f"Destination field and category are not valid for this category action script ({parsed['destination']}, {parsed['category']})."
@@ -190,6 +183,50 @@ class CategoryParser:
         self.schema_source = schema_source
         self.schema_destination = schema_destination
 
+
+    def get_schema_field_category(self, *, field: FieldModel, term: str, is_source: bool = True) -> CategoryModel | None:
+        """
+        Recover a field category model from a string. It is possible that source and destination schema category share 
+        a common name, so we need to check all possibilities.
+
+        Parameters
+        ----------
+        field: FieldModel
+        term: str
+        is_source: bool
+            Boolean True for source schema, False for destination schema
+
+        Returns
+        -------
+        CategoryModel | None
+        """
+        if not field:
+            return None
+        schema = self.schema_destination
+        alt_schema = self.schema_source
+        if is_source:
+            schema = self.schema_source
+            alt_schema = self.schema_destination
+        category = schema.fields.get_category(name=field.uuid.hex, category=term)
+        # Disambiguation step ...
+        if not category:
+            # Any schema field
+            for schema_field in schema.fields.get_all():
+                if schema_field.constraints and schema_field.constraints.category:
+                    category = alt_schema.fields.get_category(name=schema_field.uuid.hex, category=term)
+                    if category:
+                        category = schema.fields.get_category(name=field.uuid.hex, category=category.name)
+                        break
+        if not category:
+            # Any alt schema field
+            for schema_field in alt_schema.fields.get_all():
+                if schema_field.constraints and schema_field.constraints.category:
+                    category = alt_schema.fields.get_category(name=schema_field.uuid.hex, category=term)
+                    if category:
+                        category = schema.fields.get_category(name=field.uuid.hex, category=category.name)
+                        break
+        return category
+
     def get_schema_field(self, *, term: str, is_source: bool = True) -> FieldModel:
         """
         Recover a field model from a string. It is possible that source and destination schema share a common name,
@@ -199,7 +236,7 @@ class CategoryParser:
         Parameters
         ----------
         term: str
-        is_course: bool
+        is_source: bool
             Boolean True for source schema, False for destination schema
 
         Raises
