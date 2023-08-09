@@ -8,6 +8,10 @@ tags: wrangling, crosswalks, versions
 ---
 # Change log
 
+## Version 1.0.7 (2023-08-09)
+
+- Minor fix.
+
 ## Version 1.0.6 (2023-08-09)
 
 - Minor fix.

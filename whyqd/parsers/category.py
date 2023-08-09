@@ -73,10 +73,12 @@ class CategoryParser:
         dict
             Parsed dictionary of an initialised category action script.
         """
-        # Will hex both fields and category terms ...
+        # [CHANGE] Will hex both fields and category terms ...
         if not self.schema_source or not self.schema_destination:
             raise ValueError("Schema for both source and destination has not been provided.")
-        script = self.get_hexed_script(script=script)
+        # Too many edge cases ... cannot resolve this in a satisfactory way ... 
+        # Going to have to hope text issues don't emerge
+        # script = self.get_hexed_script(script=script)
         parsed = action.parse(script=script)
         # Validate the category script and get the required compone
         destination, category, source, assigned, unassigned = None, None, None, None, None
