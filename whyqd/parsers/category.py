@@ -213,7 +213,7 @@ class CategoryParser:
             # Any schema field
             for schema_field in schema.fields.get_all():
                 if schema_field.constraints and schema_field.constraints.category:
-                    category = alt_schema.fields.get_category(name=schema_field.uuid.hex, category=term)
+                    category = schema.fields.get_category(name=schema_field.uuid.hex, category=term)
                     if category:
                         category = schema.fields.get_category(name=field.uuid.hex, category=category.name)
                         break

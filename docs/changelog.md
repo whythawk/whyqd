@@ -3,10 +3,14 @@ title: Change log
 summary: Version history, including for legacy versions.
 authors:
   - Gavin Chait
-date: 2023-08-08
+date: 2023-08-09
 tags: wrangling, crosswalks, versions
 ---
 # Change log
+
+## Version 1.0.6 (2023-08-09)
+
+- Minor fix.
 
 ## Version 1.0.5 (2023-08-09)
 
