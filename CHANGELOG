@@ -1,3 +1,4 @@
+- 1.0.8: CategoryModel terms now use StrictBool to avoid Pydantic's liberal interpretation of booleans.
 - 1.0.7: Minor fix.
 - 1.0.6: Minor fix.
 - 1.0.5: Additional ambiguity checks for category term edge case where source or destination fields can share category names.

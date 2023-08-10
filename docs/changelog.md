@@ -3,10 +3,14 @@ title: Change log
 summary: Version history, including for legacy versions.
 authors:
   - Gavin Chait
-date: 2023-08-09
+date: 2023-08-10
 tags: wrangling, crosswalks, versions
 ---
 # Change log
+
+## Version 1.0.8 (2023-08-10)
+
+- CategoryModel terms now use StrictBool to avoid Pydantic's liberal interpretation of booleans.
 
 ## Version 1.0.7 (2023-08-09)
 
