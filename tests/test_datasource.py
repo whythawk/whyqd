@@ -5,6 +5,7 @@ import whyqd as qd
 from whyqd.parsers import CoreParser
 
 DIRECTORY = Path(__file__).resolve().parent / "data"
+BASE_DIRECTORY = f"{Path('__file__').resolve().parent}/"
 DATA = {
     "SINGLE": DIRECTORY / "raw_E06000044_014_0.XLSX",
     "MULTI": DIRECTORY / "raw_multi_E06000044_014.xlsx",
@@ -35,6 +36,9 @@ class TestDataSource:
         # Consistency
         d = datasource.exclude_uuid(model=datasource.get)
         D = datasource.exclude_uuid(model=MODEL["SINGLE"])
+        # Using relative paths for test, so adjust accordingly
+        d["path"] = d["path"].replace(BASE_DIRECTORY, "")
+        D["path"] = D["path"].replace(BASE_DIRECTORY, "")
         assert d == D
 
     def test_load_single(self):

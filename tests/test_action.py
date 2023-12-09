@@ -4,7 +4,7 @@ import whyqd as qd
 from whyqd.parsers import CoreParser
 
 CORE = CoreParser()
-SOURCE_DIRECTORY = Path(__file__).resolve().parent / "data"
+SOURCE_DIRECTORY = Path(__file__).resolve(strict=True).parent / "data"
 # CTHULHU
 # World Bank Human Development Report 2007 - 2008 in Cthulhu format. Demonstrate define a schema,
 # create a method, import data, perform actions and generate a schema-compliant output.
