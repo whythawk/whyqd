@@ -45,7 +45,8 @@ pip-log.txt
 ###############################
 __pycache__/
 .pytest_cache/
-deprecated/
+variations/
+data/
 site/
 .ipynb_checkpoints/
 *.ipynb

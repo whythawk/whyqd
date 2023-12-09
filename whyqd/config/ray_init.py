@@ -1,6 +1,6 @@
 import ray
 import os
-import json
+# import json
 import shutil
 from pathlib import Path
 
@@ -10,9 +10,10 @@ from whyqd.config.settings import settings
 def clear_spillway() -> bool:
     # https://stackoverflow.com/a/56151260/295606
     # only do this if ray is not initialised, otherwise it'll crash. horribly.
-    if not Path(settings.WHYQD_SPILLWAY).exists():
+    WHYQD_SPILLWAY = ray._private.utils.get_user_temp_dir()
+    if not Path(WHYQD_SPILLWAY).exists():
         return False
-    for path in Path(settings.WHYQD_SPILLWAY).iterdir():
+    for path in Path(WHYQD_SPILLWAY).iterdir():
         try:
             if path.is_file():
                 path.unlink()
@@ -23,7 +24,7 @@ def clear_spillway() -> bool:
     return True
 
 
-def ray_start():
+def ray_start(**kwargs):
     # https://docs.ray.io/en/latest/ray-core/starting-ray.html
     # https://docs.ray.io/en/latest/ray-core/configure.html
     # https://github.com/modin-project/modin/issues/3845
@@ -38,28 +39,38 @@ def ray_start():
     if not ray.is_initialized():
         # clear the spill path of any old artifacts
         clear_spillway()
-        # initialise
-        ray.init(
-            ignore_reinit_error=True,
-            runtime_env={"env_vars": {"__MODIN_AUTOIMPORT_PANDAS__": "1"}},
-            num_cpus=settings.WHYQD_CPUS,
-            _memory=settings.WHYQD_MEMORY,
-            object_store_memory=settings.WHYQD_MEMORY,
-            _temp_dir=settings.WHYQD_SPILLWAY,
-            _system_config={
-                "object_spilling_config": json.dumps(
-                    {
-                        "type": "filesystem",
-                        "params": {
-                            "directory_path": settings.WHYQD_SPILLWAY,
-                        },
-                    },
-                )
-            },
-        )
+        # initialise - kwargs allow overwriting of the settings (or ignoring the .env)
+        kwargs["ignore_reinit_error"] = True
+        kwargs["runtime_env"] = {"env_vars": {"__MODIN_AUTOIMPORT_PANDAS__": "1"}}
+        if not kwargs.get("num_cpus") and settings.WHYQD_CPUS:
+            kwargs["num_cpus"] = settings.WHYQD_CPUS
+        if not kwargs.get("_memory") and settings.WHYQD_MEMORY:
+            kwargs["_memory"] = settings.WHYQD_MEMORY
+        if not kwargs.get("object_store_memory") and settings.WHYQD_MEMORY:
+            kwargs["object_store_memory"] = settings.WHYQD_MEMORY
+        if not kwargs.get("_temp_dir") and settings.WHYQD_SPILLWAY:
+            # TODO: On some environments, I'm getting weird timeouts
+            if not ray._private.utils.get_user_temp_dir().endswith(settings.WHYQD_SPILLWAY):
+                kwargs["_temp_dir"] = f"{ray._private.utils.get_user_temp_dir()}{settings.WHYQD_SPILLWAY}"
+            pass
+        # if not kwargs.get("_system_config") and settings.WHYQD_SPILLWAY:
+        #     kwargs["_system_config"] = {
+        #         "object_spilling_config": json.dumps(
+        #             {
+        #                 "type": "filesystem",
+        #                 "params": {
+        #                     "directory_path": str(settings.WHYQD_SPILLWAY),
+        #                 },
+        #             },
+        #         )
+        #     }
+        ray.init(**kwargs)
         os.environ["MODIN_ENGINE"] = "ray"
         os.environ["MODIN_OUT_OF_CORE"] = "true"
-        os.environ["MODIN_MEMORY"] = str(settings.WHYQD_MEMORY)
+        if kwargs.get("_memory"):
+            os.environ["MODIN_MEMORY"] = str(kwargs["_memory"])
+        if kwargs.get("_temp_dir"):
+            os.environ["RAY_TMPDIR"] = kwargs["_temp_dir"]
 
 
 def ray_stop():
@@ -70,7 +81,3 @@ def ray_stop():
 def ray_restart():
     ray_stop()
     ray_start()
-
-
-# from whyqd.config.ray_init import ray_start
-# ray_start()

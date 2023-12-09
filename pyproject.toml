@@ -25,32 +25,33 @@ include = [
 ]
 
 [tool.poetry.dependencies]
-python = ">=3.8.1,<4.0"
-numpy = "^1.21.1"
-openpyxl = "^3.0.7"
-pandas = "^1.5.2"
-xlrd = "^2.0.1"
+python = ">=3.9,<4.0"
+numpy = ">=1.21.1"
+openpyxl = ">=3.0.7"
+pandas = ">=1.5.2"
+xlrd = ">=2.0.1"
 pydantic = "^1.8.2"
-tabulate = "^0.8.9"
-ray = "^2.2.0"
-modin = "^0.20.1"
-randomname = "^0.2.1"
-pyarrow = "^11.0.0"
+tabulate = ">=0.8.9"
+ray = ">=2.2.0"
+modin = ">=0.24"
+randomname = ">=0.2.1"
+pyarrow = ">=11.0.0"
 setuptools = ">=67.7.2"
-python-dotenv = "^1.0.0"
+python-dotenv = ">=1.0.0"
+grpcio = "^1.59.3"
 
 [tool.poetry.group.dev.dependencies]
-black = "^23.1.0"
-flake8 = "^6.0.0"
-pytest = "^7.2.2"
-jupyterlab = "^3.6.1"
+black = ">=23.1.0"
+flake8 = ">=6.0.0"
+pytest = ">=7.2.2"
+jupyterlab = ">=3.6.1"
 
 [tool.poetry.group.docs.dependencies]
-mkdocs = "^1.4.3"
-mkdocs-exclude = "^1.0.2"
-mkdocstrings-python = "^0.9.0"
-mkdocs-redirects = "^1.2.0"
-mkdocs-material = "^9.1.9"
+mkdocs = ">=1.4.3"
+mkdocs-exclude = ">=1.0.2"
+mkdocstrings-python = ">=0.9.0"
+mkdocs-redirects = ">=1.2.0"
+mkdocs-material = ">=9.1.9"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
@@ -58,7 +59,7 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.black]
 line-length = 120
-target-version = ["py38"]
+target-version = ["py39"]
 
 [tool.poetry.extras]
 docs = ["MKDocs"]
