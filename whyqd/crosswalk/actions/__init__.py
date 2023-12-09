@@ -36,12 +36,23 @@ must conform to the structure defined in the action's structure, but with a form
 instead of a `name`.
 """
 import pkgutil
+import importlib.util as _importlib_util
 from pathlib import Path
 
 __action_path__ = str(Path(__file__).resolve().parent)
 
+def load_dynamic(name, module_path):
+    # https://bugs.python.org/issue43540
+    module_path = f"{module_path}/{name}"
+    if not module_path.endswith(".py"):
+        module_path = f"{module_path}.py"
+    spec = _importlib_util.spec_from_file_location(name, module_path)
+    module = _importlib_util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module.Action
+
 actions = {
-    name.upper(): finder.find_module(name).load_module().Action
+    name.upper(): load_dynamic(name, finder.path)
     for finder, name, _ispkg in pkgutil.iter_modules([__action_path__])
 }
 default_actions = [a for a in [actn().settings for actn in actions.values()]]

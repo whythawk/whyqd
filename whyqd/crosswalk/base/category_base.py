@@ -151,7 +151,7 @@ class BaseCategoryAction:
         default = None
         if destination.constraints and destination.constraints.default:
             default = destination.constraints.default.name
-        if destination.name in df.columns:
+        if destination.name in df.columns and destination.dtype != "array":
             default = df[destination.name]
         # Conditions
         conditions = df[source.name]
@@ -187,12 +187,16 @@ class BaseCategoryAction:
                 )
             # Sorted to avoid hashing errors later ...
             if len(new_column) > 1:
-                new_column = [sorted(list(set([c for clist in x for c in clist]))) for x in zip(*new_column)]
+                # Moving sorting to the hashing function so we can maintain None's for ordered lists
+                # Permits reconstruction of datasets using array transformations
+                # https://stackoverflow.com/a/18411610
+                # new_column = [sorted(list(set([c for clist in x for c in clist])), key=lambda x: (x is None, x)) for x in zip(*new_column)]
+                new_column = [[c for clist in x for c in clist] for x in zip(*new_column)]
             else:
                 new_column = [[x] if not isinstance(x, list) else x for x in new_column[0]]
-            for n in new_column:
-                if None in n:
-                    n.remove(None)
+            # for n in new_column:
+            #     if None in n:
+            #         n.remove(None)
             df[destination.name] = new_column
         else:
             df[destination.name] = np.where(conditions, category.name, default)

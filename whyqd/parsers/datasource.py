@@ -657,7 +657,20 @@ class DataSourceParser:
     def parse_dates_coerced(self, x: Union[None, str]) -> Union[pd.NaT, pd.Timestamp]:
         return pd.to_datetime(self.parse_dates(x), errors="coerce")
 
-    def parse_float(self, x: str | int | float) -> np.nan | float:
+    def _postprocess_parse_float(self, x: str) -> np.nan | float:
+        """
+        Regex to extract wrecked floats: https://stackoverflow.com/a/71206446
+        Checked against: https://regex101.com/
+        """
+        # https://stackoverflow.com/a/71206446
+        if x.group(3):
+            return f"{x.group(1).replace(',','').replace('.','')}.{x.group(3)}"
+        elif x.group(2):
+            return f"{x.group(1).replace(',','').replace('.','')}"
+        else:
+            return np.nan
+
+    def _preprocess_parse_float(self, x: str | int | float) -> np.nan | float:
         """
         Regex to extract wrecked floats: https://stackoverflow.com/a/385597
         Checked against: https://regex101.com/
@@ -687,6 +700,38 @@ class DataSourceParser:
                 return np.nan
         except TypeError:
             return np.nan
+
+    def parse_float(self, x: str | int | float) -> np.nan | float:
+        """
+        Regex to extract wrecked floats
+        Checked against: https://regex101.com/
+        References:
+            https://stackoverflow.com/a/73083844
+            https://stackoverflow.com/a/385597
+            https://stackoverflow.com/a/71206446
+        """
+        # 1. Try preprocess
+        parsed = self._preprocess_parse_float(x)
+        if np.isnan(parsed):
+            # 2. Try postprocess and re-preprocess
+            sign = ""
+            try:
+                # 2.1 Check for a leading negative sign
+                re_float = r"[^\d+-/÷%\*]*"
+                parsed = re.sub(re_float, "", x)
+                if len(parsed) > 1 and parsed[0] in ["-"]:
+                    sign = parsed[0]
+            except (ValueError, AttributeError, TypeError):
+                return np.nan
+            # 2.2 Postprocess as comma/point-separated groups
+            re_float = r"\b\d{1,2}\.\d{1,2}\.\d{2}(?:\d{2})?\b|\b(?<!\d[.,])(\d{1,3}(?=([.,])?)(?:\2\d{3})*|\d+)(?:(?(2)(?!\2))[.,](\d+))?\b(?![,.]\d)"
+            parsed = list(filter(None, [self._postprocess_parse_float(x) for x in re.finditer(re_float, x)]))
+            if len(parsed) == 1 and isinstance(parsed[0], str):
+                parsed = sign + parsed[0]
+                parsed = self._preprocess_parse_float(parsed)
+            else:
+                return np.nan
+        return parsed
 
     def parse_int(self, x: str | int | float) -> np.nan | int:
         try:
