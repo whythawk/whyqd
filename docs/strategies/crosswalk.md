@@ -109,10 +109,11 @@ should be self-explanatory. Each has definitions and examples you can review:
 |:-------------------------------------------------- |:---------:|:--------:|:--------:|:---------:|:--------:|
 | [CALCULATE](../actions/calculate.md)               | X         |          |          | [m X,]    |          |
 | [CATEGORISE](../actions/categorise.md)             | X         | X        | [X,]     | X         |          |
+| [COLLATE](../actions/collate.md)                   | X         |          |          | [X, m,]   |          |
 | [DEBLANK](../actions/deblank.md)                   |           |          |          |           |          |
 | [DEDUPE](../actions/dedupe.md)                     |           |          |          |           |          |
 | [DELETE_ROWS](../actions/delete_rows.md)           |           |          |          |           | [X,]     |
-| [NEW](../actions/new.md)                           |           |          | [X]      |           |          |
+| [NEW](../actions/new.md)                           | X         |          | [X]      |           |          |
 | [PIVOT_CATEGORIES](../actions/pivot_categories.md) | X         |          |          | X         | [X,]     |
 | [PIVOT_LONGER](../actions/pivot_longer.md)         | [X, X]    |          |          | [X,]      |          |
 | [RENAME](../actions/rename.md)                     | X         |          |          | [X]       |          |
@@ -129,7 +130,8 @@ Here:
 - `[X, X]` only two terms accepted,
 - `[X,]` accepts any number of terms,
 - `[m X,]` any number of terms, but each term requires a modifier,
-- `[X m X,]` any number of terms, but indicates a relationship between two terms defined by a modifier.
+- `[X m X,]` any number of terms, but indicates a relationship between two terms defined by a modifier,
+- `[X, m,]` any number of terms or modifiers, in any combination.
 
 !!! example
     Modifiers should be self-explanatory, and this calculation script should be easy to read:

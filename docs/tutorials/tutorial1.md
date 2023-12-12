@@ -1,12 +1,12 @@
 ---
-title: Tutorial - Aligning multiple sources of local government data to a single schema
+title: Tutorial - Aligning multiple sources of local government data from a many-headed Excel spreadsheet to a single schema
 summary: Data curation includes all the processes and techniques needed for ethical and reproducable data creation, management, transformation and presentation for reuse.
 authors:
   - Gavin Chait
 date: 2023-05-03
 tags: wrangling, crosswalks, curation
 ---
-# Tutorial 1: Aligning multiple sources of local government data to a single schema
+# Tutorial 1: Aligning multiple sources of local government data from a many-headed Excel spreadsheet to a single schema
 
 **whyqd** (/wɪkɪd/) was developed to solve a daily, grinding need. This tutorial is based on a real-world problem.
 

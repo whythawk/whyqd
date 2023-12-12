@@ -54,6 +54,7 @@ nav:
 - Actions API:
   - CALCULATE: actions/calculate.md
   - CATEGORISE: actions/categorise.md
+  - COLLATE: actions/collate.md
   - DEBLANK: actions/deblank.md
   - DEDUPE: actions/dedupe.md
   - DELETE_ROWS: actions/delete_rows.md

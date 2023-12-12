@@ -46,7 +46,6 @@ pip-log.txt
 __pycache__/
 .pytest_cache/
 variations/
-data/
 site/
 .ipynb_checkpoints/
 *.ipynb
