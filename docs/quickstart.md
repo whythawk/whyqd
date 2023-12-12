@@ -165,22 +165,23 @@ All scripts are written as a text string conforming to a standardised template:
 Actions use similar naming conventions as for R's [Tidyr](https://tidyr.tidyverse.org/articles/tidy-data.html). Each 
 has definitions and examples you can review:
 
-| Action                                          | `>` Field | `>` Term | `<` Term | `<` Field | `<` Rows |
-|:----------------------------------------------- |:---------:|:--------:|:--------:|:---------:|:--------:|
-| [CALCULATE](actions/calculate.md)               | X         |          |          | [m X,]    |          |
-| [CATEGORISE](actions/categorise.md)             | X         | X        | [X,]     | X         |          |
-| [DEBLANK](actions/deblank.md)                   |           |          |          |           |          |
-| [DEDUPE](actions/dedupe.md)                     |           |          |          |           |          |
-| [DELETE_ROWS](actions/delete_rows.md)           |           |          |          |           | [X,]     |
-| [NEW](actions/new.md)                           |           |          | [X]      |           |          |
-| [PIVOT_CATEGORIES](actions/pivot_categories.md) | X         |          |          | X         | [X,]     |
-| [PIVOT_LONGER](actions/pivot_longer.md)         | [X, X]    |          |          | [X,]      |          |
-| [RENAME](actions/rename.md)                     | X         |          |          | [X]       |          |
-| [SELECT](actions/select.md)                     | X         |          |          | [X,]      |          |
-| [SELECT_NEWEST](actions/select_newest.md)       | X         |          |          | [X m X,]  | X        |
-| [SELECT_OLDEST](actions/select_oldest.md)       | X         |          |          | [X m X,]  |          |
-| [SEPARATE](actions/separate.md)                 | [X,]      |          | X        | [X]       |          |
-| [UNITE](actions/unite.md)                       | X         |          | X        | [X,]      |          |
+| Action                                             | `>` Field | `>` Term | `<` Term | `<` Field | `<` Rows |
+|:-------------------------------------------------- |:---------:|:--------:|:--------:|:---------:|:--------:|
+| [CALCULATE](../actions/calculate.md)               | X         |          |          | [m X,]    |          |
+| [CATEGORISE](../actions/categorise.md)             | X         | X        | [X,]     | X         |          |
+| [COLLATE](../actions/collate.md)                   | X         |          |          | [X, m,]   |          |
+| [DEBLANK](../actions/deblank.md)                   |           |          |          |           |          |
+| [DEDUPE](../actions/dedupe.md)                     |           |          |          |           |          |
+| [DELETE_ROWS](../actions/delete_rows.md)           |           |          |          |           | [X,]     |
+| [NEW](../actions/new.md)                           | X         |          | [X]      |           |          |
+| [PIVOT_CATEGORIES](../actions/pivot_categories.md) | X         |          |          | X         | [X,]     |
+| [PIVOT_LONGER](../actions/pivot_longer.md)         | [X, X]    |          |          | [X,]      |          |
+| [RENAME](../actions/rename.md)                     | X         |          |          | [X]       |          |
+| [SELECT](../actions/select.md)                     | X         |          |          | [X,]      |          |
+| [SELECT_NEWEST](../actions/select_newest.md)       | X         |          |          | [X m X,]  | X        |
+| [SELECT_OLDEST](../actions/select_oldest.md)       | X         |          |          | [X m X,]  |          |
+| [SEPARATE](../actions/separate.md)                 | [X,]      |          | X        | [X]       |          |
+| [UNITE](../actions/unite.md)                       | X         |          | X        | [X,]      |          |
 
 Here:
 
@@ -189,7 +190,8 @@ Here:
 - `[X, X]` only two terms accepted,
 - `[X,]` accepts any number of terms,
 - `[m X,]` any number of terms, but each term requires a modifier,
-- `[X m X,]` any number of terms, but indicates a relationship between two terms defined by a modifier.
+- `[X m X,]` any number of terms, but indicates a relationship between two terms defined by a modifier,
+- `[X, m,]` any number of terms or modifiers, in any combination.
 
 For your example, we define the crosswalk as:
 
