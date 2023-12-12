@@ -88,15 +88,16 @@ import whyqd as qd
 
 [Install](https://whyqd.readthedocs.io/en/latest/installation) and then read the [quickstart](https://whyqd.readthedocs.io/en/latest/quickstart).
 
-There are three worked tutorials to guide you through three typical scenarios:
+There are four worked tutorials to guide you through typical scenarios:
 
-- [Aligning multiple disparate data sources to a single schema](https://whyqd.readthedocs.io/en/latest/tutorials/tutorial1)
+- [Aligning multiple sources of local government data from a many-headed Excel spreadsheet to a single schema](https://whyqd.readthedocs.io/en/latest/tutorials/tutorial1)
 - [Pivoting wide-format data into archival long-format](https://whyqd.readthedocs.io/en/latest/tutorials/tutorial2)
 - [Wrangling Cthulhu data without losing your mind](https://whyqd.readthedocs.io/en/latest/tutorials/tutorial3)
+- [Transforming data containing American dates, currencies as strings and misaligned columns](https://whyqd.readthedocs.io/en/latest/tutorials/tutorial4)
 
 ## Installation
 
-You'll need at least Python 3.8, then install with your favourite package manager:
+You'll need at least Python 3.9, then install with your favourite package manager:
 
 ```bash
 pip install whyqd

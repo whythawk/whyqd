@@ -3,10 +3,18 @@ title: Change log
 summary: Version history, including for legacy versions.
 authors:
   - Gavin Chait
-date: 2023-08-10
+date: 2023-12-12
 tags: wrangling, crosswalks, versions
 ---
 # Change log
+
+## Version 1.0.9 (2023-12-12)
+
+- Added in new `usdate` data type which supports automatic date type coersion from US date formats (`MM-DD-YYYY`).
+- New `COLLATE` action permitting scripts which collate a column-wise list of fields into an ordered `array` data type.
+- Updated all dependencies, which necessitated a bump to the minimum supported Python version being 3.9.
+- New tutorial to demonstrate the `COLLATE` and `usdate` features.
+- Ray settings for initialisation will now be more forgiving. You don't need to provide default values.
 
 ## Version 1.0.8 (2023-08-10)
 
