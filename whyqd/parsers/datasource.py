@@ -259,6 +259,7 @@ class DataSourceParser:
     def coerce_column_to_dtype(self, *, column: pd.Series, coerce: str) -> pd.Series:
         parser = {
             "date": self.parse_dates,
+            "usdate": self.parse_usdates,
             "datetime": self.parse_dates,
             "year": self.parse_dates,
             "number": self.parse_float,
@@ -615,36 +616,66 @@ class DataSourceParser:
     ### PANDAS TYPE PARSERS
     ###################################################################################################
 
-    def parse_dates(self, x: Union[None, str]) -> Union[pd.NaT, date.isoformat]:
+    def _parse_dates(self, x: Union[None, str], dayfirst: bool = True) -> Union[pd.NaT, date.isoformat]:
         """
-        This is the hard-won 'trust nobody', certainly not Americans, date parser.
+        This is the hard-won 'trust nobody', certainly not Americans, date parser. This requires that the user
+        specify whether the day is first (ISO-style) or not (USA-style).
+
+        NOTE: This is for dates, not datetimes, or times. If it is a properly formatted datetime, it might work
+        but don't count on it.
 
         TODO: Replace with https://github.com/scrapinghub/dateparser
-              The only concern is that dateparser.parse(x).date().isoformat() will coerce *any* string to a date,
-              no matter *what* it is.
+            The only concern is that dateparser.parse(x).date().isoformat() will coerce *any* string to a date,
+            no matter *what* it is.
+
+        Parameters
+        ----------
+        x: str | None
+        dayfirst: bool
+            Indicates whether this should be considered as an American-format date. Default is `True`, not American.
+
+        Returns
+        -------
+        pd.NaT | date.isoformat
         """
         if pd.isnull(x):
             return pd.NaT
+        if isinstance(x, str) and len(x) <= 10 and ":" in x:
+            # This specific variation of a date is interpreted as a time, so ...
+            x = re.sub(r"[\\/,\.:;]", "-", x)
         # Check if to_datetime can handle things
-        if not pd.isnull(pd.to_datetime(x, errors="coerce", dayfirst=True)):
-            return date.isoformat(pd.to_datetime(x, errors="coerce", dayfirst=True))
+        if not pd.isnull(pd.to_datetime(x, errors="coerce", dayfirst=dayfirst)):
+            return date.isoformat(pd.to_datetime(x, errors="coerce", dayfirst=dayfirst))
         # Manually see if coersion will work
         x = str(x).strip()[:10]
-        x = re.sub(r"[\\/,\.]", "-", x)
+        # Handles separators in ["\\", "/", ".", "-", ":", ";", ","]
+        x = re.sub(r"[\\/,\.:;]", "-", x)
         try:
-            y, m, d = x.split("-")
+            if dayfirst:
+                # Some attempt at ISO
+                y, m, d = x.split("-")
+            else:
+                # American
+                m, d, y = x.split("-")
         except ValueError:
             return pd.NaT
-        if len(y) < 4:
-            # Swap the day and year positions
-            # Ignore US dates
-            d, m, y = x.split("-")
+        if dayfirst:
+            # Order checks, ignoring US dates ... need to figure whether day or year is first
+            if len(d) == 4 or (len(y) <= 2 and len(d) <= 2):
+                # Swap the day and year positions
+                d, m, y = x.split("-")
         # Fat finger on 1999 ... not going to check for other date errors as no way to figure out
-        if y[0] == "9":
+        if len(y) == 4 and y[0] == "9":
             y = "1" + y[1:]
-        x = "{}-{}-{}".format(y, m, d)
+        x = f"{'0' + d if len(d) == 1 else d}-{'0' + m if len(m) == 1 else m}-{'0' + y if len(y) == 1 else y}"
+        # Check if to_datetime can handle things
         try:
-            x = datetime.strptime(x, "%Y-%m-%d")
+            if len(y) <= 2:
+                # NOTE: if `len(y)` is two digits, then the "earliest" date is 1969 from `69`.
+                # Other years will be the future ¯\_(ツ)_/¯
+                x = datetime.strptime(x, "%d-%m-%y")
+            else:
+                x = datetime.strptime(x, "%d-%m-%Y")
         except ValueError:
             return pd.NaT
         x = date.isoformat(x)
@@ -654,8 +685,17 @@ class DataSourceParser:
         except pd.errors.OutOfBoundsDatetime:
             return pd.NaT
 
+    def parse_dates(self, x: Union[None, str]) -> Union[pd.NaT, date.isoformat]:
+        return self._parse_dates(x, dayfirst=True)
+
+    def parse_usdates(self, x: Union[None, str]) -> Union[pd.NaT, date.isoformat]:
+        return self._parse_dates(x, dayfirst=False)
+
     def parse_dates_coerced(self, x: Union[None, str]) -> Union[pd.NaT, pd.Timestamp]:
-        return pd.to_datetime(self.parse_dates(x), errors="coerce")
+        return pd.to_datetime(self._parse_dates(x, dayfirst=True), errors="coerce")
+
+    def parse_usdates_coerced(self, x: Union[None, str]) -> Union[pd.NaT, pd.Timestamp]:
+        return pd.to_datetime(self._parse_dates(x, dayfirst=False), errors="coerce")
 
     def _postprocess_parse_float(self, x: str) -> np.nan | float:
         """

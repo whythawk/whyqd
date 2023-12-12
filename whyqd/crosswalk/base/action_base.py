@@ -129,7 +129,7 @@ class BaseSchemaAction:
                     continue
                 elif isinstance(chunk[i], dict):
                     # Nested source
-                    if not chunk[i].get("action") and not not chunk[i].get("source"):
+                    if not chunk[i].get("action") and not chunk[i].get("source"):
                         raise ValueError(f"Nested script does not conform to required structure. ({chunk[i]})")
                     chunk[i]["action"].validate(source=chunk[i]["source"])
                 else:

@@ -2,7 +2,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from whyqd.crosswalk.base import BaseSchemaAction
-from whyqd.models import FieldModel
+from whyqd.models import ModifierModel, FieldModel
 
 if TYPE_CHECKING:
     import modin.pandas as pd
@@ -47,14 +47,39 @@ class Action(BaseSchemaAction):
         self.description = (
             "Collate a list of source fields into an array of corresponding values in a destination field."
         )
-        self.structure = [FieldModel]
+        self.structure = [ModifierModel, FieldModel]
+
+    @property
+    def modifiers(self) -> list[ModifierModel]:
+        return [ModifierModel(**{"name": "~", "title": "Spacer"})]
+
+    def validate(self, *, destination: FieldModel, source: list) -> bool:
+        """
+        Validate that script source structure conforms to the ACTION structure.
+
+        Returns
+        -------
+        bool
+        """
+        if not isinstance(source, list):
+            raise ValueError(f"Action source script does not conform to required structure. ({source})")
+        for term in source:
+            # Loops through the phrasing of the structure, and checks that each term is as expected
+            # does not check that the actual terms match, though
+            if isinstance(term, tuple(self.structure)):
+                continue
+            else:
+                raise ValueError(
+                    f"Source structure ({term}) doesn't conform to ACTION structure requirements ({self.structure})."
+                )
+        return True
 
     def transform(
         self,
         *,
         df: pd.DataFrame,
         destination: FieldModel,
-        source: list[FieldModel],
+        source: list[FieldModel | ModifierModel],
     ) -> pd.DataFrame:
         # Defaults
         # default = None
@@ -64,19 +89,21 @@ class Action(BaseSchemaAction):
         new_column = []
         if destination.name in df.columns:
             new_column = [df[destination.name].tolist()]
+        spacer = [None] * len(df)
         for s in source:
+            source_column = spacer
+            if isinstance(s, FieldModel):
+                # It's not a spacer column
+                source_column = df[s.name].tolist()
             new_column.append(
                 [
                     [x] if not isinstance(x, list) else x
-                    for x in df[s.name].tolist()
+                    for x in source_column
                 ]
             )
-        # Sorted to avoid hashing errors later ...
         if len(new_column) > 1:
-            # Moving sorting to the hashing function so we can maintain None's for ordered lists
             # Permits reconstruction of datasets using array transformations
             # https://stackoverflow.com/a/18411610
-            # new_column = [sorted(list(set([c for clist in x for c in clist])), key=lambda x: (x is None, x)) for x in zip(*new_column)]
             new_column = [[c for clist in x for c in clist] for x in zip(*new_column)]
         else:
             new_column = [[x] if not isinstance(x, list) else x for x in new_column[0]]

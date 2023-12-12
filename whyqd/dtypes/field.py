@@ -8,6 +8,7 @@ class FieldType(str, Enum):
     BOOLEAN = "boolean"
     ARRAY = "array"
     TIME = "time"
+    USDATE = "usdate"
     DATE = "date"
     DATETIME = "datetime"
     MONTH = "month"
@@ -24,6 +25,7 @@ class FieldType(str, Enum):
             "boolean": "A boolean [true, false] value. Can set category constraints to fix term used.",
             "array": "Any valid array-based data.",
             "time": "Any time, with an optional date. Must be in ISO8601 format, hh:mm:ss.",
+            "usdate": "Any American-formatted date without a time. Expected is MM-DD-YYYY, with any separator.",
             "date": "Any date without a time. Must be in ISO8601 format, YYYY-MM-DD.",
             "datetime": "Any date with a time. Must be in ISO8601 format, with UTC time specified (optionally) as YYYY-MM-DD hh:mm:ss Zz.",
             "month": "Any month, as month end frequency, formatted as YYYY-MM",
@@ -43,6 +45,7 @@ class FieldType(str, Enum):
             "array": "object",
             "time": "timedelta64[ns]",
             "date": "datetime64[ns]",
+            "usdate": "datetime64[ns]",
             "datetime": "datetime64[ns, UTC]",
             "month": "period[M]",
             "quarter": "period[Q]",

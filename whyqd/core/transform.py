@@ -103,8 +103,9 @@ class TransformDefinition(BaseDefinition):
             raise ValueError("Before performing data transform provide both a data source and a crosswalk.")
         # Validate crosswalk
         self.crosswalk.validate()
-        # Perform crosswalk
+        # Perform crosswalk, coercing to source schema prior to crosswalk
         df = self.reader.get(source=self.model.dataSource)
+        df = self.reader.coerce_to_schema(df=df, schema=self.crosswalk.schema_source)
         df = self.crosswalk.crud.transform_all(df=df)
         destination_names = [f.name for f in self.crosswalk.schema_destination.fields.get_all() if f.name in df.columns]
         # Coerce to schema and prepare data source model
@@ -168,8 +169,9 @@ class TransformDefinition(BaseDefinition):
         if not self.model.dataDestination.checksum:
             raise ValueError("Validation failed. Data destination has no saved checksum.")
         self.reader.get_checksum(df=destination_df, crosscheck=self.model.dataDestination.checksum)
-        # Validate crosswalk
+        # Validate crosswalk, coercing to source schema prior to crosswalk
         self.crosswalk.validate()
+        source_df = self.reader.coerce_to_schema(df=source_df, schema=self.crosswalk.schema_source)
         crosswalk_df = self.crosswalk.crud.transform_all(df=source_df)
         destination_names = [
             f.name for f in self.crosswalk.schema_destination.fields.get_all() if f.name in crosswalk_df.columns
