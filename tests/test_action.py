@@ -20,6 +20,11 @@ DESTINATION_SCHEMA_CTHULHU = SOURCE_DIRECTORY / "test_cthulu_destination.schema"
 SOURCE_DATA_PORTSMOUTH = SOURCE_DIRECTORY / "test_portsmouth_source.data"
 SOURCE_SCHEMA_PORTSMOUTH = SOURCE_DIRECTORY / "test_portsmouth_source.schema"
 DESTINATION_SCHEMA_PORTSMOUTH = SOURCE_DIRECTORY / "test_portsmouth_destination.schema"
+# BASILDON
+# Basildon ratepayer data consist of dates in US format, and numbers as currency strings.
+SOURCE_DATA_BASILDON = SOURCE_DIRECTORY / "test_basildon_source.data"
+SOURCE_SCHEMA_BASILDON = SOURCE_DIRECTORY / "test_basildon_source.schema"
+DESTINATION_SCHEMA_BASILDON = SOURCE_DIRECTORY / "test_basildon_destination.schema"
 
 
 def _test_script_action(script, schema_source, schema_destination, data_source):
@@ -81,6 +86,7 @@ class TestAction:
         )
 
     def test_categorise(self):
+        # As values
         script = [
             "CATEGORISE > 'occupation_state'::False < 'Current Relief Type'::['Empty Property Rate Non-Industrial', 'Empty Property Rate Industrial', 'Empty Property Rate Charitable']",
             "CATEGORISE > 'occupation_state_reliefs'::'small_business' < 'Current Relief Type'::['Small Business Relief England', 'Sbre Extension For 12 Months', 'Supporting Small Business Relief']",
@@ -91,6 +97,18 @@ class TestAction:
         assert _test_script_action(
             script, SOURCE_SCHEMA_PORTSMOUTH, DESTINATION_SCHEMA_PORTSMOUTH, SOURCE_DATA_PORTSMOUTH
         )
+        # As arrays
+        script = [
+            "CATEGORISE > 'occupation_state_reliefs'::'exempt' < 'MandRlfCd'::['CASC','EDUC80','MAND80','PCON','POSTO2']",
+            "CATEGORISE > 'occupation_state_reliefs'::'discretionary' < 'DiscRlfCd'::['DIS100','DISC10','DISC15','DISC30','DISC40','DISC50','DISCXX','POSTOF']",
+            "CATEGORISE > 'occupation_state_reliefs'::'retail' < 'AddRlfCd'::['RETDS3']",
+            "CATEGORISE > 'occupation_state_reliefs'::'small_business' < 'SBRFlag'::['yes']",
+        ]
+        assert _test_script_action(script, SOURCE_SCHEMA_BASILDON, DESTINATION_SCHEMA_BASILDON, SOURCE_DATA_BASILDON)
+
+    def test_collate(self):
+        script = "COLLATE > 'prop_ba_rates' < ['MandRlf', 'DiscRlf', 'AdditionalRlf', ~]"
+        assert _test_script_action(script, SOURCE_SCHEMA_BASILDON, DESTINATION_SCHEMA_BASILDON, SOURCE_DATA_BASILDON)
 
     def test_deblank(self):
         script = "DEBLANK"
