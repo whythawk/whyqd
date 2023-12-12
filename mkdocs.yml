@@ -42,6 +42,7 @@ nav:
   - Multiple sources: tutorials/tutorial1.md
   - Pivoting to long: tutorials/tutorial2.md
   - Cthulhu data: tutorials/tutorial3.md
+  - Arrays and US dates: tutorials/tutorial4.md
 - Definitions API:
   - SchemaDefinition: api/schema.md
   - CRUDField: api/field.md
