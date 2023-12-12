@@ -8,6 +8,10 @@ tags: wrangling, crosswalks, versions
 ---
 # Change log
 
+## Version 1.1.0 (2023-12-12)
+
+- Fixes to tests
+
 ## Version 1.0.9 (2023-12-12)
 
 - Added in new `usdate` data type which supports automatic date type coersion from US date formats (`MM-DD-YYYY`).
