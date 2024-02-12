@@ -185,7 +185,6 @@ class CategoryParser:
         self.schema_source = schema_source
         self.schema_destination = schema_destination
 
-
     def get_schema_field_category(self, *, field: FieldModel, term: str, is_source: bool = True) -> CategoryModel | None:
         """
         Recover a field category model from a string. It is possible that source and destination schema category share 
@@ -281,4 +280,4 @@ class CategoryParser:
         terms = list(self.parser.generate_contents(text=text))
         if len(terms) != 1:
             raise ValueError(f"Category assignment actions must not be nested. ({text}).")
-        return [self.parser.get_literal(text=t) for t in self.parser.get_split_terms(script=terms[0][1], by=",")]
+        return [self.parser.get_literal(text=t) for t in self.parser.get_split_terms(script=terms[0][1], by=",", maxsplit=-1)]

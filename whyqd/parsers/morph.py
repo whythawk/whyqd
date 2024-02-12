@@ -206,4 +206,4 @@ class MorphParser:
             return [term]
         if len(terms) != 1:
             raise ValueError(f"Morph actions must not be nested. ({term}).")
-        return self.parser.get_split_terms(script=terms[0][1], by=",")
+        return self.parser.get_split_terms(script=terms[0][1], by=",", maxsplit=-1)

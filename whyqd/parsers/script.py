@@ -146,15 +146,21 @@ class ScriptParser:
                 start = stack.pop()
                 yield (len(stack), text[start + 1 : i])
 
-    def get_split_terms(self, *, script: str, by: str) -> list[str]:
-        return [s.strip() for s in script.split(by)]
+    def get_split_terms(self, *, script: str, by: str, maxsplit: int = 1) -> list[str]:
+        # https://docs.python.org/3/library/stdtypes.html#str.split
+        # str.split(sep=None, maxsplit=-1)
+        return [s.strip() for s in script.split(sep=by, maxsplit=maxsplit)]
 
     def get_literal(self, *, text: str) -> str:
         literal = text
         try:
             literal = ast.literal_eval(text)
-        except ValueError:
+        except (ValueError, TypeError):
             pass
+        except SyntaxError:
+            # `literal_eval` strips special characters, leading to syntax errors
+            if text.startswith("'") and text.endswith("'"):
+                literal = text[1:-1]
         return literal
 
     def get_listed_literal(self, *, text: str) -> list[str]:

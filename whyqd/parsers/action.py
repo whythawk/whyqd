@@ -127,7 +127,7 @@ class ActionParser:
                     # replace the txt with hx
                     parsed_stack = parsed_stack.replace(f"[{txt}]", hx)
                 i_prsed = []
-                for s in self.parser.get_split_terms(script=parsed_stack, by=","):
+                for s in self.parser.get_split_terms(script=parsed_stack, by=",", maxsplit=-1):
                     splt = self.parser.get_split_terms(script=s, by="<")
                     if len(splt) == 1:
                         i_prsed.extend(self.parser.get_listed_literal(text=s))
@@ -293,6 +293,9 @@ class ActionParser:
         if not isinstance(parsed, list):
             parsed = [parsed]
         for term in parsed:
+            if not term:
+                # Blank string artifacts can be introduced
+                continue
             recovered = None
             if isinstance(term, str) and term in modifier_names:
                 recovered = action.get_modifier(term=term)

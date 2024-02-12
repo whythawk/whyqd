@@ -3,10 +3,14 @@ title: Change log
 summary: Version history, including for legacy versions.
 authors:
   - Gavin Chait
-date: 2023-12-12
+date: 2024-02-12
 tags: wrangling, crosswalks, versions
 ---
 # Change log
+
+## Version 1.1.1 (2024-02-12)
+
+- Fixes for where source field names include special characters (newlines / tabs) or characters used in scripts. As whyqd is used for more this may need thorough review.
 
 ## Version 1.1.0 (2023-12-12)
 
