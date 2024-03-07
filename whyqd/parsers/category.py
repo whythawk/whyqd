@@ -76,9 +76,8 @@ class CategoryParser:
         # [CHANGE] Will hex both fields and category terms ...
         if not self.schema_source or not self.schema_destination:
             raise ValueError("Schema for both source and destination has not been provided.")
-        # Too many edge cases ... cannot resolve this in a satisfactory way ... 
-        # Going to have to hope text issues don't emerge
-        # script = self.get_hexed_script(script=script)
+        # New, revised, hopefully handles the edge cases
+        script = self.get_hexed_script(script=script)
         parsed = action.parse(script=script)
         # Validate the category script and get the required compone
         destination, category, source, assigned, unassigned = None, None, None, None, None
@@ -266,15 +265,37 @@ class CategoryParser:
 
     def get_hexed_script(self, *, script: str) -> str:
         # Changes fields to uuid hexes
-        all_fields = [field for s in [self.schema_source, self.schema_destination] for field in s.get.fields]
-        all_categories = [
-            category
-            for f in all_fields
-            if (f.constraints and f.constraints.category)
-            for category in f.constraints.category
-        ]
-        script = self.parser.get_hexed_script(script=script, fields=all_fields + all_categories)
-        return ",".join([s.strip() for s in script.split(",") if s.strip()])
+        root_split = self.parser.get_split_terms(script=script, by=">", maxsplit=1)
+        # ['ACTION', "DESTINATION < SOURCE"] => ["DESTINATION", "SOURCE"]
+        hexing_script = self.parser.get_split_terms(script=root_split[-1], by="<", maxsplit=1)
+        # ["DESTINATION", "SOURCE"] => ["DESTINATION_FIELD", "DESTINATION_CATEGORY"], ["SOURCE_FIELD", "SOURCE_CATEGORIES"]
+        if not len(hexing_script) == 2:
+            raise ValueError(f'Script is not well formed: "{script}"')
+        source_script = self.parser.get_split_terms(script=hexing_script[1], by="::", maxsplit=1)
+        hexing_script = self.parser.get_split_terms(script=hexing_script[0], by="::", maxsplit=1)
+        # Prepare hexer
+        field_name = lambda x: x.strip()[1:-1]  # noqa: E731
+        hexing_categories = lambda x: x.constraints.category if x and x.constraints and x.constraints.category else []  # noqa: E731
+        destination_field = self.schema_destination.fields.get(name=field_name(hexing_script[0]))
+        if not destination_field:
+            raise ValueError(f'Destination field not found: "{script}"')
+        hexing_terms = [[destination_field]]
+        if len(hexing_script) == 2:
+            hexing_terms.append(hexing_categories(destination_field))
+        hexing_script.extend(source_script)
+        source_field = self.schema_source.fields.get(name=field_name(source_script[0]))
+        if not source_field:
+            raise ValueError(f'Source field not found: "{script}"')
+        hexing_terms.extend([
+            [source_field],
+            hexing_categories(source_field)
+        ])
+        hexed = []
+        for x, f in zip(hexing_script, hexing_terms):
+            hexed.append(self.parser.get_hexed_script(script=x, fields=f))
+        if len(hexed) == 3:
+            return f"{root_split[0]} > {hexed[0]} < {hexed[1]}::{hexed[2]}"
+        return f"{root_split[0]} > {hexed[0]}::{hexed[1]} < {hexed[2]}::{hexed[3]}"
 
     def get_assigned_uniques(self, *, text: str) -> list[str]:
         terms = list(self.parser.generate_contents(text=text))
