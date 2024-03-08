@@ -232,18 +232,26 @@ class DataSourceParser:
     ###################################################################################################
 
     def coerce_to_schema(self, *, df: pd.DataFrame, schema: Type[SchemaDefinition]) -> pd.DataFrame:
+        # https://modin.readthedocs.io/en/stable/flow/modin/core/dataframe/pandas/partitioning/partition.html#modin.core.dataframe.pandas.partitioning.partition.PandasDataframePartition.to_numpy
         validate = {"matched": [], "unmatched": [], "coerced": []}
         columns = self.get_header_columns(df=df)
         for c in columns:
             prospect = schema.fields.get(name=c.name)
             if prospect:
-                if c.dtype == prospect.dtype:
-                    validate["matched"].append(c.name)
-                else:
-                    # Try coerce the column to the type
-                    df[c.name] = self.coerce_column_to_dtype(column=df[c.name], coerce=prospect.dtype)
-                    validate["coerced"].append(c.name)
-                df[c.name] = df[c.name].astype(FieldType(prospect.dtype).astype)
+                try:
+                    if c.dtype == prospect.dtype:
+                        validate["matched"].append(c.name)
+                    else:
+                        # Try coerce the column to the type
+                        df[c.name] = self.coerce_column_to_dtype(column=_pd.Series(df[c.name].to_numpy()), coerce=prospect.dtype)
+                        validate["coerced"].append(c.name)
+                    df[c.name] = _pd.Series(df[c.name].to_numpy()).astype(FieldType(prospect.dtype).astype)
+                except TypeError:
+                    from_type = c.dtype
+                    if isinstance(df[c.name][0], list):
+                        from_type = "array"
+                    e = f"Column '{c.name}' in Data cannot be converted from type '{from_type}' to '{prospect.dtype}'."
+                    raise TypeError(e)
             else:
                 validate["unmatched"].append(c.name)
         if validate["unmatched"]:
@@ -797,10 +805,12 @@ class DataSourceParser:
 
     def parse_string_list(self, x: str) -> List[str]:
         """Coerce a column, which should contain a list of strings, from literal to actual."""
-        if not isinstance(x, str):
-            return x
-        x = ast.literal_eval(x)
-        x = [t.strip() for t in x]
+        if not isinstance(x, (str, list)):
+            # If it's not already a list, then it needs to be a list stored as a string
+            raise TypeError
+        if isinstance(x, str):
+            x = ast.literal_eval(x)
+        x = [str(t).strip() if not pd.isna(t) else None for t in x]
         if not x:
             return None
         return x
