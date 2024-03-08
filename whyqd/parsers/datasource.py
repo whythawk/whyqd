@@ -247,7 +247,7 @@ class DataSourceParser:
                         df[c.name] = self.coerce_column_to_dtype(column=_pd.Series(df[c.name].to_numpy()), coerce=prospect.dtype)
                         validate["coerced"].append(c.name)
                     df[c.name] = _pd.Series(df[c.name].to_numpy()).astype(FieldType(prospect.dtype).astype)
-                except TypeError:
+                except (TypeError, SyntaxError, ValueError):
                     from_type = c.dtype
                     if isinstance(df[c.name][0], list):
                         from_type = "array"

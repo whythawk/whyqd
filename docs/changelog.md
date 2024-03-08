@@ -8,10 +8,14 @@ tags: wrangling, crosswalks, versions
 ---
 # Change log
 
+## Version 1.1.3 (2024-03-08)
+
+- Continuing to improve exception error messages to be more helpful.
+
 ## Version 1.1.2 (2024-03-08)
 
-- Improved CATEGORISE action parser to handle greater variety of text edge cases (especially comma-separated terms).
-- More helpful error messages for TypeError coercision problems where a specified type mismatch occurs.
+- Improved `CATEGORISE` action parser to handle greater variety of text edge cases (especially comma-separated terms).
+- More helpful error messages for `TypeError` coercion problems where a specified type mismatch occurs.
 
 ## Version 1.1.1 (2024-02-12)
 
