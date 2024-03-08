@@ -3,10 +3,15 @@ title: Change log
 summary: Version history, including for legacy versions.
 authors:
   - Gavin Chait
-date: 2024-02-12
+date: 2024-03-08
 tags: wrangling, crosswalks, versions
 ---
 # Change log
+
+## Version 1.1.2 (2024-03-08)
+
+- Improved CATEGORISE action parser to handle greater variety of text edge cases (especially comma-separated terms).
+- More helpful error messages for TypeError coercision problems where a specified type mismatch occurs.
 
 ## Version 1.1.1 (2024-02-12)
 

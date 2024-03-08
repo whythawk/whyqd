@@ -233,6 +233,7 @@ class DataSourceParser:
 
     def coerce_to_schema(self, *, df: pd.DataFrame, schema: Type[SchemaDefinition]) -> pd.DataFrame:
         # https://modin.readthedocs.io/en/stable/flow/modin/core/dataframe/pandas/partitioning/partition.html#modin.core.dataframe.pandas.partitioning.partition.PandasDataframePartition.to_numpy
+        # CHECK: https://github.com/modin-project/modin/issues/3966
         validate = {"matched": [], "unmatched": [], "coerced": []}
         columns = self.get_header_columns(df=df)
         for c in columns:
