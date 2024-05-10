@@ -336,7 +336,7 @@ This leaves the following to be done in the destination crosswalk:
 - Join all the separate 'Reference' columns into a single column.
 
 ```python
-SCHEMA_INTERIM.get.index = transform.get.dataDestination.index
+SCHEMA_INTERIM.get.index = transform_interim.get.dataDestination.index
 crosswalk_destination = qd.CrosswalkDefinition()
 crosswalk_destination.set(schema_source=SCHEMA_INTERIM, schema_destination=SCHEMA_DESTINATION)
 # Create the crosswalk
@@ -367,7 +367,7 @@ The interim schema doesn't have an index count, but we're doing a lot of physica
 pass this index from the transform to ensure that the destination transform remains within bounds.
 
 ```python
-transform = qd.TransformDefinition(crosswalk=crosswalk, data_source=transform_interim.get.dataDestination)
+transform = qd.TransformDefinition(crosswalk=crosswalk_destination, data_source=transform_interim.get.dataDestination)
 transform.process()
 transform.save(directory=DIRECTORY)
 ```

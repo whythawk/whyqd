@@ -1,6 +1,6 @@
 ---
 title: Curation
-summary: Data curation includes all the processes and techniques needed for ethical and reproducable data creation, management, transformation and presentation for reuse.
+summary: Data curation includes all the processes and techniques needed for ethical and reproducible data creation, management, transformation and presentation for reuse.
 authors:
   - Gavin Chait
 date: 2023-05-03
