@@ -520,7 +520,7 @@ class DataSourceParser:
         df = self.get(source=source, mimetype=mimetype, sheet_name=sheet_name, header=header, nrows=nrows, **attributes)
         return df.columns.tolist()
 
-    def get_header_columns(self, *, df: pd.DataFrame) -> List(ColumnModel):
+    def get_header_columns(self, *, df: pd.DataFrame) -> List[ColumnModel]:
         """Returns a list of ColumnModels from a source DataFrame.
 
         Parameters

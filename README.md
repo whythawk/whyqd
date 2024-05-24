@@ -1,7 +1,7 @@
 # whyqd: simplicity, transparency, speed
 
 [![Documentation Status](https://readthedocs.org/projects/whyqd/badge/?version=latest)](docs/en/latest/?badge=latest)
-[![Build Status](https://travis-ci.com/whythawk/whyqd.svg?branch=master)](https://travis-ci.com/whythawk/whyqd.svg?branch=master)
+[![Build Status](https://github.com/whythawk/whyqd/actions/workflows/python-app.yml/badge.svg)](https://github.com/whythawk/whyqd/actions)
 [![DOI](https://zenodo.org/badge/239159569.svg)](https://zenodo.org/badge/latestdoi/239159569)
 
 ## What is it?
