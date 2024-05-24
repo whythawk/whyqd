@@ -350,13 +350,13 @@ You could also `add`:
 
 ```python
 for field in fields:
-  schema.fields.add(terms=field)
+  schema_destination.fields.add(term=field)
 ```
 
 From here on we can access any `field` by calling it by `name` and then updating it as required:
 
 ```python
-schema.fields.get(name="occupation_state_reliefs")
+schema_destination.fields.get(name="occupation_state_reliefs")
 
 	{'name': 'occupation_state_reliefs',
 	 'type': 'array',
@@ -369,12 +369,12 @@ Let's add a list of `category` terms as a constraint for `occupation_state_relie
 ```python
 categories = ["small_business", "rural", "charity", "enterprise_zone", "vacancy", "hardship", "retail", "discretionary", "exempt", "transitional", "other"]
 constraints = {
-    "categories": [{
-      "name": category for category in categories
-    }]
+    "category": [
+      { "name": category } for category in categories
+    ]
   }
-schema.fields.set_constraints(name="occupation_state_reliefs", constraints=constraints)
-schema.fields.get(name="occupation_state_reliefs").dict(by_alias=True, exclude_defaults=True, exclude_none=True)
+schema_destination.fields.set_constraints(name="occupation_state_reliefs", constraints=constraints)
+schema_destination.fields.get(name="occupation_state_reliefs").dict(by_alias=True, exclude_defaults=True, exclude_none=True)
 
   {'uuid': UUID('cf4d066e-22a8-4b76-8956-f6120eec4c52'),
   'name': 'occupation_state_reliefs',
@@ -409,7 +409,7 @@ the underlying [Pydantic](https://pydantic-docs.helpmanual.io/) model used by `w
 Review your schema, then `save` and we're ready to begin schema-to-schema conversion:
 
 ```python
-schema.get.dict(by_alias=True, exclude_defaults=True, exclude_none=True)
+schema_destination.get.dict(by_alias=True, exclude_defaults=True, exclude_none=True)
 
 	{'uuid': UUID('19692345-2caf-46b1-9a8f-276491520c6b'),
 	'name': 'test_schema',
@@ -480,7 +480,7 @@ schema.get.dict(by_alias=True, exclude_defaults=True, exclude_none=True)
 		{'uuid': UUID('8a3af6f4-f48c-4614-83f2-ba472b2129e9'),
 		'name': 'other'}]}}]}
 
-schema.save(directory=directory, filename=filename, created_by="Gavin Chait")
+schema_destination.save(directory=directory, filename=filename, created_by="Gavin Chait")
 ```
 
 Whyqd's [data source strategies](datasource.md) show you how to derive a schema to reflect source data.
