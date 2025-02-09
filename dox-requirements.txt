@@ -1,5 +1,0 @@
-mkdocs
-mkdocs-exclude
-mkdocstrings-python
-mkdocs-redirects
-mkdocs-material
