@@ -167,21 +167,21 @@ has definitions and examples you can review:
 
 | Action                                             | `>` Field | `>` Term | `<` Term | `<` Field | `<` Rows |
 |:-------------------------------------------------- |:---------:|:--------:|:--------:|:---------:|:--------:|
-| [CALCULATE](../actions/calculate.md)               | X         |          |          | [m X,]    |          |
-| [CATEGORISE](../actions/categorise.md)             | X         | X        | [X,]     | X         |          |
-| [COLLATE](../actions/collate.md)                   | X         |          |          | [X, m,]   |          |
-| [DEBLANK](../actions/deblank.md)                   |           |          |          |           |          |
-| [DEDUPE](../actions/dedupe.md)                     |           |          |          |           |          |
-| [DELETE_ROWS](../actions/delete_rows.md)           |           |          |          |           | [X,]     |
-| [NEW](../actions/new.md)                           | X         |          | [X]      |           |          |
-| [PIVOT_CATEGORIES](../actions/pivot_categories.md) | X         |          |          | X         | [X,]     |
-| [PIVOT_LONGER](../actions/pivot_longer.md)         | [X, X]    |          |          | [X,]      |          |
-| [RENAME](../actions/rename.md)                     | X         |          |          | [X]       |          |
-| [SELECT](../actions/select.md)                     | X         |          |          | [X,]      |          |
-| [SELECT_NEWEST](../actions/select_newest.md)       | X         |          |          | [X m X,]  | X        |
-| [SELECT_OLDEST](../actions/select_oldest.md)       | X         |          |          | [X m X,]  |          |
-| [SEPARATE](../actions/separate.md)                 | [X,]      |          | X        | [X]       |          |
-| [UNITE](../actions/unite.md)                       | X         |          | X        | [X,]      |          |
+| [CALCULATE](actions/calculate.md)               | X         |          |          | [m X,]    |          |
+| [CATEGORISE](actions/categorise.md)             | X         | X        | [X,]     | X         |          |
+| [COLLATE](actions/collate.md)                   | X         |          |          | [X, m,]   |          |
+| [DEBLANK](actions/deblank.md)                   |           |          |          |           |          |
+| [DEDUPE](actions/dedupe.md)                     |           |          |          |           |          |
+| [DELETE_ROWS](actions/delete_rows.md)           |           |          |          |           | [X,]     |
+| [NEW](actions/new.md)                           | X         |          | [X]      |           |          |
+| [PIVOT_CATEGORIES](actions/pivot_categories.md) | X         |          |          | X         | [X,]     |
+| [PIVOT_LONGER](actions/pivot_longer.md)         | [X, X]    |          |          | [X,]      |          |
+| [RENAME](actions/rename.md)                     | X         |          |          | [X]       |          |
+| [SELECT](actions/select.md)                     | X         |          |          | [X,]      |          |
+| [SELECT_NEWEST](actions/select_newest.md)       | X         |          |          | [X m X,]  | X        |
+| [SELECT_OLDEST](actions/select_oldest.md)       | X         |          |          | [X m X,]  |          |
+| [SEPARATE](actions/separate.md)                 | [X,]      |          | X        | [X]       |          |
+| [UNITE](actions/unite.md)                       | X         |          | X        | [X,]      |          |
 
 Here:
 
