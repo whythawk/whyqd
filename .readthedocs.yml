@@ -13,16 +13,23 @@ build:
   tools:
     python: "3.9"
   jobs:
-    pre_install:
-      - pip install --force-reinstall -v "markdown==3.5.2"
-      - pip install --force-reinstall -v "mkdocs==1.5.3"
-      - pip install --force-reinstall -v "pymdown-extensions==10.7.1"
-      - pip install --force-reinstall -v "paginate==0.5.6"
-      - pip install --force-reinstall -v "mkdocs-exclude>=1.0.2"
-      - pip install --force-reinstall -v "mkdocstrings-python==1.8.0"
-      - pip install --force-reinstall -v "mkdocs-redirects==1.2.1"
-      - pip install --force-reinstall -v "mkdocs-material==9.5.13"
+    post_create_environment:
+      # https://browniebroke.com/blog/specify-docs-dependency-groups-with-poetry-and-read-the-docs/      
+      # Install poetry
+      - pip install poetry
+      # Tell poetry to not use a virtual environment
+      - poetry config virtualenvs.create false
+    post_install:
+      # Install dependencies
+      - poetry install --with docs
 
 # Build documentation for mkdocs
 mkdocs:
   configuration: mkdocs.yml
+
+# # Optionally set the version of Python and requirements required to build your docs
+# python:
+#   install:
+#     - method: pip
+#       path: .
+#     - requirements: docs-requirements.txt
