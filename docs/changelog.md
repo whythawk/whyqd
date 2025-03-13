@@ -3,10 +3,16 @@ title: Change log
 summary: Version history, including for legacy versions.
 authors:
   - Gavin Chait
-date: 2024-03-08
+date: 2025-03-13
 tags: wrangling, crosswalks, versions
 ---
 # Change log
+
+## Version 1.2.0 (2025-03-13)
+
+- Upgrading Pydantic from version 1 to 2. This is not backwardly compatible.
+- Upgrading Modine and Ray.
+- No functional or API changes.
 
 ## Version 1.1.3 (2024-03-08)
 
