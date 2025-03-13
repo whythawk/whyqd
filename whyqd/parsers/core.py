@@ -93,8 +93,8 @@ class CoreParser:
         # Which doesn't really work properly as it returns dictionaries ... validation / init doesn't happen
         # This approach may be less efficient, but it does actually parse
         if model:
-            model = model.dict(by_alias=True, exclude_defaults=True, exclude_none=True)
-            model |= updated_model.dict(exclude_unset=True)
+            model = model.model_dump(by_alias=True, exclude_defaults=True, exclude_none=True)
+            model |= updated_model.model_dump(exclude_unset=True)
             return modelType(**model)
         else:
             return updated_model
@@ -103,10 +103,10 @@ class CoreParser:
     ### PATH MANAGEMENT
     ###################################################################################################
 
-    def check_path(self, *, directory: str) -> Path:
+    def check_path(self, *, directory: str, mode: oct = 0o777) -> Path:
         if isinstance(directory, str):
             directory = Path(directory)
-        directory.mkdir(parents=True, exist_ok=True)
+        directory.mkdir(mode=mode, parents=True, exist_ok=True)
         return directory
 
     def check_source(self, *, source: str) -> bool:

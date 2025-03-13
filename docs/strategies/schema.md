@@ -374,7 +374,7 @@ constraints = {
     ]
   }
 schema_destination.fields.set_constraints(name="occupation_state_reliefs", constraints=constraints)
-schema_destination.fields.get(name="occupation_state_reliefs").dict(by_alias=True, exclude_defaults=True, exclude_none=True)
+schema_destination.fields.get(name="occupation_state_reliefs").model_dump(by_alias=True, exclude_defaults=True, exclude_none=True)
 
   {'uuid': UUID('cf4d066e-22a8-4b76-8956-f6120eec4c52'),
   'name': 'occupation_state_reliefs',
@@ -398,7 +398,7 @@ schema_destination.fields.get(name="occupation_state_reliefs").dict(by_alias=Tru
   {'uuid': UUID('8a3af6f4-f48c-4614-83f2-ba472b2129e9'), 'name': 'other'}]}}
 ```
 
-The term `.dict(by_alias=True, exclude_defaults=True, exclude_none=True)` is used to extract a dictionary format from 
+The term `.model_dump(by_alias=True, exclude_defaults=True, exclude_none=True)` is used to extract a dictionary format from 
 the underlying [Pydantic](https://pydantic-docs.helpmanual.io/) model used by `whyqd`.
 
 !!! info
@@ -409,7 +409,7 @@ the underlying [Pydantic](https://pydantic-docs.helpmanual.io/) model used by `w
 Review your schema, then `save` and we're ready to begin schema-to-schema conversion:
 
 ```python
-schema_destination.get.dict(by_alias=True, exclude_defaults=True, exclude_none=True)
+schema_destination.get.model_dump(by_alias=True, exclude_defaults=True, exclude_none=True)
 
 	{'uuid': UUID('19692345-2caf-46b1-9a8f-276491520c6b'),
 	'name': 'test_schema',

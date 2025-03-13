@@ -77,7 +77,7 @@ datasource.validate()
 source data, including a [citation](#citation). If your data are accessable via a persistent url, then distributing
 this file ensures that all metadata definitions associated with your source data are maintained.
 
-`.validate` will repeat the derivation and test that the [checksum](#derive-a-schema-from-source-data) derived for the 
+`.validate` will repeat the derivation and test that the [checksum](#hashing-for-data-probity) derived for the 
 model is repeatable.
 
 **whyqd** can import this file and produce schemas, crosswalks and data transformations.
@@ -91,7 +91,7 @@ model is repeatable.
 You can read it:
 
 ```python
-datasource.get.dict(by_alias=True, exclude_defaults=True, exclude_none=True)
+datasource.get.model_dump(by_alias=True, exclude_defaults=True, exclude_none=True)
 
 {'uuid': UUID('827941cb-fc89-4849-beea-5779fefb9f87'),
  'path': DATASOURCE_PATH,
@@ -236,7 +236,7 @@ Categorical terms are not validated on assignment, so if you choose to set arbit
 ```python
 name = "column_1"
 st.set_field_categories(name=name, terms=["fish", "frog", "fennel"])
-st.schema.fields.get(name=name).dict(by_alias=True, exclude_defaults=True, exclude_none=True)
+st.schema.fields.get(name=name).model_dump(by_alias=True, exclude_defaults=True, exclude_none=True)
 
 	{'uuid': UUID('a43b7a94-ca6f-438d-83b9-4c84d9d7a0b7'),
 	 'name': 'column_1',

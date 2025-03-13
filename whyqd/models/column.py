@@ -1,5 +1,5 @@
 from __future__ import annotations
-from pydantic import BaseModel, Field, validator
+from pydantic import ConfigDict, BaseModel, Field, field_validator
 from uuid import UUID, uuid4
 
 from whyqd.dtypes import FieldType
@@ -19,14 +19,11 @@ class ColumnModel(BaseModel):
         alias="type",
         description="A column must contain values of a specific type. Default is 'string'.",
     )
+    model_config = ConfigDict(use_enum_values=True, validate_assignment=True, populate_by_name=True)
 
-    class Config:
-        use_enum_values = True
-        validate_assignment = True
-        allow_population_by_field_name = True
-
-    @validator("dtype", pre=True, always=True)
-    def generate_dtype(cls, v):
+    @field_validator("dtype", mode="before")
+    @classmethod
+    def generate_dtype(cls, v: FieldType):
         if v in ["float64", "int64", "Float64", "Int64", FieldType.NUMBER.value]:
             return FieldType.NUMBER
         if v in ["datetime64[ns]", FieldType.DATETIME.value]:

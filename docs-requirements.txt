@@ -1,0 +1,8 @@
+markdown==3.5.2
+mkdocs==1.5.3
+pymdown-extensions==10.7.1
+paginate==0.5.6
+mkdocs-exclude==1.0.2
+mkdocstrings-python==1.8.0
+mkdocs-redirects==1.2.1
+mkdocs-material==9.5.13

@@ -1,14 +1,15 @@
 from __future__ import annotations
-from pydantic import BaseModel, Field, validator, constr
+from pydantic import field_validator, StringConstraints, ConfigDict, BaseModel, Field
 from typing import List, Optional, Union
 from uuid import UUID, uuid4
 
 from whyqd.models import FieldModel, VersionModel, CitationModel
+from typing_extensions import Annotated
 
 
 class SchemaModel(BaseModel):
     uuid: UUID = Field(default_factory=uuid4, description="Automatically generated unique identity for the schema.")
-    name: constr(strip_whitespace=True, to_lower=True) = Field(
+    name: Annotated[str, StringConstraints(strip_whitespace=True, to_lower=True)] = Field(
         ...,
         description="Machine-readable term to uniquely address this schema. Cannot have spaces. CamelCase or snake_case for preference.",
     )
@@ -35,17 +36,16 @@ class SchemaModel(BaseModel):
     )
     citation: Optional[CitationModel] = Field(None, description="Optional full citation for the source data.")
     version: List[VersionModel] = Field(default=[], description="Version and update history for the schema.")
+    model_config = ConfigDict(validate_assignment=True)
 
-    class Config:
-        # anystr_strip_whitespace = True
-        validate_assignment = True
-
-    @validator("name")
-    def name_space(cls, v):
+    @field_validator("name")
+    @classmethod
+    def name_space(cls, v: str):
         return "_".join(v.split(" ")).lower()
 
-    @validator("fields")
-    def are_fields_unique(cls, v):
+    @field_validator("fields")
+    @classmethod
+    def are_fields_unique(cls, v: List[FieldModel]):
         field_names = []
         for f in v:
             field_names.append(f.name)

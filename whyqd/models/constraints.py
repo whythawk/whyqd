@@ -1,6 +1,6 @@
 from __future__ import annotations
 from typing import List, Optional, Union
-from pydantic import BaseModel, Field, validator
+from pydantic import field_validator, ConfigDict, BaseModel, Field, ValidationInfo
 
 from whyqd.models import CategoryModel
 
@@ -29,19 +29,18 @@ class ConstraintsModel(BaseModel):
         None,
         description="An integer that specifies the maximum of a value, or the maximum number of characters of a string, depending on the field type.",
     )
+    model_config = ConfigDict(validate_assignment=True, populate_by_name=True)
 
-    class Config:
-        validate_assignment = True
-        allow_population_by_field_name = True
-
-    @validator("maximum")
-    def is_maximum(cls, v, values, **kwargs):
-        if "minimum" in values and values["minimum"] is not None and v is not None and v < values["minimum"]:
-            raise ValueError(f"Maximum ({v}) must be greater than Minimum ({values['minimum']}).")
+    @field_validator("maximum")
+    @classmethod
+    def is_maximum(cls, v: Optional[Union[int, float]], info: ValidationInfo):
+        if info.data["minimum"] is not None and v is not None and v < info.data["minimum"]:
+            raise ValueError(f"Maximum ({v}) must be greater than Minimum ({info.data['minimum']}).")
         return v
 
-    @validator("category")
-    def check_categories_unique(cls, v):
+    @field_validator("category")
+    @classmethod
+    def check_categories_unique(cls, v: Optional[List[CategoryModel]]):
         category_names = []
         for c in v:
             category_names.append(c.name)

@@ -1,6 +1,6 @@
 from __future__ import annotations
 from typing import List, Optional
-from pydantic import BaseModel, Field, validator
+from pydantic import field_validator, ConfigDict, BaseModel, Field
 
 
 class CategoryActionModel(BaseModel):
@@ -13,14 +13,11 @@ class CategoryActionModel(BaseModel):
         default=[],
         description="The structure of an action depends on either 'boolean' or 'unique' action terms.",
     )
+    model_config = ConfigDict(use_enum_values=True, validate_assignment=True)
 
-    class Config:
-        use_enum_values = True
-        # anystr_strip_whitespace = True
-        validate_assignment = True
-
-    @validator("structure")
-    def check_valid_models(cls, v):
+    @field_validator("structure")
+    @classmethod
+    def check_valid_models(cls, v: Optional[List[str]]):
         for s in v:
             if not (s in ["boolean", "unique"]):
                 raise ValueError(f"Structure ({s}) must be of either `boolean` or `unique`.")

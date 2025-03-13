@@ -1,5 +1,5 @@
 from __future__ import annotations
-from pydantic import BaseModel, Field  # , validator
+from pydantic import ConfigDict, BaseModel, Field  # , validator
 from typing import List, Union, Optional, Type  # , Any
 
 from whyqd.models.fields import FieldModel
@@ -19,11 +19,7 @@ class SchemaActionModel(BaseModel):
     modifiers: Optional[List[ModifierModel]] = Field(
         None, description="The list of defined modifiers appropriate for this action."
     )
-
-    class Config:
-        use_enum_values = True
-        # anystr_strip_whitespace = True
-        validate_assignment = True
+    model_config = ConfigDict(use_enum_values=True, validate_assignment=True)
 
     # @validator("text_structure")
     # def check_valid_models(cls, v):

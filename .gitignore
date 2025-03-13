@@ -8,6 +8,7 @@ Thumbs.db
 # Folder config file
 Desktop.ini
 .vscode/
+*.code-workspace
 
 #############
 ## Python
@@ -32,6 +33,7 @@ develop-eggs
 
 # Installer logs
 pip-log.txt
+log.txt
 
 # Unit test / coverage reports
 .coverage

@@ -443,7 +443,7 @@ class DataSourceParser:
             "checksum": self.get_checksum(df=df),
             "header": header,
             "index": df.shape[0],
-            "attributes": DataSourceAttributeModel.parse_obj(attributes),
+            "attributes": DataSourceAttributeModel.model_validate(attributes),
         }
         if header is None or header != 0:
             source_data_model["names"] = names

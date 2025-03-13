@@ -65,7 +65,7 @@ class BaseDefinition:
         """
         if not self.model.citation:
             raise ValueError("No citation has been declared yet.")
-        return self.model.citation.dict(by_alias=True, exclude_defaults=True, exclude_none=True)
+        return self.model.citation.model_dump(by_alias=True, exclude_defaults=True, exclude_none=True)
 
     def set_citation(self, *, citation: CitationModel) -> None:
         """Update or create the citation.
@@ -119,7 +119,7 @@ class BaseDefinition:
     def exclude_uuid(self, *, model: BaseModel | dict):
         # https://stackoverflow.com/a/49723101/295606
         if isinstance(model, BaseModel):
-            model = model.dict(by_alias=True, exclude_defaults=True, exclude_none=True, exclude={"uuid": True})
+            model = model.model_dump(by_alias=True, exclude_defaults=True, exclude_none=True, exclude={"uuid": True})
         excluded = {}
         for key, field in model.items():
             if key != "uuid":
@@ -149,7 +149,7 @@ class BaseDefinition:
         """
         self._refresh_model_terms()
         if self.model and not hide_uuid:
-            return self.model.json(by_alias=True, exclude_defaults=True, exclude_none=True)
+            return self.model.model_dump_json(by_alias=True, exclude_defaults=True, exclude_none=True)
         elif self.model and hide_uuid:
             return json.dumps(self.exclude_uuid(model=self.model))
         return None
@@ -186,7 +186,7 @@ class BaseDefinition:
         if isinstance(directory, str):
             directory = Path(directory)
         path = directory / filename
-        if "version" in self.model.dict():
+        if "version" in self.model.model_dump():
             update = VersionModel(**{"description": f"Save {self.model_name}."})
             if created_by:
                 update.name = created_by

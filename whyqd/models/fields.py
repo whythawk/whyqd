@@ -1,5 +1,5 @@
 from __future__ import annotations
-from pydantic import BaseModel, Field
+from pydantic import ConfigDict, BaseModel, Field
 from typing import Optional
 from uuid import UUID, uuid4
 
@@ -20,9 +20,4 @@ class FieldModel(BaseModel):
     constraints: Optional[ConstraintsModel] = Field(
         None, description="A set of optional constraints to define the field."
     )
-
-    class Config:
-        use_enum_values = True
-        # anystr_strip_whitespace = True
-        validate_assignment = True
-        allow_population_by_field_name = True
+    model_config = ConfigDict(use_enum_values=True, validate_assignment=True, populate_by_name=True)

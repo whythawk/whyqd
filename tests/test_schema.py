@@ -53,7 +53,7 @@ class TestSchema:
         s.fields.add_multi(terms=SCHEMA_DATA["SOURCE"]["fields"])
         # also this https://github.com/samuelcolvin/pydantic/issues/1283#issuecomment-594041870
         # foo_excludes = {idx: {"id"} for idx in range(len(my_bar.foos))}
-        # my_bar.dict(exclude={"foos": foo_excludes})
+        # my_bar.model_dump(exclude={"foos": foo_excludes})
         # https://pydantic-docs.helpmanual.io/usage/exporting_models/#advanced-include-and-exclude
         schema_exclude = {
             f_idx: (
@@ -66,7 +66,7 @@ class TestSchema:
             )
             for f_idx, f in enumerate(s.get.fields)
         }
-        d = s.get.dict(
+        d = s.get.model_dump(
             by_alias=True, exclude_defaults=True, exclude_none=True, exclude={"uuid": ..., "fields": schema_exclude}
         )
         # d = s.exclude_uuid(model=s.get)

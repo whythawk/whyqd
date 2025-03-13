@@ -1,3 +1,4 @@
+- 1.2.0: Upgrading Pydantic from version 1.8 to version 2.10
 - 1.1.3: Improving exception error messages to be more helpful.
 - 1.1.2: Fixes for `CATEGORY` parser for ambiguous term names.
 - 1.1.1: Fixes for action parser where field names contain ambiguous characters.

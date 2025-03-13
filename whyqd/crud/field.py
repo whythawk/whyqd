@@ -112,7 +112,7 @@ class CRUDField(CRUDBase[FieldModel]):
         else:
             new_constraints = ConstraintsModel(**constraints)
             if old_constraints:
-                old_constraints = old_constraints.copy(update=new_constraints.dict(exclude_unset=True))
+                old_constraints = old_constraints.copy(update=new_constraints.model_dump(exclude_unset=True))
             else:
                 old_constraints = new_constraints
         self.get(name=name).constraints = old_constraints

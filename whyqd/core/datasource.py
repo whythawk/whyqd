@@ -168,7 +168,7 @@ class DataSourceDefinition(BaseDefinition):
         if not isinstance(self.model, list):
             return super().get_citation()
         return [
-            m.citation.dict(by_alias=True, exclude_defaults=True, exclude_none=True) for m in self.model if m.citation
+            m.citation.model_dump(by_alias=True, exclude_defaults=True, exclude_none=True) for m in self.model if m.citation
         ]
 
     def set_citation(self, *, citation: CitationModel, index: int = None) -> None:
@@ -210,7 +210,7 @@ class DataSourceDefinition(BaseDefinition):
         response = []
         for model in self.model:
             if not hide_uuid:
-                response.append(model.json(by_alias=True, exclude_defaults=True, exclude_none=True))
+                response.append(model.model_dump_json(by_alias=True, exclude_defaults=True, exclude_none=True))
             else:
                 json.dumps(self.exclude_uuid(model=model))
         return response

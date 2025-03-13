@@ -1,7 +1,8 @@
 from __future__ import annotations
-from pydantic import BaseModel, Field, validator, constr, AnyUrl
+from pydantic import field_validator, StringConstraints, ConfigDict, BaseModel, Field, AnyUrl
 from typing import Optional
 import math
+from typing_extensions import Annotated
 
 
 class CitationModel(BaseModel):
@@ -28,7 +29,7 @@ class CitationModel(BaseModel):
         None,
         description="The doi field is used to store the digital object identifier (DOI) of a journal article, conference paper, book chapter or book. It is a non-standard BibTeX field. It's recommended to simply use the DOI, and not a DOI link.",
     )
-    month: Optional[constr(strip_whitespace=True, to_lower=True)] = Field(
+    month: Optional[Annotated[str, StringConstraints(strip_whitespace=True, to_lower=True)]] = Field(
         None,
         description="The month of publication (or, if unpublished, the month of creation). Use three-letter abbreviation.",
     )
@@ -37,19 +38,18 @@ class CitationModel(BaseModel):
         None, description="The terms under which the associated resource are licenced for reuse."
     )
     note: Optional[str] = Field(None, description="Miscellaneous extra information.")
+    model_config = ConfigDict(validate_assignment=True)
 
-    class Config:
-        # anystr_strip_whitespace = True
-        validate_assignment = True
-
-    @validator("month")
-    def month_abbreviation(cls, v):
+    @field_validator("month")
+    @classmethod
+    def month_abbreviation(cls, v: Optional[str]):
         if v.lower() not in ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"]:
             raise ValueError("Month must conform to the BibTeX three-letter code definition.")
         return v.lower()
 
-    @validator("year")
-    def year_is_four(cls, v):
+    @field_validator("year")
+    @classmethod
+    def year_is_four(cls, v: Optional[int]):
         if v < 1000 or int(math.log10(v)) + 1 != 4:
             raise ValueError(
                 "Year must be in the period 1000 to 9999. There may be a year 9999 problem, but if you're still using this software by then, I'll be impressed."

@@ -1,5 +1,6 @@
-from pydantic import BaseSettings, Field
+from pydantic import Field
 from typing import Optional
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
@@ -11,11 +12,7 @@ class Settings(BaseSettings):
     WHYQD_SPILLWAY: Optional[str] = Field(default="/spill")
     WHYQD_DIRECTORY: Optional[str] = Field(default="")
     WHYQD_DEFAULT_MIMETYPE: Optional[str] = Field(default="application/vnd.apache.parquet")
-
-    class Config:
-        case_sensitive = True
-        env_file = ".env"
-        env_file_encoding = "utf-8"
+    model_config = SettingsConfigDict(case_sensitive=True, env_file=".env", env_file_encoding="utf-8")
 
 
 settings = Settings()

@@ -1,5 +1,6 @@
 from pathlib import Path
 import csv
+from pydantic import AnyUrl
 
 import whyqd as qd
 from whyqd.parsers import CoreParser
@@ -39,6 +40,8 @@ class TestDataSource:
         # Using relative paths for test, so adjust accordingly
         d["path"] = d["path"].replace(BASE_DIRECTORY, "")
         D["path"] = D["path"].replace(BASE_DIRECTORY, "")
+        # the MODEL doesn't have AnyURL set in the citation
+        D["citation"]["url"] = AnyUrl(D["citation"]["url"])
         assert d == D
 
     def test_load_single(self):

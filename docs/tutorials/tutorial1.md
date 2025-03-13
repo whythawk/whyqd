@@ -183,12 +183,12 @@ constraints = {
 schema_destination.fields.set_constraints(name="occupation_state_reliefs", constraints=constraints)
 ```
 
-Use `.dict(by_alias=True, exclude_defaults=True, exclude_none=True)` to extract a dictionary format from the underlying
+Use `.model_dump(by_alias=True, exclude_defaults=True, exclude_none=True)` to extract a dictionary format from the underlying
 [Pydantic](https://pydantic-docs.helpmanual.io/) model.
 
 ```python
 schema_destination.fields.get(name="occupation_state_reliefs"
-                              ).dict(
+                              ).model_dump(
                                 by_alias=True, 
                                 exclude_defaults=True, 
                                 exclude_none=True)
@@ -315,7 +315,7 @@ for ds in datasource.get:
 Leaving us with a list of source schema, along with their appropriate categories:
 
 ```python
-SCHEMA_SOURCE["Report1"].get.dict(by_alias=True, exclude_defaults=True, exclude_none=True)
+SCHEMA_SOURCE["Report1"].get.model_dump(by_alias=True, exclude_defaults=True, exclude_none=True)
 
 {'uuid': UUID('a25091ef-2bad-4207-8e04-dc50760de5f9'),
  'name': 'portsmouth-report1',

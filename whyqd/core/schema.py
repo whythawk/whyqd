@@ -50,7 +50,7 @@ class SchemaDefinition(BaseDefinition):
                 self.crud.add_multi(terms=self.model.fields)
             else:
                 self.crud.add_multi(
-                    terms=[f.dict(by_alias=True, exclude_defaults=True, exclude_none=True) for f in self.model.fields]
+                    terms=[f.model_dump(by_alias=True, exclude_defaults=True, exclude_none=True) for f in self.model.fields]
                 )
         if self.model and not self.model.fields:
             self.crud.reset()
@@ -98,7 +98,7 @@ class SchemaDefinition(BaseDefinition):
         if not self.model:
             self.set()
         for dc in data.columns:
-            field = dc.dict(exclude={"uuid"}, by_alias=True)
+            field = dc.model_dump(exclude={"uuid"}, by_alias=True)
             field["title"] = field["name"]
             self.fields.add(term=field)
         self._refresh_model_terms()

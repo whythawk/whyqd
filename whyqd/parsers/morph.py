@@ -110,7 +110,7 @@ class MorphParser:
                 )
             if "rows" not in action.structure:
                 raise ValueError(f"Script error for {action.name} Morph. Rows are not a valid input.")
-            elif not np.in1d(rows, self.row_indices).all():
+            elif not np.isin(rows, self.row_indices).all():
                 raise ValueError("Not all row indices found in source data.")
         else:
             if "rows" in action.structure:
