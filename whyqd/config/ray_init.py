@@ -10,7 +10,7 @@ from whyqd.config.settings import settings
 def clear_spillway() -> bool:
     # https://stackoverflow.com/a/56151260/295606
     # only do this if ray is not initialised, otherwise it'll crash. horribly.
-    WHYQD_SPILLWAY = ray._private.utils.get_user_temp_dir()
+    WHYQD_SPILLWAY = ray._common.utils.get_user_temp_dir()
     if not Path(WHYQD_SPILLWAY).exists():
         return False
     for path in Path(WHYQD_SPILLWAY).iterdir():
@@ -50,8 +50,8 @@ def ray_start(**kwargs):
             kwargs["object_store_memory"] = settings.WHYQD_MEMORY
         if not kwargs.get("_temp_dir") and settings.WHYQD_SPILLWAY:
             # TODO: On some environments, I'm getting weird timeouts
-            if not ray._private.utils.get_user_temp_dir().endswith(settings.WHYQD_SPILLWAY):
-                kwargs["_temp_dir"] = f"{ray._private.utils.get_user_temp_dir()}{settings.WHYQD_SPILLWAY}"
+            if not ray._common.utils.get_user_temp_dir().endswith(settings.WHYQD_SPILLWAY):
+                kwargs["_temp_dir"] = f"{ray._common.utils.get_user_temp_dir()}{settings.WHYQD_SPILLWAY}"
             pass
         # if not kwargs.get("_system_config") and settings.WHYQD_SPILLWAY:
         #     kwargs["_system_config"] = {
