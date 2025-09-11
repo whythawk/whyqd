@@ -3,10 +3,19 @@ title: Change log
 summary: Version history, including for legacy versions.
 authors:
   - Gavin Chait
-date: 2025-03-13
+date: 2025-09-11
 tags: wrangling, crosswalks, versions
 ---
 # Change log
+
+## Version 1.2.2 (2025-09-11)
+
+- Fix to ISO date conversion where string is already in ISO-format.
+- Ray dependency fix where checking for location of temporary directory.
+
+## Version 1.2.1 (2025-07-19)
+
+- Minor change in Ray dependency.
 
 ## Version 1.2.0 (2025-03-13)
 

@@ -625,6 +625,17 @@ class DataSourceParser:
     ### PANDAS TYPE PARSERS
     ###################################################################################################
 
+    def _date_is_isoformat(self, x: str) -> bool:
+        """
+        Checks a string to see whether it can be coerced as an ISO-formatted date `YYYY-MM-DD`
+        https://stackoverflow.com/a/61569783
+        """
+        try:
+            datetime.fromisoformat(x.replace('Z', '+00:00'))
+        except (ValueError, TypeError):
+            return False
+        return True
+
     def _parse_dates(self, x: Union[None, str], dayfirst: bool = True) -> Union[pd.NaT, date.isoformat]:
         """
         This is the hard-won 'trust nobody', certainly not Americans, date parser. This requires that the user
@@ -652,6 +663,9 @@ class DataSourceParser:
         if isinstance(x, str) and len(x) <= 10 and ":" in x:
             # This specific variation of a date is interpreted as a time, so ...
             x = re.sub(r"[\\/,\.:;]", "-", x)
+        # Check if already in ISO Format
+        if self._date_is_isoformat(x):
+            return str(x).strip()[:10]
         # Check if to_datetime can handle things
         if not pd.isnull(pd.to_datetime(x, errors="coerce", dayfirst=dayfirst)):
             return date.isoformat(pd.to_datetime(x, errors="coerce", dayfirst=dayfirst))
