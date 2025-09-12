@@ -3,10 +3,14 @@ title: Change log
 summary: Version history, including for legacy versions.
 authors:
   - Gavin Chait
-date: 2025-09-11
+date: 2025-09-12
 tags: wrangling, crosswalks, versions
 ---
 # Change log
+
+## Version 1.2.3 (2025-09-12)
+
+- Minor change in Ray dependency.
 
 ## Version 1.2.2 (2025-09-11)
 
