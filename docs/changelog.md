@@ -8,6 +8,10 @@ tags: wrangling, crosswalks, versions
 ---
 # Change log
 
+## Version 1.2.4 (2025-09-29)
+
+- Fixed date parser error when date is an int POSIX timestamp.
+
 ## Version 1.2.3 (2025-09-12)
 
 - Minor change in Ray dependency.
