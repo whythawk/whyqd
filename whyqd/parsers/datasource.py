@@ -631,7 +631,8 @@ class DataSourceParser:
         https://stackoverflow.com/a/61569783
         """
         try:
-            datetime.fromisoformat(str(x).replace('Z', '+00:00'))
+            # `int` formatted dates will fail with `AttributeError`
+            datetime.fromisoformat(x.replace('Z', '+00:00'))
         except (ValueError, TypeError, AttributeError):
             return False
         return True
