@@ -1,3 +1,4 @@
+- 1.2.5: Fixed date parser error when date is an int POSIX timestamp.
 - 1.2.4: Fixed date parser error when date is an int POSIX timestamp.
 - 1.2.3: Minor change in Ray dependency.
 - 1.2.2: Fix to date ISO conversion where date str already in ISO-format, plus Ray dependency fix.
