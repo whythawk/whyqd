@@ -50,11 +50,7 @@ def ray_start(**kwargs):
         if not kwargs.get("object_store_memory") and settings.WHYQD_MEMORY:
             kwargs["object_store_memory"] = settings.WHYQD_MEMORY
         if not kwargs.get("_temp_dir") and settings.WHYQD_SPILLWAY:
-            # TODO: On some environments, I'm getting weird timeouts
-            try:
-                WHYQD_SPILLWAY = ray._common.utils.get_user_temp_dir()
-            except AttributeError:
-                WHYQD_SPILLWAY = ray._private.utils.get_user_temp_dir()
+            WHYQD_SPILLWAY = tempfile.gettempdir()
             if not WHYQD_SPILLWAY.endswith(settings.WHYQD_SPILLWAY):
                 kwargs["_temp_dir"] = f"{WHYQD_SPILLWAY}{settings.WHYQD_SPILLWAY}"
             pass
