@@ -1,3 +1,4 @@
+- 1.2.6: Fixed brittle reference to `WHYQD_SPILLWAY` temporary directory to be more robust.
 - 1.2.5: Fixed date parser error when date is an int POSIX timestamp.
 - 1.2.4: Fixed date parser error when date is an int POSIX timestamp.
 - 1.2.3: Minor change in Ray dependency.

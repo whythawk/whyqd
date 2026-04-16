@@ -2,6 +2,7 @@ import ray
 import os
 # import json
 import shutil
+import tempfile
 from pathlib import Path
 
 from whyqd.config.settings import settings
@@ -10,10 +11,7 @@ from whyqd.config.settings import settings
 def clear_spillway() -> bool:
     # https://stackoverflow.com/a/56151260/295606
     # only do this if ray is not initialised, otherwise it'll crash. horribly.
-    try:
-        WHYQD_SPILLWAY = ray._common.utils.get_user_temp_dir()
-    except AttributeError:
-        WHYQD_SPILLWAY = ray._private.utils.get_user_temp_dir()
+    WHYQD_SPILLWAY = tempfile.gettempdir()
     if not Path(WHYQD_SPILLWAY).exists():
         return False
     for path in Path(WHYQD_SPILLWAY).iterdir():
