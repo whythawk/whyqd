@@ -8,6 +8,10 @@ tags: wrangling, crosswalks, versions
 ---
 # Change log
 
+## Version 1.2.8 (2026-04-19)
+
+- Null guard on `parse_string` to prevent accidentical coercion of `pd.NA` to `'<NA>'`.
+
 ## Version 1.2.5 (2025-09-30)
 
 - Fixed date parser error when date is an int POSIX timestamp.

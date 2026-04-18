@@ -1,3 +1,4 @@
+- 1.2.8: Null guard on `parse_string` to prevent accidentical coercion of `pd.NA` to `'<NA>'`.
 - 1.2.7: Fixed brittle reference to `WHYQD_SPILLWAY` temporary directory to be more robust.
 - 1.2.6: Fixed brittle reference to `WHYQD_SPILLWAY` temporary directory to be more robust.
 - 1.2.5: Fixed date parser error when date is an int POSIX timestamp.

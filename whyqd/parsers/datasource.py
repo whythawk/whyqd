@@ -803,7 +803,9 @@ class DataSourceParser:
         except ValueError:
             return None
 
-    def parse_string(self, x: str) -> None | str:
+    def parse_string(self, x: str | None) -> str | None:
+        if _pd.isna(x):
+            return None
         x = str(x).replace("\n", " ").replace("\r", "").replace("\t", "").replace("\\", "").strip()
         x = " ".join(str(x).split())
         if x and x[0] == "'":
