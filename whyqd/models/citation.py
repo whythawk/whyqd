@@ -1,8 +1,7 @@
 from __future__ import annotations
 from pydantic import field_validator, StringConstraints, ConfigDict, BaseModel, Field, AnyUrl
-from typing import Optional
+from typing import Annotated, Optional
 import math
-from typing_extensions import Annotated
 
 
 class CitationModel(BaseModel):
