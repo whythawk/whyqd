@@ -8,13 +8,12 @@ from pathlib import Path
 from whyqd.config.settings import settings
 
 
-def clear_spillway() -> bool:
+def clear_spillway(spillway: Path) -> bool:
     # https://stackoverflow.com/a/56151260/295606
     # only do this if ray is not initialised, otherwise it'll crash. horribly.
-    WHYQD_SPILLWAY = tempfile.gettempdir()
-    if not Path(WHYQD_SPILLWAY).exists():
+    if not spillway.exists():
         return False
-    for path in Path(WHYQD_SPILLWAY).iterdir():
+    for path in spillway.iterdir():
         try:
             if path.is_file():
                 path.unlink()
@@ -38,8 +37,6 @@ def ray_start(**kwargs):
     # dev_shm must be aligned in docker-compose, and note that it's not under `build`
     #   shm_size: "8gb"
     if not ray.is_initialized():
-        # clear the spill path of any old artifacts
-        clear_spillway()
         # initialise - kwargs allow overwriting of the settings (or ignoring the .env)
         kwargs["ignore_reinit_error"] = True
         kwargs["runtime_env"] = {"env_vars": {"__MODIN_AUTOIMPORT_PANDAS__": "1"}}
@@ -54,6 +51,8 @@ def ray_start(**kwargs):
             if not WHYQD_SPILLWAY.endswith(settings.WHYQD_SPILLWAY):
                 kwargs["_temp_dir"] = f"{WHYQD_SPILLWAY}{settings.WHYQD_SPILLWAY}"
             pass
+        # ray's default temp folder when no _temp_dir is given
+        clear_spillway(Path(kwargs.get("_temp_dir") or Path(tempfile.gettempdir()) / "ray"))
         # if not kwargs.get("_system_config") and settings.WHYQD_SPILLWAY:
         #     kwargs["_system_config"] = {
         #         "object_spilling_config": json.dumps(
