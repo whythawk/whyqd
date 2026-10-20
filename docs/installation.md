@@ -13,7 +13,7 @@ data analysis and exploration in Jupyter Notebooks.
 
 ## Install
 
-Install with your favourite package manager (minimum of Python 3.9):
+Install with your favourite package manager. You'll need Python 3.12: Modin, which **whyqd** runs on, cannot yet read Excel files on Python 3.13 or later.
 
 ```bash
 pip install whyqd

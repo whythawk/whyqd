@@ -97,7 +97,7 @@ There are four worked tutorials to guide you through typical scenarios:
 
 ## Installation
 
-You'll need at least Python 3.9, then install with your favourite package manager:
+You'll need Python 3.12 (Modin, which **whyqd** runs on, cannot yet read Excel files on Python 3.13 or later), then install with your favourite package manager:
 
 ```bash
 pip install whyqd

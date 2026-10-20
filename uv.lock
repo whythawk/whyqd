@@ -2596,7 +2596,6 @@ dependencies = [
 
 [package.dev-dependencies]
 dev = [
-    { name = "jupyterlab" },
     { name = "pytest" },
     { name = "ruff" },
 ]
@@ -2609,6 +2608,9 @@ docs = [
     { name = "mkdocstrings-python" },
     { name = "paginate" },
     { name = "pymdown-extensions" },
+]
+notebooks = [
+    { name = "jupyterlab" },
 ]
 
 [package.metadata]
@@ -2627,7 +2629,6 @@ requires-dist = [
 
 [package.metadata.requires-dev]
 dev = [
-    { name = "jupyterlab", specifier = ">=3.6.1" },
     { name = "pytest", specifier = ">=7.2.2" },
     { name = "ruff", specifier = "~=0.14.0" },
 ]
@@ -2641,6 +2642,7 @@ docs = [
     { name = "paginate", specifier = ">=0.5.6" },
     { name = "pymdown-extensions", specifier = ">=10.7.1" },
 ]
+notebooks = [{ name = "jupyterlab", specifier = ">=3.6.1" }]
 
 [[package]]
 name = "xlrd"
