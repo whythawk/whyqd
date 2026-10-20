@@ -10,6 +10,7 @@ import pyarrow as pa
 import re
 import locale
 import ast
+import shutil
 
 from whyqd.parsers.core import CoreParser
 from whyqd.models import ColumnModel, DataSourceModel, DataSourceAttributeModel
@@ -219,6 +220,9 @@ class DataSourceParser:
         except Exception:
             raise FileExistsError(f"Save mimetype not supported, `{mimetype}`.")
         if mimetype in [MimeType.PRQ, MimeType.PARQUET]:
+            # modin writes a folder of parts and leaves an earlier write's extra parts in place
+            if source.is_dir():
+                shutil.rmtree(source)
             df.to_parquet(path=source, engine="pyarrow", index=False)
         if mimetype in [MimeType.FTR, MimeType.FEATHER]:
             df.to_feather(path=source)
