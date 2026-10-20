@@ -1,2 +1,15 @@
 # Auto detect text files and perform LF normalization
 * text eol=lf
+
+# Binary files
+*.xlsx binary
+*.XLSX binary
+*.xls binary
+*.XLS binary
+*.parquet binary
+*.PARQUET binary
+*.feather binary
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.ico binary
