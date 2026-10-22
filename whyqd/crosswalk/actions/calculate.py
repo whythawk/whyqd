@@ -1,5 +1,5 @@
 from __future__ import annotations
-import modin.pandas as pd
+import pandas as pd
 import numpy as np
 
 from whyqd.crosswalk.base import BaseSchemaAction

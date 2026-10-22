@@ -1,7 +1,7 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING
 from uuid import UUID
-import modin.pandas as pd
+import pandas as pd
 
 from whyqd.crud.base import CRUDBase
 from whyqd.models import ActionScriptModel

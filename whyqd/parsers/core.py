@@ -10,7 +10,7 @@ import posixpath
 from uuid import uuid4
 from datetime import date, datetime
 from pathlib import Path, PurePath
-import modin.pandas as pd
+import pandas as pd
 import numpy as np
 
 # from pandas.util import hash_pandas_object
@@ -192,7 +192,6 @@ class CoreParser:
 
     def get_data_checksum(self, *, df: pd.DataFrame) -> str:
         # The destination data does not have a valid checksum for the file itself, only the data.
-        # df_checksum = hash_pandas_object(df.astype("string")._to_pandas(), index=True).values
         # Need to ensure arrays are all of the same type. Easiest is to coerce np arrays to lists
         for column in df.columns:
             if isinstance(df.iloc[0][column], np.ndarray):

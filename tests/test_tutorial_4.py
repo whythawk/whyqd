@@ -69,6 +69,8 @@ class TestTutorialVariations:
         )
         # 6. Explode the array data columns
         df = transform.data.copy()
+        for column in ["occupation_state_reliefs", "prop_ba_rates"]:
+            assert all(isinstance(x, list) and len(x) == 4 for x in df[column]), column
         df = df.explode(["occupation_state_reliefs", "prop_ba_rates"])
         df.dropna(subset=["occupation_state_reliefs", "prop_ba_rates"], inplace=True)
         df.drop_duplicates(inplace=True)

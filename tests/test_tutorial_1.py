@@ -1,5 +1,5 @@
 from pathlib import Path
-import modin.pandas as pd
+import pandas as pd
 
 import whyqd as qd
 from whyqd.parsers import CoreParser, DataSourceParser

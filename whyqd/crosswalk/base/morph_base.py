@@ -7,7 +7,7 @@ from whyqd.parsers import CoreParser
 from whyqd.models import MorphActionModel
 
 if TYPE_CHECKING:
-    import modin.pandas as pd
+    import pandas as pd
     from whyqd.models import ColumnModel
 
 

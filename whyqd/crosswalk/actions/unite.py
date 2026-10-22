@@ -5,7 +5,7 @@ from whyqd.crosswalk.base import BaseMorphAction
 from whyqd.models import FieldModel
 
 if TYPE_CHECKING:
-    import modin.pandas as pd
+    import pandas as pd
 
 
 class Action(BaseMorphAction):

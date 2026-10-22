@@ -10,7 +10,7 @@ from whyqd.crosswalk.base import BaseSchemaAction
 if TYPE_CHECKING:
     from whyqd.models import SchemaActionModel, ModifierModel
     from whyqd.core import SchemaDefinition
-    import modin.pandas as pd
+    import pandas as pd
 
 
 class ActionParser:

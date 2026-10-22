@@ -1,5 +1,5 @@
 from __future__ import annotations
-import modin.pandas as pd
+import pandas as pd
 
 from whyqd.crosswalk.base import BaseSchemaAction
 from whyqd.models import FieldModel
@@ -37,7 +37,9 @@ class Action(BaseSchemaAction):
         return super().validate(destination=destination, source=source)
 
     def transform(self, *, df: pd.DataFrame, destination: list[FieldModel], source: list[FieldModel]) -> pd.DataFrame:
-        columns = [c.name for c in source]
+        # Melted blocks follow the source's column order, not the order the script lists them
+        named = {c.name for c in source}
+        columns = [c for c in df.columns if c in named]
         id_columns = list(set(df.columns.values.tolist()).difference(set(columns)))
         name_field, value_name = destination[0].name, destination[1].name
         # https://pandas.pydata.org/docs/reference/api/pandas.melt.html

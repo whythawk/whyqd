@@ -3,7 +3,7 @@ from typing import List, Union, Optional, TYPE_CHECKING
 
 
 if TYPE_CHECKING:
-    import modin.pandas as pd
+    import pandas as pd
     from whyqd.models import ModifierModel, FieldModel, SchemaActionModel, ColumnModel
 
 

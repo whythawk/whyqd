@@ -1,9 +1,10 @@
 from pathlib import Path
 import csv
+import pandas as pd
 from pydantic import AnyUrl
 
 import whyqd as qd
-from whyqd.parsers import CoreParser
+from whyqd.parsers import CoreParser, DataSourceParser
 
 DIRECTORY = Path(__file__).resolve().parent / "data"
 BASE_DIRECTORY = f"{Path('__file__').resolve().parent}/"
@@ -74,3 +75,18 @@ class TestDataSource:
         datasource = qd.DataSourceDefinition()
         datasource.derive_model(source=DATA["CSV"], mimetype=CSVTYPE, quoting=csv.QUOTE_ALL)
         datasource.validate()
+
+    def test_coerce_keeps_rows_on_any_index(self):
+        # Actions can leave a frame indexed by labels rather than 0..n; coercion must keep every value in its row
+        schema = qd.SchemaDefinition()
+        schema.set(schema={"name": "coercion"})
+        schema.fields.add_multi(
+            terms=[{"name": "amount", "type": "number"}, {"name": "reliefs", "type": "array"}]
+        )
+        df = pd.DataFrame(
+            {"amount": ["80.0", "88.5"], "reliefs": [["80.0", None], ["88.5", "12.0"]]},
+            index=["7", "3"],
+        )
+        df = DataSourceParser().coerce_to_schema(df=df, schema=schema)
+        assert df["amount"].tolist() == [80.0, 88.5]
+        assert df["reliefs"].tolist() == [["80.0", None], ["88.5", "12.0"]]

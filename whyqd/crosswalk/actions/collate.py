@@ -5,7 +5,7 @@ from whyqd.crosswalk.base import BaseSchemaAction
 from whyqd.models import ModifierModel, FieldModel
 
 if TYPE_CHECKING:
-    import modin.pandas as pd
+    import pandas as pd
 
 
 class Action(BaseSchemaAction):

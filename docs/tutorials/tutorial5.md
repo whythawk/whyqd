@@ -188,7 +188,7 @@ We start with importing the libraries we need, and defining our global variables
 ``` Python
 import whyqd as qd
 import numpy as np
-import modin.pandas as pd
+import pandas as pd
 from itertools import chain
 
 SCHEMA_SOURCE = {}
