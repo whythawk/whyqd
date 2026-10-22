@@ -1,12 +1,11 @@
 from __future__ import annotations
-from typing import Optional, List, Dict, Any
+from typing import Annotated, Optional, List, Dict, Any
 from pydantic import StringConstraints, field_validator, ConfigDict, BaseModel, Field, ValidationInfo, RootModel
 from uuid import UUID, uuid4
 import string
 
 from whyqd.dtypes import MimeType
 from whyqd.models import CitationModel, ColumnModel
-from typing_extensions import Annotated
 
 
 class DataSourceAttributeModel(RootModel):

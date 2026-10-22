@@ -1,10 +1,9 @@
 from __future__ import annotations
 from pydantic import field_validator, StringConstraints, ConfigDict, BaseModel, Field
-from typing import Optional
+from typing import Annotated, Optional
 from uuid import UUID, uuid4
 
 from whyqd.models import CitationModel, ActionScriptModel, SchemaModel, VersionModel
-from typing_extensions import Annotated
 
 
 class CrosswalkModel(BaseModel):

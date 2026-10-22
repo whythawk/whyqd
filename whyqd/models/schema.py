@@ -1,10 +1,9 @@
 from __future__ import annotations
 from pydantic import field_validator, StringConstraints, ConfigDict, BaseModel, Field
-from typing import List, Optional, Union
+from typing import Annotated, List, Optional, Union
 from uuid import UUID, uuid4
 
 from whyqd.models import FieldModel, VersionModel, CitationModel
-from typing_extensions import Annotated
 
 
 class SchemaModel(BaseModel):

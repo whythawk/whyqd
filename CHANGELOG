@@ -1,3 +1,4 @@
+- Unreleased: Requires Python 3.12. Packaged with uv and hatchling instead of Poetry, and linted with ruff; dependencies trimmed to those whyqd uses, each with a tested range. Starting Ray now clears only Ray's own temporary folder, not the whole system temporary folder. Transform output files carry their transform's UUID, so same-day transforms no longer overwrite each other, and parquet output is replaced cleanly.
 - 1.2.8: Null guard on `parse_string` to prevent accidentical coercion of `pd.NA` to `'<NA>'`.
 - 1.2.7: Fixed brittle reference to `WHYQD_SPILLWAY` temporary directory to be more robust.
 - 1.2.6: Fixed brittle reference to `WHYQD_SPILLWAY` temporary directory to be more robust.

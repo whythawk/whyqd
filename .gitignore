@@ -35,9 +35,13 @@ develop-eggs
 pip-log.txt
 log.txt
 
+# Environments
+/.venv/
+
 # Unit test / coverage reports
 .coverage
 .tox
+.ruff_cache/
 
 #Translations
 *.mo
