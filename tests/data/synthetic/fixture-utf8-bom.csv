@@ -1,0 +1,5 @@
+﻿ref_text,ref_padded,amount,amount_mojibake,number_as_text,number,blank_like,padded_text,accented,date_text,date_mixed,boolean_like
+0000130842,0000130842,£43.40,¬£43.40,12.50,12.50," "," lead",Café,13/04/2024,04/01/2024,TRUE
+0000000001,0000000001,£-826.80,¬£-826.80,0.10,0.10,"   ","trail ",naïve,04/01/2024,13/04/2024,false
+1234567890,1234567890,"£1,234.50","¬£1,234.50",1e3,1000.00,," both ",Ætna,2010-04-01 00:00:00,05/02/2024,Y
+0012,0000000012,£.00,¬£.00," 7",7.00,a b,none,Müller £,2024-04-01,25/12/2024,FALSE

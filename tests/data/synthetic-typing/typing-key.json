@@ -1,0 +1,580 @@
+{
+  "generated": "2026-10-21T14:30:50",
+  "design": "proposed typing",
+  "number": {
+    "UK": {
+      "policy": {
+        "decimal": ".",
+        "grouping": ",",
+        "negatives": [
+          "-x",
+          "(x)",
+          "x-"
+        ],
+        "percent": "number"
+      },
+      "cases": [
+        {
+          "text": "£43.40",
+          "outcome": "value",
+          "value": "43.40",
+          "note": ""
+        },
+        {
+          "text": "¬£43.40",
+          "outcome": "value",
+          "value": "43.40",
+          "note": "mojibake: ¬ is Sm, £ is Sc, both drop"
+        },
+        {
+          "text": "£-826.80",
+          "outcome": "value",
+          "value": "-826.80",
+          "note": ""
+        },
+        {
+          "text": "-£826.80",
+          "outcome": "value",
+          "value": "-826.80",
+          "note": ""
+        },
+        {
+          "text": "£1,234.50",
+          "outcome": "value",
+          "value": "1234.50",
+          "note": ""
+        },
+        {
+          "text": "£.00",
+          "outcome": "value",
+          "value": "0.00",
+          "note": ""
+        },
+        {
+          "text": "12.50",
+          "outcome": "value",
+          "value": "12.50",
+          "note": ""
+        },
+        {
+          "text": " 7",
+          "outcome": "value",
+          "value": "7",
+          "note": ""
+        },
+        {
+          "text": "1e3",
+          "outcome": "value",
+          "value": "1000",
+          "note": ""
+        },
+        {
+          "text": "(826.80)",
+          "outcome": "value",
+          "value": "-826.80",
+          "note": ""
+        },
+        {
+          "text": "826.80-",
+          "outcome": "value",
+          "value": "-826.80",
+          "note": ""
+        },
+        {
+          "text": "1,234",
+          "outcome": "value",
+          "value": "1234",
+          "note": ""
+        },
+        {
+          "text": "0000130842",
+          "outcome": "value",
+          "value": "130842",
+          "note": ""
+        },
+        {
+          "text": "5%",
+          "outcome": "value",
+          "value": "5",
+          "note": "percent policy: number"
+        },
+        {
+          "text": "−45",
+          "outcome": "value",
+          "value": "-45",
+          "note": "Unicode minus"
+        },
+        {
+          "text": "１２",
+          "outcome": "value",
+          "value": "12",
+          "note": "full-width digits, NFKC"
+        },
+        {
+          "text": "1.234,50",
+          "outcome": "refuse",
+          "reason": "separators out of order for this policy"
+        },
+        {
+          "text": "1,5",
+          "outcome": "refuse",
+          "reason": "grouping of fewer than three digits"
+        },
+        {
+          "text": "826.80 CR",
+          "outcome": "refuse",
+          "reason": "letters"
+        },
+        {
+          "text": "N/A",
+          "outcome": "refuse",
+          "reason": "letters"
+        },
+        {
+          "text": "12k",
+          "outcome": "refuse",
+          "reason": "letters"
+        },
+        {
+          "text": "£10 - £20",
+          "outcome": "refuse",
+          "reason": "two numbers"
+        },
+        {
+          "text": "Trans Prem: £0.01",
+          "outcome": "refuse",
+          "reason": "letters"
+        },
+        {
+          "text": "1.2.3",
+          "outcome": "refuse",
+          "reason": "two decimal points"
+        },
+        {
+          "text": "",
+          "outcome": "blank"
+        },
+        {
+          "text": "   ",
+          "outcome": "blank"
+        },
+        {
+          "text": " ",
+          "outcome": "blank"
+        },
+        {
+          "text": "\t",
+          "outcome": "blank"
+        }
+      ]
+    },
+    "EU": {
+      "policy": {
+        "decimal": ",",
+        "grouping": ".",
+        "negatives": [
+          "-x",
+          "(x)",
+          "x-"
+        ],
+        "percent": "number"
+      },
+      "cases": [
+        {
+          "text": "1.234,50",
+          "outcome": "value",
+          "value": "1234.50",
+          "note": ""
+        },
+        {
+          "text": "1,5",
+          "outcome": "value",
+          "value": "1.5",
+          "note": ""
+        },
+        {
+          "text": "1.234",
+          "outcome": "value",
+          "value": "1234",
+          "note": ""
+        },
+        {
+          "text": "€-12,30",
+          "outcome": "value",
+          "value": "-12.30",
+          "note": ""
+        },
+        {
+          "text": "1,234.50",
+          "outcome": "refuse",
+          "reason": "separators out of order for this policy"
+        },
+        {
+          "text": "",
+          "outcome": "blank"
+        },
+        {
+          "text": "   ",
+          "outcome": "blank"
+        }
+      ]
+    }
+  },
+  "integer": {
+    "UK": {
+      "policy": {
+        "decimal": ".",
+        "grouping": ",",
+        "negatives": [
+          "-x",
+          "(x)",
+          "x-"
+        ],
+        "percent": "number"
+      },
+      "cases": [
+        {
+          "text": "12",
+          "outcome": "value",
+          "value": "12",
+          "note": ""
+        },
+        {
+          "text": "0000130842",
+          "outcome": "value",
+          "value": "130842",
+          "note": ""
+        },
+        {
+          "text": "1,234",
+          "outcome": "value",
+          "value": "1234",
+          "note": ""
+        },
+        {
+          "text": "-7",
+          "outcome": "value",
+          "value": "-7",
+          "note": ""
+        },
+        {
+          "text": "12.50",
+          "outcome": "refuse",
+          "reason": "a fraction is not an integer"
+        },
+        {
+          "text": "1.234,50",
+          "outcome": "refuse",
+          "reason": "separators out of order for this policy"
+        },
+        {
+          "text": "826.80-",
+          "outcome": "refuse",
+          "reason": "a fraction is not an integer"
+        },
+        {
+          "text": "",
+          "outcome": "blank"
+        },
+        {
+          "text": "   ",
+          "outcome": "blank"
+        }
+      ]
+    }
+  },
+  "boolean": {
+    "declared": {
+      "policy": {
+        "true": [
+          "true",
+          "yes",
+          "y",
+          "1"
+        ],
+        "false": [
+          "false",
+          "no",
+          "n",
+          "0"
+        ],
+        "case": "insensitive"
+      },
+      "cases": [
+        {
+          "text": "TRUE",
+          "outcome": "value",
+          "value": true,
+          "note": ""
+        },
+        {
+          "text": "true",
+          "outcome": "value",
+          "value": true,
+          "note": ""
+        },
+        {
+          "text": "Y",
+          "outcome": "value",
+          "value": true,
+          "note": ""
+        },
+        {
+          "text": "1",
+          "outcome": "value",
+          "value": true,
+          "note": ""
+        },
+        {
+          "text": "yes",
+          "outcome": "value",
+          "value": true,
+          "note": ""
+        },
+        {
+          "text": "FALSE",
+          "outcome": "value",
+          "value": false,
+          "note": ""
+        },
+        {
+          "text": "N",
+          "outcome": "value",
+          "value": false,
+          "note": ""
+        },
+        {
+          "text": "0",
+          "outcome": "value",
+          "value": false,
+          "note": ""
+        },
+        {
+          "text": "maybe",
+          "outcome": "refuse",
+          "reason": "not in the declared terms"
+        },
+        {
+          "text": "",
+          "outcome": "blank"
+        },
+        {
+          "text": "   ",
+          "outcome": "blank"
+        },
+        {
+          "text": " ",
+          "outcome": "blank"
+        },
+        {
+          "text": "\t",
+          "outcome": "blank"
+        }
+      ]
+    }
+  },
+  "date": {
+    "day_first": {
+      "policy": {
+        "order": "day_first"
+      },
+      "cases": [
+        {
+          "text": "13/04/2024",
+          "outcome": "value",
+          "value": "2024-04-13",
+          "note": ""
+        },
+        {
+          "text": "04/01/2024",
+          "outcome": "value",
+          "value": "2024-01-04",
+          "note": ""
+        },
+        {
+          "text": "2010-04-01 00:00:00",
+          "outcome": "value",
+          "value": "2010-04-01",
+          "note": ""
+        },
+        {
+          "text": "2024-04-01",
+          "outcome": "value",
+          "value": "2024-04-01",
+          "note": ""
+        },
+        {
+          "text": "2024/04/01",
+          "outcome": "value",
+          "value": "2024-04-01",
+          "note": "year-first in any separator is year, month, day"
+        },
+        {
+          "text": "01.04.2010",
+          "outcome": "value",
+          "value": "2010-04-01",
+          "note": ""
+        },
+        {
+          "text": "31/02/2024",
+          "outcome": "refuse",
+          "reason": "no such date"
+        },
+        {
+          "text": "45295",
+          "outcome": "refuse",
+          "reason": "an Excel serial as text"
+        },
+        {
+          "text": "",
+          "outcome": "blank"
+        },
+        {
+          "text": "   ",
+          "outcome": "blank"
+        }
+      ]
+    },
+    "month_first": {
+      "policy": {
+        "order": "month_first"
+      },
+      "cases": [
+        {
+          "text": "04/01/2024",
+          "outcome": "value",
+          "value": "2024-04-01",
+          "note": ""
+        },
+        {
+          "text": "2024/04/01",
+          "outcome": "value",
+          "value": "2024-04-01",
+          "note": ""
+        },
+        {
+          "text": "13/04/2024",
+          "outcome": "refuse",
+          "reason": "no month 13; never read day-first"
+        }
+      ]
+    },
+    "month_first_cells": {
+      "policy": {
+        "order": "day_first",
+        "date_cells": "swap_day_month"
+      },
+      "note": "the Stockport case: date cells were swapped by Excel, text cells are day-first as published",
+      "cases": [
+        {
+          "cell_type": "date",
+          "stored": "2024-01-04",
+          "outcome": "value",
+          "value": "2024-04-01"
+        },
+        {
+          "cell_type": "text",
+          "text": "13/04/2024",
+          "outcome": "value",
+          "value": "2024-04-13"
+        }
+      ]
+    }
+  },
+  "string": {
+    "default": {
+      "policy": {},
+      "cases": [
+        {
+          "text": "  a  b ",
+          "outcome": "value",
+          "value": "  a  b ",
+          "note": ""
+        },
+        {
+          "text": "a\tb",
+          "outcome": "value",
+          "value": "a\tb",
+          "note": ""
+        },
+        {
+          "text": "\\path",
+          "outcome": "value",
+          "value": "\\path",
+          "note": ""
+        },
+        {
+          "text": "'0012",
+          "outcome": "value",
+          "value": "'0012",
+          "note": ""
+        },
+        {
+          "text": "line\nbreak",
+          "outcome": "value",
+          "value": "line\nbreak",
+          "note": ""
+        },
+        {
+          "text": "a b",
+          "outcome": "value",
+          "value": "a b",
+          "note": ""
+        },
+        {
+          "text": "",
+          "outcome": "blank"
+        },
+        {
+          "text": "   ",
+          "outcome": "blank"
+        },
+        {
+          "text": " ",
+          "outcome": "blank"
+        },
+        {
+          "text": "\t",
+          "outcome": "blank"
+        }
+      ]
+    }
+  },
+  "categorise": {
+    "note": "CATEGORISE with a boolean source term: does a cell count as a value?",
+    "cases": [
+      {
+        "text": "",
+        "is_value": false
+      },
+      {
+        "text": "   ",
+        "is_value": false
+      },
+      {
+        "text": " ",
+        "is_value": false
+      },
+      {
+        "text": "\t",
+        "is_value": false
+      },
+      {
+        "text": "0",
+        "is_value": true
+      },
+      {
+        "text": "N/A",
+        "is_value": true
+      },
+      {
+        "text": "x",
+        "is_value": true
+      },
+      {
+        "text": "a b",
+        "is_value": true
+      }
+    ]
+  }
+}
