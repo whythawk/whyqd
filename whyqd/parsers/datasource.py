@@ -7,18 +7,11 @@ import numpy as np
 from pyarrow.parquet import ParquetFile
 import pyarrow as pa
 import re
-import locale
 import ast
 
 from whyqd.parsers.core import CoreParser
 from whyqd.models import ColumnModel, DataSourceModel, DataSourceAttributeModel
 from whyqd.dtypes import MimeType, FieldType
-
-try:
-    locale.setlocale(locale.LC_ALL, "en_US.UTF-8")
-except locale.Error:
-    # Readthedocs has a problem, but difficult to replicate
-    locale.setlocale(locale.LC_ALL, "")
 
 if TYPE_CHECKING:
     from whyqd.core import SchemaDefinition
@@ -745,9 +738,7 @@ class DataSourceParser:
             $"""
             )
             try:
-                x = re_float.match(x).group(1)
-                x = re.sub(r"[^e0-9,-\.]", "", str(x))
-                return locale.atof(x)
+                return float(re_float.match(x).group(1))
             except (ValueError, AttributeError):
                 return np.nan
         except TypeError:

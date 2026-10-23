@@ -14,7 +14,6 @@ import pandas as pd
 import numpy as np
 
 # from pandas.util import hash_pandas_object
-import locale
 import randomname
 import warnings
 
@@ -22,12 +21,6 @@ from whyqd.config.settings import settings
 
 if TYPE_CHECKING:
     from whyqd.models import SchemaModel, CrosswalkModel
-
-try:
-    locale.setlocale(locale.LC_ALL, "en_US.UTF-8")
-except locale.Error:
-    # Readthedocs has a problem, but difficult to replicate
-    locale.setlocale(locale.LC_ALL, "")
 
 
 class CoreParser:
@@ -221,7 +214,7 @@ class CoreParser:
         -------
         dict
         """
-        with open(source, "r") as f:
+        with open(source, "r", encoding="utf-8") as f:
             try:
                 return json.load(f)
             except json.decoder.JSONDecodeError:
@@ -241,7 +234,7 @@ class CoreParser:
         -------
         bool, True if saved.
         """
-        with open(source, "w") as f:
+        with open(source, "w", encoding="utf-8") as f:
             json.dump(data, f, indent=4, sort_keys=True, default=str)
         return True
 
@@ -257,6 +250,6 @@ class CoreParser:
         -------
         bool, True if saved.
         """
-        with open(source, "w") as f:
+        with open(source, "w", encoding="utf-8") as f:
             f.write(data)
         return True
