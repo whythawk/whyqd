@@ -13,7 +13,7 @@ data analysis and exploration in Jupyter Notebooks.
 
 ## Install
 
-Install with your favourite package manager. You'll need Python 3.12: Modin, which **whyqd** runs on, cannot yet read Excel files on Python 3.13 or later.
+Install with your favourite package manager. You'll need Python 3.12 or later.
 
 ```bash
 pip install whyqd
@@ -27,23 +27,11 @@ import whyqd as qd
 
 ## Settings
 
-**whyqd** uses [Ray](https://www.ray.io/) and [Modin](https://modin.readthedocs.io/) as a drop-in replacement for 
-[Pandas](https://pandas.pydata.org/) to support processing of large datasets. This is less noticeable if you mostly 
-work with <1m rows of data, but the power is there should you need it.
-
 The following can be set in your root `.env` project file:
 
-- `WHYQD_MEMORY`: the memory allocated for processing (e.g. 6Gb, is written in bytes `6000000000`).
-- `WHYQD_CPUS`: number of CPUS allocated for parallel processing.
-- `WHYQD_SPILLWAY`: Ray will [spill](https://docs.ray.io/en/latest/ray-core/objects/object-spilling.html) to local 
-  storage when memory is exceeded. You can specify a temporary folder (default is "/tmp/spill"). This will be automatically
-  cleared every time **whyqd** is restarted or reinitialised.
 - `WHYQD_DIRECTORY`: a working directory for local storage (default is "").
 - `WHYQD_DEFAULT_MIMETYPE`: a default mime type for destination data (default output is 
   "application/vnd.apache.parquet").
-
-The Ray-specific settings are not compulsory. If you don't allocate CPUs or MEMORY, Ray will do its best but if you start
-running into problems - especially with larger datasets - have a look at these settings to squeeze out more performance.
 
 **whyqd** supports any of the following file mime types:
 

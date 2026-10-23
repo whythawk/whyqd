@@ -1,6 +1,6 @@
 from __future__ import annotations
 from typing import Type, TYPE_CHECKING
-import modin.pandas as pd
+import pandas as pd
 
 from whyqd.parsers import CoreParser, ScriptParser
 from whyqd.models import CategoryModel

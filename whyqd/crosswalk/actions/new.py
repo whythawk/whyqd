@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING
 from whyqd.crosswalk.base import BaseSchemaAction
 
 if TYPE_CHECKING:
-    import modin.pandas as pd
+    import pandas as pd
     from whyqd.models import FieldModel
 
 

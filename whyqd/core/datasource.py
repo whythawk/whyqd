@@ -10,7 +10,7 @@ from whyqd.parsers import DataSourceParser
 from whyqd.core.base import BaseDefinition
 
 if TYPE_CHECKING:
-    import modin.pandas as pd
+    import pandas as pd
 
 
 class DataSourceDefinition(BaseDefinition):

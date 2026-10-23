@@ -1,6 +1,6 @@
 from __future__ import annotations
 from uuid import UUID
-import modin.pandas as pd
+import pandas as pd
 
 from whyqd.crud.base import CRUDBase
 from whyqd.models import FieldModel, ConstraintsModel, CategoryModel

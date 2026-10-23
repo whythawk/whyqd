@@ -15,7 +15,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.12"]
+        python-version: ["3.12", "3.13", "3.14"]
 
     steps:
     - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -25,6 +25,12 @@ jobs:
         version: "0.13.3"
         python-version: ${{ matrix.python-version }}
         enable-cache: true
+    - name: Generate the test locales
+      # tests/test_locale.py skips a locale the machine lacks; the last line fails the step instead.
+      run: |
+        printf 'de_DE.UTF-8 UTF-8\nen_US.UTF-8 UTF-8\n' | sudo tee -a /etc/locale.gen
+        sudo locale-gen --keep-existing
+        locale -a | grep -qi '^de_DE\.utf8$'
     - name: Install dependencies
       run: uv sync --locked
     - name: Lint with ruff

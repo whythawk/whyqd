@@ -1,0 +1,1079 @@
+{
+  "generated": "2026-10-21T11:46:21",
+  "columns": {
+    "ref_text": "a reference with leading zeros, stored as text",
+    "ref_padded": "a reference stored as a number, shown zero-padded by its number format",
+    "amount": "currency text, including a sign after the symbol and a bare decimal",
+    "amount_mojibake": "the same with a UTF-8 £ read as Mac Roman, as Amber Valley's workbooks carry it",
+    "number_as_text": "numbers stored as text, one with a leading apostrophe-free space",
+    "number": "numbers stored as numbers, shown to two places",
+    "blank_like": "a hard space only, spaces only, an empty cell, and a hard space inside text",
+    "padded_text": "leading and trailing spaces kept as published",
+    "accented": "characters every single-byte encoding here can carry",
+    "date_text": "dates as text: day-first, ambiguous, year-first as pandas re-saves them, and ISO",
+    "date_mixed": "the Stockport case: date cells where Excel could read a date, text where it could not",
+    "date_locale": "a date cell in Excel's built-in short date format, whose display follows the machine's locale",
+    "boolean_like": "boolean cells and boolean-looking text"
+  },
+  "csv": {
+    "fixture-utf8.csv": {
+      "encoding": "utf-8",
+      "header": [
+        "ref_text",
+        "ref_padded",
+        "amount",
+        "amount_mojibake",
+        "number_as_text",
+        "number",
+        "blank_like",
+        "padded_text",
+        "accented",
+        "date_text",
+        "date_mixed",
+        "boolean_like"
+      ],
+      "rows": [
+        [
+          "0000130842",
+          "0000130842",
+          "£43.40",
+          "¬£43.40",
+          "12.50",
+          "12.50",
+          " ",
+          " lead",
+          "Café",
+          "13/04/2024",
+          "04/01/2024",
+          "TRUE"
+        ],
+        [
+          "0000000001",
+          "0000000001",
+          "£-826.80",
+          "¬£-826.80",
+          "0.10",
+          "0.10",
+          "   ",
+          "trail ",
+          "naïve",
+          "04/01/2024",
+          "13/04/2024",
+          "false"
+        ],
+        [
+          "1234567890",
+          "1234567890",
+          "£1,234.50",
+          "¬£1,234.50",
+          "1e3",
+          "1000.00",
+          "",
+          " both ",
+          "Ætna",
+          "2010-04-01 00:00:00",
+          "05/02/2024",
+          "Y"
+        ],
+        [
+          "0012",
+          "0000000012",
+          "£.00",
+          "¬£.00",
+          " 7",
+          "7.00",
+          "a b",
+          "none",
+          "Müller £",
+          "2024-04-01",
+          "25/12/2024",
+          "FALSE"
+        ]
+      ]
+    },
+    "fixture-utf8-bom.csv": {
+      "encoding": "utf-8-sig",
+      "header": [
+        "ref_text",
+        "ref_padded",
+        "amount",
+        "amount_mojibake",
+        "number_as_text",
+        "number",
+        "blank_like",
+        "padded_text",
+        "accented",
+        "date_text",
+        "date_mixed",
+        "boolean_like"
+      ],
+      "rows": [
+        [
+          "0000130842",
+          "0000130842",
+          "£43.40",
+          "¬£43.40",
+          "12.50",
+          "12.50",
+          " ",
+          " lead",
+          "Café",
+          "13/04/2024",
+          "04/01/2024",
+          "TRUE"
+        ],
+        [
+          "0000000001",
+          "0000000001",
+          "£-826.80",
+          "¬£-826.80",
+          "0.10",
+          "0.10",
+          "   ",
+          "trail ",
+          "naïve",
+          "04/01/2024",
+          "13/04/2024",
+          "false"
+        ],
+        [
+          "1234567890",
+          "1234567890",
+          "£1,234.50",
+          "¬£1,234.50",
+          "1e3",
+          "1000.00",
+          "",
+          " both ",
+          "Ætna",
+          "2010-04-01 00:00:00",
+          "05/02/2024",
+          "Y"
+        ],
+        [
+          "0012",
+          "0000000012",
+          "£.00",
+          "¬£.00",
+          " 7",
+          "7.00",
+          "a b",
+          "none",
+          "Müller £",
+          "2024-04-01",
+          "25/12/2024",
+          "FALSE"
+        ]
+      ]
+    },
+    "fixture-utf16-bom.csv": {
+      "encoding": "utf-16",
+      "header": [
+        "ref_text",
+        "ref_padded",
+        "amount",
+        "amount_mojibake",
+        "number_as_text",
+        "number",
+        "blank_like",
+        "padded_text",
+        "accented",
+        "date_text",
+        "date_mixed",
+        "boolean_like"
+      ],
+      "rows": [
+        [
+          "0000130842",
+          "0000130842",
+          "£43.40",
+          "¬£43.40",
+          "12.50",
+          "12.50",
+          " ",
+          " lead",
+          "Café",
+          "13/04/2024",
+          "04/01/2024",
+          "TRUE"
+        ],
+        [
+          "0000000001",
+          "0000000001",
+          "£-826.80",
+          "¬£-826.80",
+          "0.10",
+          "0.10",
+          "   ",
+          "trail ",
+          "naïve",
+          "04/01/2024",
+          "13/04/2024",
+          "false"
+        ],
+        [
+          "1234567890",
+          "1234567890",
+          "£1,234.50",
+          "¬£1,234.50",
+          "1e3",
+          "1000.00",
+          "",
+          " both ",
+          "Ætna",
+          "2010-04-01 00:00:00",
+          "05/02/2024",
+          "Y"
+        ],
+        [
+          "0012",
+          "0000000012",
+          "£.00",
+          "¬£.00",
+          " 7",
+          "7.00",
+          "a b",
+          "none",
+          "Müller £",
+          "2024-04-01",
+          "25/12/2024",
+          "FALSE"
+        ]
+      ]
+    },
+    "fixture-windows-1252.csv": {
+      "encoding": "cp1252",
+      "header": [
+        "ref_text",
+        "ref_padded",
+        "amount",
+        "amount_mojibake",
+        "number_as_text",
+        "number",
+        "blank_like",
+        "padded_text",
+        "accented",
+        "date_text",
+        "date_mixed",
+        "boolean_like"
+      ],
+      "rows": [
+        [
+          "0000130842",
+          "0000130842",
+          "£43.40",
+          "¬£43.40",
+          "12.50",
+          "12.50",
+          " ",
+          " lead",
+          "Café",
+          "13/04/2024",
+          "04/01/2024",
+          "TRUE"
+        ],
+        [
+          "0000000001",
+          "0000000001",
+          "£-826.80",
+          "¬£-826.80",
+          "0.10",
+          "0.10",
+          "   ",
+          "trail ",
+          "naïve",
+          "04/01/2024",
+          "13/04/2024",
+          "false"
+        ],
+        [
+          "1234567890",
+          "1234567890",
+          "£1,234.50",
+          "¬£1,234.50",
+          "1e3",
+          "1000.00",
+          "",
+          " both ",
+          "Ætna",
+          "2010-04-01 00:00:00",
+          "05/02/2024",
+          "Y"
+        ],
+        [
+          "0012",
+          "0000000012",
+          "£.00",
+          "¬£.00",
+          " 7",
+          "7.00",
+          "a b",
+          "none",
+          "Müller £",
+          "2024-04-01",
+          "25/12/2024",
+          "FALSE"
+        ]
+      ]
+    },
+    "fixture-latin-1.csv": {
+      "encoding": "latin-1",
+      "header": [
+        "ref_text",
+        "ref_padded",
+        "amount",
+        "amount_mojibake",
+        "number_as_text",
+        "number",
+        "blank_like",
+        "padded_text",
+        "accented",
+        "date_text",
+        "date_mixed",
+        "boolean_like"
+      ],
+      "rows": [
+        [
+          "0000130842",
+          "0000130842",
+          "£43.40",
+          "¬£43.40",
+          "12.50",
+          "12.50",
+          " ",
+          " lead",
+          "Café",
+          "13/04/2024",
+          "04/01/2024",
+          "TRUE"
+        ],
+        [
+          "0000000001",
+          "0000000001",
+          "£-826.80",
+          "¬£-826.80",
+          "0.10",
+          "0.10",
+          "   ",
+          "trail ",
+          "naïve",
+          "04/01/2024",
+          "13/04/2024",
+          "false"
+        ],
+        [
+          "1234567890",
+          "1234567890",
+          "£1,234.50",
+          "¬£1,234.50",
+          "1e3",
+          "1000.00",
+          "",
+          " both ",
+          "Ætna",
+          "2010-04-01 00:00:00",
+          "05/02/2024",
+          "Y"
+        ],
+        [
+          "0012",
+          "0000000012",
+          "£.00",
+          "¬£.00",
+          " 7",
+          "7.00",
+          "a b",
+          "none",
+          "Müller £",
+          "2024-04-01",
+          "25/12/2024",
+          "FALSE"
+        ]
+      ]
+    },
+    "fixture-mac-roman.csv": {
+      "encoding": "mac_roman",
+      "header": [
+        "ref_text",
+        "ref_padded",
+        "amount",
+        "amount_mojibake",
+        "number_as_text",
+        "number",
+        "blank_like",
+        "padded_text",
+        "accented",
+        "date_text",
+        "date_mixed",
+        "boolean_like"
+      ],
+      "rows": [
+        [
+          "0000130842",
+          "0000130842",
+          "£43.40",
+          "¬£43.40",
+          "12.50",
+          "12.50",
+          " ",
+          " lead",
+          "Café",
+          "13/04/2024",
+          "04/01/2024",
+          "TRUE"
+        ],
+        [
+          "0000000001",
+          "0000000001",
+          "£-826.80",
+          "¬£-826.80",
+          "0.10",
+          "0.10",
+          "   ",
+          "trail ",
+          "naïve",
+          "04/01/2024",
+          "13/04/2024",
+          "false"
+        ],
+        [
+          "1234567890",
+          "1234567890",
+          "£1,234.50",
+          "¬£1,234.50",
+          "1e3",
+          "1000.00",
+          "",
+          " both ",
+          "Ætna",
+          "2010-04-01 00:00:00",
+          "05/02/2024",
+          "Y"
+        ],
+        [
+          "0012",
+          "0000000012",
+          "£.00",
+          "¬£.00",
+          " 7",
+          "7.00",
+          "a b",
+          "none",
+          "Müller £",
+          "2024-04-01",
+          "25/12/2024",
+          "FALSE"
+        ]
+      ]
+    },
+    "fixture-utf8-crlf.csv": {
+      "encoding": "utf-8",
+      "eol": "CRLF",
+      "header": [
+        "ref_text",
+        "ref_padded",
+        "amount",
+        "amount_mojibake",
+        "number_as_text",
+        "number",
+        "blank_like",
+        "padded_text",
+        "accented",
+        "date_text",
+        "date_mixed",
+        "boolean_like"
+      ],
+      "rows": [
+        [
+          "0000130842",
+          "0000130842",
+          "£43.40",
+          "¬£43.40",
+          "12.50",
+          "12.50",
+          " ",
+          " lead",
+          "Café",
+          "13/04/2024",
+          "04/01/2024",
+          "TRUE"
+        ],
+        [
+          "0000000001",
+          "0000000001",
+          "£-826.80",
+          "¬£-826.80",
+          "0.10",
+          "0.10",
+          "   ",
+          "trail ",
+          "naïve",
+          "04/01/2024",
+          "13/04/2024",
+          "false"
+        ],
+        [
+          "1234567890",
+          "1234567890",
+          "£1,234.50",
+          "¬£1,234.50",
+          "1e3",
+          "1000.00",
+          "",
+          " both ",
+          "Ætna",
+          "2010-04-01 00:00:00",
+          "05/02/2024",
+          "Y"
+        ],
+        [
+          "0012",
+          "0000000012",
+          "£.00",
+          "¬£.00",
+          " 7",
+          "7.00",
+          "a b",
+          "none",
+          "Müller £",
+          "2024-04-01",
+          "25/12/2024",
+          "FALSE"
+        ]
+      ]
+    },
+    "fixture-utf8-mixed-eol.csv": {
+      "encoding": "utf-8",
+      "eol": "LF then CRLF",
+      "header": [
+        "ref_text",
+        "ref_padded",
+        "amount",
+        "amount_mojibake",
+        "number_as_text",
+        "number",
+        "blank_like",
+        "padded_text",
+        "accented",
+        "date_text",
+        "date_mixed",
+        "boolean_like"
+      ],
+      "rows": [
+        [
+          "0000130842",
+          "0000130842",
+          "£43.40",
+          "¬£43.40",
+          "12.50",
+          "12.50",
+          " ",
+          " lead",
+          "Café",
+          "13/04/2024",
+          "04/01/2024",
+          "TRUE"
+        ],
+        [
+          "0000000001",
+          "0000000001",
+          "£-826.80",
+          "¬£-826.80",
+          "0.10",
+          "0.10",
+          "   ",
+          "trail ",
+          "naïve",
+          "04/01/2024",
+          "13/04/2024",
+          "false"
+        ],
+        [
+          "1234567890",
+          "1234567890",
+          "£1,234.50",
+          "¬£1,234.50",
+          "1e3",
+          "1000.00",
+          "",
+          " both ",
+          "Ætna",
+          "2010-04-01 00:00:00",
+          "05/02/2024",
+          "Y"
+        ],
+        [
+          "0012",
+          "0000000012",
+          "£.00",
+          "¬£.00",
+          " 7",
+          "7.00",
+          "a b",
+          "none",
+          "Müller £",
+          "2024-04-01",
+          "25/12/2024",
+          "FALSE"
+        ]
+      ]
+    },
+    "fixture-unicode-utf8.csv": {
+      "encoding": "utf-8",
+      "header": [
+        "zero_width",
+        "control",
+        "composed",
+        "fullwidth"
+      ],
+      "rows": [
+        [
+          "abc​",
+          "x\u0007y",
+          "café",
+          "１２３"
+        ],
+        [
+          "﻿x",
+          "a\tb",
+          "café",
+          "−5"
+        ]
+      ],
+      "columns": {
+        "zero_width": "a zero-width space and a byte-order mark inside text",
+        "control": "a bell character and a tab inside a quoted field",
+        "composed": "é composed (NFC) and decomposed (NFD)",
+        "fullwidth": "full-width digits and a Unicode minus"
+      }
+    }
+  },
+  "workbook": {
+    "Data": {
+      "header_row": 1,
+      "cells": {
+        "A2": {
+          "column": "ref_text",
+          "stored_type": "s",
+          "stored": "0000130842",
+          "format": "General",
+          "text": "0000130842"
+        },
+        "A3": {
+          "column": "ref_text",
+          "stored_type": "s",
+          "stored": "0000000001",
+          "format": "General",
+          "text": "0000000001"
+        },
+        "A4": {
+          "column": "ref_text",
+          "stored_type": "s",
+          "stored": "1234567890",
+          "format": "General",
+          "text": "1234567890"
+        },
+        "A5": {
+          "column": "ref_text",
+          "stored_type": "s",
+          "stored": "0012",
+          "format": "General",
+          "text": "0012"
+        },
+        "B2": {
+          "column": "ref_padded",
+          "stored_type": "n",
+          "stored": 130842,
+          "format": "0000000000",
+          "text": "0000130842"
+        },
+        "B3": {
+          "column": "ref_padded",
+          "stored_type": "n",
+          "stored": 1,
+          "format": "0000000000",
+          "text": "0000000001"
+        },
+        "B4": {
+          "column": "ref_padded",
+          "stored_type": "n",
+          "stored": 1234567890,
+          "format": "0000000000",
+          "text": "1234567890"
+        },
+        "B5": {
+          "column": "ref_padded",
+          "stored_type": "n",
+          "stored": 12,
+          "format": "0000000000",
+          "text": "0000000012"
+        },
+        "C2": {
+          "column": "amount",
+          "stored_type": "s",
+          "stored": "£43.40",
+          "format": "General",
+          "text": "£43.40"
+        },
+        "C3": {
+          "column": "amount",
+          "stored_type": "s",
+          "stored": "£-826.80",
+          "format": "General",
+          "text": "£-826.80"
+        },
+        "C4": {
+          "column": "amount",
+          "stored_type": "s",
+          "stored": "£1,234.50",
+          "format": "General",
+          "text": "£1,234.50"
+        },
+        "C5": {
+          "column": "amount",
+          "stored_type": "s",
+          "stored": "£.00",
+          "format": "General",
+          "text": "£.00"
+        },
+        "D2": {
+          "column": "amount_mojibake",
+          "stored_type": "s",
+          "stored": "¬£43.40",
+          "format": "General",
+          "text": "¬£43.40"
+        },
+        "D3": {
+          "column": "amount_mojibake",
+          "stored_type": "s",
+          "stored": "¬£-826.80",
+          "format": "General",
+          "text": "¬£-826.80"
+        },
+        "D4": {
+          "column": "amount_mojibake",
+          "stored_type": "s",
+          "stored": "¬£1,234.50",
+          "format": "General",
+          "text": "¬£1,234.50"
+        },
+        "D5": {
+          "column": "amount_mojibake",
+          "stored_type": "s",
+          "stored": "¬£.00",
+          "format": "General",
+          "text": "¬£.00"
+        },
+        "E2": {
+          "column": "number_as_text",
+          "stored_type": "s",
+          "stored": "12.50",
+          "format": "General",
+          "text": "12.50"
+        },
+        "E3": {
+          "column": "number_as_text",
+          "stored_type": "s",
+          "stored": "0.10",
+          "format": "General",
+          "text": "0.10"
+        },
+        "E4": {
+          "column": "number_as_text",
+          "stored_type": "s",
+          "stored": "1e3",
+          "format": "General",
+          "text": "1e3"
+        },
+        "E5": {
+          "column": "number_as_text",
+          "stored_type": "s",
+          "stored": " 7",
+          "format": "General",
+          "text": " 7"
+        },
+        "F2": {
+          "column": "number",
+          "stored_type": "n",
+          "stored": 12.5,
+          "format": "0.00",
+          "text": "12.50"
+        },
+        "F3": {
+          "column": "number",
+          "stored_type": "n",
+          "stored": 0.1,
+          "format": "0.00",
+          "text": "0.10"
+        },
+        "F4": {
+          "column": "number",
+          "stored_type": "n",
+          "stored": 1000,
+          "format": "0.00",
+          "text": "1000.00"
+        },
+        "F5": {
+          "column": "number",
+          "stored_type": "n",
+          "stored": 7,
+          "format": "0.00",
+          "text": "7.00"
+        },
+        "G2": {
+          "column": "blank_like",
+          "stored_type": "s",
+          "stored": " ",
+          "format": "General",
+          "text": " "
+        },
+        "G3": {
+          "column": "blank_like",
+          "stored_type": "s",
+          "stored": "   ",
+          "format": "General",
+          "text": "   "
+        },
+        "G4": {
+          "column": "blank_like",
+          "stored_type": "n",
+          "stored": null,
+          "format": "General",
+          "text": ""
+        },
+        "G5": {
+          "column": "blank_like",
+          "stored_type": "s",
+          "stored": "a b",
+          "format": "General",
+          "text": "a b"
+        },
+        "H2": {
+          "column": "padded_text",
+          "stored_type": "s",
+          "stored": " lead",
+          "format": "General",
+          "text": " lead"
+        },
+        "H3": {
+          "column": "padded_text",
+          "stored_type": "s",
+          "stored": "trail ",
+          "format": "General",
+          "text": "trail "
+        },
+        "H4": {
+          "column": "padded_text",
+          "stored_type": "s",
+          "stored": " both ",
+          "format": "General",
+          "text": " both "
+        },
+        "H5": {
+          "column": "padded_text",
+          "stored_type": "s",
+          "stored": "none",
+          "format": "General",
+          "text": "none"
+        },
+        "I2": {
+          "column": "accented",
+          "stored_type": "s",
+          "stored": "Café",
+          "format": "General",
+          "text": "Café"
+        },
+        "I3": {
+          "column": "accented",
+          "stored_type": "s",
+          "stored": "naïve",
+          "format": "General",
+          "text": "naïve"
+        },
+        "I4": {
+          "column": "accented",
+          "stored_type": "s",
+          "stored": "Ætna",
+          "format": "General",
+          "text": "Ætna"
+        },
+        "I5": {
+          "column": "accented",
+          "stored_type": "s",
+          "stored": "Müller £",
+          "format": "General",
+          "text": "Müller £"
+        },
+        "J2": {
+          "column": "date_text",
+          "stored_type": "s",
+          "stored": "13/04/2024",
+          "format": "General",
+          "text": "13/04/2024"
+        },
+        "J3": {
+          "column": "date_text",
+          "stored_type": "s",
+          "stored": "04/01/2024",
+          "format": "General",
+          "text": "04/01/2024"
+        },
+        "J4": {
+          "column": "date_text",
+          "stored_type": "s",
+          "stored": "2010-04-01 00:00:00",
+          "format": "General",
+          "text": "2010-04-01 00:00:00"
+        },
+        "J5": {
+          "column": "date_text",
+          "stored_type": "s",
+          "stored": "2024-04-01",
+          "format": "General",
+          "text": "2024-04-01"
+        },
+        "K2": {
+          "column": "date_mixed",
+          "stored_type": "d",
+          "stored": "2024-01-04",
+          "format": "dd/mm/yyyy",
+          "text": "04/01/2024"
+        },
+        "K3": {
+          "column": "date_mixed",
+          "stored_type": "s",
+          "stored": "13/04/2024",
+          "format": "dd/mm/yyyy",
+          "text": "13/04/2024"
+        },
+        "K4": {
+          "column": "date_mixed",
+          "stored_type": "d",
+          "stored": "2024-02-05",
+          "format": "dd/mm/yyyy",
+          "text": "05/02/2024"
+        },
+        "K5": {
+          "column": "date_mixed",
+          "stored_type": "s",
+          "stored": "25/12/2024",
+          "format": "dd/mm/yyyy",
+          "text": "25/12/2024"
+        },
+        "L2": {
+          "column": "date_locale",
+          "stored_type": "d",
+          "stored": "2024-01-04",
+          "format": "mm-dd-yy",
+          "text": null
+        },
+        "L3": {
+          "column": "date_locale",
+          "stored_type": "d",
+          "stored": "2024-12-25",
+          "format": "mm-dd-yy",
+          "text": null
+        },
+        "L4": {
+          "column": "date_locale",
+          "stored_type": "d",
+          "stored": "2024-04-01 09:30:00",
+          "format": "mm-dd-yy",
+          "text": null
+        },
+        "L5": {
+          "column": "date_locale",
+          "stored_type": "n",
+          "stored": null,
+          "format": "mm-dd-yy",
+          "text": null
+        },
+        "M2": {
+          "column": "boolean_like",
+          "stored_type": "b",
+          "stored": true,
+          "format": "General",
+          "text": "TRUE"
+        },
+        "M3": {
+          "column": "boolean_like",
+          "stored_type": "s",
+          "stored": "false",
+          "format": "General",
+          "text": "false"
+        },
+        "M4": {
+          "column": "boolean_like",
+          "stored_type": "s",
+          "stored": "Y",
+          "format": "General",
+          "text": "Y"
+        },
+        "M5": {
+          "column": "boolean_like",
+          "stored_type": "b",
+          "stored": false,
+          "format": "General",
+          "text": "FALSE"
+        },
+        "A6": {
+          "column": "ref_text",
+          "stored_type": "e",
+          "stored": "#N/A",
+          "format": "General",
+          "text": "#N/A",
+          "note": "an error cell, below the data"
+        },
+        "F6": {
+          "column": "number",
+          "stored_type": "f",
+          "stored": "=F2*2",
+          "format": "General",
+          "text": "25",
+          "note": "a formula; written here without a cached value, which only Excel adds when it saves"
+        }
+      },
+      "note": "date_locale's display depends on the locale (built-in format 14): en-GB 04/01/2024, en-US 1/4/2024"
+    },
+    "Titled": {
+      "layout": "title in A1, row 2 blank, header in row 3, two data rows",
+      "rows": [
+        [
+          "Reliefs key",
+          null
+        ],
+        [
+          null,
+          null
+        ],
+        [
+          "Code",
+          "Description"
+        ],
+        [
+          "EPCH",
+          "Empty Property Rate Charitable"
+        ],
+        [
+          "MAN",
+          "Mandatory"
+        ]
+      ]
+    },
+    "Hidden": {
+      "state": "hidden",
+      "rows": [
+        [
+          "secret"
+        ],
+        [
+          "kept"
+        ]
+      ]
+    },
+    "Empty": {
+      "rows": []
+    }
+  },
+  "workbook_file": "fixture.xlsx"
+}

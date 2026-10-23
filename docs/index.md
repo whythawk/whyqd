@@ -20,9 +20,8 @@ It provides an intuitive method for creating schema-to-schema crosswalks for res
 standardised metadata schema. It supports rapid and continuous transformation of messy data using a simple series of 
 steps. Once complete, you can import wrangled data into more complex analytical or database systems.
 
-**whyqd** plays well with your existing Python-based data-analytical tools. It uses [Ray](https://www.ray.io/) and 
-[Modin](https://modin.readthedocs.io/) as a drop-in replacement for [Pandas](https://pandas.pydata.org/) to support 
-processing of large datasets, and [Pydantic](https://pydantic-docs.helpmanual.io/) for data models. 
+**whyqd** plays well with your existing Python-based data-analytical tools. It uses [Pandas](https://pandas.pydata.org/) 
+for data, and [Pydantic](https://pydantic-docs.helpmanual.io/) for data models. 
 
 Each definition is saved as [JSON Schema-compliant](https://json-schema.org/) file. This permits others to read and 
 scrutinise your approach, validate your methodology, or even use your crosswalks to import and transform data in 

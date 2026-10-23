@@ -17,18 +17,18 @@ classifiers = [
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3 :: Only",
     "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
     "Topic :: Scientific/Engineering",
 ]
 dependencies = [
-    "modin>=0.37.1,<0.38",
     "numpy>=2.4.6,<3",
     "openpyxl>=3.1.5,<4",
-    "pandas>=2.3.3,<3",
+    "pandas>=3.0.6,<4",
     "pyarrow>=24,<27",
     "pydantic>=2.13.4,<3",
     "pydantic-settings>=2.14.1,<3",
     "randomname>=0.2.1,<0.3",
-    "ray>=2.55.1,<3",
     "xlrd>=2.0.2,<3",
 ]
 

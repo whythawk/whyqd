@@ -2,26 +2,16 @@ from __future__ import annotations
 from typing import List, Union, Type, TYPE_CHECKING
 from pathlib import Path
 from datetime import date, datetime
-import pandas as _pd
-import modin.pandas as pd
+import pandas as pd
 import numpy as np
 from pyarrow.parquet import ParquetFile
 import pyarrow as pa
 import re
-import locale
 import ast
-import shutil
 
 from whyqd.parsers.core import CoreParser
 from whyqd.models import ColumnModel, DataSourceModel, DataSourceAttributeModel
 from whyqd.dtypes import MimeType, FieldType
-from whyqd.config.ray_init import ray_start
-
-try:
-    locale.setlocale(locale.LC_ALL, "en_US.UTF-8")
-except locale.Error:
-    # Readthedocs has a problem, but difficult to replicate
-    locale.setlocale(locale.LC_ALL, "")
 
 if TYPE_CHECKING:
     from whyqd.core import SchemaDefinition
@@ -48,11 +38,9 @@ class DataSourceParser:
     def read_excel(self, *, source: str | Path, **kwargs) -> dict[str, pd.DataFrame] | pd.DataFrame:
         # This will default to returning a dictionary of dataframes for each sheet
         # https://pandas.pydata.org/docs/reference/api/pandas.read_excel.html
-        ray_start()
         if kwargs.get("sheet_name"):
             # Only going to return a single dataframe
-            # Modin can't seem to read sheets correctly
-            return pd.DataFrame(_pd.read_excel(source, **kwargs))
+            return pd.read_excel(source, **kwargs)
         df = pd.read_excel(source, **kwargs)
         keys = list(df.keys())
         for k in keys:
@@ -65,7 +53,6 @@ class DataSourceParser:
     def read_csv(self, *, source: str | Path, **kwargs) -> pd.DataFrame:
         # New in pandas 1.3: will ignore encoding errors - perfect for this initial wrangling process
         # https://pandas.pydata.org/docs/reference/api/pandas.read_csv.html
-        ray_start()
         kwargs["encoding_errors"] = "ignore"
         # Supposed to help with fruity separater guessing
         kwargs["engine"] = "python"
@@ -86,14 +73,12 @@ class DataSourceParser:
             pf = next(pf.iter_batches(batch_size=nrows))
             # https://arrow.apache.org/docs/python/generated/pyarrow.Table.html#pyarrow.Table.to_pandas
             return pa.Table.from_batches([pf]).to_pandas(**kwargs)
-        ray_start()
         if "engine" not in kwargs:
             kwargs["engine"] = "pyarrow"
         return pd.read_parquet(source, **kwargs)
 
     def read_feather(self, *, source: str | Path, **kwargs) -> pd.DataFrame:
         # https://pandas.pydata.org/docs/reference/api/pandas.read_feather.html
-        ray_start()
         return pd.read_feather(source, **kwargs)
 
     def get(
@@ -143,7 +128,6 @@ class DataSourceParser:
         -------
         DataFrame or dict of DataFrame
         """
-        ray_start()
         kwargs = {}
         kwargs |= attributes
         if isinstance(source, DataSourceModel):
@@ -161,8 +145,6 @@ class DataSourceParser:
                 names = source.names
             source = source.path
         if self.core.check_uri(source=source):
-            # Modin currently does not work with remote files. It needs a downloaded file.
-            # Might have something to do with the way it imports data?
             source = self.core.download_uri_source(source=source, directory=directory)
         if not self.core.check_source(source=source):
             e = f"Source at `{source}` not found."
@@ -220,9 +202,6 @@ class DataSourceParser:
         except Exception:
             raise FileExistsError(f"Save mimetype not supported, `{mimetype}`.")
         if mimetype in [MimeType.PRQ, MimeType.PARQUET]:
-            # modin writes a folder of parts and leaves an earlier write's extra parts in place
-            if source.is_dir():
-                shutil.rmtree(source)
             df.to_parquet(path=source, engine="pyarrow", index=False)
         if mimetype in [MimeType.FTR, MimeType.FEATHER]:
             df.to_feather(path=source)
@@ -236,8 +215,6 @@ class DataSourceParser:
     ###################################################################################################
 
     def coerce_to_schema(self, *, df: pd.DataFrame, schema: Type[SchemaDefinition]) -> pd.DataFrame:
-        # https://modin.readthedocs.io/en/stable/flow/modin/core/dataframe/pandas/partitioning/partition.html#modin.core.dataframe.pandas.partitioning.partition.PandasDataframePartition.to_numpy
-        # CHECK: https://github.com/modin-project/modin/issues/3966
         validate = {"matched": [], "unmatched": [], "coerced": []}
         columns = self.get_header_columns(df=df)
         for c in columns:
@@ -248,9 +225,9 @@ class DataSourceParser:
                         validate["matched"].append(c.name)
                     else:
                         # Try coerce the column to the type
-                        df[c.name] = self.coerce_column_to_dtype(column=_pd.Series(df[c.name].to_numpy()), coerce=prospect.dtype)
+                        df[c.name] = self.coerce_column_to_dtype(column=pd.Series(df[c.name].to_numpy(), index=df.index), coerce=prospect.dtype)
                         validate["coerced"].append(c.name)
-                    df[c.name] = _pd.Series(df[c.name].to_numpy()).astype(FieldType(prospect.dtype).astype)
+                    df[c.name] = pd.Series(df[c.name].to_numpy(), index=df.index).astype(FieldType(prospect.dtype).astype)
                 except (TypeError, SyntaxError, ValueError):
                     from_type = c.dtype
                     if isinstance(df[c.name][0], list):
@@ -582,30 +559,6 @@ class DataSourceParser:
                 return MimeType(mimetype)
         raise ValueError(f"MimeType not found for '{mimetype}'")
 
-    def deduplicate_columns(self, *, df: pd.DataFrame) -> pd.Index:
-        """
-        Source: https://stackoverflow.com/a/65254771/295606
-        Source: https://stackoverflow.com/a/55405151
-        Returns a new column list permitting deduplication of dataframes which may result from merge.
-
-        Parameters
-        ----------
-        df: pd.DataFrame
-
-        Returns
-        -------
-        pd.Index
-            Updated column names
-        """
-        column_index = pd.Series(df.columns.tolist())
-        if df.columns.has_duplicates:
-            duplicates = column_index[column_index.duplicated()].unique()
-            for name in duplicates:
-                dups = column_index == name
-                replacements = [f"{name}{i}" if i != 0 else name for i in range(dups.sum())]
-                column_index.loc[dups] = replacements
-        return pd.Index(column_index)
-
     def get_checksum(self, *, df: pd.DataFrame, crosscheck: str = None) -> str:
         checksum = self.core.get_data_checksum(df=df)
         if crosscheck and checksum != crosscheck:
@@ -761,9 +714,7 @@ class DataSourceParser:
             $"""
             )
             try:
-                x = re_float.match(x).group(1)
-                x = re.sub(r"[^e0-9,-\.]", "", str(x))
-                return locale.atof(x)
+                return float(re_float.match(x).group(1))
             except (ValueError, AttributeError):
                 return np.nan
         except TypeError:
@@ -808,7 +759,7 @@ class DataSourceParser:
             return None
 
     def parse_string(self, x: str | None) -> str | None:
-        if _pd.isna(x):
+        if pd.isna(x):
             return None
         x = str(x).replace("\n", " ").replace("\r", "").replace("\t", "").replace("\\", "").strip()
         x = " ".join(str(x).split())

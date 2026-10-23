@@ -1,6 +1,6 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING
-import modin.pandas as pd
+import pandas as pd
 import numpy as np
 
 from whyqd.crosswalk.base import BaseCategoryAction
@@ -95,7 +95,6 @@ class Action(BaseCategoryAction):
         category: None = None,
         assigned: list[int] | None = None,
     ) -> pd.DataFrame:
-        # Fix: Multiple arguments results in keyerror in Modin
         df[destination.name] = None
         for i, idx in enumerate(assigned):
             to_idx = df.index[-1] + 1
@@ -104,6 +103,5 @@ class Action(BaseCategoryAction):
             category_column = {k: v for k, v in df.loc[idx].items() if pd.notnull(v) and k == source.name}
             # https://stackoverflow.com/a/46307319
             idx_list = np.arange(idx + 1, to_idx)
-            # https://github.com/modin-project/modin/issues/4354
             df.loc[df.index.intersection(idx_list), destination.name] = category_column[source.name]
         return df.drop(assigned, errors="ignore")

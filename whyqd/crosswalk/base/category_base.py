@@ -1,6 +1,6 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING
-import modin.pandas as pd
+import pandas as pd
 import numpy as np
 
 from whyqd.parsers import DataSourceParser, ScriptParser
