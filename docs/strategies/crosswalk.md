@@ -144,7 +144,15 @@ A script `field` is always a term defined in the source- or destination schema. 
 could be used to indicate categories, or text for splitting. A script `modifier` is usually a `+` or `-` and is context-
 specific.
 
-`row` terms are indexed, meaning they must be in the source table or the script will fail.
+`row` terms are row numbers, meaning they must be in the source table or the script will fail. Rows are numbered from
+`0` by their position in the source as read, and each sheet starts again at `0`. With the header at row `0` (the
+default), row `0` is the first row after it; with `header=None`, another header row, or `names`, row `0` is the file's
+first row. Deleting rows leaves the rest numbered as they were.
+
+!!! warning "Blank lines in a CSV are not numbered"
+    A blank line in a CSV is skipped at import and not counted, so each one moves every later row's number up by one.
+    Blank rows in an Excel sheet are kept and numbered. Take row numbers from the table **whyqd** shows you, not from
+    a text editor's line numbers.
 
 !!! abstract "Tutorials"
     It is assumed that you're not working 'blind', that you're actually looking at your data while assigning actions - 

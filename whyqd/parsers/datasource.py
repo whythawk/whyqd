@@ -559,30 +559,6 @@ class DataSourceParser:
                 return MimeType(mimetype)
         raise ValueError(f"MimeType not found for '{mimetype}'")
 
-    def deduplicate_columns(self, *, df: pd.DataFrame) -> pd.Index:
-        """
-        Source: https://stackoverflow.com/a/65254771/295606
-        Source: https://stackoverflow.com/a/55405151
-        Returns a new column list permitting deduplication of dataframes which may result from merge.
-
-        Parameters
-        ----------
-        df: pd.DataFrame
-
-        Returns
-        -------
-        pd.Index
-            Updated column names
-        """
-        column_index = pd.Series(df.columns.tolist())
-        if df.columns.has_duplicates:
-            duplicates = column_index[column_index.duplicated()].unique()
-            for name in duplicates:
-                dups = column_index == name
-                replacements = [f"{name}{i}" if i != 0 else name for i in range(dups.sum())]
-                column_index.loc[dups] = replacements
-        return pd.Index(column_index)
-
     def get_checksum(self, *, df: pd.DataFrame, crosscheck: str = None) -> str:
         checksum = self.core.get_data_checksum(df=df)
         if crosscheck and checksum != crosscheck:
