@@ -96,7 +96,7 @@ There are four worked tutorials to guide you through typical scenarios:
 
 ## Installation
 
-You'll need Python 3.12, then install with your favourite package manager:
+You'll need Python 3.12 or later, then install with your favourite package manager:
 
 ```bash
 pip install whyqd

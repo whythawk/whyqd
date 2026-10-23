@@ -13,7 +13,7 @@ data analysis and exploration in Jupyter Notebooks.
 
 ## Install
 
-Install with your favourite package manager. You'll need Python 3.12.
+Install with your favourite package manager. You'll need Python 3.12 or later.
 
 ```bash
 pip install whyqd
