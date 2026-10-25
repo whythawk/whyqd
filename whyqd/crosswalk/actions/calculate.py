@@ -1,10 +1,12 @@
 # SPDX-License-Identifier: BSD-3-Clause
 from __future__ import annotations
-import pandas as pd
-import numpy as np
+from typing import TYPE_CHECKING
 
 from whyqd.crosswalk.base import BaseSchemaAction
 from whyqd.models import ModifierModel, FieldModel
+
+if TYPE_CHECKING:
+    import pandas as pd
 
 
 class Action(BaseSchemaAction):
@@ -53,6 +55,8 @@ class Action(BaseSchemaAction):
         destination: FieldModel,
         source: list[FieldModel | ModifierModel],
     ) -> pd.DataFrame:
+        import numpy as np
+
         term_set = len(self.structure)
         add_fields = [
             field.name for modifier, field in self.core.chunks(lst=source, n=term_set) if modifier.name == "+"

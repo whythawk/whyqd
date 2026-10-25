@@ -6,6 +6,7 @@ from typing import List, Union, Optional, TYPE_CHECKING
 if TYPE_CHECKING:
     import pandas as pd
     from whyqd.models import ModifierModel, FieldModel, SchemaActionModel, ColumnModel
+    from whyqd.parsers.datasource import DataSourceParser
 
 
 class BaseSchemaAction:
@@ -28,9 +29,9 @@ class BaseSchemaAction:
     """
 
     def __init__(self) -> None:
-        from whyqd.parsers import CoreParser, DataSourceParser
+        from whyqd.parsers import CoreParser
 
-        self.reader = DataSourceParser()
+        self._reader = None
         self.core = CoreParser()
         self.name = ""
         self.title = ""
@@ -39,6 +40,15 @@ class BaseSchemaAction:
         # can be - typically - any of `ColumnModel`, `ModifierModel`
         # additional terms will require overriding the `has_valid_structure` function
         self.structure = []
+
+    @property
+    def reader(self) -> DataSourceParser:
+        # The reader loads the engine, which reading a definition must not
+        if self._reader is None:
+            from whyqd.parsers.datasource import DataSourceParser
+
+            self._reader = DataSourceParser()
+        return self._reader
 
     @property
     def modifiers(self) -> Union[None, List[ModifierModel]]:

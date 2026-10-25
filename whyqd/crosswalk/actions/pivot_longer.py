@@ -1,9 +1,12 @@
 # SPDX-License-Identifier: BSD-3-Clause
 from __future__ import annotations
-import pandas as pd
+from typing import TYPE_CHECKING
 
 from whyqd.crosswalk.base import BaseSchemaAction
 from whyqd.models import FieldModel
+
+if TYPE_CHECKING:
+    import pandas as pd
 
 
 class Action(BaseSchemaAction):
@@ -38,6 +41,8 @@ class Action(BaseSchemaAction):
         return super().validate(destination=destination, source=source)
 
     def transform(self, *, df: pd.DataFrame, destination: list[FieldModel], source: list[FieldModel]) -> pd.DataFrame:
+        import pandas as pd
+
         # Melted blocks follow the source's column order, not the order the script lists them
         named = {c.name for c in source}
         columns = [c for c in df.columns if c in named]

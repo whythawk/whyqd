@@ -1,13 +1,15 @@
 # SPDX-License-Identifier: BSD-3-Clause
 from __future__ import annotations
+from typing import TYPE_CHECKING
 from pydantic import Json, BaseModel
-from collections.abc import MutableMapping
 from pathlib import Path
 from datetime import date, datetime
-import json
 
 from whyqd.parsers import CoreParser
 from whyqd.models import VersionModel, CitationModel
+
+if TYPE_CHECKING:
+    from whyqd.parsers.datasource import DataSourceParser
 
 
 class BaseDefinition:
@@ -17,6 +19,16 @@ class BaseDefinition:
         self.core = CoreParser()
         self.model = None
         self.model_name = model_name  # method / schema / transform / etc.
+        self._reader = None
+
+    @property
+    def reader(self) -> DataSourceParser:
+        # The reader loads the engine, which reading a definition must not
+        if self._reader is None:
+            from whyqd.parsers.datasource import DataSourceParser
+
+            self._reader = DataSourceParser()
+        return self._reader
 
     def __repr__(self) -> str:
         """Returns the string representation of the model."""
@@ -117,43 +129,50 @@ class BaseDefinition:
     # SAVE UTILITIES
     #########################################################################################
 
-    def exclude_uuid(self, *, model: BaseModel | dict):
+    def exclude_uuid(self, *, model: BaseModel | dict) -> dict:
+        """A definition without its UUIDs, in the current format, for comparing two that differ only by them.
+
+        Parameters:
+          model: A model, or a saved definition in any format whyqd reads.
+        """
         # https://stackoverflow.com/a/49723101/295606
         if isinstance(model, BaseModel):
-            model = model.model_dump(by_alias=True, exclude_defaults=True, exclude_none=True, exclude={"uuid": True})
+            model = model.model_dump(by_alias=True, exclude_defaults=True, exclude_none=True)
+        else:
+            model = self.core.formats.read(source=model)
         excluded = {}
         for key, field in model.items():
-            if key != "uuid":
-                if isinstance(field, MutableMapping):
-                    excluded[key] = self.exclude_uuid(model=field)
-                elif field and isinstance(field, list) and isinstance(field[0], MutableMapping):
-                    # Assuming field consistency ... no mixed Mutables and non-Mutables
-                    excluded[key] = []
-                    for f in field:
-                        excluded[key].append(self.exclude_uuid(model=f))
-                else:
-                    if isinstance(field, (datetime, date)):
-                        # To make sure json.dumps doesn't run into datetime errors
-                        field = field.isoformat()
-                    excluded[key] = field
+            if key == "uuid":
+                continue
+            if isinstance(field, dict):
+                field = self.exclude_uuid(model=field)
+            elif field and isinstance(field, list) and isinstance(field[0], dict):
+                field = [self.exclude_uuid(model=f) for f in field]
+            elif isinstance(field, (datetime, date)):
+                # To make sure json.dumps doesn't run into datetime errors
+                field = field.isoformat()
+            excluded[key] = field
         return excluded
 
-    def get_json(self, hide_uuid: bool = False) -> Json | None:
+    def get_json(self, hide_uuid: bool = False, format: str | None = None) -> Json | None:
         """Get the json model.
 
         Parameters:
           hide_uuid: Hide all UUIDs in the nested JSON output. Mostly useful for validation assertions where the only
                      differences between sources are the UUIDs.
+          format: The definition format to write, one of `settings.FORMAT_VERSIONS` (`whyqd.config.settings`). Defaults to the current one; give
+                  `"1.x"` to share with someone whose whyqd is older.
+
+        Raises:
+          ValueError: If `format` is unknown, or the definition holds something it cannot.
 
         Returns:
           Json-conforming output, or None.
         """
         self._refresh_model_terms()
-        if self.model and not hide_uuid:
-            return self.model.model_dump_json(by_alias=True, exclude_defaults=True, exclude_none=True)
-        elif self.model and hide_uuid:
-            return json.dumps(self.exclude_uuid(model=self.model))
-        return None
+        if not self.model:
+            return None
+        return self.core.formats.dumps(self.core.formats.write(model=self.model, format=format, hide_uuid=hide_uuid))
 
     def save(
         self,
@@ -161,6 +180,7 @@ class BaseDefinition:
         filename: str | None = None,
         created_by: str | None = None,
         hide_uuid: bool = False,
+        format: str | None = None,
     ) -> bool:
         """Save model as a json file.
 
@@ -169,6 +189,7 @@ class BaseDefinition:
           filename:  Defaults to model name
           created_by:  Declare the model creator/updater
           hide_uuid:  Hide all UUIDs in the nested JSON output.
+          format: The definition format to write, one of `settings.FORMAT_VERSIONS` (`whyqd.config.settings`). Defaults to the current one.
 
         Returns:
           Boolean True if saved.
@@ -192,4 +213,4 @@ class BaseDefinition:
             if created_by:
                 update.name = created_by
             self.model.version.append(update)
-        return self.core.save_file(data=self.get_json(hide_uuid=hide_uuid), source=path)
+        return self.core.save_file(data=self.get_json(hide_uuid=hide_uuid, format=format), source=path)

@@ -36,8 +36,10 @@ class TestDataSource:
         datasource.set_citation(citation=citation)
         datasource.save(directory=TEST_DIRECTORY)
         datasource.validate()
+        assert datasource.get.get_checksum("bytes")
         # Consistency
         d = datasource.exclude_uuid(model=datasource.get)
+        d["checksums"] = [c for c in d["checksums"] if c["content"] == "table-1x"]
         D = datasource.exclude_uuid(model=MODEL["SINGLE"])
         # Using relative paths for test, so adjust accordingly
         d["path"] = d["path"].replace(BASE_DIRECTORY, "")

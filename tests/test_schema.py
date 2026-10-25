@@ -83,4 +83,4 @@ class TestSchema:
         D = s.exclude_uuid(model=SCHEMA_DATA["DERIVED"])
         D["name"] = s.get.name
         D.pop("version", None)
-        assert d == json.dumps(D)
+        assert json.loads(d) == {"formatVersion": "2.0"} | D

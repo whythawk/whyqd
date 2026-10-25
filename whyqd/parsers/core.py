@@ -11,16 +11,16 @@ import posixpath
 from uuid import uuid4
 from datetime import date, datetime
 from pathlib import Path, PurePath
-import pandas as pd
-import numpy as np
 
 # from pandas.util import hash_pandas_object
 import randomname
 import warnings
 
 from whyqd.config.settings import settings
+from whyqd.parsers.format import FormatParser
 
 if TYPE_CHECKING:
+    import pandas as pd
     from whyqd.models import SchemaModel, CrosswalkModel
 
 
@@ -29,6 +29,7 @@ class CoreParser:
 
     def __init__(self) -> None:
         self.default_directory = settings.WHYQD_DIRECTORY
+        self.formats = FormatParser()
 
     ###################################################################################################
     ### AD-HOC UTILITIES
@@ -73,9 +74,9 @@ class CoreParser:
             updated_model = modelType(**{"name": randomname.get_name()})
         else:
             if isinstance(source, (Path, str)):
-                updated_model = modelType(**self.load_json(source=source))
+                updated_model = modelType(**self.formats.read(source=self.load_json(source=source)))
             elif isinstance(source, (Json, dict)):
-                updated_model = modelType(**source)
+                updated_model = modelType(**self.formats.read(source=source))
             elif isinstance(source, modelType):
                 updated_model = source
             else:
@@ -185,6 +186,8 @@ class CoreParser:
         return checksum.hexdigest()
 
     def get_data_checksum(self, *, df: pd.DataFrame) -> str:
+        import numpy as np
+
         # The destination data does not have a valid checksum for the file itself, only the data.
         # Need to ensure arrays are all of the same type. Easiest is to coerce np arrays to lists
         for column in df.columns:

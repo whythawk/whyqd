@@ -3,3 +3,4 @@ from .status import StatusType
 from .mime import MimeType
 from .field import FieldType
 from .cell import CellType
+from .checksum import ChecksumContent

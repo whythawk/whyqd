@@ -6,7 +6,7 @@ from uuid import UUID, uuid4
 import string
 
 from whyqd.dtypes import MimeType
-from whyqd.models import CitationModel, ColumnModel
+from whyqd.models import ChecksumModel, CitationModel, ColumnModel
 
 
 class DataSourceAttributeModel(RootModel):
@@ -64,7 +64,10 @@ class DataSourceModel(BaseModel):
         {},
         description="Optional open dictionary for reader-specific attributes for Pandas' API. E.g. 'quoting' for the CSV library.",
     )
-    checksum: str = Field(default=..., description="Checksum for source data file. Based on Blake2b.")
+    checksums: List[ChecksumModel] = Field(
+        ...,
+        description="Checksums proving the source data, each naming what it hashed: the table as 1.x read it, or the file's bytes.",
+    )
     index: Optional[int] = Field(None, description="Count of rows in source data table.")
     citation: Optional[CitationModel] = Field(None, description="Optional full citation for the source data.")
     model_config = ConfigDict(use_enum_values=True, validate_assignment=True)
@@ -86,6 +89,10 @@ class DataSourceModel(BaseModel):
                 f"Key columns ({set(v).difference([c.name for c in info.data['columns']])}) not in source data columns."
             )
         return v
+
+    def get_checksum(self, content: str) -> str | None:
+        """The checksum value that hashed `content`, or None."""
+        return next((c.checksumValue for c in self.checksums if c.content == content), None)
 
     @property
     def hexed_filename(self) -> str:

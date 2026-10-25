@@ -1,7 +1,6 @@
 # SPDX-License-Identifier: BSD-3-Clause
 from __future__ import annotations
 from typing import TYPE_CHECKING
-import numpy as np
 
 from whyqd.crosswalk.base import BaseMorphAction
 
@@ -63,6 +62,8 @@ class Action(BaseMorphAction):
         rows: None = None,
         destination_param: None = None,
     ) -> pd.DataFrame:
+        import numpy as np
+
         # separateting indefinite numbers of items
         # https://stackoverflow.com/a/50459986/295606
         # https://stackoverflow.com/a/39358924/295606

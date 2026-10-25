@@ -1,13 +1,13 @@
 # SPDX-License-Identifier: BSD-3-Clause
 from __future__ import annotations
 from typing import TYPE_CHECKING
-import pandas as pd
-import numpy as np
 
-from whyqd.parsers import DataSourceParser, ScriptParser
+from whyqd.parsers import ScriptParser
 
 if TYPE_CHECKING:
+    import pandas as pd
     from whyqd.models import CategoryActionModel, CategoryModel, FieldModel
+    from whyqd.parsers.datasource import DataSourceParser
 
 
 class BaseCategoryAction:
@@ -29,12 +29,21 @@ class BaseCategoryAction:
     """
 
     def __init__(self) -> None:
-        self.reader = DataSourceParser()
+        self._reader = None
         self.parser = ScriptParser()
         self.name = ""
         self.title = ""
         self.description = ""
         self.structure = []
+
+    @property
+    def reader(self) -> DataSourceParser:
+        # The reader loads the engine, which reading a definition must not
+        if self._reader is None:
+            from whyqd.parsers.datasource import DataSourceParser
+
+            self._reader = DataSourceParser()
+        return self._reader
 
     @property
     def settings(self) -> CategoryActionModel:
@@ -148,6 +157,9 @@ class BaseCategoryAction:
         Dataframe
             Containing the implementation of the Action
         """
+        import numpy as np
+        import pandas as pd
+
         # Defaults
         default = None
         if destination.constraints and destination.constraints.default:

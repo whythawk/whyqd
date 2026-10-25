@@ -1,12 +1,11 @@
 # SPDX-License-Identifier: BSD-3-Clause
 from __future__ import annotations
 from typing import Type, TYPE_CHECKING
-import pandas as pd
-import numpy as np
 
 from whyqd.parsers import CoreParser, ScriptParser  # , DataSourceParser
 
 if TYPE_CHECKING:
+    import pandas as pd
     from whyqd.models import MorphActionModel, FieldModel  # , DataSourceModel
     from whyqd.core import SchemaDefinition
     from whyqd.crosswalk.base import BaseMorphAction
@@ -111,7 +110,7 @@ class MorphParser:
                 )
             if "rows" not in action.structure:
                 raise ValueError(f"Script error for {action.name} Morph. Rows are not a valid input.")
-            elif not np.isin(rows, self.row_indices).all():
+            elif not set(rows) <= set(self.row_indices):
                 raise ValueError("Not all row indices found in source data.")
         else:
             if "rows" in action.structure:

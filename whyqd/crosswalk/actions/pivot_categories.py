@@ -1,12 +1,11 @@
 # SPDX-License-Identifier: BSD-3-Clause
 from __future__ import annotations
 from typing import TYPE_CHECKING
-import pandas as pd
-import numpy as np
 
 from whyqd.crosswalk.base import BaseCategoryAction
 
 if TYPE_CHECKING:
+    import pandas as pd
     from whyqd.models import FieldModel
 
 
@@ -96,6 +95,9 @@ class Action(BaseCategoryAction):
         category: None = None,
         assigned: list[int] | None = None,
     ) -> pd.DataFrame:
+        import numpy as np
+        import pandas as pd
+
         df[destination.name] = None
         for i, idx in enumerate(assigned):
             to_idx = df.index[-1] + 1

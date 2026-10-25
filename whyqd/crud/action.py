@@ -2,7 +2,6 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING
 from uuid import UUID
-import pandas as pd
 
 from whyqd.crud.base import CRUDBase
 from whyqd.models import ActionScriptModel
@@ -10,6 +9,7 @@ from whyqd.parsers import ScriptParser, ActionParser, MorphParser, CategoryParse
 from whyqd.crosswalk.base import BaseSchemaAction, BaseMorphAction, BaseCategoryAction
 
 if TYPE_CHECKING:
+    import pandas as pd
     from whyqd.core import SchemaDefinition
     from whyqd.models import FieldModel
 
