@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: BSD-3-Clause
 from .core import CoreParser
 from .datasource import DataSourceParser
 from .script import ScriptParser

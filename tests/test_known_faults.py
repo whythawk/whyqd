@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: BSD-3-Clause
 """Faults whyqd is known to have, each pinned as a strict expected failure.
 
 Each test states the behaviour whyqd should have and fails today, for the reason given in `raises`. The change that

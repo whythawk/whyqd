@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: BSD-3-Clause
 """Write the synthetic reader fixtures, and the answer key that says what a faithful reading returns.
 
     python tests/data/builders/fixtures.py [target]

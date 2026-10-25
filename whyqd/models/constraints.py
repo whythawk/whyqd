@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: BSD-3-Clause
 from __future__ import annotations
 from typing import List, Optional, Union
 from pydantic import field_validator, ConfigDict, BaseModel, Field, ValidationInfo

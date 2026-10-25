@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: BSD-3-Clause
 from datetime import date, datetime, time
 
 from whyqd.dtypes import CellType

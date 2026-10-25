@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: BSD-3-Clause
 from .citation import CitationModel
 from .category import CategoryModel
 from .column import ColumnModel

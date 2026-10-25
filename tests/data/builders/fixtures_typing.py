@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: BSD-3-Clause
 """Write the typing fixture: cell text, the field's declared policy, and what the proposed typing must return.
 
     python tests/data/builders/fixtures_typing.py [target]

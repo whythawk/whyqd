@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: BSD-3-Clause
 from pathlib import Path
 
 from whyqd.core.schema import SchemaDefinition

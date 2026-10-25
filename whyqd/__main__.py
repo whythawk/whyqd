@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: BSD-3-Clause
 """Data wrangling simplicity, complete audit transparency, and at speed."""
 import sys
 

@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: BSD-3-Clause
 from pydantic import Field
 from typing import Optional
 from pydantic_settings import BaseSettings, SettingsConfigDict
