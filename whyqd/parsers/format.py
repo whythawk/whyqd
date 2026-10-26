@@ -49,6 +49,7 @@ class FormatParser:
         "whyqd",
         "references",
         "extensions",
+        "release",
     )
     LENGTHS = {"minimum": "minLength", "maximum": "maxLength"}
     VALUES = {v: k for k, v in LENGTHS.items()}
@@ -197,7 +198,11 @@ class FormatParser:
         field["constraints"] = {self.VALUES.get(k, k): v for k, v in constraints.items()}
 
     def name_schemas(self, value):
-        """Give each embedded schema a checksum of its content, so two versions under one uuid are told apart."""
+        """Give each embedded schema a checksum of its content, so two versions under one uuid are told apart.
+
+        The checksum says which copy, not which came first: that is the edit history's latest `updated`. It leaves
+        out the edit history, which changes on every save, and `release`, a label for people.
+        """
         if isinstance(value, list):
             return [self.name_schemas(v) for v in value]
         if not isinstance(value, dict):
@@ -206,7 +211,7 @@ class FormatParser:
         for key in self.SCHEMAS:
             schema = value.get(key)
             if isinstance(schema, dict):
-                content = {k: v for k, v in schema.items() if k not in {"version", "checksums"}}
+                content = {k: v for k, v in schema.items() if k not in {"version", "checksums", "release"}}
                 digest = hashlib.blake2b(rfc8785.dumps(content)).hexdigest()
                 schema["checksums"] = [self.checksum(value=digest, content=ChecksumContent.DEFINITION)]
         return value

@@ -81,7 +81,7 @@ class TestFormatVersion:
         for key in ["schemaSource", "schemaDestination"]:
             schema = written[key]
             assert "formatVersion" not in schema
-            content = {k: v for k, v in schema.items() if k not in {"version", "checksums"}}
+            content = {k: v for k, v in schema.items() if k not in {"version", "checksums", "release"}}
             value = hashlib.blake2b(rfc8785.dumps(content)).hexdigest()
             assert schema["checksums"] == [checksum(value, "definition")]
 

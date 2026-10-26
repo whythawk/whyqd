@@ -180,6 +180,27 @@ class TestReasonsAndReferences:
             definition.get_json(format="1.x")
 
 
+class TestRelease:
+    def test_round_trips(self):
+        model = crosswalk()
+        model["schemaDestination"]["release"] = "2026 relief categories"
+        assert round_trip_crosswalk(model)["schemaDestination"]["release"] == "2026 relief categories"
+
+    def test_not_in_the_content_checksum(self):
+        # The stored crosswalk hides its UUIDs, so each load mints new ones: label a copy of one load
+        model = crosswalk()
+        labelled = json.loads(json.dumps(model))
+        labelled["schemaDestination"]["release"] = "2026 relief categories"
+        checksums = [round_trip_crosswalk(m)["schemaDestination"]["checksums"] for m in (model, labelled)]
+        assert checksums[0] == checksums[1]
+
+    def test_1x_save_refused(self):
+        model = crosswalk()
+        model["schemaDestination"]["release"] = "2026 relief categories"
+        with pytest.raises(ValueError, match=r"`release`.*1\.x cannot hold it"):
+            qd.CrosswalkDefinition(crosswalk=model).get_json(format="1.x")
+
+
 @pytest.fixture(scope="module")
 def transform() -> qd.TransformDefinition:
     before = datetime.now(timezone.utc)

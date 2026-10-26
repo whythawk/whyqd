@@ -14,6 +14,11 @@ class SchemaModel(BaseModel):
         description="Machine-readable term to uniquely address this schema. Cannot have spaces. CamelCase or snake_case for preference.",
     )
     title: Optional[str] = Field(None, description="A human-readable version of the schema name.")
+    release: Optional[str] = Field(
+        None,
+        description="A name for this copy of the schema, for people, such as `2026 relief categories`. It orders "
+        "nothing: the edit history's latest `updated` says which copy came first.",
+    )
     description: Optional[str] = Field(
         None,
         description="A complete description of the schema. Depending on how complex your work becomes, try and be as helpful as possible to 'future-you'. You'll thank yourself later.",

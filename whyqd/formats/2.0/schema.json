@@ -660,6 +660,19 @@
       "description": "A human-readable version of the schema name.",
       "title": "Title"
     },
+    "release": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "A name for this copy of the schema, for people, such as `2026 relief categories`. It orders nothing: the edit history's latest `updated` says which copy came first.",
+      "title": "Release"
+    },
     "description": {
       "anyOf": [
         {
