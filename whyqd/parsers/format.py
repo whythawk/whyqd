@@ -7,7 +7,7 @@ import rfc8785
 from pydantic import BaseModel
 
 from whyqd.config.settings import settings
-from whyqd.dtypes import ChecksumContent
+from whyqd.dtypes import ChecksumContent, FieldType
 
 
 class FormatParser:
@@ -29,6 +29,22 @@ class FormatParser:
 
     KEY = "formatVersion"
     SCHEMAS = ("schemaSource", "schemaDestination")
+    NEW = (
+        "dialect",
+        "profile",
+        "policy",
+        "termList",
+        "code",
+        "reason",
+        "correspondence",
+        "started",
+        "ended",
+        "whyqd",
+        "references",
+        "extensions",
+    )
+    LENGTHS = {"minimum": "minLength", "maximum": "maxLength"}
+    VALUES = {v: k for k, v in LENGTHS.items()}
 
     def check(self, *, version: str) -> None:
         if version not in settings.FORMAT_VERSIONS:
@@ -62,10 +78,12 @@ class FormatParser:
             written = self.drop_uuid(written)
         if version == "1.x":
             return self.downgrade(written)
-        return {self.KEY: version} | self.name_schemas(written)
+        return {self.KEY: version} | self.name_schemas(self.drop_empty_attributes(written))
 
     def upgrade(self, value):
-        """1.x to the current format: a data source's bare checksum names what it hashed."""
+        """1.x to the current format: a data source's bare checksum names what it hashed; a field's `time` is a
+        `duration`; and a string field's `minimum` and `maximum`, which 1.x described as lengths, are `minLength` and
+        `maxLength`."""
         if isinstance(value, list):
             return [self.upgrade(v) for v in value]
         if not isinstance(value, dict):
@@ -73,18 +91,33 @@ class FormatParser:
         value = {k: self.upgrade(v) for k, v in value.items()}
         if "mime" in value and isinstance(value.get("checksum"), str):
             value["checksums"] = [self.checksum(value=value.pop("checksum"), content=ChecksumContent.TABLE_1X)]
+        for field in value.get("fields") or []:
+            if field.get("type") == FieldType.TIME.value:
+                field["type"] = FieldType.DURATION.value
+            if field.get("type") == FieldType.STRING.value and field.get("constraints"):
+                field["constraints"] = {self.LENGTHS.get(k, k): v for k, v in field["constraints"].items()}
         return value
 
     def downgrade(self, value):
         """The current format to 1.x, which holds one checksum per data source: the table as 1.x read it.
 
-        The byte hash and an embedded schema's content checksum are left out, since whyqd recomputes both.
+        The byte hash and an embedded schema's content checksum are left out, since whyqd recomputes both. An edit's
+        time is written without its zone, as 1.x wrote it, being UTC. A part new in 2.0 is refused, naming it.
         """
         if isinstance(value, list):
             return [self.downgrade(v) for v in value]
         if not isinstance(value, dict):
             return value
         value = {k: self.downgrade(v) for k, v in value.items()}
+        for key in self.NEW:
+            if key in value:
+                raise ValueError(
+                    f"`{key}` on `{value.get('name') or value.get('path')}` is new in 2.0, so 1.x cannot hold it."
+                )
+        if isinstance(value.get("updated"), str):
+            value["updated"] = value["updated"].removesuffix("Z")
+        for field in value.get("fields") or []:
+            self.downgrade_field(field)
         for key in self.SCHEMAS:
             if isinstance(value.get(key), dict):
                 value[key].pop("checksums", None)
@@ -96,6 +129,23 @@ class FormatParser:
                 )
             value["checksum"] = table[0]["checksumValue"]
         return value
+
+    def downgrade_field(self, field: dict) -> None:
+        """Write a field's type and bounds as 1.x names them, refusing a time of day, which 1.x's `time` is not, and a
+        length on anything but a string."""
+        name, kind = field.get("name"), field.get("type")
+        if kind == FieldType.TIME.value:
+            raise ValueError(f"Field `{name}` is a time of day, which 1.x cannot hold: its `time` is a length of time.")
+        if kind == FieldType.DURATION.value:
+            field["type"] = FieldType.TIME.value
+        constraints = field.get("constraints") or {}
+        if not any(k in constraints for k in self.VALUES):
+            return
+        if kind != FieldType.STRING.value:
+            raise ValueError(f"Field `{name}` bounds the length of a `{kind}`, which 1.x cannot hold.")
+        if any(k in constraints for k in self.LENGTHS):
+            raise ValueError(f"String field `{name}` bounds both its value and its length, which 1.x cannot hold.")
+        field["constraints"] = {self.VALUES.get(k, k): v for k, v in constraints.items()}
 
     def name_schemas(self, value):
         """Give each embedded schema a checksum of its content, so two versions under one uuid are told apart."""
@@ -111,6 +161,14 @@ class FormatParser:
                 digest = hashlib.blake2b(rfc8785.dumps(content)).hexdigest()
                 schema["checksums"] = [self.checksum(value=digest, content=ChecksumContent.DEFINITION)]
         return value
+
+    def drop_empty_attributes(self, value):
+        """Leave out a data source's empty `attributes`, which 1.x always wrote."""
+        if isinstance(value, list):
+            return [self.drop_empty_attributes(v) for v in value]
+        if not isinstance(value, dict):
+            return value
+        return {k: self.drop_empty_attributes(v) for k, v in value.items() if not (k == "attributes" and v == {})}
 
     def drop_uuid(self, value):
         if isinstance(value, list):

@@ -2447,6 +2447,7 @@ source = { editable = "." }
 dependencies = [
     { name = "numpy" },
     { name = "openpyxl" },
+    { name = "packaging" },
     { name = "pandas" },
     { name = "pyarrow" },
     { name = "pydantic" },
@@ -2488,6 +2489,7 @@ requires-dist = [
     { name = "numpy", specifier = ">=2.4.6,<3" },
     { name = "openpyxl", specifier = ">=3.1.5,<4" },
     { name = "openpyxl", marker = "extra == 'verify-1x'", specifier = ">=3.1.5,<4" },
+    { name = "packaging", specifier = ">=26.3,<27" },
     { name = "pandas", specifier = ">=3.0.6,<4" },
     { name = "pandas", marker = "extra == 'verify-1x'", specifier = ">=3.0.6,<4" },
     { name = "pyarrow", specifier = ">=24,<27" },

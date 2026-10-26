@@ -4,6 +4,7 @@ from pathlib import Path
 
 from whyqd.dtypes import ChecksumContent, MimeType
 from whyqd.models import DataSourceModel, CrosswalkModel, TransformModel
+from whyqd.models.utc import UtcParser
 from whyqd.core import CrosswalkDefinition
 from whyqd.core.base import BaseDefinition
 from whyqd.config.settings import settings
@@ -41,6 +42,7 @@ class TransformDefinition(BaseDefinition):
         self.data_source = None
         self.data = None
         self.crosswalk = CrosswalkDefinition()
+        self.utc = UtcParser()
         self.set(transform=transform, crosswalk=crosswalk, data_source=data_source)
         self.destination_mimetype = settings.WHYQD_DEFAULT_MIMETYPE
         self.destination_path = Path(settings.WHYQD_DIRECTORY)
@@ -100,6 +102,12 @@ class TransformDefinition(BaseDefinition):
         """
         if not self.model.dataSource or not self.model.crosswalk:
             raise ValueError("Before performing data transform provide both a data source and a crosswalk.")
+        # The package imports this module, so its version is read here, once it has loaded
+        import whyqd
+
+        self.model.started = self.utc.now()
+        self.model.ended = None
+        self.model.whyqd = whyqd.__version__
         # Validate crosswalk
         self.crosswalk.validate()
         # Perform crosswalk, coercing to source schema prior to crosswalk
@@ -115,6 +123,7 @@ class TransformDefinition(BaseDefinition):
                 f"Missing required destination fields in crosswalked data: {set(required_names) - set(df.columns)}"
             )
         self.data = df
+        self.model.ended = self.utc.now()
 
     #########################################################################################
     # VALIDATION UTILITIES

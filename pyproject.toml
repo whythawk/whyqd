@@ -24,6 +24,7 @@ classifiers = [
 dependencies = [
     "numpy>=2.4.6,<3",
     "openpyxl>=3.1.5,<4",
+    "packaging>=26.3,<27",
     "pandas>=3.0.6,<4",
     "pyarrow>=24,<27",
     "pydantic>=2.13.4,<3",

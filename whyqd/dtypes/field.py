@@ -9,6 +9,7 @@ class FieldType(str, Enum):
     BOOLEAN = "boolean"
     ARRAY = "array"
     TIME = "time"
+    DURATION = "duration"
     USDATE = "usdate"
     DATE = "date"
     DATETIME = "datetime"
@@ -25,7 +26,8 @@ class FieldType(str, Enum):
             "integer": "Any integer-based value.",
             "boolean": "A boolean [true, false] value. Can set category constraints to fix term used.",
             "array": "Any valid array-based data.",
-            "time": "Any time, with an optional date. Must be in ISO8601 format, hh:mm:ss.",
+            "time": "A time of day, in ISO 8601 format, hh:mm:ss.",
+            "duration": "A length of time, as ISO 8601 days, hours, minutes, and seconds, such as PT25M. Years and months are refused, having no fixed length.",
             "usdate": "Any American-formatted date without a time. Expected is MM-DD-YYYY, with any separator.",
             "date": "Any date without a time. Must be in ISO8601 format, YYYY-MM-DD.",
             "datetime": "Any date with a time. Must be in ISO8601 format, with UTC time specified (optionally) as YYYY-MM-DD hh:mm:ss Zz.",
@@ -44,7 +46,8 @@ class FieldType(str, Enum):
             "integer": "Int64",
             "boolean": "boolean",
             "array": "object",
-            "time": "timedelta64[ns]",
+            "time": "object",
+            "duration": "timedelta64[ns]",
             "date": "datetime64[ns]",
             "usdate": "datetime64[ns]",
             "datetime": "datetime64[ns, UTC]",

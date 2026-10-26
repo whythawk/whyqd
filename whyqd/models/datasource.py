@@ -2,11 +2,12 @@
 from __future__ import annotations
 from typing import Annotated, Optional, List, Dict, Any
 from pydantic import StringConstraints, field_validator, ConfigDict, BaseModel, Field, ValidationInfo, RootModel
-from uuid import UUID, uuid4
 import string
 
 from whyqd.dtypes import MimeType
 from whyqd.models import ChecksumModel, CitationModel, ColumnModel
+from whyqd.models.dialect import DialectModel
+from whyqd.models.identifier import Identifier
 
 
 class DataSourceAttributeModel(RootModel):
@@ -28,9 +29,7 @@ class DataSourceAttributeModel(RootModel):
 
 
 class DataSourceModel(BaseModel):
-    uuid: UUID = Field(
-        default_factory=uuid4, description="Automatically generated unique identity for the data source."
-    )
+    uuid: Identifier = Field(description="Automatically generated unique identity for the data source.")
     title: Optional[str] = Field(None, description="A descriptive name for the data source.")
     description: Optional[str] = Field(
         None,
@@ -60,6 +59,7 @@ class DataSourceModel(BaseModel):
         [],
         description="A list of key columns required before merging of multiple data sources into an interim data source.",
     )
+    dialect: Optional[DialectModel] = Field(None, description="How the file is written, so it can be read.")
     attributes: Optional[DataSourceAttributeModel] = Field(
         {},
         description="Optional open dictionary for reader-specific attributes for Pandas' API. E.g. 'quoting' for the CSV library.",
@@ -93,10 +93,6 @@ class DataSourceModel(BaseModel):
     def get_checksum(self, content: str) -> str | None:
         """The checksum value that hashed `content`, or None."""
         return next((c.checksumValue for c in self.checksums if c.content == content), None)
-
-    @property
-    def hexed_filename(self) -> str:
-        return f"{str(self.uuid)}.{MimeType(self.mime).name.lower()}"
 
     @property
     def name(self) -> str:

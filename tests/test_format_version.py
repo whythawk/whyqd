@@ -103,6 +103,60 @@ class TestFormatVersion:
         with pytest.raises(ValueError, match=r"1\.5.*1\.x.*2\.0"):
             load(DIRECTORY / "test_schema.schema").get_json(format="1.5")
 
+    @pytest.mark.parametrize("path", DATA_SOURCES, ids=lambda p: p.name)
+    def test_empty_attributes_left_out(self, path):
+        assert "attributes" not in as_json(load(path).get_json())
+
+
+def schema(fields: list[dict], format: str | None = None) -> qd.SchemaDefinition:
+    definition = qd.SchemaDefinition()
+    definition.set(schema={"name": "fields", "fields": fields} | ({"formatVersion": format} if format else {}))
+    return definition
+
+
+class TestFieldTypesAndBounds:
+    def test_1x_time_is_a_duration(self):
+        written = as_json(schema([{"name": "a", "type": "time"}]).get_json())
+        assert written["fields"][0]["type"] == "duration"
+
+    def test_1x_string_bounds_are_lengths(self):
+        fields = [
+            {"name": "a", "type": "string", "constraints": {"minimum": 2, "maximum": 9}},
+            {"name": "b", "type": "number", "constraints": {"minimum": 0, "maximum": 9}},
+        ]
+        written = as_json(schema(fields).get_json())
+        assert written["fields"][0]["constraints"] == {"minLength": 2, "maxLength": 9}
+        assert written["fields"][1]["constraints"] == {"minimum": 0, "maximum": 9}
+
+    def test_1x_save_writes_them_back(self):
+        fields = [
+            {"name": "a", "type": "time"},
+            {"name": "b", "type": "string", "constraints": {"minimum": 2, "maximum": 9}},
+        ]
+        written = as_json(schema(fields).get_json(format="1.x"))
+        assert [{k: f[k] for k in f if k != "uuid"} for f in written["fields"]] == fields
+
+    def test_time_of_day_reads(self):
+        written = as_json(schema([{"name": "a", "type": "time"}], format="2.0").get_json())
+        assert written["fields"][0]["type"] == "time"
+
+    @pytest.mark.parametrize(
+        "field, refusal",
+        [
+            ({"name": "a", "type": "time"}, "time of day"),
+            ({"name": "a", "type": "number", "constraints": {"minLength": 1}}, "length of a `number`"),
+            ({"name": "a", "type": "string", "constraints": {"minLength": 1, "maximum": 3}}, "value and its length"),
+        ],
+        ids=["time of day", "length of a number", "value and length"],
+    )
+    def test_1x_save_refuses_what_it_cannot_hold(self, field, refusal):
+        with pytest.raises(ValueError, match=refusal):
+            schema([field], format="2.0").get_json(format="1.x")
+
+    def test_length_bounds_ordered(self):
+        with pytest.raises(ValueError, match="maxLength"):
+            schema([{"name": "a", "type": "string", "constraints": {"minLength": 5, "maxLength": 2}}], format="2.0")
+
 
 class TestVerify1x:
     @pytest.mark.parametrize("path", DATA_SOURCES, ids=lambda p: p.name)

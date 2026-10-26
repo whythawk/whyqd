@@ -9,7 +9,7 @@ from urllib.parse import urlparse
 import urllib
 import posixpath
 from uuid import uuid4
-from datetime import date, datetime
+from datetime import datetime, timezone
 from pathlib import Path, PurePath
 
 # from pandas.util import hash_pandas_object
@@ -17,6 +17,7 @@ import randomname
 import warnings
 
 from whyqd.config.settings import settings
+from whyqd.parsers.extension import ExtensionParser
 from whyqd.parsers.format import FormatParser
 
 if TYPE_CHECKING:
@@ -30,13 +31,15 @@ class CoreParser:
     def __init__(self) -> None:
         self.default_directory = settings.WHYQD_DIRECTORY
         self.formats = FormatParser()
+        self.extensions = ExtensionParser()
 
     ###################################################################################################
     ### AD-HOC UTILITIES
     ###################################################################################################
 
-    def get_now(self):
-        return date.isoformat(datetime.now())
+    def get_now(self) -> str:
+        """Today's date in UTC, so a name made from it is the same on any machine."""
+        return datetime.now(timezone.utc).date().isoformat()
 
     def chunks(self, *, lst: list, n: int) -> list:
         """Yield successive n-sized chunks from l."""
@@ -90,9 +93,9 @@ class CoreParser:
         if model:
             model = model.model_dump(by_alias=True, exclude_defaults=True, exclude_none=True)
             model |= updated_model.model_dump(exclude_unset=True)
-            return modelType(**model)
-        else:
-            return updated_model
+            updated_model = modelType(**model)
+        self.extensions.check(model=updated_model)
+        return updated_model
 
     ###################################################################################################
     ### PATH MANAGEMENT
