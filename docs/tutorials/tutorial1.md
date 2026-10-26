@@ -543,7 +543,7 @@ may be wondering where it is? **whyqd**, similarly, produces a unique hash for e
 transform.
 
 ```python
-transform.get.dataDestination.checksum
+transform.get.dataDestination.get_checksum("table-1x")
 
 'a8d03afd7d5b93163dac56ba23a7c75dedf42b8999295e560f3d633d54457e9de3ae95dea8181f238e549a7fba10a36723d2f1b1d94ef3f2273129a58bfc0751'
 ```

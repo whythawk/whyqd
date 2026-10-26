@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: BSD-3-Clause
 from __future__ import annotations
 from typing import TYPE_CHECKING
 from pydantic import Json
@@ -8,18 +9,19 @@ from urllib.parse import urlparse
 import urllib
 import posixpath
 from uuid import uuid4
-from datetime import date, datetime
+from datetime import datetime, timezone
 from pathlib import Path, PurePath
-import pandas as pd
-import numpy as np
 
 # from pandas.util import hash_pandas_object
 import randomname
 import warnings
 
 from whyqd.config.settings import settings
+from whyqd.parsers.extension import ExtensionParser
+from whyqd.parsers.format import FormatParser
 
 if TYPE_CHECKING:
+    import pandas as pd
     from whyqd.models import SchemaModel, CrosswalkModel
 
 
@@ -28,13 +30,16 @@ class CoreParser:
 
     def __init__(self) -> None:
         self.default_directory = settings.WHYQD_DIRECTORY
+        self.formats = FormatParser()
+        self.extensions = ExtensionParser()
 
     ###################################################################################################
     ### AD-HOC UTILITIES
     ###################################################################################################
 
-    def get_now(self):
-        return date.isoformat(datetime.now())
+    def get_now(self) -> str:
+        """Today's date in UTC, so a name made from it is the same on any machine."""
+        return datetime.now(timezone.utc).date().isoformat()
 
     def chunks(self, *, lst: list, n: int) -> list:
         """Yield successive n-sized chunks from l."""
@@ -72,9 +77,9 @@ class CoreParser:
             updated_model = modelType(**{"name": randomname.get_name()})
         else:
             if isinstance(source, (Path, str)):
-                updated_model = modelType(**self.load_json(source=source))
+                updated_model = modelType(**self.formats.read(source=self.load_json(source=source)))
             elif isinstance(source, (Json, dict)):
-                updated_model = modelType(**source)
+                updated_model = modelType(**self.formats.read(source=source))
             elif isinstance(source, modelType):
                 updated_model = source
             else:
@@ -88,9 +93,9 @@ class CoreParser:
         if model:
             model = model.model_dump(by_alias=True, exclude_defaults=True, exclude_none=True)
             model |= updated_model.model_dump(exclude_unset=True)
-            return modelType(**model)
-        else:
-            return updated_model
+            updated_model = modelType(**model)
+        self.extensions.check(model=updated_model)
+        return updated_model
 
     ###################################################################################################
     ### PATH MANAGEMENT
@@ -184,6 +189,8 @@ class CoreParser:
         return checksum.hexdigest()
 
     def get_data_checksum(self, *, df: pd.DataFrame) -> str:
+        import numpy as np
+
         # The destination data does not have a valid checksum for the file itself, only the data.
         # Need to ensure arrays are all of the same type. Easiest is to coerce np arrays to lists
         for column in df.columns:

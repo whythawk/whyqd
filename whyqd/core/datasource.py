@@ -1,13 +1,13 @@
+# SPDX-License-Identifier: BSD-3-Clause
 from __future__ import annotations
 from typing import TYPE_CHECKING
 from pathlib import Path
 from pydantic import Json
-import json
 
-from whyqd.dtypes import MimeType
-from whyqd.models import DataSourceModel, CitationModel
-from whyqd.parsers import DataSourceParser
+from whyqd.dtypes import ChecksumContent, MimeType
+from whyqd.models import ChecksumModel, DataSourceModel, CitationModel
 from whyqd.core.base import BaseDefinition
+from whyqd.config.settings import settings
 
 if TYPE_CHECKING:
     import pandas as pd
@@ -57,7 +57,6 @@ class DataSourceDefinition(BaseDefinition):
 
     def __init__(self, *, source: Path | str | DataSourceModel | None = None) -> None:
         super().__init__(model_name="data")
-        self.reader = DataSourceParser()
         self.data = None
         self.set(schema=source)
 
@@ -133,23 +132,41 @@ class DataSourceDefinition(BaseDefinition):
     #########################################################################################
 
     def validate(self) -> bool:
-        """Validate that all required fields are returned from the crosswalk."""
+        """Verify the source data against the data source's checksum.
+
+        A checksum of the table as 1.x read it (`table-1x`) verifies through 1.x's own read, which needs the
+        `verify-1x` extra. Once it verifies, the file's byte hash is added beside it.
+
+        Raises:
+          ImportError: If a 1.x checksum needs verifying and the `verify-1x` extra is not installed.
+          AssertionError: If the source data does not match its checksum.
+
+        Returns:
+          True if every data source verifies.
+        """
         if not self.model:
             raise ValueError(f"{self.model_name.title()} model does not exist.")
         models = self.model
         if not isinstance(self.model, list):
             models = [models]
         for m in models:
-            attributes = {}
-            if m.attributes:
-                attributes |= m.attributes.terms
-            vmod = self.reader.derive_data_model(
-                source=m.path, mimetype=m.mime, sheet_name=m.sheet_name, header=m.header, **attributes
-            )
+            table = m.get_checksum(ChecksumContent.TABLE_1X)
+            if table is None:
+                raise ValueError(f"`{m.path}` has no checksum this whyqd can verify: it verifies `table-1x` only.")
             try:
-                assert vmod.checksum == m.checksum
-            except AssertionError:
+                from whyqd.parsers.v1 import V1ChecksumParser
+            except ImportError as e:
+                raise ImportError("Verifying a 1.x checksum needs the extra: pip install whyqd[verify-1x]") from e
+            if V1ChecksumParser().checksum(model=m) != table:
                 raise AssertionError(f"{self.model_name.title()} model checksum does not match derived checksum.")
+            if m.get_checksum(ChecksumContent.BYTES) is None:
+                m.checksums.append(
+                    ChecksumModel(
+                        algorithm=settings.CHECKSUM_ALGORITHM,
+                        checksumValue=self.core.get_checksum(source=m.path),
+                        content=ChecksumContent.BYTES,
+                    )
+                )
         return True
 
     #########################################################################################
@@ -195,25 +212,21 @@ class DataSourceDefinition(BaseDefinition):
     # SAVE UTILITIES FOR LISTS
     #########################################################################################
 
-    def get_json(self, hide_uuid: bool = False) -> Json | None:
-        """Get the json model.
+    def get_json(self, hide_uuid: bool = False, format: str | None = None) -> Json | list[Json] | None:
+        """Get the json model, or one per sheet.
 
         Parameters:
           hide_uuid: Hide all UUIDs in the nested JSON output. Mostly useful for validation assertions where the only
                      differences between sources are the UUIDs.
+          format: The definition format to write, one of `settings.FORMAT_VERSIONS` (`whyqd.config.settings`). Defaults to the current one.
 
         Returns:
-          Json-conforming output, or None.
+          Json-conforming output, a list of them, or None.
         """
         if not isinstance(self.model, list):
-            return super().get_json(hide_uuid=hide_uuid)
-        response = []
-        for model in self.model:
-            if not hide_uuid:
-                response.append(model.model_dump_json(by_alias=True, exclude_defaults=True, exclude_none=True))
-            else:
-                json.dumps(self.exclude_uuid(model=model))
-        return response
+            return super().get_json(hide_uuid=hide_uuid, format=format)
+        formats = self.core.formats
+        return [formats.dumps(formats.write(model=m, format=format, hide_uuid=hide_uuid)) for m in self.model]
 
     def save(
         self,
@@ -221,6 +234,7 @@ class DataSourceDefinition(BaseDefinition):
         filename: str | None = None,
         created_by: str | None = None,
         hide_uuid: bool = False,
+        format: str | None = None,
     ) -> bool:
         """Save model as a json file.
 
@@ -229,6 +243,7 @@ class DataSourceDefinition(BaseDefinition):
           filename:  Defaults to model name
           created_by:  Declare the model creator/updater
           hide_uuid:  Hide all UUIDs in the nested JSON output.
+          format: The definition format to write, one of `settings.FORMAT_VERSIONS` (`whyqd.config.settings`). Defaults to the current one.
 
         Returns:
           Boolean True if saved.
@@ -236,7 +251,9 @@ class DataSourceDefinition(BaseDefinition):
         if not isinstance(self.model, list):
             if not filename:
                 filename = "".join(self.model.name.split(".")[:-1] + [f".{self.model_name}"])
-            return super().save(directory=directory, filename=filename, created_by=created_by, hide_uuid=hide_uuid)
+            return super().save(
+                directory=directory, filename=filename, created_by=created_by, hide_uuid=hide_uuid, format=format
+            )
         if not directory:
             directory = self.core.default_directory
         else:
@@ -247,7 +264,7 @@ class DataSourceDefinition(BaseDefinition):
             filename += f".{self.model_name}"
         if isinstance(directory, str):
             directory = Path(directory)
-        models = self.get_json(hide_uuid=hide_uuid)
+        models = self.get_json(hide_uuid=hide_uuid, format=format)
         for i, model in enumerate(models):
             filename = "".join(self.model[i].name.split(".")[:-1] + [f".{self.model_name}"])
             path = directory / filename

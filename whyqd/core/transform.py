@@ -1,11 +1,12 @@
+# SPDX-License-Identifier: BSD-3-Clause
 from __future__ import annotations
 from pathlib import Path
 
-from whyqd.dtypes import MimeType
+from whyqd.dtypes import ChecksumContent, MimeType
 from whyqd.models import DataSourceModel, CrosswalkModel, TransformModel
+from whyqd.models.utc import UtcParser
 from whyqd.core import CrosswalkDefinition
 from whyqd.core.base import BaseDefinition
-from whyqd.parsers import DataSourceParser
 from whyqd.config.settings import settings
 
 
@@ -38,10 +39,10 @@ class TransformDefinition(BaseDefinition):
         data_source: DataSourceModel | dict | Path | str | None = None,
     ) -> None:
         super().__init__(model_name="transform")
-        self.reader = DataSourceParser()
         self.data_source = None
         self.data = None
         self.crosswalk = CrosswalkDefinition()
+        self.utc = UtcParser()
         self.set(transform=transform, crosswalk=crosswalk, data_source=data_source)
         self.destination_mimetype = settings.WHYQD_DEFAULT_MIMETYPE
         self.destination_path = Path(settings.WHYQD_DIRECTORY)
@@ -101,6 +102,12 @@ class TransformDefinition(BaseDefinition):
         """
         if not self.model.dataSource or not self.model.crosswalk:
             raise ValueError("Before performing data transform provide both a data source and a crosswalk.")
+        # The package imports this module, so its version is read here, once it has loaded
+        import whyqd
+
+        self.model.started = self.utc.now()
+        self.model.ended = None
+        self.model.whyqd = whyqd.__version__
         # Validate crosswalk
         self.crosswalk.validate()
         # Perform crosswalk, coercing to source schema prior to crosswalk
@@ -116,6 +123,7 @@ class TransformDefinition(BaseDefinition):
                 f"Missing required destination fields in crosswalked data: {set(required_names) - set(df.columns)}"
             )
         self.data = df
+        self.model.ended = self.utc.now()
 
     #########################################################################################
     # VALIDATION UTILITIES
@@ -159,16 +167,18 @@ class TransformDefinition(BaseDefinition):
         else:
             source_df = self.reader.get(source=self.model.dataSource)
         # Validate source
-        if not self.model.dataSource.checksum:
+        source_checksum = self.model.dataSource.get_checksum(ChecksumContent.TABLE_1X)
+        if not source_checksum:
             raise ValueError("Validation failed. Data source has no saved checksum.")
-        self.reader.get_checksum(df=source_df, crosscheck=self.model.dataSource.checksum)
+        self.reader.get_checksum(df=source_df, crosscheck=source_checksum)
         # Validate destination
         destination_df = self.reader.get(
             source=data_destination, mimetype=mimetype_destination, preserve=self.model.dataDestination.preserve
         )
-        if not self.model.dataDestination.checksum:
+        destination_checksum = self.model.dataDestination.get_checksum(ChecksumContent.TABLE_1X)
+        if not destination_checksum:
             raise ValueError("Validation failed. Data destination has no saved checksum.")
-        self.reader.get_checksum(df=destination_df, crosscheck=self.model.dataDestination.checksum)
+        self.reader.get_checksum(df=destination_df, crosscheck=destination_checksum)
         # Validate crosswalk, coercing to source schema prior to crosswalk
         self.crosswalk.validate()
         source_df = self.reader.coerce_to_schema(df=source_df, schema=self.crosswalk.schema_source)
@@ -184,7 +194,7 @@ class TransformDefinition(BaseDefinition):
             raise ValueError(
                 f"Validation failed. Missing required destination fields in crosswalked data: {set(required_names) - set(crosswalk_df.columns)}"
             )
-        self.reader.get_checksum(df=crosswalk_df, crosscheck=self.model.dataDestination.checksum)
+        self.reader.get_checksum(df=crosswalk_df, crosscheck=destination_checksum)
         return True
 
     #########################################################################################
@@ -199,6 +209,7 @@ class TransformDefinition(BaseDefinition):
         directory: str | Path | None = None,
         created_by: str | None = None,
         hide_uuid: bool = False,
+        format: str | None = None,
     ) -> bool:
         """Save model as a json file, and save crosswalked destination dataframe as a chosen mimetype.
 
@@ -218,6 +229,7 @@ class TransformDefinition(BaseDefinition):
           mimetype: **whyqd** supports saving to CSV, XLS, XLSX, Feather and Parquet files. Defaults to Parquet.
           created_by:  Declare the model creator/updater
           hide_uuid:  Hide all UUIDs in the nested JSON output.
+          format: The definition format to write, one of `settings.FORMAT_VERSIONS` (`whyqd.config.settings`). Defaults to the current one.
 
         Returns:
           Boolean True if saved.
@@ -240,4 +252,4 @@ class TransformDefinition(BaseDefinition):
             )
         self.model.dataDestination = self.reader.get_source_data_model(df=self.data, source=source, mimetype=mimetype)
         self.reader.set(df=self.data, source=source, mimetype=mimetype)
-        super().save(filename=filename, directory=directory, created_by=created_by, hide_uuid=hide_uuid)
+        super().save(filename=filename, directory=directory, created_by=created_by, hide_uuid=hide_uuid, format=format)

@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: BSD-3-Clause
 from __future__ import annotations
 from typing import List, Union, Type, TYPE_CHECKING
 from pathlib import Path
@@ -11,7 +12,7 @@ import ast
 
 from whyqd.parsers.core import CoreParser
 from whyqd.models import ColumnModel, DataSourceModel, DataSourceAttributeModel
-from whyqd.dtypes import MimeType, FieldType
+from whyqd.dtypes import ChecksumContent, MimeType, FieldType
 
 if TYPE_CHECKING:
     from whyqd.core import SchemaDefinition
@@ -421,7 +422,9 @@ class DataSourceParser:
             "sheet_name": sheet_name,
             "columns": columns,
             "preserve": preserve,
-            "checksum": self.get_checksum(df=df),
+            "checksums": [
+                self.core.formats.checksum(value=self.get_checksum(df=df), content=ChecksumContent.TABLE_1X)
+            ],
             "header": header,
             "index": df.shape[0],
             "attributes": DataSourceAttributeModel.model_validate(attributes),

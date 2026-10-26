@@ -1,6 +1,6 @@
+# SPDX-License-Identifier: BSD-3-Clause
 from __future__ import annotations
 from typing import TYPE_CHECKING
-import numpy as np
 
 from whyqd.crosswalk.base import BaseSchemaAction
 from whyqd.models import FieldModel
@@ -46,6 +46,8 @@ class Action(BaseSchemaAction):
         destination: FieldModel,
         source: list[FieldModel],
     ) -> pd.DataFrame:
+        import numpy as np
+
         if destination.name not in df.columns:
             df[destination.name] = None
         for field in source:

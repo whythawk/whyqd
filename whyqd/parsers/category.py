@@ -1,11 +1,12 @@
+# SPDX-License-Identifier: BSD-3-Clause
 from __future__ import annotations
 from typing import Type, TYPE_CHECKING
-import pandas as pd
 
 from whyqd.parsers import CoreParser, ScriptParser
 from whyqd.models import CategoryModel
 
 if TYPE_CHECKING:
+    import pandas as pd
     from whyqd.models import FieldModel, CategoryActionModel
     from whyqd.core import SchemaDefinition
     from whyqd.crosswalk.base import BaseCategoryAction

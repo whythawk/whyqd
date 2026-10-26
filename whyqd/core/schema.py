@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: BSD-3-Clause
 from __future__ import annotations
 from pathlib import Path
 
@@ -94,7 +95,7 @@ class SchemaDefinition(BaseDefinition):
             data: A model defining a single data source
         """
         if isinstance(data, dict):
-            data = DataSourceModel(**data)
+            data = DataSourceModel(**self.core.formats.read(source=data))
         if not self.model:
             self.set()
         for dc in data.columns:

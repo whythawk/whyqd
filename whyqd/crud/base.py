@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: BSD-3-Clause
 from __future__ import annotations
 from typing import Generic, TypeVar, Type
 from pydantic import BaseModel
@@ -88,7 +89,7 @@ class CRUDBase(Generic[ModelType]):
         # And update the original data
         old_name = old_term.name
         # https://fastapi.tiangolo.com/tutorial/body-updates/#partial-updates-with-patch
-        old_term = old_term.copy(update=term.model_dump(exclude_unset=True))
+        old_term = old_term.model_copy(update=term.model_dump(exclude_unset=True))
         self.remove(name=old_name)
         self.add(term=old_term)
 

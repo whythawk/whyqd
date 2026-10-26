@@ -118,7 +118,9 @@ datasource.get.model_dump(by_alias=True, exclude_defaults=True, exclude_none=Tru
   'Current Relief Award Start Date',
   'Current Rateable Value'],
  'attributes': {},
- 'checksum': 'c1a67eba4344aea0264a2375145ed0991ee7ec29574d04cdeba86e651dede21aa04a00547d121c57c16005c6bfa760b959f9cae116bcaf83dc36fcb1fddb01a4',
+ 'checksums': [{'algorithm': 'BLAKE2b-512',
+   'checksumValue': 'c1a67eba4344aea0264a2375145ed0991ee7ec29574d04cdeba86e651dede21aa04a00547d121c57c16005c6bfa760b959f9cae116bcaf83dc36fcb1fddb01a4',
+   'content': 'table-1x'}],
  'index': 3421}
 ```
 
@@ -294,10 +296,12 @@ UserWarning: 2 columns in Data were coerced to appropriate dtypes in Schema. ['o
 
 Those of you familiar with Dataverse's [universal numerical fingerprint](http://guides.dataverse.org/en/latest/developers/unf/index.html)
 may be wondering where it is? **whyqd**, similarly, produces a unique hash for each datasource. Ours is based on 
-[BLAKE2b](https://en.wikipedia.org/wiki/BLAKE_(hash_function)) and is included in the data source model.
+[BLAKE2b](https://en.wikipedia.org/wiki/BLAKE_(hash_function)) and is included in the data source model, in
+`checksums`. Each checksum names its algorithm and what it hashed: `table-1x` is the table as read, and `bytes`, added
+once the data source is validated, is the file itself.
 
 ```python
-datasource.get.checksum
+datasource.get.get_checksum("table-1x")
 
 'a8d03afd7d5b93163dac56ba23a7c75dedf42b8999295e560f3d633d54457e9de3ae95dea8181f238e549a7fba10a36723d2f1b1d94ef3f2273129a58bfc0751'
 ```

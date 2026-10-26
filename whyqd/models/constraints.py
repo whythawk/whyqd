@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: BSD-3-Clause
 from __future__ import annotations
 from typing import List, Optional, Union
 from pydantic import field_validator, ConfigDict, BaseModel, Field, ValidationInfo
@@ -21,21 +22,18 @@ class ConstraintsModel(BaseModel):
         None,
         description="A default category term used when source values are ambiguous, or unstated.",
     )
-    minimum: Optional[Union[int, float]] = Field(
-        None,
-        description="An integer that specifies the minimum of a value, or the minimum number of characters of a string, depending on the field type.",
-    )
-    maximum: Optional[Union[int, float]] = Field(
-        None,
-        description="An integer that specifies the maximum of a value, or the maximum number of characters of a string, depending on the field type.",
-    )
+    minimum: Optional[Union[int, float]] = Field(None, description="The smallest value allowed, inclusive.")
+    maximum: Optional[Union[int, float]] = Field(None, description="The largest value allowed, inclusive.")
+    minLength: Optional[int] = Field(None, ge=0, description="The fewest characters a string may have.")
+    maxLength: Optional[int] = Field(None, ge=0, description="The most characters a string may have.")
     model_config = ConfigDict(validate_assignment=True, populate_by_name=True)
 
-    @field_validator("maximum")
+    @field_validator("maximum", "maxLength")
     @classmethod
     def is_maximum(cls, v: Optional[Union[int, float]], info: ValidationInfo):
-        if info.data["minimum"] is not None and v is not None and v < info.data["minimum"]:
-            raise ValueError(f"Maximum ({v}) must be greater than Minimum ({info.data['minimum']}).")
+        least = info.data.get({"maximum": "minimum", "maxLength": "minLength"}[info.field_name])
+        if least is not None and v is not None and v < least:
+            raise ValueError(f"`{info.field_name}` ({v}) must not be less than its minimum ({least}).")
         return v
 
     @field_validator("category")

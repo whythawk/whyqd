@@ -1,18 +1,24 @@
+# SPDX-License-Identifier: BSD-3-Clause
 from __future__ import annotations
 from pydantic import field_validator, StringConstraints, ConfigDict, BaseModel, Field
 from typing import Annotated, List, Optional, Union
-from uuid import UUID, uuid4
 
-from whyqd.models import FieldModel, VersionModel, CitationModel
+from whyqd.models import ExtensionModel, FieldModel, VersionModel, CitationModel
+from whyqd.models.identifier import Identifier
 
 
 class SchemaModel(BaseModel):
-    uuid: UUID = Field(default_factory=uuid4, description="Automatically generated unique identity for the schema.")
+    uuid: Identifier = Field(description="Automatically generated unique identity for the schema.")
     name: Annotated[str, StringConstraints(strip_whitespace=True, to_lower=True)] = Field(
         ...,
         description="Machine-readable term to uniquely address this schema. Cannot have spaces. CamelCase or snake_case for preference.",
     )
     title: Optional[str] = Field(None, description="A human-readable version of the schema name.")
+    release: Optional[str] = Field(
+        None,
+        description="A name for this copy of the schema, for people, such as `2026 relief categories`. It orders "
+        "nothing: the edit history's latest `updated` says which copy came first.",
+    )
     description: Optional[str] = Field(
         None,
         description="A complete description of the schema. Depending on how complex your work becomes, try and be as helpful as possible to 'future-you'. You'll thank yourself later.",
@@ -34,6 +40,7 @@ class SchemaModel(BaseModel):
         description="Maximum value of a zero-base index for tabular data defined by this schema. Necessary where `actions` apply row-level transforms.",
     )
     citation: Optional[CitationModel] = Field(None, description="Optional full citation for the source data.")
+    extensions: list[ExtensionModel] = Field([], description="The extension types the schema's fields use.")
     version: List[VersionModel] = Field(default=[], description="Version and update history for the schema.")
     model_config = ConfigDict(validate_assignment=True)
 

@@ -2062,6 +2062,15 @@ wheels = [
 ]
 
 [[package]]
+name = "rfc8785"
+version = "0.1.4"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/ef/2f/fa1d2e740c490191b572d33dbca5daa180cb423c24396b856f5886371d8b/rfc8785-0.1.4.tar.gz", hash = "sha256:e545841329fe0eee4f6a3b44e7034343100c12b4ec566dc06ca9735681deb4da", size = 14321, upload-time = "2024-09-27T16:33:31.206Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/4d/78/119878110660b2ad709888c8a1614fce7e2fab39080ab960656dc8605bf6/rfc8785-0.1.4-py3-none-any.whl", hash = "sha256:520d690b448ecf0703691c76e1a34a24ddcd4fc5bc41d589cb7c58ec651bcd48", size = 9240, upload-time = "2024-09-27T16:33:29.683Z" },
+]
+
+[[package]]
 name = "rpds-py"
 version = "2026.9.1"
 source = { registry = "https://pypi.org/simple" }
@@ -2438,16 +2447,27 @@ source = { editable = "." }
 dependencies = [
     { name = "numpy" },
     { name = "openpyxl" },
+    { name = "packaging" },
     { name = "pandas" },
     { name = "pyarrow" },
     { name = "pydantic" },
     { name = "pydantic-settings" },
     { name = "randomname" },
+    { name = "rfc8785" },
+    { name = "xlrd" },
+]
+
+[package.optional-dependencies]
+verify-1x = [
+    { name = "openpyxl" },
+    { name = "pandas" },
+    { name = "pyarrow" },
     { name = "xlrd" },
 ]
 
 [package.dev-dependencies]
 dev = [
+    { name = "jsonschema" },
     { name = "pytest" },
     { name = "ruff" },
 ]
@@ -2469,16 +2489,24 @@ notebooks = [
 requires-dist = [
     { name = "numpy", specifier = ">=2.4.6,<3" },
     { name = "openpyxl", specifier = ">=3.1.5,<4" },
+    { name = "openpyxl", marker = "extra == 'verify-1x'", specifier = ">=3.1.5,<4" },
+    { name = "packaging", specifier = ">=26.3,<27" },
     { name = "pandas", specifier = ">=3.0.6,<4" },
+    { name = "pandas", marker = "extra == 'verify-1x'", specifier = ">=3.0.6,<4" },
     { name = "pyarrow", specifier = ">=24,<27" },
+    { name = "pyarrow", marker = "extra == 'verify-1x'", specifier = ">=24,<27" },
     { name = "pydantic", specifier = ">=2.13.4,<3" },
     { name = "pydantic-settings", specifier = ">=2.14.1,<3" },
     { name = "randomname", specifier = ">=0.2.1,<0.3" },
+    { name = "rfc8785", specifier = ">=0.1.4,<0.2" },
     { name = "xlrd", specifier = ">=2.0.2,<3" },
+    { name = "xlrd", marker = "extra == 'verify-1x'", specifier = ">=2.0.2,<3" },
 ]
+provides-extras = ["verify-1x"]
 
 [package.metadata.requires-dev]
 dev = [
+    { name = "jsonschema", specifier = ">=4.26" },
     { name = "pytest", specifier = ">=7.2.2" },
     { name = "ruff", specifier = "~=0.14.0" },
 ]

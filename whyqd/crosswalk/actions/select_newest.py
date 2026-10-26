@@ -1,9 +1,12 @@
+# SPDX-License-Identifier: BSD-3-Clause
 from __future__ import annotations
-import pandas as pd
-import numpy as np
+from typing import TYPE_CHECKING
 
 from whyqd.crosswalk.base import BaseSchemaAction
 from whyqd.models import ModifierModel, FieldModel
+
+if TYPE_CHECKING:
+    import pandas as pd
 
 
 class Action(BaseSchemaAction):
@@ -43,6 +46,8 @@ class Action(BaseSchemaAction):
         destination: FieldModel,
         source: list[FieldModel | ModifierModel],
     ) -> pd.DataFrame:
+        import numpy as np
+
         base_date = None
         # Requires sets of 3 terms: field, +, date_field
         term_set = len(self.structure)

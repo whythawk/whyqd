@@ -1,0 +1,1698 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://w3id.org/whyqd/formats/2.0/transform.json",
+  "description": "A whyqd transform as whyqd saves it in format 2.0, generated from its models.",
+  "$defs": {
+    "ActionScriptModel": {
+      "description": "Action Script Model - only action `script` string required.",
+      "properties": {
+        "uuid": {
+          "description": "Unique identity for the Action. Automatically generated.",
+          "format": "uuid",
+          "title": "Uuid",
+          "type": "string"
+        },
+        "script": {
+          "description": "An action script.",
+          "title": "Script",
+          "type": "string"
+        },
+        "reason": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ReasonModel"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Why the step holds, covering every mapping in it."
+        },
+        "correspondence": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ReferenceModel"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "The versioned correspondence a `CATEGORISE` step cites for its mappings."
+        }
+      },
+      "required": [
+        "script"
+      ],
+      "title": "ActionScriptModel",
+      "type": "object"
+    },
+    "CategoryModel": {
+      "properties": {
+        "uuid": {
+          "description": "Unique identity for the category. Automatically generated.",
+          "format": "uuid",
+          "title": "Uuid",
+          "type": "string"
+        },
+        "name": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "description": "Unique category term.",
+          "title": "Name"
+        },
+        "description": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Description of the unique term",
+          "title": "Description"
+        },
+        "code": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "The term's code in its list, which identifies it where its label may change.",
+          "title": "Code"
+        }
+      },
+      "required": [
+        "name"
+      ],
+      "title": "CategoryModel",
+      "type": "object"
+    },
+    "CellType": {
+      "enum": [
+        "s",
+        "n",
+        "d",
+        "b",
+        "e"
+      ],
+      "title": "CellType",
+      "type": "string"
+    },
+    "ChecksumContent": {
+      "description": "What a checksum hashed. The algorithm is named beside it, as SPDX names it.",
+      "enum": [
+        "table-1x",
+        "fp0",
+        "bytes",
+        "definition"
+      ],
+      "title": "ChecksumContent",
+      "type": "string"
+    },
+    "ChecksumModel": {
+      "description": "A checksum in SPDX's shape, `algorithm` and `checksumValue`, with what it hashed.",
+      "properties": {
+        "algorithm": {
+          "description": "SPDX's name for the hash algorithm, such as `BLAKE2b-512`.",
+          "title": "Algorithm",
+          "type": "string"
+        },
+        "checksumValue": {
+          "description": "The digest, in lowercase hexadecimal.",
+          "title": "Checksumvalue",
+          "type": "string"
+        },
+        "content": {
+          "$ref": "#/$defs/ChecksumContent",
+          "description": "What was hashed."
+        }
+      },
+      "required": [
+        "algorithm",
+        "checksumValue",
+        "content"
+      ],
+      "title": "ChecksumModel",
+      "type": "object"
+    },
+    "CitationModel": {
+      "description": "BibTeX model for citations.\n\nhttps://www.bibtex.com/format/\n\nIncludes some non-standard fields.",
+      "properties": {
+        "author": {
+          "description": "The name(s) of the author(s) (in the case of more than one author, separated by `and`).",
+          "title": "Author",
+          "type": "string"
+        },
+        "title": {
+          "description": "The title of the work.",
+          "title": "Title",
+          "type": "string"
+        },
+        "url": {
+          "anyOf": [
+            {
+              "format": "uri",
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "The URL field is used to store the URL of a web page or FTP download. It is a non-standard BibTeX field.",
+          "title": "Url"
+        },
+        "publisher": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "The publisher's name.",
+          "title": "Publisher"
+        },
+        "institution": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "The institution that was involved in the publishing, but not necessarily the publisher.",
+          "title": "Institution"
+        },
+        "doi": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "The doi field is used to store the digital object identifier (DOI) of a journal article, conference paper, book chapter or book. It is a non-standard BibTeX field. It's recommended to simply use the DOI, and not a DOI link.",
+          "title": "Doi"
+        },
+        "month": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "The month of publication (or, if unpublished, the month of creation). Use three-letter abbreviation.",
+          "title": "Month"
+        },
+        "year": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "The year of publication (or, if unpublished, the year of creation).",
+          "title": "Year"
+        },
+        "licence": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "The terms under which the associated resource are licenced for reuse.",
+          "title": "Licence"
+        },
+        "note": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Miscellaneous extra information.",
+          "title": "Note"
+        }
+      },
+      "required": [
+        "author",
+        "title"
+      ],
+      "title": "CitationModel",
+      "type": "object"
+    },
+    "ColumnModel": {
+      "description": "Pandas DataFrame column model for maintaining source reference. Necessary to perform term matching in\nparsing operations (there can be some *really* fruity column names.",
+      "properties": {
+        "uuid": {
+          "description": "Unique identity for the column. Automatically generated.",
+          "format": "uuid",
+          "title": "Uuid",
+          "type": "string"
+        },
+        "name": {
+          "description": "Column label / name from source data. In whatever format it was written, including leading/lagging spaces, non-printing characters, etc.",
+          "title": "Name",
+          "type": "string"
+        },
+        "type": {
+          "$ref": "#/$defs/FieldType",
+          "default": "string",
+          "description": "A column must contain values of a specific type. Default is 'string'."
+        },
+        "profile": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ProfileModel"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "What the column holds, as read, in counts."
+        }
+      },
+      "required": [
+        "name"
+      ],
+      "title": "ColumnModel",
+      "type": "object"
+    },
+    "ConstraintsModel": {
+      "properties": {
+        "required": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": false,
+          "description": "Indicates whether a field must have a value for each instance.",
+          "title": "Required"
+        },
+        "unique": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": false,
+          "description": "When `true`, each value defined by the field `MUST` be unique.",
+          "title": "Unique"
+        },
+        "enum": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/CategoryModel"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "The set of unique category terms permitted in this field,  with `name` & (optional) `description`.",
+          "title": "Enum"
+        },
+        "default": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/CategoryModel"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "A default category term used when source values are ambiguous, or unstated."
+        },
+        "minimum": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "The smallest value allowed, inclusive.",
+          "title": "Minimum"
+        },
+        "maximum": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "The largest value allowed, inclusive.",
+          "title": "Maximum"
+        },
+        "minLength": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "The fewest characters a string may have.",
+          "title": "Minlength"
+        },
+        "maxLength": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "The most characters a string may have.",
+          "title": "Maxlength"
+        }
+      },
+      "title": "ConstraintsModel",
+      "type": "object"
+    },
+    "CrosswalkModel": {
+      "properties": {
+        "uuid": {
+          "description": "Automatically generated unique identity for the crosswalk.",
+          "format": "uuid",
+          "title": "Uuid",
+          "type": "string"
+        },
+        "name": {
+          "description": "Machine-readable term to uniquely address this crosswalk. Cannot have spaces. CamelCase or snake_case for preference.",
+          "title": "Name",
+          "type": "string"
+        },
+        "title": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "A human-readable version of the crosswalk name.",
+          "title": "Title"
+        },
+        "description": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "A complete description of the crosswalk. Depending on how complex your work becomes, try and be as helpful as possible to 'future-you'. You'll thank yourself later.",
+          "title": "Description"
+        },
+        "schemaSource": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SchemaModel"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "The source schema which the crosswalk will transform from."
+        },
+        "schemaDestination": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SchemaModel"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "The destination schema which the crosswalk will transform to."
+        },
+        "actions": {
+          "default": [],
+          "description": "List of Actions in script format to be performed on these data, in this order. Will be parsed and validated seperately.",
+          "items": {
+            "$ref": "#/$defs/ActionScriptModel"
+          },
+          "title": "Actions",
+          "type": "array"
+        },
+        "citation": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/CitationModel"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional full citation for the source data."
+        },
+        "extensions": {
+          "default": [],
+          "description": "The extension actions the crosswalk's steps use.",
+          "items": {
+            "$ref": "#/$defs/ExtensionModel"
+          },
+          "title": "Extensions",
+          "type": "array"
+        },
+        "version": {
+          "default": [],
+          "description": "Version and update history for the crosswalk.",
+          "items": {
+            "$ref": "#/$defs/VersionModel"
+          },
+          "title": "Version",
+          "type": "array"
+        }
+      },
+      "required": [
+        "name"
+      ],
+      "title": "CrosswalkModel",
+      "type": "object"
+    },
+    "DataSourceAttributeModel": {
+      "additionalProperties": true,
+      "title": "DataSourceAttributeModel",
+      "type": "object"
+    },
+    "DataSourceModel": {
+      "properties": {
+        "uuid": {
+          "description": "Automatically generated unique identity for the data source.",
+          "format": "uuid",
+          "title": "Uuid",
+          "type": "string"
+        },
+        "title": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "A descriptive name for the data source.",
+          "title": "Title"
+        },
+        "description": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "A complete description of the data source. Depending on how complex your work becomes, try and be as helpful as possible to 'future-you'. You'll thank yourself later.",
+          "title": "Description"
+        },
+        "path": {
+          "description": "Full path to valid source data file.",
+          "title": "Path",
+          "type": "string"
+        },
+        "mime": {
+          "$ref": "#/$defs/MimeType",
+          "description": "Mime type for source data. Automatically generated."
+        },
+        "header": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": 0,
+          "description": "Row (0-indexed) to use for the column labels of the parsed DataFrame. ",
+          "title": "Header"
+        },
+        "sheet_name": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Needed if MimeType is either of XLS or XLSX, and the data consists of multiple sheets.",
+          "title": "Sheet Name"
+        },
+        "names": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": [],
+          "description": "If the source data has no header row, explicitly pass a list of column names - in the correct order - to address the data. May not be known until after initial wrangling.",
+          "title": "Names"
+        },
+        "columns": {
+          "description": "List of ColumnModel with names & type derived from the source data. In table order.",
+          "items": {
+            "$ref": "#/$defs/ColumnModel"
+          },
+          "title": "Columns",
+          "type": "array"
+        },
+        "preserve": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": [],
+          "description": "List of columns where variable type guessing must be prevented and the original data preserved. Critical for foreign key references with weird formats, like integers with leading `0`.",
+          "title": "Preserve"
+        },
+        "key": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": [],
+          "description": "A list of key columns required before merging of multiple data sources into an interim data source.",
+          "title": "Key"
+        },
+        "dialect": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/DialectModel"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "How the file is written, so it can be read."
+        },
+        "attributes": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/DataSourceAttributeModel"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": {},
+          "description": "Optional open dictionary for reader-specific attributes for Pandas' API. E.g. 'quoting' for the CSV library."
+        },
+        "checksums": {
+          "description": "Checksums proving the source data, each naming what it hashed: the table as 1.x read it, or the file's bytes.",
+          "items": {
+            "$ref": "#/$defs/ChecksumModel"
+          },
+          "title": "Checksums",
+          "type": "array"
+        },
+        "index": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Count of rows in source data table.",
+          "title": "Index"
+        },
+        "citation": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/CitationModel"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional full citation for the source data."
+        }
+      },
+      "required": [
+        "path",
+        "mime",
+        "columns",
+        "checksums"
+      ],
+      "title": "DataSourceModel",
+      "type": "object"
+    },
+    "DialectModel": {
+      "description": "How a file is written, so it can be read: the dialect of the W3C's CSV on the Web metadata vocabulary\n([Metadata Vocabulary for Tabular Data, section 5.9](https://www.w3.org/TR/tabular-metadata/#dialect-descriptions)),\nwith its names and defaults, and three of whyqd's own: `encodingStep`, `rowsPerRecord`, and `sheet`.\n\nOne default differs: CSV on the Web trims each cell, and whyqd keeps it as written (`trim` false). A blank line is\na row (`skipBlankRows` false), in both.",
+      "properties": {
+        "encoding": {
+          "default": "utf-8",
+          "description": "The file's encoding, as the WHATWG Encoding Standard names it.",
+          "title": "Encoding",
+          "type": "string"
+        },
+        "encodingStep": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/EncodingStep"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "What settled the encoding."
+        },
+        "delimiter": {
+          "default": ",",
+          "description": "The character between cells.",
+          "title": "Delimiter",
+          "type": "string"
+        },
+        "quoteChar": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": "\"",
+          "description": "The character quoting a cell; `null` for none.",
+          "title": "Quotechar"
+        },
+        "doubleQuote": {
+          "default": true,
+          "description": "A quote inside a quoted cell is doubled; if false, escaped by `\\`.",
+          "title": "Doublequote",
+          "type": "boolean"
+        },
+        "skipRows": {
+          "default": 0,
+          "description": "Rows before the header, or before the data where there is no header.",
+          "minimum": 0,
+          "title": "Skiprows",
+          "type": "integer"
+        },
+        "headerRowCount": {
+          "default": 1,
+          "description": "Header rows; `0` where the file has none.",
+          "minimum": 0,
+          "title": "Headerrowcount",
+          "type": "integer"
+        },
+        "skipBlankRows": {
+          "default": false,
+          "description": "Leave out blank rows. By default a blank row is a row.",
+          "title": "Skipblankrows",
+          "type": "boolean"
+        },
+        "trim": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "enum": [
+                "start",
+                "end"
+              ],
+              "type": "string"
+            }
+          ],
+          "default": false,
+          "description": "Strip whitespace around each cell.",
+          "title": "Trim"
+        },
+        "rowsPerRecord": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "integer"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "The fields in each row of one record, header included, where a record spans several rows: `[47, 1]` is 47 fields on the first row and 1 on the next. Absent where a record is one row.",
+          "title": "Rowsperrecord"
+        },
+        "sheet": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "The spreadsheet's sheet, where the file has several.",
+          "title": "Sheet"
+        }
+      },
+      "title": "DialectModel",
+      "type": "object"
+    },
+    "EncodingStep": {
+      "enum": [
+        "bom",
+        "utf-8",
+        "detected",
+        "latin-1",
+        "declared"
+      ],
+      "title": "EncodingStep",
+      "type": "string"
+    },
+    "ExtensionKind": {
+      "enum": [
+        "action",
+        "type"
+      ],
+      "title": "ExtensionKind",
+      "type": "string"
+    },
+    "ExtensionModel": {
+      "description": "An action or type a definition uses that whyqd does not include, from the package that provides it.\n\nAn extension is known by its package and its name together, since one name in two packages need not do the same\nthing. Its version is a range in the Python packaging standard's\n[version specifier](https://packaging.python.org/en/latest/specifications/version-specifiers/) syntax, such as\n`>=1.2.3,<2`; a transform records the exact version it ran, as `==1.2.3`.",
+      "properties": {
+        "name": {
+          "description": "The action's or type's name, as a definition writes it.",
+          "title": "Name",
+          "type": "string"
+        },
+        "kind": {
+          "$ref": "#/$defs/ExtensionKind",
+          "description": "Whether it is an action or a type."
+        },
+        "distribution": {
+          "description": "The installed package that provides it.",
+          "title": "Distribution",
+          "type": "string"
+        },
+        "version": {
+          "description": "The versions of that package the definition accepts.",
+          "title": "Version",
+          "type": "string"
+        },
+        "iri": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "An IRI giving the extension's meaning.",
+          "title": "Iri"
+        }
+      },
+      "required": [
+        "name",
+        "kind",
+        "distribution",
+        "version"
+      ],
+      "title": "ExtensionModel",
+      "type": "object"
+    },
+    "FieldModel": {
+      "properties": {
+        "uuid": {
+          "description": "Unique identity for the field. Automatically generated.",
+          "format": "uuid",
+          "title": "Uuid",
+          "type": "string"
+        },
+        "name": {
+          "description": "Defined exactly as it appears in the source data. By convention, it should be a machine-readable term to uniquely address this field. Should not have spaces. CamelCase or snake_case for preference.",
+          "title": "Name",
+          "type": "string"
+        },
+        "title": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "A human-readable version of the field name.",
+          "title": "Title"
+        },
+        "description": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "A description for the field.",
+          "title": "Description"
+        },
+        "type": {
+          "$ref": "#/$defs/FieldType",
+          "description": "A field must contain values of a specific type."
+        },
+        "example": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "An example value, as a string, for the field.",
+          "title": "Example"
+        },
+        "constraints": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ConstraintsModel"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "A set of optional constraints to define the field."
+        },
+        "policy": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/PolicyModel"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "How to read the field's text as its type."
+        },
+        "termList": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ReferenceModel"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "The versioned term list the field's categories come from, taking precedence over `enum`."
+        }
+      },
+      "required": [
+        "name",
+        "type"
+      ],
+      "title": "FieldModel",
+      "type": "object"
+    },
+    "FieldType": {
+      "enum": [
+        "string",
+        "number",
+        "integer",
+        "boolean",
+        "array",
+        "time",
+        "duration",
+        "usdate",
+        "date",
+        "datetime",
+        "month",
+        "quarter",
+        "year",
+        "any"
+      ],
+      "title": "FieldType",
+      "type": "string"
+    },
+    "MimeType": {
+      "enum": [
+        "text/csv",
+        "application/vnd.ms-excel",
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        "application/vnd.apache.parquet",
+        "application/vnd.apache.parquet",
+        "application/vnd.apache.feather",
+        "application/vnd.apache.feather"
+      ],
+      "title": "MimeType",
+      "type": "string"
+    },
+    "NumberFormatModel": {
+      "description": "How a number is written: the number format of a CSV on the Web derived datatype\n([Metadata Vocabulary for Tabular Data, section 5.11.2](https://www.w3.org/TR/tabular-metadata/#derived-datatypes)).",
+      "properties": {
+        "decimalChar": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "The decimal mark, such as `.` or `,`.",
+          "title": "Decimalchar"
+        },
+        "groupChar": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "The grouping mark, such as `,` in `1,000`.",
+          "title": "Groupchar"
+        },
+        "pattern": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "A number pattern, such as `#,##0.00`.",
+          "title": "Pattern"
+        }
+      },
+      "title": "NumberFormatModel",
+      "type": "object"
+    },
+    "PolicyModel": {
+      "description": "How to read a field's text as its type: a CSV on the Web derived datatype\n([Metadata Vocabulary for Tabular Data, section 5.11.2](https://www.w3.org/TR/tabular-metadata/#derived-datatypes)),\n`base` and `format`, with whyqd's own `rules` beside it.\n\nA field without a policy is read as text.",
+      "properties": {
+        "base": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "The datatype the text is read as, such as `decimal` or `date`.",
+          "title": "Base"
+        },
+        "format": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "$ref": "#/$defs/NumberFormatModel"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "How the text is written: a number's format; a boolean's `true|false` pair, such as `Y|N`; or a date's pattern, such as `dd.MM.yyyy`.",
+          "title": "Format"
+        },
+        "rules": {
+          "additionalProperties": true,
+          "default": {},
+          "description": "whyqd's own reading rules, beyond what `base` and `format` say.",
+          "title": "Rules",
+          "type": "object"
+        }
+      },
+      "title": "PolicyModel",
+      "type": "object"
+    },
+    "ProfileModel": {
+      "description": "What a column holds, as read, in counts. Profiling never changes a cell.",
+      "properties": {
+        "cellTypes": {
+          "additionalProperties": {
+            "type": "integer"
+          },
+          "default": {},
+          "description": "Cells of each type, as the reader found them.",
+          "propertyNames": {
+            "$ref": "#/$defs/CellType"
+          },
+          "title": "Celltypes",
+          "type": "object"
+        },
+        "blank": {
+          "default": 0,
+          "description": "Empty cells.",
+          "minimum": 0,
+          "title": "Blank",
+          "type": "integer"
+        },
+        "whitespace": {
+          "default": 0,
+          "description": "Cells holding only whitespace.",
+          "minimum": 0,
+          "title": "Whitespace",
+          "type": "integer"
+        },
+        "hardSpace": {
+          "default": 0,
+          "description": "Cells holding a no-break space.",
+          "minimum": 0,
+          "title": "Hardspace",
+          "type": "integer"
+        },
+        "zeroWidth": {
+          "default": 0,
+          "description": "Cells holding a zero-width character.",
+          "minimum": 0,
+          "title": "Zerowidth",
+          "type": "integer"
+        },
+        "control": {
+          "default": 0,
+          "description": "Cells holding a control character.",
+          "minimum": 0,
+          "title": "Control",
+          "type": "integer"
+        },
+        "dateLike": {
+          "default": 0,
+          "description": "Text cells that look like a date.",
+          "minimum": 0,
+          "title": "Datelike",
+          "type": "integer"
+        },
+        "zeroPadded": {
+          "default": 0,
+          "description": "Text cells holding a number with leading zeros.",
+          "minimum": 0,
+          "title": "Zeropadded",
+          "type": "integer"
+        }
+      },
+      "title": "ProfileModel",
+      "type": "object"
+    },
+    "ReasonModel": {
+      "description": "Why a crosswalk step holds, in the terms of an SSSOM mapping's justification\n([SSSOM data model](https://github.com/mapping-commons/sssom/blob/9287d104437ad702fa4e74b1ea2b42a879b877ae/src/docs/spec-model.md)).\nIt covers every mapping in its step.\n\nThe justification is a term from the\n[Semantic Mapping Vocabulary](https://mapping-commons.github.io/semantic-mapping-vocabulary/), recording whether a\nperson or a tool made the judgement: `semapv:ManualMappingCuration` for a wrangler's own, `semapv:MappingReview`\nfor a check of someone else's.",
+      "properties": {
+        "justification": {
+          "default": "semapv:ManualMappingCuration",
+          "description": "How the mapping was justified.",
+          "title": "Justification",
+          "type": "string"
+        },
+        "comment": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "The reason, in words.",
+          "title": "Comment"
+        },
+        "author": {
+          "default": [],
+          "description": "Who made the mapping, by name or identifier.",
+          "items": {
+            "type": "string"
+          },
+          "title": "Author",
+          "type": "array"
+        },
+        "date": {
+          "anyOf": [
+            {
+              "format": "date",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "When the mapping was made.",
+          "title": "Date"
+        },
+        "confidence": {
+          "anyOf": [
+            {
+              "maximum": 1,
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "How sure the author is, from 0 to 1.",
+          "title": "Confidence"
+        },
+        "seeAlso": {
+          "default": [],
+          "description": "Where more can be read, by URI.",
+          "items": {
+            "type": "string"
+          },
+          "title": "Seealso",
+          "type": "array"
+        },
+        "reference": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ReferenceModel"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "The versioned source the mapping relies on."
+        }
+      },
+      "title": "ReasonModel",
+      "type": "object"
+    },
+    "ReferenceModel": {
+      "description": "A versioned source a definition relies on: a term list, a correspondence, or what a reason cites.\n\nThe pair is SSSOM's source and source version (`subject_source`, `subject_source_version`, in the\n[SSSOM data model](https://github.com/mapping-commons/sssom/blob/9287d104437ad702fa4e74b1ea2b42a879b877ae/src/docs/spec-model.md)).\nThe version is required, since a\ndefinition pins what it relies on and never follows a list's current version.",
+      "properties": {
+        "source": {
+          "description": "The source's IRI, or its path where it is private.",
+          "title": "Source",
+          "type": "string"
+        },
+        "version": {
+          "description": "The version relied on.",
+          "title": "Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "source",
+        "version"
+      ],
+      "title": "ReferenceModel",
+      "type": "object"
+    },
+    "SchemaModel": {
+      "properties": {
+        "uuid": {
+          "description": "Automatically generated unique identity for the schema.",
+          "format": "uuid",
+          "title": "Uuid",
+          "type": "string"
+        },
+        "name": {
+          "description": "Machine-readable term to uniquely address this schema. Cannot have spaces. CamelCase or snake_case for preference.",
+          "title": "Name",
+          "type": "string"
+        },
+        "title": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "A human-readable version of the schema name.",
+          "title": "Title"
+        },
+        "release": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "A name for this copy of the schema, for people, such as `2026 relief categories`. It orders nothing: the edit history's latest `updated` says which copy came first.",
+          "title": "Release"
+        },
+        "description": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "A complete description of the schema. Depending on how complex your work becomes, try and be as helpful as possible to 'future-you'. You'll thank yourself later.",
+          "title": "Description"
+        },
+        "fields": {
+          "default": [],
+          "description": "A list of fields which define the schema. Fields, similarly, contain `name`, `title` and `description`, as well as `type` as compulsory.",
+          "items": {
+            "$ref": "#/$defs/FieldModel"
+          },
+          "title": "Fields",
+          "type": "array"
+        },
+        "missingValues": {
+          "default": [],
+          "description": "Indicates which string values should be treated as null values. There could be a variety of these, such as '..', or '-'.",
+          "items": {
+            "type": "string"
+          },
+          "title": "Missingvalues",
+          "type": "array"
+        },
+        "primaryKey": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "A field or set of fields which uniquely identifies each row in the table. Specify using the `name` of relevant fields.",
+          "title": "Primarykey"
+        },
+        "index": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Maximum value of a zero-base index for tabular data defined by this schema. Necessary where `actions` apply row-level transforms.",
+          "title": "Index"
+        },
+        "citation": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/CitationModel"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional full citation for the source data."
+        },
+        "extensions": {
+          "default": [],
+          "description": "The extension types the schema's fields use.",
+          "items": {
+            "$ref": "#/$defs/ExtensionModel"
+          },
+          "title": "Extensions",
+          "type": "array"
+        },
+        "version": {
+          "default": [],
+          "description": "Version and update history for the schema.",
+          "items": {
+            "$ref": "#/$defs/VersionModel"
+          },
+          "title": "Version",
+          "type": "array"
+        }
+      },
+      "required": [
+        "name"
+      ],
+      "title": "SchemaModel",
+      "type": "object"
+    },
+    "UsedReferenceModel": {
+      "description": "A versioned source as a transform used it, with checksums of its content, since a public list can change\nunder one address and version.",
+      "properties": {
+        "source": {
+          "description": "The source's IRI, or its path where it is private.",
+          "title": "Source",
+          "type": "string"
+        },
+        "version": {
+          "description": "The version relied on.",
+          "title": "Version",
+          "type": "string"
+        },
+        "checksums": {
+          "default": [],
+          "description": "Checksums of the source's content, as used.",
+          "items": {
+            "$ref": "#/$defs/ChecksumModel"
+          },
+          "title": "Checksums",
+          "type": "array"
+        }
+      },
+      "required": [
+        "source",
+        "version"
+      ],
+      "title": "UsedReferenceModel",
+      "type": "object"
+    },
+    "VersionModel": {
+      "properties": {
+        "name": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Name of the person who modified the schema or method.",
+          "title": "Name"
+        },
+        "description": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Description of what was done in this version.",
+          "title": "Description"
+        },
+        "updated": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "When this version was made, in UTC.",
+          "title": "Updated"
+        }
+      },
+      "title": "VersionModel",
+      "type": "object"
+    }
+  },
+  "properties": {
+    "formatVersion": {
+      "const": "2.0"
+    },
+    "uuid": {
+      "description": "Automatically generated unique identity for the method.",
+      "format": "uuid",
+      "title": "Uuid",
+      "type": "string"
+    },
+    "name": {
+      "description": "Machine-readable term to uniquely address this method. Cannot have spaces. CamelCase or snake_case.",
+      "title": "Name",
+      "type": "string"
+    },
+    "title": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "A human-readable version of the method name.",
+      "title": "Title"
+    },
+    "description": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "A complete description of the method. Depending on how complex your work becomes, try and be as helpful as possible to 'future-you'. You'll thank yourself later.",
+      "title": "Description"
+    },
+    "dataSource": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/DataSourceModel"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Tabular source data defined by the crosswalk source schema to produce destination data conforming to a destination schema."
+    },
+    "dataDestination": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/DataSourceModel"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Tabular source data defined by the crosswalk destination schema and resulting from execution of the crosswalk."
+    },
+    "crosswalk": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/CrosswalkModel"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "A method defining the source schema to destination schema crosswalk to be applied to tabular source data."
+    },
+    "citation": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/CitationModel"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Optional full citation for the transform."
+    },
+    "started": {
+      "anyOf": [
+        {
+          "format": "date-time",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "When the transform last ran, in UTC.",
+      "title": "Started"
+    },
+    "ended": {
+      "anyOf": [
+        {
+          "format": "date-time",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "When that run ended, in UTC.",
+      "title": "Ended"
+    },
+    "whyqd": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "The version of whyqd that ran it.",
+      "title": "Whyqd"
+    },
+    "references": {
+      "default": [],
+      "description": "The versioned sources the run used, such as term lists, with checksums of their content.",
+      "items": {
+        "$ref": "#/$defs/UsedReferenceModel"
+      },
+      "title": "References",
+      "type": "array"
+    },
+    "extensions": {
+      "default": [],
+      "description": "The extensions the run used, each at the exact version that ran (`==1.2.3`).",
+      "items": {
+        "$ref": "#/$defs/ExtensionModel"
+      },
+      "title": "Extensions",
+      "type": "array"
+    },
+    "version": {
+      "default": [],
+      "description": "Version and update history for the method.",
+      "items": {
+        "$ref": "#/$defs/VersionModel"
+      },
+      "title": "Version",
+      "type": "array"
+    }
+  },
+  "required": [
+    "formatVersion",
+    "name"
+  ],
+  "title": "TransformModel",
+  "type": "object"
+}
