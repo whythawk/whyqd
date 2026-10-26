@@ -102,7 +102,7 @@ class CRUDField(CRUDBase[FieldModel]):
             raise ValueError(f"FieldModel {name} does not exist in the schema.")
         return field.constraints
 
-    def set_constraints(self, *, name: str | UUID, constraints: ConstraintsModel | None) -> None:
+    def set_constraints(self, *, name: str | UUID, constraints: dict | None) -> None:
         """Set the constraint parameters for a specific field to define this schema, called by a unique
         `name` already in the schema.
 
@@ -116,7 +116,7 @@ class CRUDField(CRUDBase[FieldModel]):
         else:
             new_constraints = ConstraintsModel(**constraints)
             if old_constraints:
-                old_constraints = old_constraints.copy(update=new_constraints.model_dump(exclude_unset=True))
+                old_constraints = old_constraints.model_copy(update=new_constraints.model_dump(exclude_unset=True))
             else:
                 old_constraints = new_constraints
         self.get(name=name).constraints = old_constraints

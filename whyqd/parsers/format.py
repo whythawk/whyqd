@@ -2,12 +2,14 @@
 from __future__ import annotations
 import hashlib
 import json
+from pathlib import Path
 
 import rfc8785
 from pydantic import BaseModel
 
 from whyqd.config.settings import settings
 from whyqd.dtypes import ChecksumContent, FieldType
+from whyqd.models import CrosswalkModel, DataSourceModel, SchemaModel, TransformModel
 
 
 class FormatParser:
@@ -17,6 +19,10 @@ class FormatParser:
     Reading upgrades a definition to the current format in memory, and writing gives the current format unless an
     older one is asked for. A definition holding anything the older format cannot is refused, never cut down.
 
+    Each format has a JSON Schema for each kind of definition, so a tool can check a definition before whyqd reads
+    it. They are kept in `whyqd/formats/<version>/<kind>.json`: 1.x's generated once from whyqd 1.2.8's own models
+    and never changed, the current format's generated from today's models.
+
     Example:
       ```python
       from whyqd.parsers.format import FormatParser
@@ -24,6 +30,7 @@ class FormatParser:
       formats = FormatParser()
       upgraded = formats.read(source={"path": "data.csv", "checksum": "1f2e…", ...})
       formats.write(model=model, format="1.x")
+      formats.json_schema(kind="transform", format="1.x")
       ```
     """
 
@@ -45,6 +52,48 @@ class FormatParser:
     )
     LENGTHS = {"minimum": "minLength", "maximum": "maxLength"}
     VALUES = {v: k for k, v in LENGTHS.items()}
+    KINDS = {
+        "schema": SchemaModel,
+        "crosswalk": CrosswalkModel,
+        "datasource": DataSourceModel,
+        "transform": TransformModel,
+    }
+    JSON_SCHEMAS = Path(__file__).resolve().parents[1] / "formats"
+    JSON_SCHEMA_DIALECT = "https://json-schema.org/draft/2020-12/schema"
+    JSON_SCHEMA_ROOT = "https://w3id.org/whyqd/formats"
+
+    def json_schema(self, *, kind: str, format: str | None = None) -> dict:
+        """The JSON Schema a saved definition of `kind` follows in `format`, by default the current one.
+
+        Parameters:
+          kind: `schema`, `crosswalk`, `datasource`, or `transform`.
+          format: One of `settings.FORMAT_VERSIONS`.
+        """
+        version = format or settings.FORMAT_CURRENT
+        self.check(version=version)
+        if kind not in self.KINDS:
+            raise ValueError(f"`{kind}` is not a kind of definition. Kinds are {', '.join(self.KINDS)}.")
+        return json.loads((self.JSON_SCHEMAS / version / f"{kind}.json").read_text(encoding="utf-8"))
+
+    def generate_json_schema(self, *, kind: str) -> dict:
+        """The current format's JSON Schema for `kind`, generated from the models, in Pydantic's validation mode."""
+        version = settings.FORMAT_CURRENT
+        generated = self.KINDS[kind].model_json_schema(mode="validation", by_alias=True)
+        generated["properties"] = {self.KEY: {"const": version}} | generated["properties"]
+        generated["required"] = [self.KEY] + generated.get("required", [])
+        return {
+            "$schema": self.JSON_SCHEMA_DIALECT,
+            "$id": f"{self.JSON_SCHEMA_ROOT}/{version}/{kind}.json",
+            "description": f"A whyqd {kind} as whyqd saves it in format {version}, generated from its models.",
+        } | {k: v for k, v in generated.items() if k != "description"}
+
+    def save_json_schemas(self) -> None:
+        """Write the current format's JSON Schemas, after a change to the models."""
+        directory = self.JSON_SCHEMAS / settings.FORMAT_CURRENT
+        directory.mkdir(parents=True, exist_ok=True)
+        for kind in self.KINDS:
+            written = json.dumps(self.generate_json_schema(kind=kind), indent=2, ensure_ascii=False)
+            (directory / f"{kind}.json").write_text(f"{written}\n", encoding="utf-8")
 
     def check(self, *, version: str) -> None:
         if version not in settings.FORMAT_VERSIONS:

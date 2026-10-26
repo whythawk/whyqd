@@ -1,0 +1,372 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://w3id.org/whyqd/formats/1.x/datasource.json",
+  "description": "A whyqd datasource as whyqd 1.x saves it, without a format version. Generated from whyqd 1.2.8's models by Pydantic 2.13.4, and never changed.",
+  "$defs": {
+    "CitationModel": {
+      "description": "BibTeX model for citations.\n\nhttps://www.bibtex.com/format/\n\nIncludes some non-standard fields.",
+      "properties": {
+        "author": {
+          "description": "The name(s) of the author(s) (in the case of more than one author, separated by `and`).",
+          "title": "Author",
+          "type": "string"
+        },
+        "title": {
+          "description": "The title of the work.",
+          "title": "Title",
+          "type": "string"
+        },
+        "url": {
+          "anyOf": [
+            {
+              "format": "uri",
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "The URL field is used to store the URL of a web page or FTP download. It is a non-standard BibTeX field.",
+          "title": "Url"
+        },
+        "publisher": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "The publisher's name.",
+          "title": "Publisher"
+        },
+        "institution": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "The institution that was involved in the publishing, but not necessarily the publisher.",
+          "title": "Institution"
+        },
+        "doi": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "The doi field is used to store the digital object identifier (DOI) of a journal article, conference paper, book chapter or book. It is a non-standard BibTeX field. It's recommended to simply use the DOI, and not a DOI link.",
+          "title": "Doi"
+        },
+        "month": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "The month of publication (or, if unpublished, the month of creation). Use three-letter abbreviation.",
+          "title": "Month"
+        },
+        "year": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "The year of publication (or, if unpublished, the year of creation).",
+          "title": "Year"
+        },
+        "licence": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "The terms under which the associated resource are licenced for reuse.",
+          "title": "Licence"
+        },
+        "note": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Miscellaneous extra information.",
+          "title": "Note"
+        }
+      },
+      "required": [
+        "author",
+        "title"
+      ],
+      "title": "CitationModel",
+      "type": "object"
+    },
+    "ColumnModel": {
+      "description": "Pandas DataFrame column model for maintaining source reference. Necessary to perform term matching in\nparsing operations (there can be some *really* fruity column names.",
+      "properties": {
+        "uuid": {
+          "description": "Unique identity for the column. Automatically generated.",
+          "format": "uuid",
+          "title": "Uuid",
+          "type": "string"
+        },
+        "name": {
+          "description": "Column label / name from source data. In whatever format it was written, including leading/lagging spaces, non-printing characters, etc.",
+          "title": "Name",
+          "type": "string"
+        },
+        "type": {
+          "$ref": "#/$defs/FieldType",
+          "default": "string",
+          "description": "A column must contain values of a specific type. Default is 'string'."
+        }
+      },
+      "required": [
+        "name"
+      ],
+      "title": "ColumnModel",
+      "type": "object"
+    },
+    "DataSourceAttributeModel": {
+      "additionalProperties": true,
+      "title": "DataSourceAttributeModel",
+      "type": "object"
+    },
+    "FieldType": {
+      "enum": [
+        "string",
+        "number",
+        "integer",
+        "boolean",
+        "array",
+        "time",
+        "usdate",
+        "date",
+        "datetime",
+        "month",
+        "quarter",
+        "year",
+        "any"
+      ],
+      "title": "FieldType",
+      "type": "string"
+    },
+    "MimeType": {
+      "enum": [
+        "text/csv",
+        "application/vnd.ms-excel",
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        "application/vnd.apache.parquet",
+        "application/vnd.apache.parquet",
+        "application/vnd.apache.feather",
+        "application/vnd.apache.feather"
+      ],
+      "title": "MimeType",
+      "type": "string"
+    }
+  },
+  "properties": {
+    "uuid": {
+      "description": "Automatically generated unique identity for the data source.",
+      "format": "uuid",
+      "title": "Uuid",
+      "type": "string"
+    },
+    "title": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "A descriptive name for the data source.",
+      "title": "Title"
+    },
+    "description": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "A complete description of the data source. Depending on how complex your work becomes, try and be as helpful as possible to 'future-you'. You'll thank yourself later.",
+      "title": "Description"
+    },
+    "path": {
+      "description": "Full path to valid source data file.",
+      "title": "Path",
+      "type": "string"
+    },
+    "mime": {
+      "$ref": "#/$defs/MimeType",
+      "description": "Mime type for source data. Automatically generated."
+    },
+    "header": {
+      "anyOf": [
+        {
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": 0,
+      "description": "Row (0-indexed) to use for the column labels of the parsed DataFrame. ",
+      "title": "Header"
+    },
+    "sheet_name": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Needed if MimeType is either of XLS or XLSX, and the data consists of multiple sheets.",
+      "title": "Sheet Name"
+    },
+    "names": {
+      "anyOf": [
+        {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": [],
+      "description": "If the source data has no header row, explicitly pass a list of column names - in the correct order - to address the data. May not be known until after initial wrangling.",
+      "title": "Names"
+    },
+    "columns": {
+      "description": "List of ColumnModel with names & type derived from the source data. In table order.",
+      "items": {
+        "$ref": "#/$defs/ColumnModel"
+      },
+      "title": "Columns",
+      "type": "array"
+    },
+    "preserve": {
+      "anyOf": [
+        {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": [],
+      "description": "List of columns where variable type guessing must be prevented and the original data preserved. Critical for foreign key references with weird formats, like integers with leading `0`.",
+      "title": "Preserve"
+    },
+    "key": {
+      "anyOf": [
+        {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": [],
+      "description": "A list of key columns required before merging of multiple data sources into an interim data source.",
+      "title": "Key"
+    },
+    "attributes": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/DataSourceAttributeModel"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": {},
+      "description": "Optional open dictionary for reader-specific attributes for Pandas' API. E.g. 'quoting' for the CSV library."
+    },
+    "checksum": {
+      "description": "Checksum for source data file. Based on Blake2b.",
+      "title": "Checksum",
+      "type": "string"
+    },
+    "index": {
+      "anyOf": [
+        {
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Count of rows in source data table.",
+      "title": "Index"
+    },
+    "citation": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/CitationModel"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Optional full citation for the source data."
+    }
+  },
+  "required": [
+    "path",
+    "mime",
+    "columns",
+    "checksum"
+  ],
+  "title": "DataSourceModel",
+  "type": "object"
+}
