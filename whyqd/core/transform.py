@@ -158,27 +158,36 @@ class TransformDefinition(BaseDefinition):
         Returns:
           A boolean `True` on successful validation.
         """
+        # The checksums are 1.x's, so the files are read as 1.x read them
+        from whyqd.parsers.v1 import V1ChecksumParser
+
+        v1 = V1ChecksumParser()
+
+        def crosscheck(df, checksum: str) -> None:
+            if (generated := v1.table(df=df)) != checksum:
+                raise ValueError(
+                    f"Checksum provided ({checksum}) is not equal to the generated checksum ({generated}). Check your data source."
+                )
+
         # Prepare
         self.set(transform=transform)
         if data_source is not None:
-            source_df = self.reader.get(
-                source=data_source, mimetype=mimetype_source, preserve=self.model.dataSource.preserve
-            )
+            source_df = v1.read(source=data_source, mimetype=mimetype_source, preserve=self.model.dataSource.preserve)
         else:
-            source_df = self.reader.get(source=self.model.dataSource)
+            source_df = v1.read(source=self.model.dataSource)
         # Validate source
         source_checksum = self.model.dataSource.get_checksum(ChecksumContent.TABLE_1X)
         if not source_checksum:
             raise ValueError("Validation failed. Data source has no saved checksum.")
-        self.reader.get_checksum(df=source_df, crosscheck=source_checksum)
+        crosscheck(source_df, source_checksum)
         # Validate destination
-        destination_df = self.reader.get(
+        destination_df = v1.read(
             source=data_destination, mimetype=mimetype_destination, preserve=self.model.dataDestination.preserve
         )
         destination_checksum = self.model.dataDestination.get_checksum(ChecksumContent.TABLE_1X)
         if not destination_checksum:
             raise ValueError("Validation failed. Data destination has no saved checksum.")
-        self.reader.get_checksum(df=destination_df, crosscheck=destination_checksum)
+        crosscheck(destination_df, destination_checksum)
         # Validate crosswalk, coercing to source schema prior to crosswalk
         self.crosswalk.validate()
         source_df = self.reader.coerce_to_schema(df=source_df, schema=self.crosswalk.schema_source)
@@ -194,7 +203,7 @@ class TransformDefinition(BaseDefinition):
             raise ValueError(
                 f"Validation failed. Missing required destination fields in crosswalked data: {set(required_names) - set(crosswalk_df.columns)}"
             )
-        self.reader.get_checksum(df=crosswalk_df, crosscheck=destination_checksum)
+        crosscheck(crosswalk_df, destination_checksum)
         return True
 
     #########################################################################################

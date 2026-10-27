@@ -11,6 +11,7 @@ import re
 import ast
 
 from whyqd.parsers.core import CoreParser
+from whyqd.parsers.v1 import V1ChecksumParser
 from whyqd.models import ColumnModel, DataSourceModel, DataSourceAttributeModel
 from whyqd.dtypes import ChecksumContent, MimeType, FieldType
 
@@ -23,6 +24,7 @@ class DataSourceParser:
 
     def __init__(self):
         self.core = CoreParser()
+        self.v1 = V1ChecksumParser()
         self.DATE_FORMATS = {
             "date": {"fmt": ["%Y-%m-%d"], "txt": ["YYYY-MM-DD"]},
             "datetime": {
@@ -423,7 +425,7 @@ class DataSourceParser:
             "columns": columns,
             "preserve": preserve,
             "checksums": [
-                self.core.formats.checksum(value=self.get_checksum(df=df), content=ChecksumContent.TABLE_1X)
+                self.core.formats.checksum(value=self.v1.table(df=df), content=ChecksumContent.TABLE_1X)
             ],
             "header": header,
             "index": df.shape[0],
@@ -561,14 +563,6 @@ class DataSourceParser:
             except ValueError:
                 return MimeType(mimetype)
         raise ValueError(f"MimeType not found for '{mimetype}'")
-
-    def get_checksum(self, *, df: pd.DataFrame, crosscheck: str = None) -> str:
-        checksum = self.core.get_data_checksum(df=df)
-        if crosscheck and checksum != crosscheck:
-            raise ValueError(
-                f"Checksum provided ({crosscheck}) is not equal to the generated checksum ({checksum}). Check your data source."
-            )
-        return checksum
 
     def check_date_format(self, *, date_type: str, date_value: str) -> bool:
         # https://stackoverflow.com/a/37045601

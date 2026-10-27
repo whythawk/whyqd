@@ -21,7 +21,6 @@ from whyqd.parsers.extension import ExtensionParser
 from whyqd.parsers.format import FormatParser
 
 if TYPE_CHECKING:
-    import pandas as pd
     from whyqd.models import SchemaModel, CrosswalkModel
 
 
@@ -187,18 +186,6 @@ class CoreParser:
             for chunk in iter(lambda: f.read(4096), b""):
                 checksum.update(chunk)
         return checksum.hexdigest()
-
-    def get_data_checksum(self, *, df: pd.DataFrame) -> str:
-        import numpy as np
-
-        # The destination data does not have a valid checksum for the file itself, only the data.
-        # Need to ensure arrays are all of the same type. Easiest is to coerce np arrays to lists
-        for column in df.columns:
-            if isinstance(df.iloc[0][column], np.ndarray):
-                df[column] = df[column].apply(lambda x: x.tolist())
-        df_string = df.astype("string").astype("string").to_string(index=False).encode("utf-8")
-        checksum = hashlib.blake2b
-        return checksum(df_string).hexdigest()
 
     ###################################################################################################
     ### JSON & FILE LOAD & SAVE

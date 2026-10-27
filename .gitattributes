@@ -13,3 +13,8 @@
 *.jpg binary
 *.jpeg binary
 *.ico binary
+*.pdf binary
+*.PDF binary
+
+# Test data keeps its bytes: line endings are among what the readers are tested on
+tests/data/** -text

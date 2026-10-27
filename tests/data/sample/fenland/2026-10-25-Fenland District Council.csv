@@ -1,0 +1,102 @@
+Property Reference,Account Holder 1,Liable From,Property Address 1,Property Address 2,Property Address 3,Property Address 4,Property Post Code,Charge,RV,Multiplier,Description,Charity Y/N,Disc %,MAND %,Charity From,Rural Y/N,Disc %,MAND %,Rural From,SBRR Y/N,SBRR From,Exemption Y/N,Exemption From,Exemption Type,Empty Y/N,Empty From,S44a Y/N,S44a From,S49 Y/N,S49 From,Occupied Relief Y/N,Occupied Relief From,Transitional Relief Y/N,Transitional Relief From,Heat Network Relief Y/N,Heat Network Relief From,Property Improvement Relief Y/N,Property Improvement Relief From,Local Discount Y/N,Local Discount From,Local Code FR23,Local Code FR23 Amount,Local Code LDBRR,Local Code LDBRR Amount,Local Code PLM,Local Code PLM Amount                             
+Local Code SSB26 Amount,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+50139050000,REDACTED,01.04.2010,50 DUNCOMBES ROAD,WHITTLESEY,PETERBOROUGH,,PE7 2DS,800,17500,Small Business RHL Multiplier,KENNELS AND PREMISES,N,0,0,,N,0,0,,,,N,,   ,N,,N,,N,,N,,Y,01.04.2026,N,,N,,Y,01.04.2026,N,#0.00,N,#0.00, ,#0.00                                             
+#-4963.45,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+50247013000,REDACTED,21.03.2026,13 MARKET STREET,WHITTLESEY,PETERBOROUGH,,PE7 1BA,0,11750,Small Business RHL Multiplier,SHOP AND PREMISES,N,0,0,,N,0,0,,Y,15.04.2026,N,,   ,N,,N,,N,,N,,N,,N,,N,,N,,N,#0.00,N,#0.00, ,#0.00                                             
+#0.00,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+60061020001,ARTHUR RANK HOSPICE CHARITY,01.09.2023,20 BROAD STREET,MARCH,CAMBS,,PE15 8TG,2037.17,26500,Small Business RHL Multiplier,SHOP AND PREMISES,Y,0,80,01.04.2026,N,0,0,,N,,N,,   ,N,,N,,N,,N,,Y,01.04.2026,N,,N,,N,,N,#0.00,N,#0.00, ,#0.00                                             
+#0.00,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+60061MACK00,POUNDSTRETCHER LTD,12.06.2026,13-15 BROAD STREET,MARCH,CAMBS,,PE15 8TP,12272.29,39000,Small Business RHL Multiplier,SHOP AND PREMISES,N,0,0,,N,0,0,,N,,N,,   ,N,,N,,N,,N,,N,,N,,N,,N,,N,#0.00,N,#0.00, ,#0.00                                             
+#0.00,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+27022BARN00,PRINCIPLE CONSTRUCTION AND MAINTENANCE LTD,23.07.2024,CHAMBERLAIN FARM BARN,EUXIMOOR DROVE,CHRISTCHURCH,WISBECH CAMBS,PE14 9LT,4641,10500,Small Business Multiplier,STORE AND PREMISES,N,0,0,,N,0,0,,N,,N,,   ,N,,N,,N,,N,,N,,N,,N,,N,,N,#0.00,N,#0.00, ,#0.00                                             
+#0.00,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+40130BOOK00,REDACTED,12.05.2017,3 HIGH STREET,CHATTERIS,CAMBS,,PE16 6BE,0,2500,Small Business Multiplier,STORE AND PREMISES,N,0,0,,N,0,0,,N,,Y,01.04.2026,RV,Y,12.05.2017,N,,N,,N,,N,,N,,N,,N,,N,#0.00,N,#0.00, ,#0.00                                             
+#0.00,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+10240007001,REDACTED,20.08.2024,7 HORSEFAIR,WISBECH,CAMBS,,PE13 1AR,0,9700,Small Business RHL Multiplier,SHOP AND PREMISES,N,0,0,,N,0,0,,Y,01.04.2026,N,,   ,N,,N,,N,,N,,N,,N,,N,,N,,N,#0.00,N,#0.00, ,#0.00                                             
+#0.00,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+10240BUSS00,FENLAND DISTRICT COUNCIL,01.04.2010,BUS STATION,HORSEFAIR,WISBECH,CAMBS,PE13 1AR,13260,30000,Small Business Multiplier,BUS STATION AND PREMISES,N,0,0,,N,0,0,,N,,N,,   ,N,,N,,N,,N,,N,,N,,N,,N,,N,#0.00,N,#0.00, ,#0.00                                             
+#0.00,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+10457000001,REDACTED,01.01.2020,11 SANDRINGHAM AVENUE,WISBECH,CAMBS,,PE13 3ED,0,1000,Small Business RHL Multiplier,SALON AND PREMISES,N,0,0,,N,0,0,,Y,01.04.2026,N,,   ,N,,N,,N,,N,,N,,N,,N,,N,,N,#0.00,N,#0.00, ,#0.00                                             
+#0.00,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+40130CARP01,FENLAND DISTRICT COUNCIL,01.04.2010,"FDC, FURROWFIELDS ROAD",CHATTERIS,CAMBS,,PE16 6DY,0,5600,Small Business Multiplier,PUBLIC CONVENIENCES,N,0,0,,N,0,0,,N,,N,,   ,N,,N,,N,,N,,N,,N,,N,,N,,N,#0.00,N,#0.00, ,#0.00                                             
+#0.00,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+10331WARE001,PORT OF WISBECH LTD,01.04.2010,PORT OF WISBECH,UNITS A & B NENE PARADE,WISBECH,CAMBS,PE13 3BB,42140,86000,Standard Multiplier,WAREHOUSE AND PREMISES,N,0,0,,N,0,0,,N,,N,,   ,N,,N,,N,,N,,N,,N,,N,,N,,N,#0.00,N,#0.00, ,#0.00                                             
+#0.00,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+10349088000,REDACTED,17.11.2023,88 NORFOLK STREET,WISBECH,CAMBS,,PE13 2LF,2519.4,5700,Small Business Multiplier,SHOP AND PREMISES,N,0,0,,N,0,0,,N,,N,,   ,Y,17.11.2023,N,,N,,N,,N,,N,,N,,N,,N,#0.00,N,#0.00, ,#0.00                                             
+#0.00,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+10349090002,BELLA BLOOM HAIR LTD,17.02.2026,89-90 NORFOLK STREET,WISBECH,CAMBS,,PE13 2LF,0,5300,Small Business RHL Multiplier,SHOP AND PREMISES,N,0,0,,N,0,0,,Y,01.04.2026,N,,   ,N,,N,,N,,N,,N,,N,,N,,N,,N,#0.00,N,#0.00, ,#0.00                                             
+#0.00,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+40184000U05,GRAHAM GLOBAL SERVICES LIMITED,01.05.2022,OFFICE U5,SOUTH FENS BUSINESS CENTRE,FENTON WAY,"CHATTERIS, CAMBS",PE16 6TT,0,2600,Small Business Multiplier,OFFICE,N,0,0,,N,0,0,,Y,01.04.2026,N,,   ,N,,N,,N,,N,,N,,N,,N,,N,,N,#0.00,N,#0.00, ,#0.00                                             
+#0.00,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+40184000U10,FENLAND DISTRICT COUNCIL,31.05.2023,OFFICE U10,SOUTH FENS BUSINESS CENTRE,FENTON WAY,"CHATTERIS, CAMBS",PE16 6TT,1878.5,4250,Small Business Multiplier,OFFICE,N,0,0,,N,0,0,,N,,N,,   ,Y,31.05.2023,N,,N,,N,,N,,N,,N,,N,,N,#0.00,N,#0.00, ,#0.00                                             
+#0.00,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+10310COBRA0,REDACTED,19.10.2020,COBRA,MILETREE LANE,WISBECH,CAMBS,PE13 4TR,0,11750,Small Business Multiplier,WORKSHOP AND PREMISES,N,0,0,,N,0,0,,Y,01.04.2026,N,,   ,N,,N,,N,,N,,N,,N,,N,,N,,N,#0.00,N,#0.00, ,#0.00                                             
+#0.00,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+50199000010,NATIONWIDE BUILDING SOCIETY,22.01.2024,1 ANGEL HOUSE,HIGH CAUSEWAY,WHITTLESEY,PETERBOROUGH,PE7 1SE,4243.2,9600,Small Business Multiplier,BANK AND PREMISES,N,0,0,,N,0,0,,N,,N,,   ,N,,N,,N,,N,,N,,N,,N,,N,,N,#0.00,N,#0.00, ,#0.00                                             
+#0.00,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+28144000001,REDACTED,01.04.2017,BROADGATE,HIGH ROAD,GUYHIRN,WISBECH CAMBS,PE13 4EQ,0,1275,Small Business RHL Multiplier,DOG GROOMING PARLOUR,N,0,0,,N,0,0,,Y,01.04.2026,N,,   ,N,,N,,N,,N,,N,,N,,N,,N,,N,#0.00,N,#0.00, ,#0.00                                             
+#0.00,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+10127UNIT06,THE NORFOLK HOSPICE,27.10.2017,UNIT 6 CROMWELL RETAIL PARK,SANDOWN ROAD,WISBECH,CAMBS,PE14 0SW,3469.2,44250,Small Business RHL Multiplier,RETAIL WAREHOUSE AND PREMISES,Y,0,80,01.04.2026,N,0,0,,N,,N,,   ,N,,N,,N,,N,,N,,N,,N,,N,,N,#0.00,N,#0.00, ,#0.00                                             
+#0.00,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+10154012013,AMBA DISTRIBUTION LIMITED,10.02.2023,11A GOLD LEAF INDUSTRIAL PARK,SANDALL ROAD,WISBECH,CAMBS,PE13 2GA,0,9400,Small Business Multiplier,WAREHOUSE AND PREMISES,N,0,0,,N,0,0,,Y,01.04.2026,N,,   ,N,,N,,N,,N,,Y,01.04.2026,N,,N,,N,,N,#0.00,N,#0.00, ,#0.00                                             
+#0.00,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+22025000009,REDACTED,04.01.2021,UNIT 9 BEECHWOOD YARD,CATTLEDYKE,GOREFIELD,WISBECH CAMBS,PE13 4NR,4243.2,9600,Small Business Multiplier,WAREHOUSE AND PREMISES,N,0,0,,N,0,0,,N,,N,,   ,N,,N,,N,,N,,N,,N,,N,,N,,N,#0.00,N,#0.00, ,#0.00                                             
+#0.00,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+60061021000,HERON FOODS LTD,01.04.2010,21 BROAD STREET,MARCH,CAMBS,,PE15 8TP,15876,40500,Small Business RHL Multiplier,SHOP AND PREMISES,N,0,0,,N,0,0,,N,,N,,   ,N,,N,,N,,N,,N,,N,,N,,N,,N,#0.00,N,#0.00, ,#0.00                                             
+#0.00,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+28061GARA04,J.S. HOLMES LIMITED,12.07.2010,J S HOLMES,HIGH ROAD,WISBECH ST MARY,"WISBECH, CAMBS",PE13 4RQ,37912.05,100000,Standard RHL Multiplier,CAR SHOWROOM AND PREMISES,N,0,0,,N,0,0,,N,,N,,   ,N,,N,,N,,N,,N,,N,,N,,Y,01.04.2026,N,#0.00,N,#0.00, ,#0.00                                             
+#-6087.95,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+51148LARK00,ALLISON HOMES LIMITED,01.04.2022,LARKFLEET HOMES LTD,BASSENHALLY FARM,EASTREA ROAD,"WHITTLESEY, CAMBS",PE7 2AP,0,2650,Small Business Multiplier,CONTRACTORS HUTS,N,0,0,,N,0,0,,N,,Y,01.04.2026,RV,Y,30.09.2025,N,,N,,N,,N,,N,,N,,N,,N,#0.00,N,#0.00, ,#0.00                                             
+#0.00,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+60451WORK01,REDACTED,01.04.2010,UNIT 2 COLESEED FARM,UPWELL ROAD,MARCH,CAMBS,PE15 0DP,0,2900,Small Business Multiplier,WORKSHOP AND PREMISES,N,0,0,,N,0,0,,Y,01.04.2026,N,,   ,N,,N,,N,,N,,N,,N,,N,,N,,N,#0.00,N,#0.00, ,#0.00                                             
+#0.00,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+28070SCHO02,DIAMOND LEARNING PARTNERSHIP TRUST,01.09.2017,MURROW PRIMARY ACADEMY SCHOOL,73 MURROW BANK,"MURROW, WISBECH",CAMBS,PE13 4HB,3226.6,36500,Small Business Multiplier,SCHOOL AND PREMISES,Y,0,80,01.04.2026,N,0,0,,N,,N,,   ,N,,N,,N,,N,,N,,N,,N,,N,,N,#0.00,N,#0.00, ,#0.00                                             
+#0.00,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+28118000003,PARAGON PRINT AND PACKAGING LIMITED,01.04.2017,BAYS 5-6 AT KEN THOMAS,THORNEY ROAD,GUYHIRN,WISBECH CAMBS,PE13 4AD,76440,156000,Standard Multiplier,WAREHOUSE AND PREMISES,N,0,0,,N,0,0,,N,,N,,   ,N,,N,,N,,N,,N,,N,,N,,N,,N,#0.00,N,#0.00, ,#0.00                                             
+#0.00,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+10088STOR13,REDACTED,01.01.2019,WISBECH MOBILITY,AT FENLAND HOUSE,CATTLE MARKET CHASE,WISBECH CAMBS,PE13 1RD,0,10750,Small Business RHL Multiplier,SHOWROOM AND PREMISES,N,0,0,,N,0,0,,Y,01.04.2026,N,,   ,N,,N,,N,,N,,N,,N,,N,,N,,N,#0.00,N,#0.00, ,#0.00                                             
+#0.00,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+10098CARP00,FENLAND DISTRICT COUNCIL,01.04.2010,CAR PARK,CHURCH TERRACE WISBECH,CAMBS,,PE13 1BL,42124.5,86000,Standard Multiplier,CAR PARK AND PREMISES,N,0,0,,N,0,0,,N,,N,,   ,N,,N,,N,,N,,Y,01.04.2026,N,,N,,N,,N,#0.00,N,#0.00, ,#0.00                                             
+#0.00,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+60182007C00,FREEMUNCE RENEWAL PARK LTD,22.12.2025,7C FOUNDRY WAY,MARCH,CAMBS,,PE15 0WR,2124.75,6200,Small Business Multiplier,WORKSHOP AND PREMISES,N,0,0,,N,0,0,,N,,N,,   ,Y,22.12.2025,N,,N,,N,,N,,N,,N,,N,,N,#0.00,N,#0.00, ,#0.00                                             
+#0.00,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+10275007000,REDACTED,07.12.2018,7/8 LITTLE CHURCH STREET,WISBECH,CAMBS,,PE13 1BG,0,6100,Small Business RHL Multiplier,SHOP AND PREMISES,N,0,0,,N,0,0,,Y,01.04.2026,N,,   ,N,,N,,N,,N,,N,,N,,N,,N,,N,#0.00,N,#0.00, ,#0.00                                             
+#0.00,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+60080007001,MARCH AMATEUR BOXING CLUB,01.04.2010,UNIT 7 CENTURY WAY,MARCH,CAMBS,,PE15 8QW,0,9000,Small Business Multiplier,WAREHOUSE AND PREMISES,N,0,0,,N,0,0,,Y,01.04.2026,N,,   ,N,,N,,N,,N,,N,,N,,N,,N,,N,#0.00,N,#0.00, ,#0.00                                             
+#0.00,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+10355CURT01,REDACTED,01.07.2024,THE CURTAIN & BLIND STUDIO,NORTH END,WISBECH,CAMBS,PE13 1PE,0,6900,Small Business Multiplier,WORKSHOP AND PREMISES,N,0,0,,N,0,0,,Y,01.04.2026,N,,   ,N,,N,,N,,N,,N,,N,,N,,N,,N,#0.00,N,#0.00, ,#0.00                                             
+#0.00,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+10507UKF000,STARLIGHT THEATRICAL LTD & PRESST LTD,20.02.2023,UNIT 2,ANGLIA WAY,WISBECH,CAMBS,PE13 2TY,2600,18250,Small Business Multiplier,FACTORY AND PREMISES,N,0,0,,N,0,0,,N,,N,,   ,N,,N,,N,,N,,N,,N,,N,,Y,01.04.2026,N,#0.00,N,#0.00, ,#0.00                                             
+#-5466.50,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+50370026001,REDACTED,01.04.2017,26-28 AND R/O 22,STATION ROAD,WHITTLESEY,PETERBOROUGH,PE7 1UA,0,7700,Small Business Multiplier,WORKSHOP AND PREMISES,N,0,0,,N,0,0,,Y,01.04.2026,N,,   ,N,,N,,N,,N,,N,,N,,N,,N,,N,#0.00,N,#0.00, ,#0.00                                             
+#0.00,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+10382SCRA01,MICK DENTON METAL RECYCLING & SKIP HIRE LTD,01.06.2010,MICK DENTON METAL RECYCLING,AND SKIP HIRE LTD,OSBORNE ROAD,"WISBECH, CAMBS",PE13 3JP,15691,35500,Small Business Multiplier,LAND USED FOR STORAGE AND PREMISES,N,0,0,,N,0,0,,N,,N,,   ,N,,N,,N,,N,,N,,N,,N,,N,,N,#0.00,N,#0.00, ,#0.00                                             
+#0.00,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+50028003501,J. REDDINGTON LTD,01.04.2026,YARD 1,35 BENWICK ROAD,WHITTLESEY,CAMBS,PE7 2HD,10387,23500,Small Business Multiplier,LAND USED FOR STORAGE AND PREMISES,N,0,0,,N,0,0,,N,,N,,   ,N,,N,,N,,N,,N,,N,,N,,N,,N,#0.00,N,#0.00, ,#0.00                                             
+#0.00,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+60436064000,REDACTED,02.12.2022,64 STATION ROAD,THE PRINTING HOUSE,MARCH,CAMBS,PE15 8NP,0,5500,Small Business RHL Multiplier,SHOP AND PREMISES,N,0,0,,N,0,0,,Y,01.04.2026,N,,   ,N,,N,,N,,N,,Y,01.04.2026,N,,N,,N,,N,#0.00,N,#0.00, ,#0.00                                             
+#0.00,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+10118TEJA00,REDACTED,11.01.2016,TEJACEY KENNELS,COX'S LANE,WISBECH,CAMBS,PE13 4TB,0,4200,Small Business RHL Multiplier,KENNELS AND PREMISES,N,0,0,,N,0,0,,Y,01.04.2026,N,,   ,N,,N,,N,,N,,Y,01.04.2026,N,,N,,N,,N,#0.00,N,#0.00, ,#0.00                                             
+#0.00,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+10331026002,REDACTED,06.04.2015,26A NENE PARADE,WISBECH,CAMBS,,PE13 3BY,0,4900,Small Business Multiplier,STORE AND PREMISES,N,0,0,,N,0,0,,Y,01.04.2026,N,,   ,N,,N,,N,,N,,N,,N,,N,,N,,N,#0.00,N,#0.00, ,#0.00                                             
+#0.00,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+40130076000,REDACTED,27.04.2019,R/O 76 HIGH STREET,CHATTERIS,CAMBS,,PE16 6NN,0,5600,Small Business Multiplier,WAREHOUSE AND PREMISES,N,0,0,,N,0,0,,Y,01.04.2026,N,,   ,N,,N,,N,,N,,N,,N,,N,,N,,N,#0.00,N,#0.00, ,#0.00                                             
+#0.00,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+50325001A00,CURRY COTTAGE Z H LTD,23.09.2025,1A QUEEN STREET,WHITTLESEY,PETERBOROUGH,,PE7 1AY,0,4800,Small Business RHL Multiplier,SHOP AND PREMISES,N,0,0,,N,0,0,,Y,01.04.2026,N,,   ,N,,N,,N,,N,,N,,N,,N,,N,,N,#0.00,N,#0.00, ,#0.00                                             
+#0.00,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+60061025A01,PHONE CAMPUS LTD,24.05.2022,25A BROAD STREET,MARCH,CAMBS,,PE15 8TP,800,12750,Small Business RHL Multiplier,SHOP AND PREMISES,N,0,0,,N,0,0,,Y,01.04.2026,N,,   ,N,,N,,N,,N,,N,,N,,N,,Y,01.04.2026,N,#0.00,N,#0.00, ,#0.00                                             
+#-449.50,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+27022CHER01,REDACTED,04.04.2010,CHERRY TREE FARM,EUXIMOOR DROVE,CHRISTCHURCH,WISBECH,PE14 9LT,0,2300,Small Business Multiplier,RECORDING STUDIO AND PREMISES,N,0,0,,N,0,0,,Y,01.04.2026,N,,   ,N,,N,,N,,N,,N,,N,,N,,N,,N,#0.00,N,#0.00, ,#0.00                                             
+#0.00,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+10301003001,TAN WORKS LIMITED,01.04.2012,3 MARKET PLACE,WISBECH,CAMBS,,PE13 1DT,0,3550,Small Business RHL Multiplier,SHOP AND PREMISES,N,0,0,,N,0,0,,Y,01.04.2026,N,,   ,N,,N,,N,,N,,N,,N,,N,,N,,N,#0.00,N,#0.00, ,#0.00                                             
+#0.00,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+10349108A00,REDACTED,28.02.2025,108A NORFOLK STREET,WISBECH,CAMBS,,PE13 2LD,0,6500,Small Business RHL Multiplier,SHOP AND PREMISES,N,0,0,,N,0,0,,Y,01.04.2026,N,,   ,N,,N,,N,,N,,N,,N,,N,,N,,N,#0.00,N,#0.00, ,#0.00                                             
+#0.00,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+600700SAL01,REDACTED,01.01.2014,HAIR SALON,8 BURROWMOOR ROAD,MARCH,CAMBS,PE15 9RD,0,520,Small Business RHL Multiplier,HAIRDRESSING SALON,N,0,0,,N,0,0,,Y,01.04.2026,N,,   ,N,,N,,N,,N,,N,,N,,N,,N,,N,#0.00,N,#0.00, ,#0.00                                             
+#0.00,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+10153GARA04,11/11 AESTHETICS CLINIC LIMITED,01.08.2020,UNIT 4 AT 12 ELM HIGH ROAD,WISBECH,CAMBS,,PE14 0DG,0,3500,Small Business RHL Multiplier,CLINIC AND PREMISES,N,0,0,,N,0,0,,Y,01.04.2026,N,,   ,N,,N,,N,,N,,N,,N,,N,,N,,N,#0.00,N,#0.00, ,#0.00                                             
+#0.00,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+40184000L22,NASSH HEALTHCARE LIMITED,11.04.2022,OFFICE L22,SOUTH FENS BUSINESS CENTRE,FENTON WAY,"CHATTERIS, CAMBS",PE16 6TT,2488.76,5700,Small Business Multiplier,OFFICE,N,0,0,,N,0,0,,N,,N,,   ,Y,11.04.2022,N,,N,,N,,Y,01.04.2026,N,,N,,N,,N,#0.00,N,#0.00, ,#0.00                                             
+#0.00,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+40277023001,WEST PARK STREET CHIPPIE LTD,01.04.2023,23 WEST PARK STREET,CHATTERIS,CAMBS,,PE16 6AL,0,8200,Small Business RHL Multiplier,SHOP AND PREMISES,N,0,0,,N,0,0,,Y,01.04.2026,N,,   ,N,,N,,N,,N,,N,,N,,N,,N,,N,#0.00,N,#0.00, ,#0.00                                             
+#0.00,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,

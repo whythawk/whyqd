@@ -192,6 +192,37 @@ class TestVerify1x:
         with pytest.raises(ImportError, match=r"whyqd\[verify-1x\]"):
             load(DIRECTORY / "test_portsmouth_source.data").validate()
 
+    def test_verifies_through_its_own_read(self):
+        # Run apart, so no other test has loaded the reader
+        script = (
+            "import sys, whyqd as qd\n"
+            f"qd.DataSourceDefinition(source={str(DIRECTORY / 'test_portsmouth_source.data')!r}).validate()\n"
+            "print('whyqd.parsers.datasource' in sys.modules)\n"
+        )
+        result = subprocess.run([sys.executable, "-c", script], capture_output=True, text=True, check=True)
+        assert result.stdout.strip() == "False"
+
+    def test_without_pyarrow_only_parquet_fails(self):
+        # Without pyarrow pandas keeps text in Python rather than Arrow; the printed table, and so the checksum, holds
+        script = (
+            "import sys\n"
+            "sys.modules['pyarrow'] = None\n"
+            "import whyqd as qd\n"
+            f"for path in {[str(p) for p in DATA_SOURCES]!r}:\n"
+            "    try:\n"
+            "        qd.DataSourceDefinition(source=path).validate()\n"
+            "        print(path.rsplit('/', 1)[-1], 'verifies')\n"
+            "    except ImportError:\n"
+            "        print(path.rsplit('/', 1)[-1], 'needs pyarrow')\n"
+        )
+        result = subprocess.run([sys.executable, "-c", script], capture_output=True, text=True, check=True)
+        outcomes = dict(line.split(" ", 1) for line in result.stdout.strip().splitlines())
+        parquet = {
+            p.name for p in DATA_SOURCES if json.loads(p.read_text(encoding="utf-8"))["mime"].endswith("parquet")
+        }
+        assert parquet
+        assert outcomes == {p.name: "needs pyarrow" if p.name in parquet else "verifies" for p in DATA_SOURCES}
+
 
 class TestDefinitionsOnly:
     def test_loading_definitions_imports_no_pandas(self, tmp_path):
