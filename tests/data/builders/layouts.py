@@ -257,7 +257,10 @@ def layouts_workbook():
     ws = wb.create_sheet("Workings")
     ws.sheet_state = "hidden"
     ws["A1"], ws["A2"] = "Total R/V", "=SUM(Titled!D5:D10)"
-    key["Workings"] = {"problem": "a hidden sheet, listed and flagged, never read unasked", "state": "hidden"}
+    key["Workings"] = {"problem": "a hidden sheet, read like any other and flagged", "state": "hidden", "dialect": {},
+                       "names": ["Total R/V"], "rows": [[None]],
+                       "formula_cells": {"A2": "a formula written without its cached value, so empty here; "
+                                               "the .xls, saved by LibreOffice, caches 0"}}
     return wb, key
 
 

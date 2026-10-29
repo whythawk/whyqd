@@ -1570,8 +1570,20 @@
         }
       },
       "Workings": {
-        "problem": "a hidden sheet, listed and flagged, never read unasked",
-        "state": "hidden"
+        "problem": "a hidden sheet, read like any other and flagged",
+        "state": "hidden",
+        "dialect": {},
+        "names": [
+          "Total R/V"
+        ],
+        "rows": [
+          [
+            null
+          ]
+        ],
+        "formula_cells": {
+          "A2": "a formula written without its cached value, so empty here; the .xls, saved by LibreOffice, caches 0"
+        }
       }
     },
     "layouts.xls": "layouts.xlsx saved as .xls in LibreOffice; read to the same key",

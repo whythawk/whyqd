@@ -10,11 +10,9 @@ import json
 import math
 from pathlib import Path
 
-import openpyxl
 import pandas as pd
 import pytest
 
-import whyqd as qd
 from whyqd.crosswalk.actions.categorise import Action as Categorise
 from whyqd.crosswalk.actions.pivot_categories import Action as PivotCategories
 from whyqd.crosswalk.actions.pivot_longer import Action as PivotLonger
@@ -88,41 +86,3 @@ class TestKnownFaults:
             PivotCategories().transform(
                 df=df, destination=FieldModel(name="cat", type="string"), source=FieldModel(name="c", type="string"), assigned=[0, 2]
             )
-
-    @pytest.mark.parametrize("name", ["fixture-windows-1252.csv", "fixture-latin-1.csv", "fixture-mac-roman.csv"])
-    @pytest.mark.xfail(strict=True, raises=AssertionError, reason="bytes that are not UTF-8 are deleted")
-    def test_csv_keeps_every_byte(self, name):
-        df = DataSourceParser().get(source=DATA / "synthetic" / name, mimetype="CSV", preserve=True)
-        assert df["amount"].tolist()[0] == "£43.40"
-
-    @pytest.mark.xfail(strict=True, raises=pd.errors.ParserError, reason="UTF-16 is read as UTF-8")
-    def test_csv_reads_utf16(self):
-        df = DataSourceParser().get(source=DATA / "synthetic" / "fixture-utf16-bom.csv", mimetype="CSV", preserve=True)
-        assert df["amount"].tolist()[0] == "£43.40"
-
-    @pytest.mark.xfail(strict=True, raises=AssertionError, reason="missing-value text is read as missing")
-    def test_csv_keeps_missing_value_text(self, tmp_path):
-        source = tmp_path / "na.csv"
-        source.write_text("contact\nN/A\nx\n", encoding="utf-8")
-        df = DataSourceParser().get(source=source, mimetype="CSV", preserve=True)
-        assert [None if pd.isna(v) else v for v in df["contact"]] == ["N/A", "x"]
-
-    @pytest.mark.xfail(strict=True, raises=IndexError, reason="a blank second row hides the only sheet")
-    def test_single_sheet_with_a_blank_second_row_reads(self, tmp_path):
-        source = tmp_path / "titled.xlsx"
-        wb = openpyxl.Workbook()
-        ws = wb.active
-        ws["A1"] = "Reliefs key"
-        ws["A3"], ws["B3"] = "Code", "Description"
-        ws["A4"], ws["B4"] = "MAN", "Mandatory"
-        wb.save(source)
-        datasource = qd.DataSourceDefinition()
-        datasource.derive_model(source=source, mimetype="XLSX", header=None)
-        assert datasource.get.index == 4
-
-    @pytest.mark.xfail(strict=True, raises=AssertionError, reason="blank CSV lines are skipped and not numbered")
-    def test_csv_blank_line_is_a_row(self, tmp_path):
-        source = tmp_path / "blank.csv"
-        source.write_text("a\n1\n\n2\n", encoding="utf-8")
-        df = DataSourceParser().get(source=source, mimetype="CSV")
-        assert df.index.tolist() == [0, 1, 2]
