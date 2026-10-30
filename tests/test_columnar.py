@@ -52,7 +52,6 @@ def rows(df: pd.DataFrame, names: list[str]) -> list[list[str | None]]:
 
 class TestColumnar:
     @pytest.mark.parametrize("mimetype", ["PARQUET", "FEATHER"])
-    @pytest.mark.xfail(strict=True, raises=(AssertionError, KeyError), reason="the reader keeps pandas' types")
     def test_each_value_reads_as_whyqds_text(self, tmp_path, frame, mimetype):
         source = tmp_path / f"table.{mimetype.lower()}"
         frame.to_parquet(source) if mimetype == "PARQUET" else frame.to_feather(source)
@@ -60,7 +59,6 @@ class TestColumnar:
         assert [c.name for c in model.columns] == NAMES
         assert rows(df, NAMES) == ROWS
 
-    @pytest.mark.xfail(strict=True, raises=(AssertionError, KeyError), reason="the reader keeps pandas' types")
     def test_a_parquet_file_reads_as_its_csv_does(self, tmp_path, frame):
         frame.to_parquet(tmp_path / "table.parquet")
         (tmp_path / "table.csv").write_text(
@@ -70,7 +68,6 @@ class TestColumnar:
         _, text = read(tmp_path / "table.csv", "CSV")
         assert rows(parquet, NAMES) == rows(text, NAMES)
 
-    @pytest.mark.xfail(strict=True, raises=AssertionError, reason="a column named for the row key is not renamed")
     def test_a_column_named_for_the_row_key_is_renamed(self, tmp_path):
         source = tmp_path / "keyed.parquet"
         pd.DataFrame({ROW: ["a", "b"], "x": ["1", "2"]}).to_parquet(source)

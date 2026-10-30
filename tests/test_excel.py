@@ -8,7 +8,7 @@ its own data source, with its own dialect and names.
 """
 
 import json
-from datetime import date, datetime
+from datetime import date, datetime, time, timedelta
 from pathlib import Path
 
 import openpyxl
@@ -25,10 +25,6 @@ LAYOUTS = DATA / "synthetic-layouts"
 WORKBOOKS = json.loads((LAYOUTS / "answer-key.json").read_text(encoding="utf-8"))["workbook"]
 LAYOUT = WORKBOOKS["layouts.xlsx"]
 ROW = RowKeyParser.ROW
-# Today a workbook is refused a `dialect`, and its data source keeps none
-NOT_BUILT = pytest.mark.xfail(
-    strict=True, raises=(AssertionError, ValueError), reason="a workbook is not yet read by a dialect"
-)
 
 
 def derive(
@@ -64,7 +60,6 @@ def stored(cell: dict) -> str | None:
 
 
 class TestCells:
-    @NOT_BUILT
     def test_each_cell_reads_as_stored(self):
         # The `Data` sheet's header is row 1 and its records rows 2 to 5; F6 is a formula saved without a value
         cells = {k: v for k, v in CELLS["Data"]["cells"].items() if k[1:] in {"2", "3", "4", "5"}}
@@ -74,7 +69,6 @@ class TestCells:
         assert [c.name for c in model.columns] == names
         assert rows(df, names)[:4] == expected
 
-    @NOT_BUILT
     def test_error_cells_read_as_their_codes(self):
         case = LAYOUT["Errors"]
         model, df = sheet(derive(LAYOUTS / "layouts.xlsx", "XLSX"), "Errors")
@@ -82,7 +76,6 @@ class TestCells:
 
 
 class TestSheets:
-    @NOT_BUILT
     def test_every_sheet_is_read_hidden_and_empty_included(self):
         # Today a sheet whose first two rows read empty is dropped, and the empty one with it
         models = derive(FIXTURE, "XLSX")
@@ -95,7 +88,6 @@ class TestSheets:
 
     @pytest.mark.parametrize("workbook", ["layouts.xlsx", "layouts.xls"])
     @pytest.mark.parametrize("name", ["Titled", "BlankColumns", "SubTables", "Errors", "Workings"])
-    @NOT_BUILT
     def test_each_sheet_reads_to_its_key_under_its_dialect(self, workbook, name):
         if workbook == "layouts.xls" and name == "Workings":
             pytest.skip("LibreOffice cached the formula's value in the .xls, so the cell reads 0")
@@ -103,16 +95,18 @@ class TestSheets:
         mimetype = "XLS" if workbook.endswith(".xls") else "XLSX"
         model, df = sheet(derive(LAYOUTS / workbook, mimetype, dialect), name)
         assert [c.name for c in model.columns] == LAYOUT[name]["names"]
-        assert rows(df, LAYOUT[name]["names"]) == LAYOUT[name]["rows"]
+        expected = [row.copy() for row in LAYOUT[name]["rows"]]
+        if workbook == "layouts.xls" and name == "Errors":
+            # LibreOffice saved the `#REF!` cell as `#NAME?` in the .xls, as xlrd also reads it
+            expected[5][3] = "#NAME?"
+        assert rows(df, LAYOUT[name]["names"]) == expected
 
-    @pytest.mark.xfail(strict=True, raises=IndexError, reason="a blank second row hides the only sheet")
     def test_the_only_sheet_with_a_blank_second_row_reads(self):
         case = WORKBOOKS["single-sheet.xlsx"]["Reliefs"]
         model, df = sheet(derive(LAYOUTS / "single-sheet.xlsx", "XLSX"), "Reliefs")
         assert [c.name for c in model.columns] == case["names"]
         assert rows(df, case["names"]) == case["rows"]
 
-    @NOT_BUILT
     def test_a_merged_header_takes_the_names_given_for_its_sheet(self):
         # Another sheet keeps its own names, `Propref` among them, never deconflicted against these
         case = LAYOUT["MergedHeader"]
@@ -125,7 +119,6 @@ class TestSheets:
         model, df = sheet(models, "Titled")
         assert [c.name for c in model.columns] == LAYOUT["Titled"]["names"]
 
-    @pytest.mark.xfail(strict=True, raises=AssertionError, reason="a workbook is not yet read by a dialect")
     def test_a_merged_header_without_names_is_refused(self):
         with pytest.raises(ValueError, match=r"(?s)headerRowCount.*\bnames\b"):
             derive(LAYOUTS / "layouts.xlsx", "XLSX", [{"sheet": "MergedHeader", "headerRowCount": 2}])
@@ -170,6 +163,19 @@ def test_a_workbook_dated_from_1904_reads_its_own_dates(tmp_path):
     assert str(value).startswith("2024-04-01")
 
 
+def test_a_duration_reads_as_iso_8601(tmp_path):
+    # A cell formatted `[h]:mm` stores a length of time; a time of day beside it reads as before
+    source = tmp_path / "durations.xlsx"
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.append(["Hours", "Opens"])
+    ws.append([timedelta(hours=25, minutes=30), time(9, 30)])
+    ws["A2"].number_format, ws["B2"].number_format = "[h]:mm", "hh:mm"
+    wb.save(source)
+    (model,) = derive(source, "XLSX")
+    assert rows(DataSourceParser().get(source=model), ["Hours", "Opens"]) == [["PT25H30M", "09:30:00"]]
+
+
 class TestReferences:
     """Each cell renders as stored: never `769705120.0`, never a digit restored or a zero invented."""
 
@@ -186,7 +192,7 @@ class TestReferences:
             ["20020", "10024142866"],
         ]
 
-    @pytest.mark.xfail(strict=True, raises=AssertionError, reason="the profile is written at item 5.2")
+    @pytest.mark.xfail(strict=True, raises=(AssertionError, AttributeError), reason="the profile is written at item 5.2")
     def test_a_mixed_column_records_its_cell_types(self, references):
         (model,) = derive(references, "XLSX")
         profile = {c.name: c.profile for c in model.columns}

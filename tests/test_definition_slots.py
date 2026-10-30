@@ -6,6 +6,7 @@ from pathlib import Path
 import pytest
 
 import whyqd as qd
+from whyqd.parsers import FormatParser
 
 DIRECTORY = Path(__file__).resolve().parent / "data"
 DATA_SOURCE = DIRECTORY / "test_basildon_source.data"
@@ -73,8 +74,10 @@ class TestDataSourceSlots:
         assert round_trip(qd.DataSourceDefinition, model)["columns"][0]["profile"] == PROFILE
 
     def test_absent_by_default(self):
+        # A 1.x data source reads by the dialect its 1.x settings give, and gains nothing else
         written = round_trip(qd.DataSourceDefinition, data_source())
-        assert "dialect" not in written
+        stored = json.loads(DATA_SOURCE.read_text(encoding="utf-8"))
+        assert written["dialect"] == FormatParser().dialect_1x(stored)
         assert all("profile" not in c for c in written["columns"])
 
     @pytest.mark.parametrize("parts", [{"dialect": DIALECT}, {"profile": PROFILE}], ids=["dialect", "profile"])

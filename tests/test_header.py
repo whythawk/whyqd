@@ -22,8 +22,6 @@ LAYOUTS = DATA / "synthetic-layouts"
 KEY = json.loads((LAYOUTS / "answer-key.json").read_text(encoding="utf-8"))["csv"]
 WORLD_BANK = DATA / "working_test_world_bank_data.xlsx"
 ROW = RowKeyParser.ROW
-# A workbook is read by the dialect once its own reader is built
-NOT_BUILT = pytest.mark.xfail(strict=True, raises=ValueError, reason="a workbook is not yet read by a dialect")
 
 
 def table(datasource: qd.DataSourceDefinition, index: int | None = None):
@@ -56,7 +54,6 @@ class TestHeader:
         assert df[ROW].tolist() == list(range(len(case["rows"])))
         assert values(df[case["names"]]) == cells(case["rows"])
 
-    @NOT_BUILT
     def test_each_sheet_takes_its_own_dialect(self):
         datasource = qd.DataSourceDefinition()
         datasource.derive_model(source=WORLD_BANK, mimetype="XLSX", dialect=[{"skipRows": 3}, {}, {}])
@@ -111,7 +108,6 @@ class TestHeader:
 class TestHeader1x:
     """A 1.x data source reads the rows 1.x read, numbered as 1.x numbered them."""
 
-    @pytest.mark.xfail(strict=True, raises=AssertionError, reason="a 1.x data source does not upgrade its header")
     def test_a_header_below_row_0_keeps_every_row(self):
         model = qd.DataSourceDefinition(source=DATA / "test_world_bank_header_source.data").get
         model.path = str(WORLD_BANK)
@@ -119,7 +115,7 @@ class TestHeader1x:
         expected = V1ChecksumParser().read(source=model)
         df = DataSourceParser().get(source=model)
         assert df[ROW].tolist() == list(range(len(expected))) == list(range(268))
-        assert df["Country Name"].tolist()[:5] == ["Data Source", "Last Updated Date", None, "Country Name", "Aruba"]
+        assert values(df[["Country Name"]])[:5] == [["Data Source"], ["Last Updated Date"], [None], ["Country Name"], ["Aruba"]]
         assert df["Country Name"].fillna("").tolist() == expected["Country Name"].fillna("").tolist()
 
     def test_a_stored_crosswalk_gives_the_same_output(self):
@@ -132,7 +128,6 @@ class TestHeader1x:
         expected = pd.read_parquet(DATA / "test_world_bank_header_output.parquet")
         pd.testing.assert_frame_equal(transform.data.reset_index(drop=True), expected)
 
-    @pytest.mark.xfail(strict=True, raises=AssertionError, reason="a 1.x data source does not upgrade its header")
     def test_no_header_row_with_names_keeps_them(self):
         model = qd.DataSourceDefinition(source=DATA / "test_cthulu_source.data").get
         model.path = str(DATA / Path(model.path).name)

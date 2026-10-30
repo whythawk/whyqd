@@ -60,7 +60,8 @@ def test_a_1x_csv_with_a_blank_line_warns_that_its_rows_are_renumbered():
         path=str(LAYOUTS / "blank-line-inside.csv"),
         mime="text/csv",
         columns=[{"name": n} for n in KEY["blank-line-inside.csv"]["names"]],
-        checksums=[],
+        # Its 1.x checksum is what marks it as read by 1.x; the value is never checked here
+        checksums=[{"algorithm": "BLAKE2b-512", "checksumValue": "0", "content": "table-1x"}],
         index=len(KEY["blank-line-inside.csv"]["rows"]) - 1,
     )
     with pytest.warns(UserWarning, match="1.x read 6"):

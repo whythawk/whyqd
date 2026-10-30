@@ -38,6 +38,7 @@ class FormatParser:
     SCHEMAS = ("schemaSource", "schemaDestination")
     NEW = (
         "dialect",
+        "hidden",
         "profile",
         "policy",
         "termList",
@@ -131,9 +132,9 @@ class FormatParser:
         return {self.KEY: version} | self.name_schemas(self.drop_empty_attributes(written))
 
     def upgrade(self, value):
-        """1.x to the current format: a data source's bare checksum names what it hashed; a field's `time` is a
-        `duration`; and a string field's `minimum` and `maximum`, which 1.x described as lengths, are `minLength` and
-        `maxLength`."""
+        """1.x to the current format: a data source's bare checksum names what it hashed, and it gains the dialect that
+        reads it as 1.x did; a field's `time` is a `duration`; and a string field's `minimum` and `maximum`, which 1.x
+        described as lengths, are `minLength` and `maxLength`."""
         if isinstance(value, list):
             return [self.upgrade(v) for v in value]
         if not isinstance(value, dict):
@@ -141,6 +142,8 @@ class FormatParser:
         value = {k: self.upgrade(v) for k, v in value.items()}
         if "mime" in value and isinstance(value.get("checksum"), str):
             value["checksums"] = [self.checksum(value=value.pop("checksum"), content=ChecksumContent.TABLE_1X)]
+            if "dialect" not in value and (dialect := self.dialect_1x(value)) is not None:
+                value["dialect"] = dialect
         for field in value.get("fields") or []:
             if field.get("type") == FieldType.TIME.value:
                 field["type"] = FieldType.DURATION.value
@@ -151,14 +154,17 @@ class FormatParser:
     def downgrade(self, value):
         """The current format to 1.x, which holds one checksum per data source: the table as 1.x read it.
 
-        The byte hash and an embedded schema's content checksum are left out, since whyqd recomputes both. An edit's
-        time is written without its zone, as 1.x wrote it, being UTC. A part new in 2.0 is refused, naming it.
+        The byte hash and an embedded schema's content checksum are left out, since whyqd recomputes both, and so is a
+        dialect that says only what the data source's 1.x settings say. An edit's time is written without its zone, as
+        1.x wrote it, being UTC. A part new in 2.0 is refused, naming it.
         """
         if isinstance(value, list):
             return [self.downgrade(v) for v in value]
         if not isinstance(value, dict):
             return value
         value = {k: self.downgrade(v) for k, v in value.items()}
+        if "mime" in value and "dialect" in value and value["dialect"] == self.dialect_1x(value):
+            value.pop("dialect")
         for key in self.NEW:
             if key in value:
                 raise ValueError(
@@ -179,6 +185,20 @@ class FormatParser:
                 )
             value["checksum"] = table[0]["checksumValue"]
         return value
+
+    def dialect_1x(self, value: dict) -> dict | None:
+        """The dialect that reads a 1.x data source's rows as 1.x read them, as written, or `None` for one read with
+        pandas' `attributes`, which no dialect holds.
+
+        1.x named the columns from row `header` and kept every row as data, so a `header` below row 0, or none, reads as
+        a file with no header row, by the names 1.x read and stored; `sheet_name` is the dialect's `sheet`.
+        """
+        if value.get("attributes"):
+            return None
+        dialect = {} if value.get("header", 0) == 0 else {"headerRowCount": 0}
+        if value.get("sheet_name"):
+            dialect["sheet"] = value["sheet_name"]
+        return dialect
 
     def downgrade_field(self, field: dict) -> None:
         """Write a field's type and bounds as 1.x names them, refusing a time of day, which 1.x's `time` is not, and a

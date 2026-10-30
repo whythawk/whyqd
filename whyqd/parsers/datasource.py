@@ -5,15 +5,16 @@ from pathlib import Path
 from datetime import date, datetime
 import pandas as pd
 import numpy as np
-from pyarrow.parquet import ParquetFile
-import pyarrow as pa
 import re
 import ast
 
 import polars as pl
 
+from whyqd.parsers.arrow_reader import ArrowParser
 from whyqd.parsers.core import CoreParser
 from whyqd.parsers.csv_reader import CsvParser
+from whyqd.parsers.excel_reader import ExcelParser
+from whyqd.parsers.pdf_reader import PdfParser
 from whyqd.parsers.row_key import RowKeyParser
 from whyqd.parsers.table import TableParser
 from whyqd.parsers.v1 import V1ChecksumParser
@@ -30,170 +31,79 @@ class DataSourceParser:
     def __init__(self):
         self.core = CoreParser()
         self.v1 = V1ChecksumParser()
-        self.csv = CsvParser()
         self.tables = TableParser()
         self.row_key = RowKeyParser()
-        self.DATE_FORMATS = {
-            "date": {"fmt": ["%Y-%m-%d"], "txt": ["YYYY-MM-DD"]},
-            "datetime": {
-                "fmt": ["%Y-%m-%d %H:%M:%S", "%Y-%m-%d %H:%M:%S %Z%z"],
-                "txt": ["YYYY-MM-DD hh:mm:ss", "YYYY-MM-DD hh:mm:ss UTC+0000"],
-            },
-            "year": {"fmt": ["%Y"], "txt": ["YYYY"]},
+        arrow, excel = ArrowParser(), ExcelParser()
+        self.readers = {
+            MimeType.CSV: CsvParser(),
+            MimeType.PARQUET: arrow,
+            MimeType.PRQ: arrow,
+            MimeType.FEATHER: arrow,
+            MimeType.FTR: arrow,
+            MimeType.XLS: excel,
+            MimeType.XLSX: excel,
+            MimeType.PDF: PdfParser(),
         }
 
     ###################################################################################################
     ### TABULAR DATA READERS AND WRITERS
     ###################################################################################################
 
-    def read_excel(self, *, source: str | Path, **kwargs) -> dict[str, pd.DataFrame] | pd.DataFrame:
-        # This will default to returning a dictionary of dataframes for each sheet
-        # https://pandas.pydata.org/docs/reference/api/pandas.read_excel.html
-        if kwargs.get("sheet_name"):
-            # Only going to return a single dataframe
-            return pd.read_excel(source, **kwargs)
-        df = pd.read_excel(source, **kwargs)
-        keys = list(df.keys())
-        for k in keys:
-            if df[k].empty:
-                del df[k]
-        if len(df.keys()) == 1:
-            df = df[keys[0]]
-        return df
-
-    def read_parquet(self, *, source: str | Path, nrows: int | None = None, **kwargs) -> pd.DataFrame:
-        # https://pandas.pydata.org/docs/reference/api/pandas.read_parquet.html
-        if nrows:
-            # https://stackoverflow.com/a/69888274/295606
-            pf = ParquetFile(str(source))
-            pf = next(pf.iter_batches(batch_size=nrows))
-            # https://arrow.apache.org/docs/python/generated/pyarrow.Table.html#pyarrow.Table.to_pandas
-            return pa.Table.from_batches([pf]).to_pandas(**kwargs)
-        if "engine" not in kwargs:
-            kwargs["engine"] = "pyarrow"
-        return pd.read_parquet(source, **kwargs)
-
-    def read_feather(self, *, source: str | Path, **kwargs) -> pd.DataFrame:
-        # https://pandas.pydata.org/docs/reference/api/pandas.read_feather.html
-        return pd.read_feather(source, **kwargs)
-
     def get(
         self,
         *,
         source: str | Path | DataSourceModel,
         mimetype: str | MimeType | None = None,
-        header: int | None = 0,
-        preserve: str | list[str] | bool = False,
-        names: list[str] | None = None,
-        nrows: int | None = None,
-        sheet_name: str | None = None,
         directory: str | Path | None = None,
-        **attributes,
-    ) -> dict[str, pd.DataFrame] | pd.DataFrame | None:
-        """Return a Pandas dataframe from a given source.
-
-        A CSV is read by its data source's `dialect`, every cell as its text, the table keyed by `__row__`; given by
-        path, by the default dialect. Other formats accept default pandas parameters, but the objective is to preserve
-        the source data with little data conversion outside of the data wrangling process.
+        **settings,
+    ) -> pd.DataFrame:
+        """A data source's table, read by its `dialect`, every cell as its text, keyed by `__row__`.
 
         Parameters
         ----------
         source: str | Path | DataSourceModel
-            Path to source data file.
-        mimetype: str | MimeType
-            **whyqd** supports reading from CSV, XLS, XLSX, Feather and Parquet files.
-        header: int, default 0
-            Row to use as the column headings. Default is 0. Not for a CSV.
-        preserve: str or list of str, default None
-            Column names where variable type guessing must be prevented and the original data preserved.
-            Critical for foreign key references with weird formats, like integers with leading `0`.
-            Only works for Excel; a CSV's cells are always text.
-        names: list of str, default None
-            If the source data has no header row, explicitly pass a list of names - in the correct order - to address
-            the data. Only works for Excel; a CSV's are its data source's.
-        nrows: int, default None
-            A specified number of rows to return. For review, it is faster to load only a small number.
-            Only works for Excel.
-        sheet_name: str, default None
-            If the source is a multi-sheet Excel file, and you know the sheet, you can load that specifically. If you
-            need to apply parameters specific to each sheet, it's best to load individually. Default, load all.
-        directory: str | Path, default None
-            An optional working directory for use for remote source data. Default will be from `settings`.
-        attributes: dict of specific `mimetype` related Pandas attributes. Use sparingly.
+            The data source, or a file's path, read by the default dialect; a workbook's by path, its only sheet.
+        mimetype: str | MimeType | None, default None
+            For a path: CSV, XLS, XLSX, Parquet, or Feather.
+        directory: str | Path | None, default None
+            Where to download a source given by URI. Default will be from `settings`.
+
+        Raises
+        ------
+        TypeError
+            For any other setting, since a file is read by its dialect: derive its data source, then get it by its model.
 
         Returns
         -------
-        DataFrame or dict of DataFrame
+        DataFrame
         """
-        if isinstance(source, DataSourceModel) and self.get_mimetype(mimetype=source.mime) == MimeType.CSV:
+        if settings:
+            raise TypeError(
+                f"`{'`, `'.join(settings)}` {'is not a setting' if len(settings) == 1 else 'are not settings'} of "
+                "`get`: a file is read by its `dialect`. Derive its data source with the dialect, then get it by "
+                "its model."
+            )
+        if isinstance(source, DataSourceModel):
+            mime = self.get_mimetype(mimetype=source.mime)
             path = self.locate(source=source.path, directory=directory)
-            table, _ = self.read(source=path, dialect=self.dialect(source=source), names=source.names or None)
-            if source.dialect is None and source.index is not None and table.height != source.index:
+            table, _ = self.read(
+                source=path, mime=mime, dialect=self.dialect(source=source), names=source.names or None
+            )
+            if (
+                source.get_checksum(ChecksumContent.TABLE_1X) is not None
+                and source.index is not None
+                and table.height != source.index
+            ):
                 self.core.show_warning(
-                    f"`{source.name}` reads as {table.height} rows where 1.x read {source.index}. 1.x skipped blank "
-                    "lines, so its rows after one were numbered differently: a stored `DELETE_ROWS` or "
-                    "`PIVOT_CATEGORIES` may now name different rows. Check those rows, and derive the data source "
-                    "again to number them as read."
+                    f"`{source.name}` reads as {table.height} rows where 1.x read {source.index}, so its rows are "
+                    "numbered differently from where they differ; most often 1.x skipped a CSV's blank lines. A "
+                    "stored `DELETE_ROWS` or `PIVOT_CATEGORIES` may now name different rows. Check those rows, and "
+                    "derive the data source again to number them as read."
                 )
             return table.to_pandas()
-        if not isinstance(source, DataSourceModel) and self.get_mimetype(mimetype=mimetype) == MimeType.CSV:
-            if header != 0 or names or nrows or attributes:
-                raise TypeError("A CSV is read by its `dialect`: derive its data source, then get it by its model.")
-            table, _ = self.read(source=self.locate(source=source, directory=directory), dialect=DialectModel())
-            return table.to_pandas()
-        kwargs = {}
-        kwargs |= attributes
-        if isinstance(source, DataSourceModel):
-            # Additional attributes stored in the model, e.g. End-of-line errors require `quoting=csv.QUOTE_NONE`
-            #   quoting: int, default None
-            #     CSV errors in opening a source file can be fixed by referencing quotation and end-of-line errors using
-            #     `quoting=csv.QUOTE_NONE` and `import csv`.
-            if source.attributes:
-                kwargs |= source.attributes.terms
-            mimetype = source.mime
-            preserve = source.preserve
-            sheet_name = source.sheet_name
-            header = source.header
-            if source.names:
-                names = source.names
-            source = source.path
-        if self.core.check_uri(source=source):
-            source = self.core.download_uri_source(source=source, directory=directory)
-        if not self.core.check_source(source=source):
-            e = f"Source at `{source}` not found."
-            raise FileNotFoundError(e)
-        # These, currently, don't accept any additional parameters.
-        mimetype = self.get_mimetype(mimetype=mimetype)
-        if mimetype in [MimeType.PRQ, MimeType.PARQUET]:
-            return self.read_parquet(source=source, nrows=nrows, **kwargs)
-        if mimetype in [MimeType.FTR, MimeType.FEATHER]:
-            return self.read_feather(source=source, **kwargs)
-        # If the dtypes have not been set, then ensure that any provided preserved columns remain untouched
-        # i.e. no forcing of text to numbers
-        # defaulting to `dtype = object` ...
-        if preserve:
-            if isinstance(preserve, bool):
-                kwargs["dtype"] = pd.StringDtype()
-                # kwargs["keep_default_na"] = False
-                # kwargs["na_values"] = ""
-            else:
-                if not isinstance(preserve, list):
-                    preserve = [preserve]
-                # kwargs["dtype"] = {k: object for k in preserve}
-                kwargs["dtype"] = {k: pd.StringDtype() for k in preserve}
-        kwargs["header"] = header
-        if names:
-            # Preserve all rows
-            kwargs["header"] = None
-            kwargs["names"] = names
-        if nrows:
-            kwargs["nrows"] = nrows
-        # Check mimetype
-        if mimetype in [MimeType.XLS, MimeType.XLSX]:
-            kwargs["sheet_name"] = sheet_name
-            return self.read_excel(source=source, **kwargs)
-        # Unknown mimetype
-        raise FileExistsError(f"Source at `{source}` does not have a recognised mimetype `{mimetype}`.")
+        path = self.locate(source=source, directory=directory)
+        table, _ = self.read(source=path, mime=self.get_mimetype(mimetype=mimetype), dialect=DialectModel())
+        return table.to_pandas()
 
     def set(self, *, df: pd.DataFrame, source: str | Path, mimetype: MimeType) -> None:
         """Save a Pandas dataframe from a given source.
@@ -271,41 +181,6 @@ class DataSourceParser:
         }
         return column.apply(lambda x: parser[coerce](x))
 
-    def validate_schema_coersion(self, *, df: pd.DataFrame, schema: Type[SchemaDefinition]) -> bool:
-        """Returns the MimeType representation of of a submitted source datatype."""
-        for field in schema.fields.get_all():
-            # Tests conversion to type
-            series = df[field.name].astype(FieldType(field.dtype).astype)
-            # Tests each constraint
-            if field.constraints:
-                if field.constraints.category:
-                    # https://python-reference.readthedocs.io/en/latest/docs/comprehensions/set_comprehension.html
-                    constraints = {c.name for c in field.constraints.category}
-                    difference = {
-                        term for term in series.unique() if not (term is pd.NA or pd.isnull(term) or term is None)
-                    } - constraints
-                    if difference:
-                        raise ValueError(
-                            f"Terms in `{field.name}` not defined as a category constraint: `{list(difference)}`"
-                        )
-                if field.constraints.required and len(series) != series.count():
-                    raise ValueError(
-                        f"Required constraint in `{field.name}` has `{len(series) - series.count()}` null values in `{len(series)}` rows."
-                    )
-                if field.constraints.unique and series.count() != len(series.unique()):
-                    raise ValueError(
-                        f"Unique constraint in `{field.name}` has `{series.count() - len(series.unique())}` non-unique values in `{series.count()}` rows."
-                    )
-                if field.constraints.minimum and series.min() < field.constraints.minimum:
-                    raise ValueError(
-                        f"Minimum constraint in `{field.name}` has value `{series.min()}` < `{field.constraints.minimum}`"
-                    )
-                if field.constraints.maximum and series.max() > field.constraints.maximum:
-                    raise ValueError(
-                        f"Minimum constraint in `{field.name}` has value `{series.max()}` > `{field.constraints.maximum}`"
-                    )
-        return True
-
     ###################################################################################################
     ### DATA MODEL SCHEMA DERIVATION AND WRITER UTILITIES
     ###################################################################################################
@@ -334,39 +209,50 @@ class DataSourceParser:
         return DialectModel(**dialect)
 
     def dialect(self, *, source: DataSourceModel) -> DialectModel:
-        """The dialect a data source is read by: its own, or, for a 1.x data source, the one that reads its rows as 1.x
-        read them.
-
-        1.x named the columns from row `header` and kept every row as data, so a 1.x data source with a header below
-        row 0, or none, reads as a file with no header row and the names 1.x read. Its `attributes` were pandas'
-        keywords, which no dialect holds, so a data source with any is refused.
+        """The dialect a data source is read by: its own, or, for a 1.x data source built without one, the one that
+        reads its rows as 1.x read them (`FormatParser.dialect_1x`). Its `attributes` were pandas' keywords, which no
+        dialect holds, so a data source with any is refused.
         """
         if source.dialect is not None:
             return source.dialect
+        settings = {"header": source.header, "sheet_name": source.sheet_name}
         if source.attributes and source.attributes.terms:
             raise ValueError(
                 f"`{source.name}` was read in 1.x with pandas' settings `{'`, `'.join(source.attributes.terms)}`, which "
                 "whyqd no longer reads by. Derive the data source again, declaring how the file is written in its "
                 "`dialect`. Its 1.x checksum still verifies with the `verify-1x` extra."
             )
-        return DialectModel() if source.header == 0 else DialectModel(headerRowCount=0)
+        return DialectModel(**self.core.formats.dialect_1x(settings))
 
     def read(
-        self, *, source: Path, dialect: DialectModel, names: list[str] | None = None
+        self, *, source: Path, mime: MimeType, dialect: DialectModel, names: list[str] | None = None
     ) -> tuple[pl.DataFrame, DialectModel]:
-        """A CSV's table, keyed by `__row__`, and its dialect with the encoding recorded."""
-        grid, lines, dialect = self.csv.grid(source=source, dialect=dialect)
-        return self.tables.table(grid=grid, lines=lines, dialect=dialect, names=names), dialect
+        """A file's table, keyed by `__row__`, and its dialect with what the read settled recorded."""
+        if mime not in self.readers:
+            raise ValueError(
+                f"whyqd does not read `{mime.value}` files. It reads {', '.join(sorted({m.name for m in self.readers}))}."
+            )
+        reader = self.readers[mime]
+        grid, lines, dialect = reader.grid(source=source, mime=mime, dialect=dialect)
+        return self.tables.table(grid=grid, lines=lines, dialect=dialect, names=names, place=reader.PLACE), dialect
 
     def derive(
-        self, *, source: Path | str, dialect: DialectModel | dict | None = None, names: list[str] | None = None
+        self,
+        *,
+        source: Path | str,
+        mime: MimeType,
+        dialect: DialectModel | dict | None = None,
+        names: list[str] | None = None,
+        hidden: bool = False,
     ) -> DataSourceModel:
-        """A CSV's data source: its columns, row count, and byte hash, and the dialect that reads it."""
+        """A file's data source, or one sheet's: its columns, row count, and byte hash, and the dialect that reads it."""
         path = self.locate(source=source)
-        table, dialect = self.read(source=path, dialect=self.declare(dialect=dialect), names=names)
+        table, dialect = self.read(source=path, mime=mime, dialect=self.declare(dialect=dialect), names=names)
         return DataSourceModel(
             path=str(source),
-            mime=MimeType.CSV,
+            mime=mime,
+            hidden=hidden or None,
+            attributes=DataSourceAttributeModel({}),
             columns=[ColumnModel(name=c) for c in table.columns if c != self.row_key.ROW],
             names=names or [],
             dialect=dialect,
@@ -376,222 +262,138 @@ class DataSourceParser:
             index=table.height,
         )
 
+    def derive_sheets(
+        self,
+        *,
+        source: Path | str,
+        mime: MimeType,
+        dialect: DialectModel | dict | list[DialectModel | dict] | None = None,
+        names: list[str] | dict[str, list[str]] | None = None,
+    ) -> DataSourceModel | list[DataSourceModel]:
+        """A workbook's data sources, one a sheet, every sheet read and a hidden one flagged.
+
+        Each sheet is its own table, with its own dialect and names. A list of dialects names each one's `sheet`, a
+        sheet named by none taking the defaults; or names none, giving one a sheet in workbook order. `names` maps a
+        sheet to its names, or, for a workbook of one sheet, is that sheet's names.
+
+        Raises
+        ------
+        ValueError
+            For a dialect or names given for a sheet the workbook does not have, or dialects that cannot be matched to
+            its sheets.
+        """
+        sheets = self.readers[mime].sheets(source=self.locate(source=source))
+        order = [name for name, _ in sheets]
+        dialects = self.sheet_dialects(dialect=dialect, sheets=order, source=source)
+        if isinstance(names, list):
+            if len(order) != 1:
+                raise ValueError(
+                    f"`{Path(source).name}` has {len(order)} sheets, so give `names` by sheet: "
+                    f"{{'{order[0]}': [...]}}."
+                )
+            names = {order[0]: names}
+        names = names or {}
+        self.check_sheets(given=names, sheets=order, setting="names", source=source)
+        models = [
+            self.derive(
+                source=source,
+                mime=mime,
+                dialect=dialects[name].model_copy(update={"sheet": name}),
+                names=names.get(name),
+                hidden=hidden,
+            )
+            for name, hidden in sheets
+        ]
+        return models[0] if len(models) == 1 else models
+
+    def sheet_dialects(
+        self, *, dialect: DialectModel | dict | list[DialectModel | dict] | None, sheets: list[str], source: Path | str
+    ) -> dict[str, DialectModel]:
+        given = [] if dialect is None else dialect if isinstance(dialect, list) else [dialect]
+        given = [self.declare(dialect=d) for d in given]
+        named = [d for d in given if d.sheet is not None]
+        if not named:
+            if given and len(given) != len(sheets):
+                raise ValueError(
+                    f"`{Path(source).name}` has {len(sheets)} sheets, `{'`, `'.join(sheets)}`, but {len(given)} "
+                    "dialects are given without a `sheet`. Give one a sheet, in order, or name each one's `sheet`."
+                )
+            return {name: given[i] if given else DialectModel() for i, name in enumerate(sheets)}
+        if len(named) != len(given):
+            raise ValueError("Name every dialect's `sheet`, or none, so each can be matched to its sheet.")
+        by_name = {d.sheet: d for d in named}
+        self.check_sheets(given=by_name, sheets=sheets, setting="dialect", source=source)
+        return {name: by_name.get(name, DialectModel()) for name in sheets}
+
+    def check_sheets(self, *, given: dict, sheets: list[str], setting: str, source: Path | str) -> None:
+        if unknown := [s for s in given if s not in sheets]:
+            raise ValueError(
+                f"`{setting}` is given for `{'`, `'.join(unknown)}`, which `{Path(source).name}` does not have. Its "
+                f"sheets are `{'`, `'.join(sheets)}`."
+            )
+
     def derive_data_model(
         self,
         *,
         source: Path | str,
         mimetype: str | MimeType,
-        dialect: DialectModel | dict | list[dict] | None = None,
-        names: list[str] | None = None,
-        sheet_name: str | None = None,
-        header: int | list[int] | None = 0,
-        **attributes,
+        dialect: DialectModel | dict | list[DialectModel | dict] | None = None,
+        names: list[str] | dict[str, list[str]] | None = None,
+        **settings,
     ) -> DataSourceModel | list[DataSourceModel]:
-        """Derive a data model schema (or list) from a data source. All columns will be coerced to `string` type to
-        preserve data quality even though this is far less efficient.
+        """A data source derived from a file: a workbook's one a sheet, as a list where it has several.
 
         Parameters
         ----------
-        source: str
-            Source filename.
-        mimetype: str or MimeType
-            Pandas can read a diversity of mimetypes. **whyqd** supports `xls`, `xlsx`, `csv`, `parquet` and `feather`.
-        sheet_name: str, default None.
-            If `mimetype` is a multi-sheeted Excel file, specify which one to use.
-        header: int | list[int | None] | None = 0,
-            Row (0-indexed) to use for the column labels of the parsed DataFrame. If there are multiple sheets, then
-            a list of integers should be provided.
-            If `header` is `None`, row 0 will be treated as values and a set of field names will be generated indexed
-            to the number of data columns.
-        attributes: dict of specific `mimetype` related Pandas attributes. Use sparingly.
+        source: Path | str
+        mimetype: str | MimeType
+            CSV, XLS, XLSX, Parquet, or Feather.
+        dialect: DialectModel | dict | list[DialectModel | dict] | None, default None
+            How the file is written, so it can be read; for a workbook, one a sheet (`derive_sheets`).
+        names: list[str] | dict[str, list[str]] | None, default None
+            One name per column; for a workbook, by sheet.
 
-        Returns
-        -------
-        List of DataSourceModel, or DataSourceModel
+        Raises
+        ------
+        TypeError
+            For `header` or any reader's keyword, naming the dialect's settings to declare instead.
         """
-        mimetype = self.get_mimetype(mimetype=mimetype)
-        if mimetype == MimeType.CSV:
-            keys = (["header"] if header != 0 else []) + list(attributes)
-            if keys:
-                raise TypeError(
-                    f"`{'`, `'.join(keys)}` {'is a pandas setting' if len(keys) == 1 else 'are pandas settings'}, "
-                    "which whyqd no longer reads a CSV by. Declare how the file is written in `dialect` (`skipRows` "
-                    "and `headerRowCount` for its header), and its column names in `names`."
-                )
-            return self.derive(source=source, dialect=dialect, names=names)
-        if dialect is not None or names is not None:
-            raise ValueError(f"A {mimetype.name} file is not yet read by `dialect` or `names`; only a CSV is.")
-        response = []
-        sheet_names = [sheet_name]
-        if sheet_name is None and mimetype in [MimeType.XLS, MimeType.XLSX]:
-            # Check for multiple sheets
-            df = self.read_excel(source=source, sheet_name=sheet_name, nrows=1, **attributes)
-            if isinstance(df, dict):
-                # Multiple sheets
-                sheet_names = list(df.keys())
-        for i, sheet_name in enumerate(sheet_names):
-            header_i = header
-            if isinstance(header, list):
-                header_i = header[i]
-            if header_i is None:
-                header_names = self.create_header_names(
-                    source=source, mimetype=mimetype, sheet_name=sheet_name, **attributes
-                )
-            else:
-                header_names = self.get_header_names(
-                    source=source, mimetype=mimetype, sheet_name=sheet_name, header=header_i, **attributes
-                )
-            response.append(
-                self.get_source_data_model(
-                    source=source,
-                    mimetype=mimetype,
-                    names=header_names,
-                    sheet_name=sheet_name,
-                    header=header_i,
-                    **attributes,
-                )
+        if settings:
+            raise TypeError(
+                f"`{'`, `'.join(settings)}` {'is a pandas setting' if len(settings) == 1 else 'are pandas settings'}, "
+                "which whyqd no longer reads a file by. Declare how the file is written in `dialect` (`skipRows` "
+                "and `headerRowCount` for its header), and its column names in `names`."
             )
-        if len(response) > 1:
-            return response
-        return response[0]
+        mimetype = self.get_mimetype(mimetype=mimetype)
+        if mimetype in (MimeType.XLS, MimeType.XLSX):
+            return self.derive_sheets(source=source, mime=mimetype, dialect=dialect, names=names)
+        return self.derive(source=source, mime=mimetype, dialect=dialect, names=names)
 
-    def get_source_data_model(
-        self,
-        *,
-        df: pd.DataFrame | None = None,
-        source: Path | str,
-        mimetype: str | MimeType,
-        names: list[str] | None = None,
-        sheet_name: str | None = None,
-        header: int | None = 0,
-        **attributes,
-    ) -> DataSourceModel:
-        """Derive a data model schema from a SINGLE tabular data source. All columns will be coerced to `string` type to
-        preserve data quality even though this is far less efficient.
+    def get_source_data_model(self, *, df: pd.DataFrame, source: Path | str, mimetype: str | MimeType) -> DataSourceModel:
+        """The data source of a transform's output, from the frame it was saved from, with its `table-1x` checksum.
 
         Parameters
         ----------
-        source: str | Path
-            Source filename.
-        mimetype: str or MimeType
-            Pandas can read a diversity of mimetypes. **whyqd** supports `xls`, `xlsx`, `csv`, `parquet` and `feather`.
-        names: list of str
-            A de-conflicted list of header-row names.
-        sheet_name: str, default None.
-            If `mimetype` is a multi-sheeted Excel file, specify which one to use.
-        header: int, default 0
-            Row (0-indexed) to use for the column labels of the parsed DataFrame.
-        attributes: dict of specific `mimetype` related Pandas attributes. Use sparingly.
+        df: pd.DataFrame
+            The output, as saved.
+        source: Path | str
+            Where it was saved.
+        mimetype: str | MimeType
 
         Returns
         -------
         DataSourceModel
         """
-        del_df = False
-        if df is None:
-            del_df = True
-            if header is None or header != 0:
-                # If names are specified, then header is None
-                df = self.get(
-                    source=source,
-                    mimetype=mimetype,
-                    names=names,
-                    preserve=names,
-                    sheet_name=sheet_name,
-                    header=None,
-                    **attributes,
-                )
-            else:
-                df = self.get(source=source, mimetype=mimetype, preserve=names, sheet_name=sheet_name, **attributes)
         columns = self.get_header_columns(df=df)
-        preserve = [c.name for c in columns if c.dtype == "string"]
-        source_data_model = {
-            "path": str(source),
-            "mime": self.get_mimetype(mimetype=mimetype),
-            "sheet_name": sheet_name,
-            "columns": columns,
-            "preserve": preserve,
-            "checksums": [
-                self.core.formats.checksum(value=self.v1.table(df=df), content=ChecksumContent.TABLE_1X)
-            ],
-            "header": header,
-            "index": df.shape[0],
-            "attributes": DataSourceAttributeModel.model_validate(attributes),
-        }
-        if header is None or header != 0:
-            source_data_model["names"] = names
-        if del_df:
-            del df
-        return DataSourceModel(**source_data_model)
-
-    def create_header_names(
-        self,
-        *,
-        source: Path | str,
-        mimetype: str | MimeType,
-        sheet_name: str | None = None,
-        nrows: int = 50,
-        **attributes,
-    ) -> list[str]:
-        """
-        Return a list of default column names - starting with `column-0` - to apply to a given SINGULAR tabular data
-        source.
-
-        Parameters
-        ----------
-        source: str
-            Source filename.
-        mimetype: MimeType, default MimeType.CSV
-            Pandas can read a diversity of mimetypes, but whyqd has only been tested on `xls`, `xlsx` and `csv`.
-        sheet_name: str, default None.
-            If `mimetype` is a multi-sheeted Excel file, specify which one to use.
-        nrows: int, default 50
-            A specified number of rows to return. For review, it is faster to load only a small number.
-        attributes: dict of specific `mimetype` related Pandas attributes. Use sparingly.
-
-        Returns
-        -------
-        List of str
-        """
-        df = self.get(source=source, mimetype=mimetype, sheet_name=sheet_name, nrows=nrows, **attributes)
-        if (isinstance(df, dict) and not df) or df.empty:
-            return []
-        return [f"column_{i}" for i in range(len(df.columns))]
-
-    def get_header_names(
-        self,
-        *,
-        source: Path | str,
-        mimetype: str | MimeType,
-        sheet_name: str | None = None,
-        header: int | None = 0,
-        nrows: int = 1,
-        **attributes,
-    ) -> list[str]:
-        """Return a list of column names to apply to a given SINGULAR tabular data source.
-
-        Parameters
-        ----------
-        source: str
-            Source filename.
-        mimetype: MimeType, default MimeType.CSV
-            Pandas can read a diversity of mimetypes, but whyqd has only been tested on `xls`, `xlsx` and `csv`.
-        sheet_name: str, default None.
-            If `mimetype` is a multi-sheeted Excel file, specify which one to use.
-        header: int, default 0
-            Row (0-indexed) to use for the column labels of the parsed DataFrame.
-        nrows: int, default 1
-            A specified number of rows to return. For review, it is faster to load only a small number.
-        attributes: dict of specific `mimetype` related Pandas attributes. Use sparingly.
-
-        Returns
-        -------
-        List of str
-        """
-        if header is not None and header > nrows:
-            nrows = header + 1
-        df = self.get(source=source, mimetype=mimetype, sheet_name=sheet_name, header=header, nrows=nrows, **attributes)
-        return df.columns.tolist()
+        return DataSourceModel(
+            path=str(source),
+            mime=self.get_mimetype(mimetype=mimetype),
+            columns=columns,
+            preserve=[c.name for c in columns if c.dtype == "string"],
+            checksums=[self.core.formats.checksum(value=self.v1.table(df=df), content=ChecksumContent.TABLE_1X)],
+            index=df.shape[0],
+            attributes=DataSourceAttributeModel({}),
+        )
 
     def get_header_columns(self, *, df: pd.DataFrame) -> List[ColumnModel]:
         """Returns a list of ColumnModels from a source DataFrame.
@@ -650,17 +452,6 @@ class DataSourceParser:
             except ValueError:
                 return MimeType(mimetype)
         raise ValueError(f"MimeType not found for '{mimetype}'")
-
-    def check_date_format(self, *, date_type: str, date_value: str) -> bool:
-        # https://stackoverflow.com/a/37045601
-        # https://www.saltycrane.com/blog/2009/05/converting-time-zones-datetime-objects-python/
-        for fmt in self.DATE_FORMATS[date_type]["fmt"]:
-            try:
-                if date_value == datetime.strptime(date_value, fmt).strftime(fmt):
-                    return True
-            except ValueError:
-                continue
-        raise ValueError(f"Incorrect date format, should be: `{self.DATE_FORMATS[date_type]['txt']}`")
 
     ###################################################################################################
     ### PANDAS TYPE PARSERS

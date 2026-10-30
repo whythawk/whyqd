@@ -14,7 +14,8 @@ class CellType(str, Enum):
         description = {
             "s": "Text, as stored. Text that is only whitespace stays text; empty text is an empty cell.",
             "n": "A number, as its shortest exact text; a whole number without `.0`.",
-            "d": "A date as ISO 8601, with its time only when that is not midnight; a time alone as ISO 8601.",
+            "d": "A date as ISO 8601, with its time only when that is not midnight; a time alone, or a duration, as "
+            "ISO 8601 (`PT25H30M`).",
             "b": "A boolean, as `TRUE` or `FALSE`.",
             "e": "An error cell, such as `#N/A`, as its reader reports it.",
         }

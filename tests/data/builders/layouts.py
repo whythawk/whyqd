@@ -24,6 +24,7 @@ from openpyxl.cell.cell import TYPE_ERROR
 from openpyxl.styles import Alignment, Border, Side
 from openpyxl.utils import get_column_letter
 from openpyxl.worksheet.properties import PageSetupProperties
+from workbook import save
 
 HERE = Path(__file__).resolve().parent
 TARGET = Path(sys.argv[1]).resolve() if len(sys.argv) > 1 else HERE.parent / "synthetic-layouts"
@@ -269,7 +270,7 @@ def layouts_workbook():
     key["BlankColumns"] = {
         "problem": "an empty column inside the table, and three empty but formatted columns after it",
         "dialect": {}, "names": [*HEADER[:2], "Unnamed: 2", *HEADER[2:]],
-        "rows": [r[:2] + [None] + r[2:] for r in workbook_rows()],
+        "rows": [[v if v != "" else None for v in r[:2] + [None] + r[2:]] for r in RECORDS],
         "propose": {"empty_columns": [2], "why": "the trailing columns hold formatting only, and are trimmed"}}
 
     ws = wb.create_sheet("SubTables")
@@ -304,9 +305,9 @@ def layouts_workbook():
     ws.sheet_state = "hidden"
     ws["A1"], ws["A2"] = "Total R/V", "=SUM(Titled!D5:D10)"
     key["Workings"] = {"problem": "a hidden sheet, read like any other and flagged", "state": "hidden", "dialect": {},
-                       "names": ["Total R/V"], "rows": [[None]],
-                       "formula_cells": {"A2": "a formula written without its cached value, so empty here; "
-                                               "the .xls, saved by LibreOffice, caches 0"}}
+                       "names": ["Total R/V"], "rows": [],
+                       "formula_cells": {"A2": "a formula written without its cached value, so the row is empty "
+                                               "here and trimmed; the .xls, saved by LibreOffice, caches 0"}}
     return wb, key
 
 
@@ -448,14 +449,14 @@ def main():
         key["csv"][name] = {"lines": lines, **entry}
 
     wb, sheets = layouts_workbook()
-    wb.save(TARGET / "layouts.xlsx")
+    save(wb, TARGET / "layouts.xlsx")
     key["workbook"]["layouts.xlsx"] = sheets
     key["workbook"]["layouts.xls"] = "layouts.xlsx saved as .xls in LibreOffice; read to the same key"
     wb, sheet = single_sheet_workbook()
-    wb.save(TARGET / "single-sheet.xlsx")
+    save(wb, TARGET / "single-sheet.xlsx")
     key["workbook"]["single-sheet.xlsx"] = {"Reliefs": sheet}
     wb, sheets = pdf_workbook()
-    wb.save(TARGET / "pdf-source.xlsx")
+    save(wb, TARGET / "pdf-source.xlsx")
     key["pdf"] = {"pdf-source.pdf": sheets,
                   "made": "pdf-source.xlsx exported in LibreOffice, every sheet, one PDF; each sheet's table "
                           "read across its pages"}

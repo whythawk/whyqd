@@ -8,7 +8,6 @@ import whyqd as qd
 from whyqd.parsers import CoreParser, DataSourceParser
 
 DIRECTORY = Path(__file__).resolve().parent / "data"
-BASE_DIRECTORY = f"{Path('__file__').resolve().parent}/"
 DATA = {
     "SINGLE": DIRECTORY / "raw_E06000044_014_0.XLSX",
     "MULTI": DIRECTORY / "raw_multi_E06000044_014.xlsx",
@@ -37,16 +36,11 @@ class TestDataSource:
         datasource.save(directory=TEST_DIRECTORY)
         datasource.validate()
         assert datasource.get.get_checksum("bytes")
-        # Consistency
-        d = datasource.exclude_uuid(model=datasource.get)
-        d["checksums"] = [c for c in d["checksums"] if c["content"] == "table-1x"]
-        D = datasource.exclude_uuid(model=MODEL["SINGLE"])
-        # Using relative paths for test, so adjust accordingly
-        d["path"] = d["path"].replace(BASE_DIRECTORY, "")
-        D["path"] = D["path"].replace(BASE_DIRECTORY, "")
-        # the MODEL doesn't have AnyURL set in the citation
-        D["citation"]["url"] = AnyUrl(D["citation"]["url"])
-        assert d == D
+        # The read finds the columns and rows 1.x found; its types and checksum are 2.0's, every cell text
+        stored = qd.DataSourceDefinition(source=MODEL["SINGLE"]).get
+        assert [c.name for c in datasource.get.columns] == [c.name for c in stored.columns]
+        assert datasource.get.index == stored.index
+        assert datasource.get.citation.url == AnyUrl(MODEL["SINGLE"]["citation"]["url"])
 
     def test_load_single(self):
         datasource = qd.DataSourceDefinition(source=MODEL["SINGLE"])
@@ -71,7 +65,7 @@ class TestDataSource:
     def test_cthulhu(self):
         # Create
         datasource = qd.DataSourceDefinition()
-        datasource.derive_model(source=DATA["CTHULHU"], mimetype=MIMETYPE, header=None)
+        datasource.derive_model(source=DATA["CTHULHU"], mimetype=MIMETYPE, dialect={"headerRowCount": 0})
         datasource.validate()
 
     def test_csv_verifies_by_its_bytes(self, tmp_path):

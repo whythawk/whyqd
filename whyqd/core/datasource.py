@@ -108,30 +108,27 @@ class DataSourceDefinition(BaseDefinition):
         *,
         source: Path | str,
         mimetype: str | MimeType,
-        dialect: DialectModel | dict | list[dict] | None = None,
-        names: list[str] | None = None,
-        header: int | list[int | None] | None = 0,
-        **attributes,
+        dialect: DialectModel | dict | list[DialectModel | dict] | None = None,
+        names: list[str] | dict[str, list[str]] | None = None,
+        **settings,
     ) -> DataSourceModel | list[DataSourceModel]:
-        """Derive a data model schema (or list) from a data source. Every cell is read as its text.
+        """Derive a data source from a file, or one a sheet from a workbook. Every cell is read as its text.
 
         Parameters:
           source:  Source filename.
           mimetype:  **whyqd** supports `xls`, `xlsx`, `csv`, `parquet` and `feather`.
-          dialect: How a CSV is written, so it can be read: the dialect of CSV on the Web, as `DialectModel` describes
-                   it. Undeclared, each setting takes its default; the encoding, undeclared, is settled by whyqd's
-                   ladder and recorded.
-          names: One name per column, for a CSV with no header row or a header over several rows.
-          header:  Not for a CSV. Row (0-indexed) to use for the column labels of the parsed DataFrame. If there are
-                    multiple sheets, then a list of integers should be provided. If `header` is `None`, row 0 will be
-                    treated as values and a set of field names will be generated indexed to the number of data columns.
-          attributes: Not for a CSV. dict of specific `mimetype` related Pandas attributes. Use sparingly.
+          dialect: How the file is written, so it can be read: the dialect of CSV on the Web, as `DialectModel`
+                   describes it. Undeclared, each setting takes its default; a CSV's encoding, undeclared, is settled by
+                   whyqd's ladder and recorded. For a workbook, a list, each naming its `sheet`, or one a sheet in order.
+          names: One name per column, for a file with no header row or a header over several rows; for a workbook, a
+                 mapping of sheet to names.
+          settings: Refused, naming the dialect: `header` and pandas' keywords are no longer read.
 
         Returns:
           List of DataSourceModel, or DataSourceModel
         """
         self.model = self.reader.derive_data_model(
-            source=source, mimetype=mimetype, dialect=dialect, names=names, header=header, **attributes
+            source=source, mimetype=mimetype, dialect=dialect, names=names, **settings
         )
 
     #########################################################################################

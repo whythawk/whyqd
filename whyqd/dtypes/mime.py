@@ -11,6 +11,7 @@ class MimeType(str, Enum):
     PRQ = "application/vnd.apache.parquet"
     FEATHER = "application/vnd.apache.feather"
     FTR = "application/vnd.apache.feather"
+    PDF = "application/pdf"
 
     @classmethod
     def value_of(cls, value):

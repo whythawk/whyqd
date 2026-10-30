@@ -1,5 +1,5 @@
 {
-  "generated": "2026-10-30T15:24:28",
+  "generated": "2026-10-30T19:48:46",
   "csv": {
     "title-above.csv": {
       "lines": [
@@ -2049,7 +2049,7 @@
             null,
             "SBR3",
             "13250",
-            "2024-01-04",
+            "04/01/2024",
             "N/A"
           ],
           [
@@ -2067,7 +2067,7 @@
             null,
             "RH0",
             "8600",
-            "2024-02-05",
+            "05/02/2024",
             "Parish Clerk"
           ],
           [
@@ -2319,13 +2319,9 @@
         "names": [
           "Total R/V"
         ],
-        "rows": [
-          [
-            null
-          ]
-        ],
+        "rows": [],
         "formula_cells": {
-          "A2": "a formula written without its cached value, so empty here; the .xls, saved by LibreOffice, caches 0"
+          "A2": "a formula written without its cached value, so the row is empty here and trimmed; the .xls, saved by LibreOffice, caches 0"
         }
       }
     },

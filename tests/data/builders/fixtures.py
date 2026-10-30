@@ -16,6 +16,7 @@ from pathlib import Path
 
 from openpyxl import Workbook
 from openpyxl.cell.cell import TYPE_ERROR
+from workbook import save
 
 HERE = Path(__file__).resolve().parent
 TARGET = Path(sys.argv[1]).resolve() if len(sys.argv) > 1 else HERE.parent / "synthetic"
@@ -135,7 +136,7 @@ def main():
     key["workbook"]["Hidden"] = {"state": "hidden", "rows": [["secret"], ["kept"]]}
     wb.create_sheet("Empty")
     key["workbook"]["Empty"] = {"rows": []}
-    wb.save(TARGET / "fixture.xlsx")
+    save(wb, TARGET / "fixture.xlsx")
     key["workbook_file"] = "fixture.xlsx"
 
     (TARGET / "answer-key.json").write_text(json.dumps(key, indent=2, ensure_ascii=False, default=str), encoding="utf-8")

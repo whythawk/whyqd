@@ -685,6 +685,19 @@
           "default": null,
           "description": "How the file is written, so it can be read."
         },
+        "hidden": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "The publisher hid this sheet of the workbook; it is read like any other. Absent where visible.",
+          "title": "Hidden"
+        },
         "attributes": {
           "anyOf": [
             {
@@ -741,7 +754,7 @@
       "type": "object"
     },
     "DialectModel": {
-      "description": "How a file is written, so it can be read: the dialect of the W3C's CSV on the Web metadata vocabulary\n([Metadata Vocabulary for Tabular Data, section 5.9](https://www.w3.org/TR/tabular-metadata/#dialect-descriptions)),\nwith its names and defaults, and three of whyqd's own: `encodingStep`, `rowsPerRecord`, and `sheet`.\n\nOne default differs: CSV on the Web trims each cell, and whyqd keeps it as written (`trim` false). A blank line is\na row (`skipBlankRows` false), in both.",
+      "description": "How a file is written, so it can be read: the dialect of the W3C's CSV on the Web metadata vocabulary\n([Metadata Vocabulary for Tabular Data, section 5.9](https://www.w3.org/TR/tabular-metadata/#dialect-descriptions)),\nwith its names and defaults, and whyqd's own: `encodingStep`, `rowsPerRecord`, `sheet`, and, for a PDF, `cells`,\n`pages`, and `columns`.\n\nOne default differs: CSV on the Web trims each cell, and whyqd keeps it as written (`trim` false). A blank line is\na row (`skipBlankRows` false), in both.",
       "properties": {
         "encoding": {
           "default": "utf-8",
@@ -851,6 +864,52 @@
           "default": null,
           "description": "The spreadsheet's sheet, where the file has several.",
           "title": "Sheet"
+        },
+        "cells": {
+          "anyOf": [
+            {
+              "enum": [
+                "lines",
+                "text"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "How a PDF's cells are found: by its ruling (`lines`), or by where its text sits (`text`). Read from the file where undeclared: `lines` where its ruling gives a table, else `text`.",
+          "title": "Cells"
+        },
+        "pages": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "A PDF's pages holding the table, counted from 1: `5-7`, or `1,3,5-7`. Absent for every page.",
+          "title": "Pages"
+        },
+        "columns": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "number"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "The left edge of each of a PDF table's columns, in points from the page's left, where its cells are found by `text` and the words do not show the columns.",
+          "title": "Columns"
         }
       },
       "title": "DialectModel",
@@ -1047,7 +1106,8 @@
         "application/vnd.apache.parquet",
         "application/vnd.apache.parquet",
         "application/vnd.apache.feather",
-        "application/vnd.apache.feather"
+        "application/vnd.apache.feather",
+        "application/pdf"
       ],
       "title": "MimeType",
       "type": "string"

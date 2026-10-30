@@ -19,7 +19,7 @@ class TestTutorialCthulhu:
         ##################################### FIRST CROSSWALK #####################################
         # 1. Import a data source and derive a source schema
         datasource = qd.DataSourceDefinition()
-        datasource.derive_model(source=SOURCE_DATA, mimetype=MIMETYPE, header=None)
+        datasource.derive_model(source=SOURCE_DATA, mimetype=MIMETYPE, dialect={"headerRowCount": 0})
         schema_source = qd.SchemaDefinition()
         schema_source.derive_model(data=datasource.get)
         # 2. Create an interim schema

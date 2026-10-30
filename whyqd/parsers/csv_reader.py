@@ -5,9 +5,10 @@ import io
 
 import polars as pl
 
-from whyqd.dtypes import EncodingStep
+from whyqd.dtypes import EncodingStep, MimeType
 from whyqd.models import DialectModel
 from whyqd.parsers.encoding import EncodingParser
+from whyqd.parsers.grid import GridParser
 
 
 class CsvParser:
@@ -21,15 +22,20 @@ class CsvParser:
     quote, so it cannot read every file as written.
     """
 
+    PLACE = "line"
+
     def __init__(self) -> None:
         self.encoding = EncodingParser()
+        self.grids = GridParser()
 
-    def grid(self, *, source: Path, dialect: DialectModel) -> tuple[pl.DataFrame, list[int], DialectModel]:
+    def grid(self, *, source: Path, mime: MimeType, dialect: DialectModel) -> tuple[pl.DataFrame, list[int], DialectModel]:
         """The file's grid, the line each of its rows starts on, and the dialect with the encoding recorded.
 
         Parameters
         ----------
         source: Path
+        mime: MimeType
+            Read only to share the interface every reader has.
         dialect: DialectModel
             How the file is written. Its encoding is read as declared where the wrangler declared it; otherwise the
             ladder settles it, and the dialect returned records which step did.
@@ -85,15 +91,12 @@ class CsvParser:
         return rows, lines
 
     def to_grid(self, *, rows: list[list[str]]) -> pl.DataFrame:
-        while rows and not any(rows[-1]):
-            rows.pop()
         width = max((len(r) for r in rows), default=0)
-        while width and not any(len(r) >= width and r[width - 1] for r in rows):
-            width -= 1
-        return pl.DataFrame(
+        grid = pl.DataFrame(
             {
                 f"column_{i}": [r[i] if i < len(r) and r[i] != "" else None for r in rows]
                 for i in range(width)
             },
             schema={f"column_{i}": pl.String for i in range(width)},
         )
+        return self.grids.trim(grid=grid)
