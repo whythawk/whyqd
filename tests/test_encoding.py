@@ -22,8 +22,6 @@ from whyqd.parsers import DataSourceParser, RowKeyParser
 SYNTHETIC = Path(__file__).resolve().parent / "data" / "synthetic"
 KEY = json.loads((SYNTHETIC / "answer-key.json").read_text(encoding="utf-8"))["csv"]
 ROW = RowKeyParser.ROW
-# Today the data source keeps no dialect, and a dialect given reaches pandas' reader, which refuses it
-NOT_BUILT = pytest.mark.xfail(strict=True, raises=(AssertionError, ValueError), reason="the reader takes no dialect")
 # The bytes Python's `cp1252` leaves undefined, which the standard decodes to the code point of their value
 UNDEFINED = {0x81, 0x8D, 0x8F, 0x90, 0x9D}
 
@@ -61,7 +59,6 @@ class TestLadder:
             ("fixture-utf16-bom.csv", "bom", "utf-16le"),
         ],
     )
-    @NOT_BUILT
     def test_a_file_reads_to_its_key_and_records_the_step(self, name, step, encoding):
         model, df = read(name)
         assert (model.dialect.encodingStep, model.dialect.encoding) == (step, encoding)
@@ -69,14 +66,12 @@ class TestLadder:
         assert rows(df, KEY[name]["header"]) == cells(KEY[name]["rows"])
 
     @pytest.mark.parametrize("name", ["fixture-windows-1252.csv", "fixture-latin-1.csv", "fixture-mac-roman.csv"])
-    @NOT_BUILT
     def test_bytes_not_utf8_are_read_as_windows_1252_and_every_byte_kept(self, name):
         model, df = read(name)
         assert (model.dialect.encodingStep, model.dialect.encoding) == ("windows-1252", "windows-1252")
         header, *expected = list(csv.reader(io.StringIO(windows_1252((SYNTHETIC / name).read_bytes()))))
         assert rows(df, header) == cells(expected)
 
-    @NOT_BUILT
     def test_text_is_kept_as_written(self):
         # Zero-width characters, a byte-order mark inside text, control characters, NFC beside NFD, full-width digits
         name = "fixture-unicode-utf8.csv"
@@ -93,36 +88,37 @@ class TestDeclared:
             ("fixture-utf8.csv", "utf-8"),
         ],
     )
-    @NOT_BUILT
     def test_a_declared_encoding_reads_to_the_key(self, name, encoding):
         model, df = read(name, {"encoding": encoding})
         assert (model.dialect.encodingStep, model.dialect.encoding) == ("declared", encoding)
         assert rows(df, KEY[name]["header"]) == cells(KEY[name]["rows"])
 
-    @NOT_BUILT
     def test_a_byte_order_mark_overrides_the_declaration(self):
         name = "fixture-utf8-bom.csv"
         model, df = read(name, {"encoding": "windows-1252"})
         assert (model.dialect.encodingStep, model.dialect.encoding) == ("bom", "utf-8")
         assert rows(df, KEY[name]["header"]) == cells(KEY[name]["rows"])
 
-    # `pytest.warns` reports pandas' `Invalid dialect` as no warning
-    @pytest.mark.xfail(strict=True, raises=pytest.fail.Exception, reason="the reader takes no dialect")
     def test_bytes_a_declared_encoding_cannot_decode_are_replaced_with_one_warning(self):
         # CSVW reads with the standard's replacement error mode; the declaration still stands, and the source is unchanged
         name = "fixture-windows-1252.csv"
         text = (SYNTHETIC / name).read_bytes().decode("utf-8", errors="replace")
-        with pytest.warns(UserWarning) as record:
-            model, df = read(name, {"encoding": "utf-8"})
+        datasource = qd.DataSourceDefinition()
+        # Each read gives one summary, never a line per byte: the count, and the encoding to declare instead
+        for read_once in (
+            lambda: datasource.derive_model(source=SYNTHETIC / name, mimetype="CSV", dialect={"encoding": "utf-8"}),
+            lambda: DataSourceParser().get(source=datasource.get),
+        ):
+            with pytest.warns(UserWarning) as record:
+                read_once()
+            messages = [str(w.message) for w in record if "utf-8" in str(w.message)]
+            assert len(messages) == 1
+            assert str(text.count("�")) in messages[0] and "windows-1252" in messages[0]
+        model = datasource.get
         assert (model.dialect.encodingStep, model.dialect.encoding) == ("declared", "utf-8")
         header, *expected = list(csv.reader(io.StringIO(text)))
-        assert rows(df, header) == cells(expected)
-        # One summary, never a line per byte: the count, and the encoding to declare instead
-        messages = [str(w.message) for w in record if "utf-8" in str(w.message)]
-        assert len(messages) == 1
-        assert str(text.count("�")) in messages[0] and "windows-1252" in messages[0]
+        assert rows(DataSourceParser().get(source=model), header) == cells(expected)
 
-    @pytest.mark.xfail(strict=True, raises=pytest.fail.Exception, reason="`detected` is still an encoding step")
     def test_detected_is_not_a_step(self):
         # A detected encoding is a proposal, recorded as `declared` once the wrangler accepts it
         with pytest.raises(ValueError):

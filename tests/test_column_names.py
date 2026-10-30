@@ -74,7 +74,6 @@ class TestColumnNames:
         assert len(set(NAMES)) == len(NAMES)
         assert not any(row_key.is_part(n) for n in NAMES)
 
-    @pytest.mark.xfail(strict=True, raises=AssertionError, reason="the reader is not built")
     def test_read_gives_every_name_exactly(self):
         datasource = qd.DataSourceDefinition()
         datasource.derive_model(source=LAYOUTS / "hostile-headers.csv", mimetype="CSV")

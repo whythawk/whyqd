@@ -21,8 +21,6 @@ LAYOUTS = DATA / "synthetic-layouts"
 KEY = json.loads((LAYOUTS / "answer-key.json").read_text(encoding="utf-8"))["csv"]["two-line-records.csv"]
 FENLAND = DATA / "sample" / "fenland" / "2026-10-25-Fenland District Council.csv"
 ROW = RowKeyParser.ROW
-# Today the dialect reaches pandas' reader as a keyword it refuses
-NOT_BUILT = pytest.mark.xfail(strict=True, raises=ValueError, reason="the reader takes no dialect")
 
 
 def read(source: Path, dialect: dict) -> tuple[qd.models.DataSourceModel, pd.DataFrame]:
@@ -51,7 +49,6 @@ PAIRS = [["a", "b", "c"], ["d", "", ""], ["p1", "q1", "r1"], ["s1", "", ""], ["p
 
 
 class TestRowsPerRecord:
-    @NOT_BUILT
     def test_records_over_two_rows_join_to_the_key(self):
         model, df = read(LAYOUTS / "two-line-records.csv", KEY["dialect"])
         assert model.dialect.rowsPerRecord == KEY["dialect"]["rowsPerRecord"]
@@ -59,38 +56,34 @@ class TestRowsPerRecord:
         assert df[ROW].tolist() == list(range(len(KEY["rows"])))
         assert rows(df, KEY["names"]) == cells(KEY["rows"])
 
-    @NOT_BUILT
     def test_fenland_joins_each_pair(self):
         # 47 fields, then one on the next row, header included
         with FENLAND.open(encoding="utf-8", newline="") as f:
             lines = list(csv.reader(f))
         joined = [first + second[:1] for first, second in zip(lines[0::2], lines[1::2], strict=True)]
+        # Its header repeats `Disc %` and `MAND %`, each repeat renamed as any is
+        names = RowKeyParser().deconflict(columns=joined[0])
         model, df = read(FENLAND, {"rowsPerRecord": [47, 1]})
-        assert [c.name for c in model.columns] == joined[0]
+        assert [c.name for c in model.columns] == names
         assert model.index == len(joined) - 1 == 50
         assert df[ROW].tolist() == list(range(50))
-        assert rows(df, joined[0]) == cells(joined[1:])
+        assert rows(df, names) == cells(joined[1:])
 
-    @NOT_BUILT
     def test_a_quoted_line_break_stays_in_its_cell(self, tmp_path):
         lines = [*PAIRS[:2], ["p1", "two\nlines", "r1"], ["s1", "", ""]]
         model, df = read(write(tmp_path, lines), {"rowsPerRecord": [3, 1]})
         assert rows(df, ["a", "b", "c", "d"]) == [["p1", "two\nlines", "r1", "s1"]]
 
 
-# The message names the declaration and the line, as a text editor numbers it, where the file stops fitting it
-REFUSED = pytest.mark.xfail(strict=True, raises=AssertionError, reason="the reader takes no dialect")
-
-
 class TestBrokenRecords:
-    @REFUSED
+    """The message names the declaration and the line, as a text editor numbers it, where the file stops fitting it."""
+
     def test_a_continuation_with_values_past_its_fields_is_refused(self, tmp_path):
         # `p1` has lost its continuation, so `p2, q2, r2` on line 4 would be read as it
         lines = [*PAIRS[:3], *PAIRS[4:]]
         with pytest.raises(ValueError, match=r"(?s)rowsPerRecord.*\bline 4\b|\bline 4\b.*rowsPerRecord"):
             read(write(tmp_path, lines), {"rowsPerRecord": [3, 1]})
 
-    @REFUSED
     def test_a_record_without_its_continuation_is_refused(self, tmp_path):
         # The file ends after `p2`'s first row, on line 5
         with pytest.raises(ValueError, match=r"(?s)rowsPerRecord.*\bline 5\b|\bline 5\b.*rowsPerRecord"):

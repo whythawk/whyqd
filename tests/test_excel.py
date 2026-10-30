@@ -25,8 +25,10 @@ LAYOUTS = DATA / "synthetic-layouts"
 WORKBOOKS = json.loads((LAYOUTS / "answer-key.json").read_text(encoding="utf-8"))["workbook"]
 LAYOUT = WORKBOOKS["layouts.xlsx"]
 ROW = RowKeyParser.ROW
-# Today pandas' `read_excel` refuses `dialect`, and a data source keeps no dialect
-NOT_BUILT = pytest.mark.xfail(strict=True, raises=(AssertionError, TypeError), reason="the reader takes no dialect")
+# Today a workbook is refused a `dialect`, and its data source keeps none
+NOT_BUILT = pytest.mark.xfail(
+    strict=True, raises=(AssertionError, ValueError), reason="a workbook is not yet read by a dialect"
+)
 
 
 def derive(
@@ -123,7 +125,7 @@ class TestSheets:
         model, df = sheet(models, "Titled")
         assert [c.name for c in model.columns] == LAYOUT["Titled"]["names"]
 
-    @pytest.mark.xfail(strict=True, raises=TypeError, reason="the reader takes no dialect")
+    @pytest.mark.xfail(strict=True, raises=AssertionError, reason="a workbook is not yet read by a dialect")
     def test_a_merged_header_without_names_is_refused(self):
         with pytest.raises(ValueError, match=r"(?s)headerRowCount.*\bnames\b"):
             derive(LAYOUTS / "layouts.xlsx", "XLSX", [{"sheet": "MergedHeader", "headerRowCount": 2}])

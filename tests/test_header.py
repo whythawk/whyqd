@@ -22,8 +22,8 @@ LAYOUTS = DATA / "synthetic-layouts"
 KEY = json.loads((LAYOUTS / "answer-key.json").read_text(encoding="utf-8"))["csv"]
 WORLD_BANK = DATA / "working_test_world_bank_data.xlsx"
 ROW = RowKeyParser.ROW
-# Today the dialect reaches pandas' reader as a keyword it refuses
-NOT_BUILT = pytest.mark.xfail(strict=True, raises=(TypeError, ValueError), reason="the reader takes no dialect")
+# A workbook is read by the dialect once its own reader is built
+NOT_BUILT = pytest.mark.xfail(strict=True, raises=ValueError, reason="a workbook is not yet read by a dialect")
 
 
 def table(datasource: qd.DataSourceDefinition, index: int | None = None):
@@ -36,6 +36,10 @@ def cells(rows: list[list[str]]) -> list[list[str | None]]:
     return [[c if c != "" else None for c in row] for row in rows]
 
 
+def values(df: pd.DataFrame) -> list[list[str | None]]:
+    return [[None if pd.isna(c) else c for c in row] for row in df.values.tolist()]
+
+
 def write(tmp_path: Path, text: str) -> Path:
     source = tmp_path / "source.csv"
     source.write_text(text, encoding="utf-8")
@@ -43,7 +47,6 @@ def write(tmp_path: Path, text: str) -> Path:
 
 
 class TestHeader:
-    @NOT_BUILT
     def test_rows_above_the_header_leave_the_table(self):
         case = KEY["title-above.csv"]
         datasource = qd.DataSourceDefinition()
@@ -51,7 +54,7 @@ class TestHeader:
         df = table(datasource)
         assert [c.name for c in datasource.get.columns] == case["names"]
         assert df[ROW].tolist() == list(range(len(case["rows"])))
-        assert df[case["names"]].values.tolist() == cells(case["rows"])
+        assert values(df[case["names"]]) == cells(case["rows"])
 
     @NOT_BUILT
     def test_each_sheet_takes_its_own_dialect(self):
@@ -63,7 +66,6 @@ class TestHeader:
         assert df["Country Name"].iloc[0] == "Aruba"
         assert "Country Name" not in df["Country Name"].tolist()
 
-    @NOT_BUILT
     def test_no_header_row_is_named_by_position(self, tmp_path):
         datasource = qd.DataSourceDefinition()
         datasource.derive_model(source=write(tmp_path, "a,b\n1,2\n"), mimetype="CSV", dialect={"headerRowCount": 0})
@@ -72,7 +74,6 @@ class TestHeader:
         assert df[ROW].tolist() == [0, 1]
         assert df[["column_0", "column_1"]].values.tolist() == [["a", "b"], ["1", "2"]]
 
-    @NOT_BUILT
     def test_no_header_row_takes_the_names_given(self, tmp_path):
         datasource = qd.DataSourceDefinition()
         source = write(tmp_path, "a,b\n1,2\n")
@@ -81,7 +82,6 @@ class TestHeader:
         assert datasource.get.dialect.headerRowCount == 0
         assert df[["x", "y"]].values.tolist() == [["a", "b"], ["1", "2"]]
 
-    @NOT_BUILT
     def test_a_header_over_two_rows_takes_the_names_given(self, tmp_path):
         datasource = qd.DataSourceDefinition()
         source = write(tmp_path, "Rate,Rate\nfrom,to\n1,2\n")
@@ -90,21 +90,18 @@ class TestHeader:
         assert df[ROW].tolist() == [0]
         assert df[["start", "end"]].values.tolist() == [["1", "2"]]
 
-    @pytest.mark.xfail(strict=True, raises=AssertionError, reason="the reader takes no dialect")
     def test_a_header_over_two_rows_without_names_is_refused(self, tmp_path):
         datasource = qd.DataSourceDefinition()
         source = write(tmp_path, "Rate,Rate\nfrom,to\n1,2\n")
         with pytest.raises(ValueError, match=r"(?s)headerRowCount.*\bnames\b"):
             datasource.derive_model(source=source, mimetype="CSV", dialect={"headerRowCount": 2})
 
-    @pytest.mark.xfail(strict=True, raises=AssertionError, reason="the reader takes no dialect")
     def test_an_unknown_setting_is_refused_naming_those_known(self, tmp_path):
         datasource = qd.DataSourceDefinition()
         with pytest.raises(ValueError, match="skipRows"):
             datasource.derive_model(source=write(tmp_path, "a\n1\n"), mimetype="CSV", dialect={"skiprows": 1})
 
     @pytest.mark.parametrize("setting", [{"header": 3}, {"quoting": 1}])
-    @pytest.mark.xfail(strict=True, raises=pytest.fail.Exception, reason="pandas' keywords still reach the reader")
     def test_a_reader_keyword_is_refused_naming_the_dialect(self, tmp_path, setting):
         datasource = qd.DataSourceDefinition()
         with pytest.raises(TypeError, match="dialect"):

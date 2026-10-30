@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: BSD-3-Clause
 from pathlib import Path
-import csv
 import pandas as pd
+import pytest
 from pydantic import AnyUrl
 
 import whyqd as qd
@@ -74,10 +74,16 @@ class TestDataSource:
         datasource.derive_model(source=DATA["CTHULHU"], mimetype=MIMETYPE, header=None)
         datasource.validate()
 
-    def test_attribute_variations(self):
+    def test_csv_verifies_by_its_bytes(self, tmp_path):
         datasource = qd.DataSourceDefinition()
-        datasource.derive_model(source=DATA["CSV"], mimetype=CSVTYPE, quoting=csv.QUOTE_ALL)
-        datasource.validate()
+        datasource.derive_model(source=DATA["CSV"], mimetype=CSVTYPE)
+        assert datasource.get.get_checksum("table-1x") is None
+        assert datasource.validate()
+        changed = tmp_path / "changed.csv"
+        changed.write_bytes(DATA["CSV"].read_bytes() + b"\n")
+        datasource.get.path = str(changed)
+        with pytest.raises(AssertionError):
+            datasource.validate()
 
     def test_coerce_keeps_rows_on_any_index(self):
         # Actions can leave a frame indexed by labels rather than 0..n; coercion must keep every value in its row

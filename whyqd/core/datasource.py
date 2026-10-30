@@ -5,7 +5,7 @@ from pathlib import Path
 from pydantic import Json
 
 from whyqd.dtypes import ChecksumContent, MimeType
-from whyqd.models import ChecksumModel, DataSourceModel, CitationModel
+from whyqd.models import ChecksumModel, DataSourceModel, CitationModel, DialectModel
 from whyqd.core.base import BaseDefinition
 from whyqd.config.settings import settings
 
@@ -108,24 +108,31 @@ class DataSourceDefinition(BaseDefinition):
         *,
         source: Path | str,
         mimetype: str | MimeType,
+        dialect: DialectModel | dict | list[dict] | None = None,
+        names: list[str] | None = None,
         header: int | list[int | None] | None = 0,
         **attributes,
     ) -> DataSourceModel | list[DataSourceModel]:
-        """Derive a data model schema (or list) from a data source. All columns will be coerced to `string` type to
-        preserve data quality even though this is far less efficient.
+        """Derive a data model schema (or list) from a data source. Every cell is read as its text.
 
         Parameters:
           source:  Source filename.
-          mimetype:  Pandas can read a diversity of mimetypes. **whyqd** supports `xls`, `xlsx`, `csv`, `parquet` and `feather`.
-          header:  Row (0-indexed) to use for the column labels of the parsed DataFrame. If there are multiple sheets, then
-                    a list of integers should be provided. If `header` is `None`, row 0 will be treated as values and a
-                    set of field names will be generated indexed to the number of data columns.
-          attributes: dict of specific `mimetype` related Pandas attributes. Use sparingly.
+          mimetype:  **whyqd** supports `xls`, `xlsx`, `csv`, `parquet` and `feather`.
+          dialect: How a CSV is written, so it can be read: the dialect of CSV on the Web, as `DialectModel` describes
+                   it. Undeclared, each setting takes its default; the encoding, undeclared, is settled by whyqd's
+                   ladder and recorded.
+          names: One name per column, for a CSV with no header row or a header over several rows.
+          header:  Not for a CSV. Row (0-indexed) to use for the column labels of the parsed DataFrame. If there are
+                    multiple sheets, then a list of integers should be provided. If `header` is `None`, row 0 will be
+                    treated as values and a set of field names will be generated indexed to the number of data columns.
+          attributes: Not for a CSV. dict of specific `mimetype` related Pandas attributes. Use sparingly.
 
         Returns:
           List of DataSourceModel, or DataSourceModel
         """
-        self.model = self.reader.derive_data_model(source=source, mimetype=mimetype, header=header, **attributes)
+        self.model = self.reader.derive_data_model(
+            source=source, mimetype=mimetype, dialect=dialect, names=names, header=header, **attributes
+        )
 
     #########################################################################################
     # VALIDATION UTILITIES
@@ -135,7 +142,8 @@ class DataSourceDefinition(BaseDefinition):
         """Verify the source data against the data source's checksum.
 
         A checksum of the table as 1.x read it (`table-1x`) verifies through 1.x's own read, which needs the
-        `verify-1x` extra. Once it verifies, the file's byte hash is added beside it.
+        `verify-1x` extra. Once it verifies, the file's byte hash is added beside it. A data source without one verifies
+        by its byte hash.
 
         Raises:
           ImportError: If a 1.x checksum needs verifying and the `verify-1x` extra is not installed.
@@ -152,7 +160,11 @@ class DataSourceDefinition(BaseDefinition):
         for m in models:
             table = m.get_checksum(ChecksumContent.TABLE_1X)
             if table is None:
-                raise ValueError(f"`{m.path}` has no checksum this whyqd can verify: it verifies `table-1x` only.")
+                if (hashed := m.get_checksum(ChecksumContent.BYTES)) is None:
+                    raise ValueError(f"`{m.path}` has no checksum this whyqd can verify: `table-1x` or `bytes`.")
+                if self.core.get_checksum(source=m.path) != hashed:
+                    raise AssertionError(f"`{m.path}` is not the file its byte hash was taken from.")
+                continue
             try:
                 from whyqd.parsers.v1 import V1ChecksumParser
             except ImportError as e:

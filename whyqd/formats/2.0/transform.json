@@ -859,10 +859,9 @@
     "EncodingStep": {
       "enum": [
         "bom",
+        "declared",
         "utf-8",
-        "detected",
-        "latin-1",
-        "declared"
+        "windows-1252"
       ],
       "title": "EncodingStep",
       "type": "string"

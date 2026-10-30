@@ -1,5 +1,5 @@
 {
-  "generated": "2026-10-27T19:29:38",
+  "generated": "2026-10-30T15:24:28",
   "csv": {
     "title-above.csv": {
       "lines": [
@@ -941,6 +941,749 @@
         "why": "every second line has one value, in its first field"
       },
       "refuse": "a record without its second line, or a second line with values past its first field"
+    },
+    "two-line-records-unpadded.csv": {
+      "lines": [
+        [
+          "Propref",
+          "Property Address",
+          "Ret Code",
+          "R/V",
+          "Start Date"
+        ],
+        [
+          "Contact"
+        ],
+        [
+          "NN00101700004185",
+          "Unit 5, Orpheus House, Calleva Park, Aldermaston, Reading, RG7 8TA",
+          "SBR3",
+          "13250",
+          "04/01/2024"
+        ],
+        [
+          "N/A"
+        ],
+        [
+          "NN03905740027005",
+          "27-31, Meadow Road, Newbury, RG14 7AH",
+          "SBRE",
+          "10250",
+          "13/04/2024"
+        ],
+        [
+          " "
+        ],
+        [
+          "NN04105100003115",
+          "At Station Road, Pangbourne, Reading, RG8 7AN",
+          "RH0",
+          "8600",
+          "05/02/2024"
+        ],
+        [
+          "Parish Clerk"
+        ],
+        [
+          "NN0010170000401A",
+          "1, Andromeda House, Calleva Park, Aldermaston, Reading, RG7 8AN",
+          "SBR1",
+          "16250",
+          "25/12/2024"
+        ],
+        [
+          ""
+        ],
+        [
+          "NN0010420000111A",
+          "Aldermaston Parish Hall, The Street, Aldermaston, Reading, Berkshire, RG7 4LW",
+          "MAN",
+          "5400",
+          "01/02/2026"
+        ],
+        [
+          "N/A"
+        ],
+        [
+          "NN00201200001117",
+          "The Bell Inn, Aldworth, Reading, RG8 9SE",
+          "PU15",
+          "24000",
+          "30/01/2026"
+        ],
+        [
+          "  Landlord "
+        ]
+      ],
+      "problem": "each record over two lines, the second holding its one value and no delimiters, so an empty value is a blank line",
+      "dialect": {
+        "rowsPerRecord": [
+          5,
+          1
+        ]
+      },
+      "names": [
+        "Propref",
+        "Property Address",
+        "Ret Code",
+        "R/V",
+        "Start Date",
+        "Contact"
+      ],
+      "rows": [
+        [
+          "NN00101700004185",
+          "Unit 5, Orpheus House, Calleva Park, Aldermaston, Reading, RG7 8TA",
+          "SBR3",
+          "13250",
+          "04/01/2024",
+          "N/A"
+        ],
+        [
+          "NN03905740027005",
+          "27-31, Meadow Road, Newbury, RG14 7AH",
+          "SBRE",
+          "10250",
+          "13/04/2024",
+          " "
+        ],
+        [
+          "NN04105100003115",
+          "At Station Road, Pangbourne, Reading, RG8 7AN",
+          "RH0",
+          "8600",
+          "05/02/2024",
+          "Parish Clerk"
+        ],
+        [
+          "NN0010170000401A",
+          "1, Andromeda House, Calleva Park, Aldermaston, Reading, RG7 8AN",
+          "SBR1",
+          "16250",
+          "25/12/2024",
+          ""
+        ],
+        [
+          "NN0010420000111A",
+          "Aldermaston Parish Hall, The Street, Aldermaston, Reading, Berkshire, RG7 4LW",
+          "MAN",
+          "5400",
+          "01/02/2026",
+          "N/A"
+        ],
+        [
+          "NN00201200001117",
+          "The Bell Inn, Aldworth, Reading, RG8 9SE",
+          "PU15",
+          "24000",
+          "30/01/2026",
+          "  Landlord "
+        ]
+      ],
+      "propose": {
+        "rowsPerRecord": [
+          5,
+          1
+        ],
+        "why": "every second line has at most one value"
+      }
+    },
+    "backslash-escape.csv": {
+      "lines": [
+        [
+          "Propref",
+          "Property Address",
+          "Ret Code",
+          "R/V",
+          "Start Date",
+          "Contact"
+        ],
+        [
+          "NN00101700004185",
+          "Unit 5, Orpheus House, Calleva Park, Aldermaston, Reading, RG7 8TA",
+          "SBR3",
+          "13250",
+          "04/01/2024",
+          "N/A"
+        ],
+        [
+          "NN03905740027005",
+          "27-31, Meadow Road, Newbury, RG14 7AH",
+          "SBRE",
+          "10250",
+          "13/04/2024",
+          " "
+        ],
+        [
+          "NN04105100003115",
+          "The \"Old\" Mill, Station Road, Pangbourne, Reading, RG8 7AN",
+          "RH0",
+          "8600",
+          "05/02/2024",
+          "Parish Clerk"
+        ],
+        [
+          "NN0010170000401A",
+          "1, Andromeda House, Calleva Park, Aldermaston, Reading, RG7 8AN",
+          "SBR1",
+          "16250",
+          "25/12/2024",
+          ""
+        ],
+        [
+          "NN0010420000111A",
+          "Aldermaston Parish Hall, The Street, Aldermaston, Reading, Berkshire, RG7 4LW",
+          "MAN",
+          "5400",
+          "01/02/2026",
+          "N/A"
+        ],
+        [
+          "NN00201200001117",
+          "The Bell Inn, Aldworth, Reading, RG8 9SE",
+          "PU15",
+          "24000",
+          "30/01/2026",
+          "  Landlord "
+        ]
+      ],
+      "problem": "a quote inside a quoted cell escaped by a backslash, not doubled",
+      "dialect": {
+        "doubleQuote": false
+      },
+      "names": [
+        "Propref",
+        "Property Address",
+        "Ret Code",
+        "R/V",
+        "Start Date",
+        "Contact"
+      ],
+      "rows": [
+        [
+          "NN00101700004185",
+          "Unit 5, Orpheus House, Calleva Park, Aldermaston, Reading, RG7 8TA",
+          "SBR3",
+          "13250",
+          "04/01/2024",
+          "N/A"
+        ],
+        [
+          "NN03905740027005",
+          "27-31, Meadow Road, Newbury, RG14 7AH",
+          "SBRE",
+          "10250",
+          "13/04/2024",
+          " "
+        ],
+        [
+          "NN04105100003115",
+          "The \"Old\" Mill, Station Road, Pangbourne, Reading, RG8 7AN",
+          "RH0",
+          "8600",
+          "05/02/2024",
+          "Parish Clerk"
+        ],
+        [
+          "NN0010170000401A",
+          "1, Andromeda House, Calleva Park, Aldermaston, Reading, RG7 8AN",
+          "SBR1",
+          "16250",
+          "25/12/2024",
+          ""
+        ],
+        [
+          "NN0010420000111A",
+          "Aldermaston Parish Hall, The Street, Aldermaston, Reading, Berkshire, RG7 4LW",
+          "MAN",
+          "5400",
+          "01/02/2026",
+          "N/A"
+        ],
+        [
+          "NN00201200001117",
+          "The Bell Inn, Aldworth, Reading, RG8 9SE",
+          "PU15",
+          "24000",
+          "30/01/2026",
+          "  Landlord "
+        ]
+      ],
+      "propose": {
+        "doubleQuote": false,
+        "why": "a backslash before a quote inside a quoted cell"
+      }
+    },
+    "cr-line-ends.csv": {
+      "lines": [
+        [
+          "Propref",
+          "Property Address",
+          "Ret Code",
+          "R/V",
+          "Start Date",
+          "Contact"
+        ],
+        [
+          "NN00101700004185",
+          "Unit 5, Orpheus House, Calleva Park, Aldermaston, Reading, RG7 8TA",
+          "SBR3",
+          "13250",
+          "04/01/2024",
+          "N/A"
+        ],
+        [
+          "NN03905740027005",
+          "27-31, Meadow Road, Newbury, RG14 7AH",
+          "SBRE",
+          "10250",
+          "13/04/2024",
+          " "
+        ],
+        [
+          "NN04105100003115",
+          "At Station Road, Pangbourne, Reading, RG8 7AN",
+          "RH0",
+          "8600",
+          "05/02/2024",
+          "Parish Clerk"
+        ],
+        [
+          "NN0010170000401A",
+          "1, Andromeda House, Calleva Park, Aldermaston, Reading, RG7 8AN",
+          "SBR1",
+          "16250",
+          "25/12/2024",
+          ""
+        ],
+        [
+          "NN0010420000111A",
+          "Aldermaston Parish Hall, The Street, Aldermaston, Reading, Berkshire, RG7 4LW",
+          "MAN",
+          "5400",
+          "01/02/2026",
+          "N/A"
+        ],
+        [
+          "NN00201200001117",
+          "The Bell Inn, Aldworth, Reading, RG8 9SE",
+          "PU15",
+          "24000",
+          "30/01/2026",
+          "  Landlord "
+        ]
+      ],
+      "problem": "every line ending `\\r` alone, as old Mac files do",
+      "dialect": {},
+      "names": [
+        "Propref",
+        "Property Address",
+        "Ret Code",
+        "R/V",
+        "Start Date",
+        "Contact"
+      ],
+      "rows": [
+        [
+          "NN00101700004185",
+          "Unit 5, Orpheus House, Calleva Park, Aldermaston, Reading, RG7 8TA",
+          "SBR3",
+          "13250",
+          "04/01/2024",
+          "N/A"
+        ],
+        [
+          "NN03905740027005",
+          "27-31, Meadow Road, Newbury, RG14 7AH",
+          "SBRE",
+          "10250",
+          "13/04/2024",
+          " "
+        ],
+        [
+          "NN04105100003115",
+          "At Station Road, Pangbourne, Reading, RG8 7AN",
+          "RH0",
+          "8600",
+          "05/02/2024",
+          "Parish Clerk"
+        ],
+        [
+          "NN0010170000401A",
+          "1, Andromeda House, Calleva Park, Aldermaston, Reading, RG7 8AN",
+          "SBR1",
+          "16250",
+          "25/12/2024",
+          ""
+        ],
+        [
+          "NN0010420000111A",
+          "Aldermaston Parish Hall, The Street, Aldermaston, Reading, Berkshire, RG7 4LW",
+          "MAN",
+          "5400",
+          "01/02/2026",
+          "N/A"
+        ],
+        [
+          "NN00201200001117",
+          "The Bell Inn, Aldworth, Reading, RG8 9SE",
+          "PU15",
+          "24000",
+          "30/01/2026",
+          "  Landlord "
+        ]
+      ]
+    },
+    "header-narrower.csv": {
+      "lines": [
+        [
+          "Propref",
+          "Property Address",
+          "Ret Code",
+          "R/V",
+          "Start Date"
+        ],
+        [
+          "NN00101700004185",
+          "Unit 5, Orpheus House, Calleva Park, Aldermaston, Reading, RG7 8TA",
+          "SBR3",
+          "13250",
+          "04/01/2024",
+          "N/A"
+        ],
+        [
+          "NN03905740027005",
+          "27-31, Meadow Road, Newbury, RG14 7AH",
+          "SBRE",
+          "10250",
+          "13/04/2024",
+          " "
+        ],
+        [
+          "NN04105100003115",
+          "At Station Road, Pangbourne, Reading, RG8 7AN",
+          "RH0",
+          "8600",
+          "05/02/2024",
+          "Parish Clerk"
+        ],
+        [
+          "NN0010170000401A",
+          "1, Andromeda House, Calleva Park, Aldermaston, Reading, RG7 8AN",
+          "SBR1",
+          "16250",
+          "25/12/2024",
+          ""
+        ],
+        [
+          "NN0010420000111A",
+          "Aldermaston Parish Hall, The Street, Aldermaston, Reading, Berkshire, RG7 4LW",
+          "MAN",
+          "5400",
+          "01/02/2026",
+          "N/A"
+        ],
+        [
+          "NN00201200001117",
+          "The Bell Inn, Aldworth, Reading, RG8 9SE",
+          "PU15",
+          "24000",
+          "30/01/2026",
+          "  Landlord "
+        ]
+      ],
+      "problem": "the header a field narrower than the data, so the last column has no name",
+      "dialect": {},
+      "names": [
+        "Propref",
+        "Property Address",
+        "Ret Code",
+        "R/V",
+        "Start Date",
+        "Unnamed: 5"
+      ],
+      "rows": [
+        [
+          "NN00101700004185",
+          "Unit 5, Orpheus House, Calleva Park, Aldermaston, Reading, RG7 8TA",
+          "SBR3",
+          "13250",
+          "04/01/2024",
+          "N/A"
+        ],
+        [
+          "NN03905740027005",
+          "27-31, Meadow Road, Newbury, RG14 7AH",
+          "SBRE",
+          "10250",
+          "13/04/2024",
+          " "
+        ],
+        [
+          "NN04105100003115",
+          "At Station Road, Pangbourne, Reading, RG8 7AN",
+          "RH0",
+          "8600",
+          "05/02/2024",
+          "Parish Clerk"
+        ],
+        [
+          "NN0010170000401A",
+          "1, Andromeda House, Calleva Park, Aldermaston, Reading, RG7 8AN",
+          "SBR1",
+          "16250",
+          "25/12/2024",
+          ""
+        ],
+        [
+          "NN0010420000111A",
+          "Aldermaston Parish Hall, The Street, Aldermaston, Reading, Berkshire, RG7 4LW",
+          "MAN",
+          "5400",
+          "01/02/2026",
+          "N/A"
+        ],
+        [
+          "NN00201200001117",
+          "The Bell Inn, Aldworth, Reading, RG8 9SE",
+          "PU15",
+          "24000",
+          "30/01/2026",
+          "  Landlord "
+        ]
+      ],
+      "renamed": "the column past the header by position, as an empty name is"
+    },
+    "first-row-narrower.csv": {
+      "lines": [
+        [
+          "NN00101700004185",
+          "Unit 5, Orpheus House, Calleva Park, Aldermaston, Reading, RG7 8TA",
+          "SBR3",
+          "13250",
+          "04/01/2024"
+        ],
+        [
+          "NN03905740027005",
+          "27-31, Meadow Road, Newbury, RG14 7AH",
+          "SBRE",
+          "10250",
+          "13/04/2024",
+          " "
+        ],
+        [
+          "NN04105100003115",
+          "At Station Road, Pangbourne, Reading, RG8 7AN",
+          "RH0",
+          "8600",
+          "05/02/2024",
+          "Parish Clerk"
+        ],
+        [
+          "NN0010170000401A",
+          "1, Andromeda House, Calleva Park, Aldermaston, Reading, RG7 8AN",
+          "SBR1",
+          "16250",
+          "25/12/2024",
+          ""
+        ],
+        [
+          "NN0010420000111A",
+          "Aldermaston Parish Hall, The Street, Aldermaston, Reading, Berkshire, RG7 4LW",
+          "MAN",
+          "5400",
+          "01/02/2026",
+          "N/A"
+        ],
+        [
+          "NN00201200001117",
+          "The Bell Inn, Aldworth, Reading, RG8 9SE",
+          "PU15",
+          "24000",
+          "30/01/2026",
+          "  Landlord "
+        ]
+      ],
+      "problem": "no header, and the first row a field narrower than the rest",
+      "dialect": {
+        "headerRowCount": 0
+      },
+      "names": [
+        "column_0",
+        "column_1",
+        "column_2",
+        "column_3",
+        "column_4",
+        "column_5"
+      ],
+      "rows": [
+        [
+          "NN00101700004185",
+          "Unit 5, Orpheus House, Calleva Park, Aldermaston, Reading, RG7 8TA",
+          "SBR3",
+          "13250",
+          "04/01/2024",
+          ""
+        ],
+        [
+          "NN03905740027005",
+          "27-31, Meadow Road, Newbury, RG14 7AH",
+          "SBRE",
+          "10250",
+          "13/04/2024",
+          " "
+        ],
+        [
+          "NN04105100003115",
+          "At Station Road, Pangbourne, Reading, RG8 7AN",
+          "RH0",
+          "8600",
+          "05/02/2024",
+          "Parish Clerk"
+        ],
+        [
+          "NN0010170000401A",
+          "1, Andromeda House, Calleva Park, Aldermaston, Reading, RG7 8AN",
+          "SBR1",
+          "16250",
+          "25/12/2024",
+          ""
+        ],
+        [
+          "NN0010420000111A",
+          "Aldermaston Parish Hall, The Street, Aldermaston, Reading, Berkshire, RG7 4LW",
+          "MAN",
+          "5400",
+          "01/02/2026",
+          "N/A"
+        ],
+        [
+          "NN00201200001117",
+          "The Bell Inn, Aldworth, Reading, RG8 9SE",
+          "PU15",
+          "24000",
+          "30/01/2026",
+          "  Landlord "
+        ]
+      ]
+    },
+    "row-narrower.csv": {
+      "lines": [
+        [
+          "Propref",
+          "Property Address",
+          "Ret Code",
+          "R/V",
+          "Start Date",
+          "Contact"
+        ],
+        [
+          "NN00101700004185",
+          "Unit 5, Orpheus House, Calleva Park, Aldermaston, Reading, RG7 8TA",
+          "SBR3",
+          "13250",
+          "04/01/2024",
+          "N/A"
+        ],
+        [
+          "NN03905740027005",
+          "27-31, Meadow Road, Newbury, RG14 7AH",
+          "SBRE",
+          "10250",
+          "13/04/2024",
+          " "
+        ],
+        [
+          "NN04105100003115",
+          "At Station Road, Pangbourne, Reading, RG8 7AN",
+          "RH0",
+          "8600"
+        ],
+        [
+          "NN0010170000401A",
+          "1, Andromeda House, Calleva Park, Aldermaston, Reading, RG7 8AN",
+          "SBR1",
+          "16250",
+          "25/12/2024",
+          ""
+        ],
+        [
+          "NN0010420000111A",
+          "Aldermaston Parish Hall, The Street, Aldermaston, Reading, Berkshire, RG7 4LW",
+          "MAN",
+          "5400",
+          "01/02/2026",
+          "N/A"
+        ],
+        [
+          "NN00201200001117",
+          "The Bell Inn, Aldworth, Reading, RG8 9SE",
+          "PU15",
+          "24000",
+          "30/01/2026",
+          "  Landlord "
+        ]
+      ],
+      "problem": "one row two fields narrower than the header, its last cells empty",
+      "dialect": {},
+      "names": [
+        "Propref",
+        "Property Address",
+        "Ret Code",
+        "R/V",
+        "Start Date",
+        "Contact"
+      ],
+      "rows": [
+        [
+          "NN00101700004185",
+          "Unit 5, Orpheus House, Calleva Park, Aldermaston, Reading, RG7 8TA",
+          "SBR3",
+          "13250",
+          "04/01/2024",
+          "N/A"
+        ],
+        [
+          "NN03905740027005",
+          "27-31, Meadow Road, Newbury, RG14 7AH",
+          "SBRE",
+          "10250",
+          "13/04/2024",
+          " "
+        ],
+        [
+          "NN04105100003115",
+          "At Station Road, Pangbourne, Reading, RG8 7AN",
+          "RH0",
+          "8600",
+          "",
+          ""
+        ],
+        [
+          "NN0010170000401A",
+          "1, Andromeda House, Calleva Park, Aldermaston, Reading, RG7 8AN",
+          "SBR1",
+          "16250",
+          "25/12/2024",
+          ""
+        ],
+        [
+          "NN0010420000111A",
+          "Aldermaston Parish Hall, The Street, Aldermaston, Reading, Berkshire, RG7 4LW",
+          "MAN",
+          "5400",
+          "01/02/2026",
+          "N/A"
+        ],
+        [
+          "NN00201200001117",
+          "The Bell Inn, Aldworth, Reading, RG8 9SE",
+          "PU15",
+          "24000",
+          "30/01/2026",
+          "  Landlord "
+        ]
+      ]
     },
     "hostile-headers.csv": {
       "lines": [

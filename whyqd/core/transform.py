@@ -171,15 +171,30 @@ class TransformDefinition(BaseDefinition):
 
         # Prepare
         self.set(transform=transform)
-        if data_source is not None:
-            source_df = v1.read(source=data_source, mimetype=mimetype_source, preserve=self.model.dataSource.preserve)
-        else:
-            source_df = v1.read(source=self.model.dataSource)
         # Validate source
         source_checksum = self.model.dataSource.get_checksum(ChecksumContent.TABLE_1X)
-        if not source_checksum:
-            raise ValueError("Validation failed. Data source has no saved checksum.")
-        crosscheck(source_df, source_checksum)
+        if source_checksum:
+            if data_source is not None:
+                source_df = v1.read(
+                    source=data_source, mimetype=mimetype_source, preserve=self.model.dataSource.preserve
+                )
+            else:
+                source_df = v1.read(source=self.model.dataSource)
+            crosscheck(source_df, source_checksum)
+        else:
+            model = self.model.dataSource
+            if isinstance(data_source, DataSourceModel):
+                model = data_source
+            elif isinstance(data_source, dict):
+                model = DataSourceModel(**data_source)
+            elif data_source is not None:
+                model = model.model_copy(update={"path": str(data_source)})
+            hashed = model.get_checksum(ChecksumContent.BYTES)
+            if not hashed:
+                raise ValueError("Validation failed. Data source has no saved checksum.")
+            if self.core.get_checksum(source=model.path) != hashed:
+                raise ValueError(f"Validation failed. `{model.path}` is not the file its byte hash was taken from.")
+            source_df = self.reader.get(source=model)
         # Validate destination
         destination_df = v1.read(
             source=data_destination, mimetype=mimetype_destination, preserve=self.model.dataDestination.preserve

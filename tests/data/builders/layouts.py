@@ -127,6 +127,52 @@ def csv_cases():
         "propose": {"rowsPerRecord": [5, 1], "why": "every second line has one value, in its first field"},
         "refuse": "a record without its second line, or a second line with values past its first field"})
 
+    # The same records with nothing after a record's one value: a lone empty value is a blank line
+    lines = [first, [HEADER[5]]]
+    for r in RECORDS:
+        lines += [r[:5], [r[5]]]
+    cases["two-line-records-unpadded.csv"] = (lines, None, {
+        "problem": "each record over two lines, the second holding its one value and no delimiters, so an empty "
+                   "value is a blank line", "dialect": {"rowsPerRecord": [5, 1]}, "names": HEADER, "rows": RECORDS,
+        "propose": {"rowsPerRecord": [5, 1], "why": "every second line has at most one value"}})
+
+    records = [r.copy() for r in RECORDS]
+    records[2][1] = 'The "Old" Mill, Station Road, Pangbourne, Reading, RG8 7AN'
+    lines = [HEADER, *records]
+
+    def escaped(value):
+        if any(c in value for c in ',"\n\r') or value != value.strip():
+            return '"' + value.replace('"', '\\"') + '"'
+        return value
+
+    text = "".join(",".join(escaped(v) for v in line) + "\r\n" for line in lines)
+    cases["backslash-escape.csv"] = (lines, text, {
+        "problem": "a quote inside a quoted cell escaped by a backslash, not doubled",
+        "dialect": {"doubleQuote": False}, "names": HEADER, "rows": records,
+        "propose": {"doubleQuote": False, "why": "a backslash before a quote inside a quoted cell"}})
+
+    lines = [HEADER, *RECORDS]
+    cases["cr-line-ends.csv"] = (lines, csv_text(lines, eol="\r"), {
+        "problem": "every line ending `\\r` alone, as old Mac files do", "dialect": {}, "names": HEADER,
+        "rows": RECORDS})
+
+    lines = [HEADER[:5], *RECORDS]
+    cases["header-narrower.csv"] = (lines, None, {
+        "problem": "the header a field narrower than the data, so the last column has no name",
+        "dialect": {}, "names": [*HEADER[:5], "Unnamed: 5"], "rows": RECORDS,
+        "renamed": "the column past the header by position, as an empty name is"})
+
+    lines = [RECORDS[0][:5], *RECORDS[1:]]
+    cases["first-row-narrower.csv"] = (lines, None, {
+        "problem": "no header, and the first row a field narrower than the rest",
+        "dialect": {"headerRowCount": 0}, "names": [f"column_{i}" for i in range(width)],
+        "rows": padded(lines, width)})
+
+    lines = [HEADER, *RECORDS[:2], RECORDS[2][:4], *RECORDS[3:]]
+    cases["row-narrower.csv"] = (lines, None, {
+        "problem": "one row two fields narrower than the header, its last cells empty",
+        "dialect": {}, "names": HEADER, "rows": padded(lines[1:], width)})
+
     rows = [[f"v{i}{j}" for j in range(len(HOSTILE))] for i in range(2)]
     lines = [HOSTILE, *rows]
     cases["hostile-headers.csv"] = (lines, None, {

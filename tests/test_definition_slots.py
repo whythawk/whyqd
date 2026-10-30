@@ -13,7 +13,7 @@ SCHEMA = DIRECTORY / "test_schema.schema"
 
 DIALECT = {
     "encoding": "windows-1252",
-    "encodingStep": "detected",
+    "encodingStep": "declared",
     "delimiter": ";",
     "quoteChar": None,
     "doubleQuote": False,

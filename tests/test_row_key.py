@@ -32,15 +32,15 @@ class TestRowKey:
         columns = ["name", "__row__2", "__row__", "__row__.1", "__row__1"]
         assert RowKeyParser().sort_order(columns=columns) == ["__row__", "__row__1", "__row__2"]
 
-    @pytest.mark.parametrize("header", [0, None, 1])
-    def test_numbering_matches_the_read(self, tmp_path, header):
-        # Row numbers that stored DELETE_ROWS and PIVOT_CATEGORIES scripts hold come from this read
+    @pytest.mark.parametrize("dialect", [{}, {"headerRowCount": 0}, {"skipRows": 1}])
+    def test_numbering_matches_the_read(self, tmp_path, dialect):
+        # Row numbers that DELETE_ROWS and PIVOT_CATEGORIES scripts hold come from this read
         source = tmp_path / "rows.csv"
         lines = ["title,", "name,value", "a,1", "b,2"]
         source.write_text("\n".join(lines) + "\n", encoding="utf-8")
         datasource = qd.DataSourceDefinition()
-        datasource.derive_model(source=source, mimetype="CSV", header=header)
+        datasource.derive_model(source=source, mimetype="CSV", dialect=dialect)
         df = DataSourceParser().get(source=datasource.get)
-        start = RowKeyParser().first_position(header=header)
-        assert df.index.tolist() == list(range(len(lines) - start))
-        assert df.iloc[0].tolist()[0] == lines[start].split(",")[0]
+        start = RowKeyParser().first_position(dialect=datasource.get.dialect)
+        assert df[RowKeyParser.ROW].tolist() == df.index.tolist() == list(range(len(lines) - start))
+        assert df.iloc[0].tolist()[1] == lines[start].split(",")[0]
