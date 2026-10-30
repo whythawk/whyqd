@@ -150,6 +150,8 @@ class V1ChecksumParser:
             kwargs["nrows"] = nrows
         if mimetype in [MimeType.XLS, MimeType.XLSX]:
             kwargs["sheet_name"] = sheet_name
+            # The engines 1.x read with, named so a change of pandas' default leaves the read, and its checksums, alone
+            kwargs.setdefault("engine", "xlrd" if mimetype == MimeType.XLS else "openpyxl")
             return self._read_excel(source=source, **kwargs)
         if mimetype == MimeType.CSV:
             return self._read_csv(source=source, **kwargs)
