@@ -32,7 +32,8 @@ jobs:
         sudo locale-gen --keep-existing
         locale -a | grep -qi '^de_DE\.utf8$'
     - name: Install dependencies
-      run: uv sync --locked
+      # every extra, so the tests of each one run
+      run: uv sync --locked --all-extras
     - name: Lint with ruff
       run: |
         # stop the build if there are Python syntax errors or undefined names

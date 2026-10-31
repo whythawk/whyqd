@@ -19,6 +19,9 @@ import pytest
 import whyqd as qd
 from whyqd.parsers import DataSourceParser, RowKeyParser
 
+# Reading a PDF needs the `pdf` extra
+pytest.importorskip("pdfplumber")
+
 DATA = Path(__file__).resolve().parent / "data"
 SOURCE = DATA / "synthetic-layouts" / "pdf-source.pdf"
 KEY = json.loads((DATA / "synthetic-layouts" / "answer-key.json").read_text(encoding="utf-8"))["pdf"]["pdf-source.pdf"]
