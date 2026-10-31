@@ -110,6 +110,7 @@ class TransformDefinition(BaseDefinition):
         self.model.whyqd = whyqd.__version__
         # Validate crosswalk
         self.crosswalk.validate()
+        self.bound(source=self.model.dataSource)
         # Perform crosswalk, coercing to source schema prior to crosswalk
         df = self.reader.get(source=self.model.dataSource)
         df = self.reader.coerce_to_schema(df=df, schema=self.crosswalk.schema_source)
@@ -172,6 +173,13 @@ class TransformDefinition(BaseDefinition):
         # Prepare
         self.set(transform=transform)
         # Validate source
+        model = self.model.dataSource
+        if isinstance(data_source, DataSourceModel):
+            model = data_source
+        elif isinstance(data_source, dict):
+            model = DataSourceModel(**data_source)
+        elif data_source is not None:
+            model = model.model_copy(update={"path": str(data_source)})
         source_checksum = self.model.dataSource.get_checksum(ChecksumContent.TABLE_1X)
         if source_checksum:
             if data_source is not None:
@@ -182,18 +190,10 @@ class TransformDefinition(BaseDefinition):
                 source_df = v1.read(source=self.model.dataSource)
             crosscheck(source_df, source_checksum)
         else:
-            model = self.model.dataSource
-            if isinstance(data_source, DataSourceModel):
-                model = data_source
-            elif isinstance(data_source, dict):
-                model = DataSourceModel(**data_source)
-            elif data_source is not None:
-                model = model.model_copy(update={"path": str(data_source)})
-            hashed = model.get_checksum(ChecksumContent.BYTES)
-            if not hashed:
-                raise ValueError("Validation failed. Data source has no saved checksum.")
-            if self.core.get_checksum(source=model.path) != hashed:
-                raise ValueError(f"Validation failed. `{model.path}` is not the file its byte hash was taken from.")
+            try:
+                self.reader.verify(source=model)
+            except AssertionError as e:
+                raise ValueError(f"Validation failed. {e}") from e
             source_df = self.reader.get(source=model)
         # Validate destination
         destination_df = v1.read(
@@ -205,6 +205,7 @@ class TransformDefinition(BaseDefinition):
         crosscheck(destination_df, destination_checksum)
         # Validate crosswalk, coercing to source schema prior to crosswalk
         self.crosswalk.validate()
+        self.bound(source=model)
         source_df = self.reader.coerce_to_schema(df=source_df, schema=self.crosswalk.schema_source)
         crosswalk_df = self.crosswalk.crud.transform_all(df=source_df)
         destination_names = [
@@ -220,6 +221,27 @@ class TransformDefinition(BaseDefinition):
             )
         crosscheck(crosswalk_df, destination_checksum)
         return True
+
+    def bound(self, *, source: DataSourceModel) -> None:
+        """Refuse a row-level action naming a row past the end of the data source's file, by its `index`, since a
+        schema carried from another file holds no row count.
+
+        Raises:
+          ValueError: Naming the rows past its end, or where the data source has no row count to check them by.
+        """
+        named = self.crosswalk.crud.rows()
+        if not named:
+            return
+        if source.index is None:
+            raise ValueError(
+                f"`{source.name}` has no row count, so the rows the crosswalk names cannot be checked. Derive it "
+                "again. [whyqd:rows-uncounted]"
+            )
+        if past := sorted({r for r in named if not 0 <= r < source.index}):
+            raise ValueError(
+                f"The crosswalk names rows {past} of `{source.name}`, which has {source.index}, numbered from 0. "
+                "Check the rows each action names. [whyqd:row-past-end]"
+            )
 
     #########################################################################################
     # SAVE UTILITIES

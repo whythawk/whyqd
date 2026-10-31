@@ -9,9 +9,13 @@ class TableParser:
     """The grid as a table: the rows below the header, each column named once, each row keyed.
 
     In order: the rows before the header are skipped (`skipRows`); records over several rows are joined
-    (`rowsPerRecord`); the header rows (`headerRowCount`) name the columns and leave the table; the row key is added.
-    Nothing is inferred from the data: every setting is the dialect's, with its defaults.
+    (`rowsPerRecord`); each cell is trimmed (`trim`), one left empty becoming empty; the header rows
+    (`headerRowCount`) name the columns and leave the table; the row key is added. Nothing is inferred from the data:
+    every setting is the dialect's, with its defaults. Frames beside the grid, such as each cell's stored type, take
+    the same rows, so a column can be profiled as its cells are stored.
     """
+
+    TRIM = {True: str.strip, "start": str.lstrip, "end": str.rstrip}
 
     def __init__(self) -> None:
         self.row_key = RowKeyParser()
@@ -24,8 +28,9 @@ class TableParser:
         dialect: DialectModel,
         names: list[str] | None = None,
         place: str = "line",
-    ) -> pl.DataFrame:
-        """The table a grid reads as under its dialect, its first column the row key.
+        beside: list[pl.DataFrame] | None = None,
+    ) -> tuple[pl.DataFrame, list[pl.DataFrame]]:
+        """The table a grid reads as under its dialect, its first column the row key, and the frames beside it.
 
         Parameters
         ----------
@@ -38,6 +43,8 @@ class TableParser:
             One name per column, in place of the header row's; required for a header over several rows.
         place: str, default "line"
             What `lines` counts, as the wrangler would look for it: a text file's `line`, a sheet's `row`.
+        beside: list[pl.DataFrame] | None, default None
+            Frames in the grid's shape, such as each cell's stored type.
 
         Raises
         ------
@@ -46,39 +53,51 @@ class TableParser:
 
         Returns
         -------
-        pl.DataFrame
-            Row `0` is the first row after the header; each column's name is its only name. A grid with no cells
-            gives a table of no columns and no rows.
+        tuple[pl.DataFrame, list[pl.DataFrame]]
+            The table: row `0` is the first row after the header; each column's name is its only name. A grid with no
+            cells gives a table of no columns and no rows. Then each frame beside it, its rows and names the table's,
+            without the row key, and its cells untrimmed.
         """
+        beside = beside or []
         if grid.width == 0:
-            return pl.DataFrame({self.row_key.ROW: []}, schema={self.row_key.ROW: pl.UInt32})
-        grid, lines = grid.slice(dialect.skipRows), lines[dialect.skipRows :]
+            return pl.DataFrame({self.row_key.ROW: []}, schema={self.row_key.ROW: pl.UInt32}), [pl.DataFrame()] * len(beside)
+        frames, lines = [f.slice(dialect.skipRows) for f in [grid, *beside]], lines[dialect.skipRows :]
         if dialect.rowsPerRecord:
-            grid, lines = self.join(grid=grid, lines=lines, fields=dialect.rowsPerRecord, place=place)
-        header, grid = grid.head(dialect.headerRowCount), grid.slice(dialect.headerRowCount)
+            self.fit(grid=frames[0], lines=lines, fields=dialect.rowsPerRecord, place=place)
+            frames = [self.join(grid=f, fields=dialect.rowsPerRecord) for f in frames]
+            lines = lines[:: len(dialect.rowsPerRecord)]
+        if trim := self.TRIM.get(dialect.trim):
+            frames[0] = frames[0].with_columns(
+                pl.col(c).map_elements(lambda v: trim(v) or None, return_dtype=pl.String) for c in frames[0].columns
+            )
+        header = frames[0].head(dialect.headerRowCount)
+        frames = [f.slice(dialect.headerRowCount) for f in frames]
         if header.height < dialect.headerRowCount:
             raise ValueError(
                 f"The file ends before its header: `skipRows` {dialect.skipRows} and `headerRowCount` "
-                f"{dialect.headerRowCount} pass every row. Look at where the header starts, and declare it there."
+                f"{dialect.headerRowCount} pass every row. Declare where the header starts. [whyqd:header-past-end]"
             )
         if dialect.skipBlankRows:
-            grid = grid.filter(~pl.all_horizontal(pl.all().is_null()))
-        grid.columns = self.names(header=header, names=names, dialect=dialect)
-        return grid.with_row_index(self.row_key.ROW)
+            kept = ~frames[0].select(pl.all_horizontal(pl.all().is_null())).to_series()
+            frames = [f.filter(kept) for f in frames]
+        columns = self.names(header=header, names=names, dialect=dialect)
+        for frame in frames:
+            frame.columns = columns
+        grid, *beside = frames
+        return grid.with_row_index(self.row_key.ROW), beside
 
     def names(self, *, header: pl.DataFrame, names: list[str] | None, dialect: DialectModel) -> list[str]:
         width = header.width
         if names is not None:
             if len(names) != width:
                 raise ValueError(
-                    f"`names` gives {len(names)} names for a table of {width} columns. Give one name per column, in "
-                    "order."
+                    f"`names` gives {len(names)} names for a table of {width} columns. Give one per column, in order. "
+                    "[whyqd:names-count]"
                 )
         elif dialect.headerRowCount > 1:
             raise ValueError(
-                f"`headerRowCount` is {dialect.headerRowCount}, so each column's name is spread over "
-                f"{dialect.headerRowCount} rows, and a cell over two columns may be one title or a heading over "
-                f"subheadings. Declare the names with `names`, one per column ({width}), in order."
+                f"`headerRowCount` is {dialect.headerRowCount}, so declare the names in `names`, one for each of its "
+                f"{width} columns, in order. [whyqd:header-names]"
             )
         elif dialect.headerRowCount == 0:
             names = [f"column_{i}" for i in range(width)]
@@ -86,11 +105,8 @@ class TableParser:
             names = [f"Unnamed: {i}" if n is None else n for i, n in enumerate(header.row(0))]
         return self.row_key.deconflict(columns=names)
 
-    def join(
-        self, *, grid: pl.DataFrame, lines: list[int], fields: list[int], place: str = "line"
-    ) -> tuple[pl.DataFrame, list[int]]:
-        """Each record's rows joined into one: the first `fields[0]` cells of its first row, then the first
-        `fields[1]` of its next, and on.
+    def fit(self, *, grid: pl.DataFrame, lines: list[int], fields: list[int], place: str = "line") -> None:
+        """Whether a grid's rows fit their records.
 
         Raises
         ------
@@ -103,21 +119,24 @@ class TableParser:
             n = fields[i % span]
             if n < width and any(v is not None for v in grid.row(i)[n:]):
                 raise ValueError(
-                    f"`rowsPerRecord` {fields} declares {n} field{'s' if n != 1 else ''} on {place} {lines[i]}, "
-                    f"row {i % span + 1} of a record, but it holds values past them. Either a record has lost a row "
-                    "there, so each record after it would be misread, or the declaration does not fit the file. "
-                    f"Look at the file around {place} {lines[i]}."
+                    f"`rowsPerRecord` {fields} declares {n} field{'s' if n != 1 else ''} on {place} {lines[i]}, but "
+                    "it holds more. Check the file there: a record may have lost a row. [whyqd:record-overflow]"
                 )
         if grid.height % span:
             last = grid.height - grid.height % span
             raise ValueError(
-                f"`rowsPerRecord` {fields} declares {span} rows to a record, but the record starting on {place} "
-                f"{lines[last]} has only {grid.height - last} before the file ends. Look at the end of the file."
+                f"`rowsPerRecord` {fields} declares {span} rows to a record, but the last, from {place} "
+                f"{lines[last]}, has {grid.height - last}. [whyqd:record-short]"
             )
+
+    def join(self, *, grid: pl.DataFrame, fields: list[int]) -> pl.DataFrame:
+        """Each record's rows joined into one: the first `fields[0]` cells of its first row, then the first
+        `fields[1]` of its next, and on."""
+        span, width = len(fields), grid.width
         parts = []
         for j, n in enumerate(fields):
             part = grid.gather_every(span, offset=j).select(pl.nth(range(min(n, width))))
             for k in range(part.width, n):
                 part = part.with_columns(pl.lit(None, dtype=pl.String).alias(f"column_{k}"))
             parts.append(part.rename(lambda c, j=j: f"{j}:{c}"))
-        return pl.concat(parts, how="horizontal"), lines[::span]
+        return pl.concat(parts, how="horizontal")

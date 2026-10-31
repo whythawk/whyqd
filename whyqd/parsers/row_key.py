@@ -2,6 +2,7 @@
 import re
 from typing import Iterable
 
+from whyqd.config.patterns import PythonPatterns
 from whyqd.models.dialect import DialectModel
 from whyqd.parsers.column import ColumnParser
 
@@ -26,10 +27,11 @@ class RowKeyParser:
     """
 
     ROW = "__row__"
-    _PART = re.compile(rf"^{ROW}(\d*)$")
 
     def __init__(self) -> None:
         self.column = ColumnParser()
+        self.patterns = PythonPatterns()
+        self._part = re.compile(self.patterns.ROW_PART.format(row=re.escape(self.ROW)))
 
     def part(self, *, index: int = 0) -> str:
         """Name of a part of the row key.
@@ -57,7 +59,7 @@ class RowKeyParser:
 
     def is_part(self, column: str) -> bool:
         """Whether a column name is a part of the row key."""
-        match = self._PART.match(column)
+        match = self._part.match(column)
         return bool(match) and match.group(1) != "0"
 
     def deconflict(self, *, columns: Iterable[str]) -> list[str]:
@@ -104,4 +106,4 @@ class RowKeyParser:
             `__row__` first, then each added part by its number.
         """
         parts = [c for c in columns if self.is_part(c)]
-        return sorted(parts, key=lambda c: int(self._PART.match(c).group(1) or 0))
+        return sorted(parts, key=lambda c: int(self._part.match(c).group(1) or 0))

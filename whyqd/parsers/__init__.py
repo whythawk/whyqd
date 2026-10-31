@@ -7,6 +7,7 @@ from .morph import MorphParser
 from .category import CategoryParser
 from .cell import CellParser
 from .column import ColumnParser
+from .fingerprint import FingerprintParser
 from .row_key import RowKeyParser
 
 

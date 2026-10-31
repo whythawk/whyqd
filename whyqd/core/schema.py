@@ -103,5 +103,3 @@ class SchemaDefinition(BaseDefinition):
             field["title"] = field["name"]
             self.fields.add(term=field)
         self._refresh_model_terms()
-        if data.index:
-            self.model.index = data.index

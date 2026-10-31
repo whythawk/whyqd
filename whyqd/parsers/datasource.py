@@ -14,7 +14,9 @@ from whyqd.parsers.arrow_reader import ArrowParser
 from whyqd.parsers.core import CoreParser
 from whyqd.parsers.csv_reader import CsvParser
 from whyqd.parsers.excel_reader import ExcelParser
+from whyqd.parsers.fingerprint import FingerprintParser
 from whyqd.parsers.pdf_reader import PdfParser
+from whyqd.parsers.profile import ProfileParser
 from whyqd.parsers.row_key import RowKeyParser
 from whyqd.parsers.table import TableParser
 from whyqd.parsers.v1 import V1ChecksumParser
@@ -28,8 +30,13 @@ if TYPE_CHECKING:
 class DataSourceParser:
     """Get, review and restructure tabular source data."""
 
+    # pandas' names for the dtypes a frame's column is recorded as a `number` by
+    NUMBERS = {"float64", "int64", "Float64", "Int64"}
+
     def __init__(self):
         self.core = CoreParser()
+        self.fingerprints = FingerprintParser()
+        self.profiles = ProfileParser()
         self.v1 = V1ChecksumParser()
         self.tables = TableParser()
         self.row_key = RowKeyParser()
@@ -80,8 +87,7 @@ class DataSourceParser:
         if settings:
             raise TypeError(
                 f"`{'`, `'.join(settings)}` {'is not a setting' if len(settings) == 1 else 'are not settings'} of "
-                "`get`: a file is read by its `dialect`. Derive its data source with the dialect, then get it by "
-                "its model."
+                "`get`. Derive the data source with a `dialect`, then get it by its model. [whyqd:get-settings]"
             )
         if isinstance(source, DataSourceModel):
             mime = self.get_mimetype(mimetype=source.mime)
@@ -96,9 +102,7 @@ class DataSourceParser:
             ):
                 self.core.show_warning(
                     f"`{source.name}` reads as {table.height} rows where 1.x read {source.index}, so its rows are "
-                    "numbered differently from where they differ; most often 1.x skipped a CSV's blank lines. A "
-                    "stored `DELETE_ROWS` or `PIVOT_CATEGORIES` may now name different rows. Check those rows, and "
-                    "derive the data source again to number them as read."
+                    "numbered differently. Check any stored action that names rows. [whyqd:rows-renumbered]"
                 )
             return table.to_pandas()
         path = self.locate(source=source, directory=directory)
@@ -190,7 +194,7 @@ class DataSourceParser:
         if self.core.check_uri(source=source):
             source = self.core.download_uri_source(source=source, directory=directory)
         if not self.core.check_source(source=source):
-            raise FileNotFoundError(f"Source at `{source}` not found.")
+            raise FileNotFoundError(f"No file at `{source}`. [whyqd:source-missing]")
         return Path(source)
 
     def declare(self, *, dialect: DialectModel | dict | None) -> DialectModel:
@@ -204,7 +208,7 @@ class DataSourceParser:
         if unknown:
             raise ValueError(
                 f"`{'`, `'.join(unknown)}` {'is not a setting' if len(unknown) == 1 else 'are not settings'} whyqd "
-                f"reads a file by. The settings of a `dialect` are {', '.join(known)}."
+                f"reads a file by. A `dialect`'s settings are {', '.join(known)}. [whyqd:dialect-unknown]"
             )
         return DialectModel(**dialect)
 
@@ -218,23 +222,27 @@ class DataSourceParser:
         settings = {"header": source.header, "sheet_name": source.sheet_name}
         if source.attributes and source.attributes.terms:
             raise ValueError(
-                f"`{source.name}` was read in 1.x with pandas' settings `{'`, `'.join(source.attributes.terms)}`, which "
-                "whyqd no longer reads by. Derive the data source again, declaring how the file is written in its "
-                "`dialect`. Its 1.x checksum still verifies with the `verify-1x` extra."
+                f"`{source.name}` was read in 1.x with pandas' `{'`, `'.join(source.attributes.terms)}`, which whyqd "
+                "no longer reads. Derive it again with a `dialect`. [whyqd:attributes-1x]"
             )
         return DialectModel(**self.core.formats.dialect_1x(settings))
+
+    def reader(self, *, mime: MimeType) -> CsvParser | ExcelParser | ArrowParser | PdfParser:
+        if mime not in self.readers:
+            raise ValueError(
+                f"whyqd does not read `{mime.value}` files. It reads {', '.join(sorted({m.name for m in self.readers}))}. "
+                "[whyqd:format-unknown]"
+            )
+        return self.readers[mime]
 
     def read(
         self, *, source: Path, mime: MimeType, dialect: DialectModel, names: list[str] | None = None
     ) -> tuple[pl.DataFrame, DialectModel]:
         """A file's table, keyed by `__row__`, and its dialect with what the read settled recorded."""
-        if mime not in self.readers:
-            raise ValueError(
-                f"whyqd does not read `{mime.value}` files. It reads {', '.join(sorted({m.name for m in self.readers}))}."
-            )
-        reader = self.readers[mime]
-        grid, lines, dialect = reader.grid(source=source, mime=mime, dialect=dialect)
-        return self.tables.table(grid=grid, lines=lines, dialect=dialect, names=names, place=reader.PLACE), dialect
+        reader = self.reader(mime=mime)
+        grid, _, lines, dialect = reader.grid(source=source, mime=mime, dialect=dialect)
+        table, _ = self.tables.table(grid=grid, lines=lines, dialect=dialect, names=names, place=reader.PLACE)
+        return table, dialect
 
     def derive(
         self,
@@ -243,23 +251,100 @@ class DataSourceParser:
         mime: MimeType,
         dialect: DialectModel | dict | None = None,
         names: list[str] | None = None,
+    ) -> DataSourceModel:
+        """A file's data source: its columns, row count, `fp0` and byte hash, and the dialect that reads it."""
+        path = self.locate(source=source)
+        read = self.reader(mime=mime).grid(source=path, mime=mime, dialect=self.declare(dialect=dialect))
+        fp0 = None if mime == MimeType.PDF else self.fingerprints.fp0(sheets=[("", read[0], read[1])])
+        return self.model(source=source, path=path, mime=mime, read=read, names=names, fp0=fp0)
+
+    def model(
+        self,
+        *,
+        source: Path | str,
+        path: Path,
+        mime: MimeType,
+        read: tuple[pl.DataFrame, pl.DataFrame, list[int], DialectModel],
+        names: list[str] | None,
+        fp0: str | None,
         hidden: bool = False,
     ) -> DataSourceModel:
-        """A file's data source, or one sheet's: its columns, row count, and byte hash, and the dialect that reads it."""
-        path = self.locate(source=source)
-        table, dialect = self.read(source=path, mime=mime, dialect=self.declare(dialect=dialect), names=names)
+        """The data source of a grid as its reader gave it, each column profiled."""
+        grid, types, lines, dialect = read
+        reader = self.reader(mime=mime)
+        beside = [grid, types]
+        if mime == MimeType.XLSX:
+            beside.append(reader.formats(source=path, sheet=dialect.sheet, height=grid.height, width=grid.width))
+        table, (text, types, *formats) = self.tables.table(
+            grid=grid, lines=lines, dialect=dialect, names=names, place=reader.PLACE, beside=beside
+        )
+        formats = formats[0] if formats else None
+        checksums = [
+            self.core.formats.checksum(value=self.fingerprints.byte_hash(source=path), content=ChecksumContent.BYTES)
+        ]
+        if fp0 is not None:
+            checksums.append(self.core.formats.checksum(value=fp0, content=ChecksumContent.FP0))
         return DataSourceModel(
             path=str(source),
             mime=mime,
             hidden=hidden or None,
             attributes=DataSourceAttributeModel({}),
-            columns=[ColumnModel(name=c) for c in table.columns if c != self.row_key.ROW],
+            columns=[
+                ColumnModel(
+                    name=c,
+                    profile=self.profiles.profile(
+                        text=text[c], types=types[c], formats=None if formats is None else formats[c]
+                    ),
+                )
+                for c in text.columns
+            ],
             names=names or [],
             dialect=dialect,
-            checksums=[
-                self.core.formats.checksum(value=self.core.get_checksum(source=path), content=ChecksumContent.BYTES)
-            ],
+            checksums=checksums,
             index=table.height,
+        )
+
+    def fingerprint(self, *, source: DataSourceModel, path: Path) -> str | None:
+        """The `fp0` of a data source's file as it is now: every sheet of a workbook, or the grid its dialect parses.
+        `None` for a PDF, which has none."""
+        mime = self.get_mimetype(mimetype=source.mime)
+        if mime == MimeType.PDF:
+            return None
+        reader = self.reader(mime=mime)
+        if mime in (MimeType.XLS, MimeType.XLSX):
+            sheets = [
+                (name, *reader.grid(source=path, mime=mime, dialect=DialectModel(sheet=name))[:2])
+                for name, _ in reader.sheets(source=path)
+            ]
+            return self.fingerprints.fp0(sheets=sheets)
+        grid, types, _, _ = reader.grid(source=path, mime=mime, dialect=self.dialect(source=source))
+        return self.fingerprints.fp0(sheets=[("", grid, types)])
+
+    def verify(self, *, source: DataSourceModel, directory: str | Path | None = None) -> None:
+        """Verify a data source's file by its byte hash, else by `fp0`, warning that the file was saved again with no
+        cell changed.
+
+        Raises
+        ------
+        ValueError
+            For a data source with neither.
+        AssertionError
+            Where the file's cells are not those its data source was derived from.
+        """
+        hashed, fp0 = source.get_checksum(ChecksumContent.BYTES), source.get_checksum(ChecksumContent.FP0)
+        if hashed is None and fp0 is None:
+            raise ValueError(f"`{source.path}` has no checksum whyqd can verify. [whyqd:checksum-none]")
+        path = self.locate(source=source.path, directory=directory)
+        if hashed is not None and self.fingerprints.byte_hash(source=path) == hashed:
+            return
+        if fp0 is None or self.fingerprint(source=source, path=path) != fp0:
+            raise AssertionError(
+                f"`{source.path}` has changed: its cells are not those its data source was derived from. "
+                "[whyqd:source-changed]"
+            )
+        self.core.show_warning(
+            f"`{source.path}` was saved again: its bytes differ, but its cells (`fp0`) do not. "
+            "[whyqd:source-saved-again]"
         )
 
     def derive_sheets(
@@ -282,26 +367,27 @@ class DataSourceParser:
             For a dialect or names given for a sheet the workbook does not have, or dialects that cannot be matched to
             its sheets.
         """
-        sheets = self.readers[mime].sheets(source=self.locate(source=source))
+        path = self.locate(source=source)
+        reader = self.reader(mime=mime)
+        sheets = reader.sheets(source=path)
         order = [name for name, _ in sheets]
         dialects = self.sheet_dialects(dialect=dialect, sheets=order, source=source)
         if isinstance(names, list):
             if len(order) != 1:
                 raise ValueError(
                     f"`{Path(source).name}` has {len(order)} sheets, so give `names` by sheet: "
-                    f"{{'{order[0]}': [...]}}."
+                    f"{{'{order[0]}': [...]}}. [whyqd:names-by-sheet]"
                 )
             names = {order[0]: names}
         names = names or {}
         self.check_sheets(given=names, sheets=order, setting="names", source=source)
+        reads = {
+            name: reader.grid(source=path, mime=mime, dialect=dialects[name].model_copy(update={"sheet": name}))
+            for name in order
+        }
+        fp0 = self.fingerprints.fp0(sheets=[(name, grid, types) for name, (grid, types, _, _) in reads.items()])
         models = [
-            self.derive(
-                source=source,
-                mime=mime,
-                dialect=dialects[name].model_copy(update={"sheet": name}),
-                names=names.get(name),
-                hidden=hidden,
-            )
+            self.model(source=source, path=path, mime=mime, read=reads[name], names=names.get(name), fp0=fp0, hidden=hidden)
             for name, hidden in sheets
         ]
         return models[0] if len(models) == 1 else models
@@ -315,12 +401,12 @@ class DataSourceParser:
         if not named:
             if given and len(given) != len(sheets):
                 raise ValueError(
-                    f"`{Path(source).name}` has {len(sheets)} sheets, `{'`, `'.join(sheets)}`, but {len(given)} "
-                    "dialects are given without a `sheet`. Give one a sheet, in order, or name each one's `sheet`."
+                    f"`{Path(source).name}` has {len(sheets)} sheets but {len(given)} dialects without a `sheet`. "
+                    "Give one a sheet, in order, or name each one's `sheet`. [whyqd:dialects-count]"
                 )
             return {name: given[i] if given else DialectModel() for i, name in enumerate(sheets)}
         if len(named) != len(given):
-            raise ValueError("Name every dialect's `sheet`, or none, so each can be matched to its sheet.")
+            raise ValueError("Name every dialect's `sheet`, or none. [whyqd:dialects-named]")
         by_name = {d.sheet: d for d in named}
         self.check_sheets(given=by_name, sheets=sheets, setting="dialect", source=source)
         return {name: by_name.get(name, DialectModel()) for name in sheets}
@@ -329,7 +415,7 @@ class DataSourceParser:
         if unknown := [s for s in given if s not in sheets]:
             raise ValueError(
                 f"`{setting}` is given for `{'`, `'.join(unknown)}`, which `{Path(source).name}` does not have. Its "
-                f"sheets are `{'`, `'.join(sheets)}`."
+                f"sheets are `{'`, `'.join(sheets)}`. [whyqd:sheet-given]"
             )
 
     def derive_data_model(
@@ -361,8 +447,8 @@ class DataSourceParser:
         if settings:
             raise TypeError(
                 f"`{'`, `'.join(settings)}` {'is a pandas setting' if len(settings) == 1 else 'are pandas settings'}, "
-                "which whyqd no longer reads a file by. Declare how the file is written in `dialect` (`skipRows` "
-                "and `headerRowCount` for its header), and its column names in `names`."
+                "which whyqd no longer reads. Declare the file in `dialect`, and its column names in `names`. "
+                "[whyqd:derive-settings]"
             )
         mimetype = self.get_mimetype(mimetype=mimetype)
         if mimetype in (MimeType.XLS, MimeType.XLSX):
@@ -396,38 +482,21 @@ class DataSourceParser:
         )
 
     def get_header_columns(self, *, df: pd.DataFrame) -> List[ColumnModel]:
-        """Returns a list of ColumnModels from a source DataFrame.
+        """A frame's columns, each typed `number` where pandas holds it as one of `NUMBERS`, else `string`, a date
+        column included, as 1.x recorded them.
 
         Parameters
         ----------
         df: pd.DataFrame
-            Should be derived from `get` with a sensible default for `nrows` being 50.
 
         Returns
         -------
         List of ColumnModel
         """
-        # Prepare summary
-        try:
-            columns = [
-                {"name": k, "type": "number"}
-                if v in ["float64", "int64", "Float64", "Int64"]
-                else {"name": k, "type": "date"}
-                if v in ["datetime64[ns]"]
-                else {"name": k, "type": "string"}
-                for k, v in df.dtypes.apply(lambda x: x.name).to_dict().items()
-            ]
-        except AttributeError:
-            # No idea ... some seem to give shit
-            columns = [
-                {"name": k, "type": "number"}
-                if v in ["float64", "int64", "Float64", "Int64"]
-                else {"name": k, "type": "date"}
-                if v in ["datetime64[ns]"]
-                else {"name": k, "type": "string"}
-                for k, v in df.dtypes.apply(lambda x: str(x)).to_dict().items()
-            ]
-        return [ColumnModel(**c) for c in columns]
+        return [
+            ColumnModel(name=k, dtype=FieldType.NUMBER if str(v) in self.NUMBERS else FieldType.STRING)
+            for k, v in df.dtypes.items()
+        ]
 
     ###################################################################################################
     ### GENERAL UTILITIES

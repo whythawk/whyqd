@@ -192,7 +192,6 @@ class TestReferences:
             ["20020", "10024142866"],
         ]
 
-    @pytest.mark.xfail(strict=True, raises=(AssertionError, AttributeError), reason="the profile is written at item 5.2")
     def test_a_mixed_column_records_its_cell_types(self, references):
         (model,) = derive(references, "XLSX")
         profile = {c.name: c.profile for c in model.columns}

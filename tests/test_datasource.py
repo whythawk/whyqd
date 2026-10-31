@@ -68,13 +68,19 @@ class TestDataSource:
         datasource.derive_model(source=DATA["CTHULHU"], mimetype=MIMETYPE, dialect={"headerRowCount": 0})
         datasource.validate()
 
-    def test_csv_verifies_by_its_bytes(self, tmp_path):
+    def test_csv_verifies_by_its_bytes_else_its_cells(self, tmp_path):
         datasource = qd.DataSourceDefinition()
         datasource.derive_model(source=DATA["CSV"], mimetype=CSVTYPE)
         assert datasource.get.get_checksum("table-1x") is None
         assert datasource.validate()
+        # A trailing blank line changes the bytes, not a cell
+        resaved = tmp_path / "resaved.csv"
+        resaved.write_bytes(DATA["CSV"].read_bytes() + b"\n")
+        datasource.get.path = str(resaved)
+        with pytest.warns(UserWarning, match="saved again"):
+            assert datasource.validate()
         changed = tmp_path / "changed.csv"
-        changed.write_bytes(DATA["CSV"].read_bytes() + b"\n")
+        changed.write_bytes(DATA["CSV"].read_bytes() + b"x\n")
         datasource.get.path = str(changed)
         with pytest.raises(AssertionError):
             datasource.validate()
@@ -93,3 +99,13 @@ class TestDataSource:
         df = DataSourceParser().coerce_to_schema(df=df, schema=schema)
         assert df["amount"].tolist() == [80.0, 88.5]
         assert df["reliefs"].tolist() == [["80.0", None], ["88.5", "12.0"]]
+
+    def test_a_frames_columns_are_typed_as_1x_typed_them(self):
+        # A date column is recorded as `string`, as 1.x recorded it; typing records dates
+        df = pd.DataFrame({"a": [1.5], "b": pd.array([1], dtype="Int64"), "c": pd.to_datetime(["2024-01-04"]), "d": ["x"]})
+        columns = DataSourceParser().get_header_columns(df=df)
+        assert [c.dtype for c in columns] == ["number", "number", "string", "string"]
+
+    def test_a_column_takes_whyqds_types_only(self):
+        with pytest.raises(ValueError):
+            qd.models.ColumnModel(name="a", type="float64")

@@ -139,8 +139,8 @@ class DataSourceDefinition(BaseDefinition):
         """Verify the source data against the data source's checksum.
 
         A checksum of the table as 1.x read it (`table-1x`) verifies through 1.x's own read, which needs the
-        `verify-1x` extra. Once it verifies, the file's byte hash is added beside it. A data source without one verifies
-        by its byte hash.
+        `verify-1x` extra. Once it verifies, the file's `fp0` and byte hash are added beside it. A data source without
+        one verifies by its byte hash, else by `fp0`, warning that the file was saved again with no cell changed.
 
         Raises:
           ImportError: If a 1.x checksum needs verifying and the `verify-1x` extra is not installed.
@@ -157,10 +157,7 @@ class DataSourceDefinition(BaseDefinition):
         for m in models:
             table = m.get_checksum(ChecksumContent.TABLE_1X)
             if table is None:
-                if (hashed := m.get_checksum(ChecksumContent.BYTES)) is None:
-                    raise ValueError(f"`{m.path}` has no checksum this whyqd can verify: `table-1x` or `bytes`.")
-                if self.core.get_checksum(source=m.path) != hashed:
-                    raise AssertionError(f"`{m.path}` is not the file its byte hash was taken from.")
+                self.reader.verify(source=m)
                 continue
             try:
                 from whyqd.parsers.v1 import V1ChecksumParser
@@ -168,14 +165,16 @@ class DataSourceDefinition(BaseDefinition):
                 raise ImportError("Verifying a 1.x checksum needs the extra: pip install whyqd[verify-1x]") from e
             if V1ChecksumParser().checksum(model=m) != table:
                 raise AssertionError(f"{self.model_name.title()} model checksum does not match derived checksum.")
-            if m.get_checksum(ChecksumContent.BYTES) is None:
-                m.checksums.append(
-                    ChecksumModel(
-                        algorithm=settings.CHECKSUM_ALGORITHM,
-                        checksumValue=self.core.get_checksum(source=m.path),
-                        content=ChecksumContent.BYTES,
+            path = self.reader.locate(source=m.path)
+            found = {ChecksumContent.BYTES: self.reader.fingerprints.byte_hash(source=path)}
+            # One read with pandas' settings has no dialect to parse its grid by
+            if not (m.attributes and m.attributes.terms):
+                found[ChecksumContent.FP0] = self.reader.fingerprint(source=m, path=path)
+            for content, value in found.items():
+                if m.get_checksum(content) is None and value is not None:
+                    m.checksums.append(
+                        ChecksumModel(algorithm=settings.CHECKSUM_ALGORITHM, checksumValue=value, content=content)
                     )
-                )
         return True
 
     #########################################################################################

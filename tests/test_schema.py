@@ -83,4 +83,6 @@ class TestSchema:
         D = s.exclude_uuid(model=SCHEMA_DATA["DERIVED"])
         D["name"] = s.get.name
         D.pop("version", None)
+        # The stored schema is 1.x's, with its file's row count; a derived one has none, its data source holding it
+        D.pop("index")
         assert json.loads(d) == {"formatVersion": "2.0"} | D

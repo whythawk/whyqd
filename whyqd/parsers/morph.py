@@ -103,15 +103,10 @@ class MorphParser:
             raise ValueError(f"Script error for {action.name} Morph. Fields are not a valid input.")
         if not (source or destination) and "fields" in action.structure:
             raise ValueError(f"Script error for {action.name} Morph. No valid input fields provided.")
+        # The rows are checked against the data source's row count where the crosswalk meets it, in the transform
         if rows:
-            if not self.row_indices:
-                raise ValueError(
-                    f"Script error for {action.name} Morph. Schema does not define row indices for a row-level action."
-                )
             if "rows" not in action.structure:
                 raise ValueError(f"Script error for {action.name} Morph. Rows are not a valid input.")
-            elif not set(rows) <= set(self.row_indices):
-                raise ValueError("Not all row indices found in source data.")
         else:
             if "rows" in action.structure:
                 raise ValueError(f"Script error for {action.name} Morph. No valid input rows provided.")
@@ -189,9 +184,6 @@ class MorphParser:
         if not schema_source or not schema_destination:
             raise ValueError("Schema for both source and destination has not been provided.")
         self.schema = [schema_source, schema_destination]
-        self.row_indices = None
-        if schema_source.get.index:
-            self.row_indices = list(range(schema_source.get.index))
 
     def get_hexed_script(self, *, script: str) -> str:
         # Changes fields to uuid hexes

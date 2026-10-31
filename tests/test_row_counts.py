@@ -40,19 +40,16 @@ def run(definition: qd.CrosswalkDefinition, datasource: qd.DataSourceDefinition)
 
 
 class TestRowCounts:
-    @pytest.mark.xfail(strict=True, raises=AssertionError, reason="a derived schema keeps its file's row count")
     def test_a_derived_schema_has_no_row_count(self, tmp_path):
         schema = qd.SchemaDefinition()
         schema.derive_model(data=write(tmp_path, "short.csv", 3).get)
         assert schema.get.index is None
 
-    @pytest.mark.xfail(strict=True, raises=ValueError, reason="rows are bounded by the schema's file")
     def test_a_row_past_the_schemas_file_runs_on_a_longer_one(self, tmp_path):
         # The schema came from 3 rows; the file read has 5, so row 4 is in it
         definition = crosswalk(write(tmp_path, "short.csv", 3), [4])
         assert run(definition, write(tmp_path, "long.csv", 5)) == ["r0", "r1", "r2", "r3"]
 
-    @pytest.mark.xfail(strict=True, raises=pytest.fail.Exception, reason="a row past the file is dropped silently")
     def test_a_row_past_the_file_read_is_refused_naming_it(self, tmp_path):
         # The schema came from 5 rows, so row 3 passes its check; the file read has 3
         definition = crosswalk(write(tmp_path, "long.csv", 5), [3])

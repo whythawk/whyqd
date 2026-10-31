@@ -277,7 +277,7 @@
       "type": "object"
     },
     "ColumnModel": {
-      "description": "Pandas DataFrame column model for maintaining source reference. Necessary to perform term matching in\nparsing operations (there can be some *really* fruity column names.",
+      "description": "A data source's column, by its name as the source writes it, typed in whyqd's types only.",
       "properties": {
         "uuid": {
           "description": "Unique identity for the column. Automatically generated.",
@@ -1264,6 +1264,15 @@
           "minimum": 0,
           "title": "Zeropadded",
           "type": "integer"
+        },
+        "numberFormats": {
+          "additionalProperties": {
+            "type": "integer"
+          },
+          "default": {},
+          "description": "Number and date cells by the format code an `.xlsx` stores for them; empty for other files.",
+          "title": "Numberformats",
+          "type": "object"
         }
       },
       "title": "ProfileModel",
@@ -1474,7 +1483,7 @@
             }
           ],
           "default": null,
-          "description": "Maximum value of a zero-base index for tabular data defined by this schema. Necessary where `actions` apply row-level transforms.",
+          "description": "A 1.x schema's row count, kept to save it as 1.x. It bounds nothing: a row-level action's rows are checked against its data source's `index`.",
           "title": "Index"
         },
         "citation": {

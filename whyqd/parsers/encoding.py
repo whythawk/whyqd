@@ -41,9 +41,8 @@ class EncodingParser:
             if label in encoding["labels"]:
                 return name
         raise ValueError(
-            f"whyqd does not decode the encoding `{label}`. It decodes {', '.join(settings.ENCODINGS)}, each by the "
-            "WHATWG Encoding Standard, with their labels. Declare one of these, or remove the declaration so whyqd "
-            "reads the file as UTF-8 or, failing that, windows-1252, which keeps every byte."
+            f"whyqd does not decode `{label}`. Declare one of {', '.join(settings.ENCODINGS)}, or no encoding. "
+            "[whyqd:encoding-unknown]"
         )
 
     def decode(self, *, data: bytes, declared: str | None = None, source: str = "The file") -> tuple[str, str, EncodingStep]:
@@ -105,11 +104,8 @@ class EncodingParser:
             for value, count in Counter(v for _, v in replaced).most_common(3)
         )
         warnings.warn(
-            f"{source} is declared `{name}`, but {len(replaced)} of its bytes are not `{name}`, so each reads as "
-            f"�. The commonest: {commonest}. This usually means the file is in another encoding; a CSV saved by "
-            "Excel on Windows is most often `windows-1252`. Declare that encoding; or remove the declaration, so whyqd "
-            "reads the file as UTF-8 or, failing that, windows-1252, which keeps every byte; or load the original "
-            "workbook, which has no encoding to get wrong. The file itself is unchanged.",
+            f"{source} is declared `{name}`, but {len(replaced)} of its bytes are not, and read as � (commonest: "
+            f"{commonest}). Declare its own encoding, most often `windows-1252`. [whyqd:encoding-replaced]",
             UserWarning,
             stacklevel=2,
         )

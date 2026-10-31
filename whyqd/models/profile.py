@@ -16,4 +16,7 @@ class ProfileModel(BaseModel):
     control: int = Field(0, ge=0, description="Cells holding a control character.")
     dateLike: int = Field(0, ge=0, description="Text cells that look like a date.")
     zeroPadded: int = Field(0, ge=0, description="Text cells holding a number with leading zeros.")
+    numberFormats: dict[str, int] = Field(
+        {}, description="Number and date cells by the format code an `.xlsx` stores for them; empty for other files."
+    )
     model_config = ConfigDict(use_enum_values=True, validate_assignment=True)

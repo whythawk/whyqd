@@ -24,8 +24,12 @@ class PdfParser:
     def __init__(self) -> None:
         self.grids = GridParser()
 
-    def grid(self, *, source: Path, mime: MimeType, dialect: DialectModel) -> tuple[pl.DataFrame, list[int], DialectModel]:
-        """The table's grid, each grid row's number in the order read, and the dialect with `cells` recorded.
+    def grid(
+        self, *, source: Path, mime: MimeType, dialect: DialectModel
+    ) -> tuple[pl.DataFrame, pl.DataFrame, list[int], DialectModel]:
+        """The table's grid and its types, every cell text, each grid row's number in the order read, and the dialect
+        with `cells` recorded. It has no `fp0`, since the grid depends on how the PDF is read: its `cells`, `columns`,
+        and `pages`.
 
         Raises
         ------
@@ -37,14 +41,14 @@ class PdfParser:
         try:
             import pdfplumber
         except ImportError as e:
-            raise ImportError("Reading a PDF needs the extra: pip install whyqd[pdf]") from e
+            raise ImportError("Reading a PDF needs the extra: pip install whyqd[pdf] [whyqd:pdf-extra]") from e
         with pdfplumber.open(source) as pdf:
             pages = self.pages(pages=pdf.pages, declared=dialect.pages, source=source)
             if not any(page.chars for page in pages):
                 raise ValueError(
                     f"`{source.name}` holds no text on {'its pages' if dialect.pages is None else 'pages ' + dialect.pages}, "
-                    "only images: it is a scan, or was printed as one. whyqd reads the text a PDF holds, so recognise "
-                    "its text first (optical character recognition), or load the file it was printed from."
+                    "only images: it is a scan. Recognise its text first (OCR), or load the file it was printed from. "
+                    "[whyqd:pdf-scan]"
                 )
             if dialect.columns:
                 cells = "text"
@@ -61,8 +65,8 @@ class PdfParser:
             {f"column_{i}": [r[i] if i < len(r) and r[i] else None for r in rows] for i in range(width)},
             schema={f"column_{i}": pl.String for i in range(width)},
         )
-        grid = self.grids.trim(grid=grid)
-        return grid, list(range(1, grid.height + 1)), dialect.model_copy(update={"cells": cells})
+        grid, types = self.grids.trim(grid=grid)
+        return grid, types, list(range(1, grid.height + 1)), dialect.model_copy(update={"cells": cells})
 
     def pages(self, *, pages: list, declared: str | None, source: Path) -> list:
         """The pages a dialect's `pages` names, counted from 1, or every page."""
@@ -74,9 +78,14 @@ class PdfParser:
             try:
                 numbers = range(int(first), int(last or first) + 1)
             except ValueError as e:
-                raise ValueError(f"`pages` `{declared}` names pages by number from 1: `5-7`, or `1,3,5-7`.") from e
+                raise ValueError(
+                    f"`pages` `{declared}` names pages by number from 1: `5-7`, or `1,3,5-7`. [whyqd:pdf-pages]"
+                ) from e
             if not numbers or numbers.start < 1 or numbers.stop - 1 > len(pages):
-                raise ValueError(f"`pages` `{declared}` names a page `{source.name}` does not have: it has {len(pages)}.")
+                raise ValueError(
+                    f"`pages` `{declared}` names a page `{source.name}` does not have: it has {len(pages)}. "
+                    "[whyqd:pdf-pages]"
+                )
             chosen.extend(pages[n - 1] for n in numbers)
         return chosen
 

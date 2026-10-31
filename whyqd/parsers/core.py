@@ -4,7 +4,6 @@ from typing import TYPE_CHECKING
 from pydantic import Json
 import json
 import sys
-import hashlib
 from urllib.parse import urlparse
 import urllib
 import posixpath
@@ -174,18 +173,6 @@ class CoreParser:
         if not self.check_source(source=local_source):
             urllib.request.urlretrieve(source, local_source)
         return local_source
-
-    ###################################################################################################
-    ### CHECKSUMS
-    ###################################################################################################
-
-    def get_checksum(self, *, source: str) -> str:
-        # https://stackoverflow.com/a/47800021
-        checksum = hashlib.blake2b()
-        with open(source, "rb") as f:
-            for chunk in iter(lambda: f.read(4096), b""):
-                checksum.update(chunk)
-        return checksum.hexdigest()
 
     ###################################################################################################
     ### JSON & FILE LOAD & SAVE
