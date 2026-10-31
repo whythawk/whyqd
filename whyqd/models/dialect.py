@@ -9,7 +9,8 @@ from whyqd.dtypes import EncodingStep
 class DialectModel(BaseModel):
     """How a file is written, so it can be read: the dialect of the W3C's CSV on the Web metadata vocabulary
     ([Metadata Vocabulary for Tabular Data, section 5.9](https://www.w3.org/TR/tabular-metadata/#dialect-descriptions)),
-    with its names and defaults, and three of whyqd's own: `encodingStep`, `rowsPerRecord`, and `sheet`.
+    with its names and defaults, and whyqd's own: `encodingStep`, `rowsPerRecord`, `sheet`, and, for a PDF, `cells`,
+    `pages`, and `columns`.
 
     One default differs: CSV on the Web trims each cell, and whyqd keeps it as written (`trim` false). A blank line is
     a row (`skipBlankRows` false), in both.
@@ -30,4 +31,17 @@ class DialectModel(BaseModel):
         "`[47, 1]` is 47 fields on the first row and 1 on the next. Absent where a record is one row.",
     )
     sheet: Optional[str] = Field(None, description="The spreadsheet's sheet, where the file has several.")
+    cells: Optional[Literal["lines", "text"]] = Field(
+        None,
+        description="How a PDF's cells are found: by its ruling (`lines`), or by where its text sits (`text`). Read "
+        "from the file where undeclared: `lines` where its ruling gives a table, else `text`.",
+    )
+    pages: Optional[str] = Field(
+        None, description="A PDF's pages holding the table, counted from 1: `5-7`, or `1,3,5-7`. Absent for every page."
+    )
+    columns: Optional[list[float]] = Field(
+        None,
+        description="The left edge of each of a PDF table's columns, in points from the page's left, where its cells "
+        "are found by `text` and the words do not show the columns.",
+    )
     model_config = ConfigDict(use_enum_values=True, validate_assignment=True)

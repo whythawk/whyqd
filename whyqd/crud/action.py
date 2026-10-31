@@ -208,6 +208,10 @@ class CRUDAction(CRUDBase[ActionScriptModel]):
         action_parser.set_schema(schema_source=self.schema_source, schema_destination=self.schema_destination)
         return action_parser.transform(df=df, **parsed)
 
+    def rows(self) -> list[int]:
+        """Every row a row-level action names, in script order."""
+        return [r for script in self.get_all() for r in self.parse(script=script).get("rows") or []]
+
     def transform_all(self, *, df: pd.DataFrame) -> pd.DataFrame:
         """Return a transformed dataframe after processing all scripts.
 

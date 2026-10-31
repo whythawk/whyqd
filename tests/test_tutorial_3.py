@@ -19,7 +19,7 @@ class TestTutorialCthulhu:
         ##################################### FIRST CROSSWALK #####################################
         # 1. Import a data source and derive a source schema
         datasource = qd.DataSourceDefinition()
-        datasource.derive_model(source=SOURCE_DATA, mimetype=MIMETYPE, header=None)
+        datasource.derive_model(source=SOURCE_DATA, mimetype=MIMETYPE, dialect={"headerRowCount": 0})
         schema_source = qd.SchemaDefinition()
         schema_source.derive_model(data=datasource.get)
         # 2. Create an interim schema
@@ -64,7 +64,7 @@ class TestTutorialCthulhu:
         crosswalk.set(schema_source=schema_source, schema_destination=schema_interim)
         # Create the crosswalk
         schema_scripts = [
-            f"DELETE_ROWS < {list(range(15)) + list(range(144, schema_source.get.index))}",
+            f"DELETE_ROWS < {list(range(15)) + list(range(144, datasource.get.index))}",
             "PIVOT_CATEGORIES > 'HDI Category' < 'column_0'::[15, 45, 121]",
         ]
         indices = [0, 1, 3, 4, 5, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21]

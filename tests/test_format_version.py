@@ -160,15 +160,14 @@ class TestFieldTypesAndBounds:
 
 class TestVerify1x:
     @pytest.mark.parametrize("path", DATA_SOURCES, ids=lambda p: p.name)
-    def test_verifies_and_adds_byte_hash(self, path):
+    def test_verifies_and_adds_byte_hash_and_fp0(self, path):
         original = json.loads(path.read_text(encoding="utf-8"))
         datasource = load(path)
         assert datasource.validate()
         file_hash = hashlib.blake2b(Path(original["path"]).read_bytes()).hexdigest()
-        assert as_json(datasource.get_json())["checksums"] == [
-            checksum(original["checksum"], "table-1x"),
-            checksum(file_hash, "bytes"),
-        ]
+        table, hashed, fp0 = as_json(datasource.get_json())["checksums"]
+        assert [table, hashed] == [checksum(original["checksum"], "table-1x"), checksum(file_hash, "bytes")]
+        assert fp0["content"] == "fp0" and len(fp0["checksumValue"]) == 128
 
     def test_1x_save_after_verifying_keeps_table_1x(self):
         path = DIRECTORY / "test_portsmouth_source.data"
@@ -191,6 +190,41 @@ class TestVerify1x:
         monkeypatch.setitem(sys.modules, "whyqd.parsers.v1", None)
         with pytest.raises(ImportError, match=r"whyqd\[verify-1x\]"):
             load(DIRECTORY / "test_portsmouth_source.data").validate()
+
+    def test_verifies_through_its_own_read(self):
+        # In a process of its own, where no test has loaded the reader: the 1.x read alone must not load it
+        script = (
+            "import sys, whyqd as qd\n"
+            "from whyqd.parsers.v1 import V1ChecksumParser\n"
+            f"model = qd.DataSourceDefinition(source={str(DIRECTORY / 'test_portsmouth_source.data')!r}).get\n"
+            "assert V1ChecksumParser().checksum(model=model) == model.get_checksum('table-1x')\n"
+            "print('whyqd.parsers.datasource' in sys.modules)\n"
+        )
+        result = subprocess.run([sys.executable, "-c", script], capture_output=True, text=True, check=True)
+        assert result.stdout.strip() == "False"
+
+    def test_without_pyarrow_only_parquet_fails(self):
+        # Without pyarrow pandas keeps text in Python rather than Arrow; the printed table, and so the checksum, holds
+        script = (
+            "import sys\n"
+            "sys.modules['pyarrow'] = None\n"
+            "import whyqd as qd\n"
+            "from whyqd.parsers.v1 import V1ChecksumParser\n"
+            f"for path in {[str(p) for p in DATA_SOURCES]!r}:\n"
+            "    try:\n"
+            "        model = qd.DataSourceDefinition(source=path).get\n"
+            "        assert V1ChecksumParser().checksum(model=model) == model.get_checksum('table-1x')\n"
+            "        print(path.rsplit('/', 1)[-1], 'verifies')\n"
+            "    except ImportError:\n"
+            "        print(path.rsplit('/', 1)[-1], 'needs pyarrow')\n"
+        )
+        result = subprocess.run([sys.executable, "-c", script], capture_output=True, text=True, check=True)
+        outcomes = dict(line.split(" ", 1) for line in result.stdout.strip().splitlines())
+        parquet = {
+            p.name for p in DATA_SOURCES if json.loads(p.read_text(encoding="utf-8"))["mime"].endswith("parquet")
+        }
+        assert parquet
+        assert outcomes == {p.name: "needs pyarrow" if p.name in parquet else "verifies" for p in DATA_SOURCES}
 
 
 class TestDefinitionsOnly:

@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: BSD-3-Clause
-from datetime import date, datetime, time
+from datetime import date, datetime, time, timedelta
 
 from whyqd.dtypes import CellType
 
@@ -13,7 +13,7 @@ class CellParser:
     """
 
     def render(
-        self, *, value: str | int | float | bool | date | time | None, error: bool = False
+        self, *, value: str | int | float | bool | date | time | timedelta | None, error: bool = False
     ) -> tuple[CellType, str] | None:
         """A cell's type and canonical text, or `None` for an empty cell.
 
@@ -21,7 +21,7 @@ class CellParser:
 
         Parameters
         ----------
-        value: str | int | float | bool | date | time | None
+        value: str | int | float | bool | date | time | timedelta | None
             The cell's stored value, as a Python type.
         error: bool, default False
             Whether the reader reports the cell as an error, such as `#N/A`.
@@ -62,6 +62,27 @@ class CellParser:
             return CellType.DATE, value.isoformat()
         if isinstance(value, (date, time)):
             return CellType.DATE, value.isoformat()
+        if isinstance(value, timedelta):
+            return CellType.DATE, self.duration(value=value)
         if isinstance(value, str):
             return CellType.STRING, value
         raise TypeError(f"No rendering is defined for a cell of type {type(value).__name__}.")
+
+    def duration(self, *, value: timedelta) -> str:
+        """A length of time as ISO 8601, in hours, minutes, and seconds, as a spreadsheet's `[h]:mm` counts it.
+
+        Example
+        -------
+        ```python
+        CellParser().duration(value=timedelta(hours=25, minutes=30))   # "PT25H30M"
+        CellParser().duration(value=timedelta(0))                      # "PT0S"
+        ```
+        """
+        sign, seconds = ("-", -value) if value < timedelta(0) else ("", value)
+        microseconds = seconds // timedelta(microseconds=1)
+        hours, rest = divmod(microseconds, 3_600_000_000)
+        minutes, rest = divmod(rest, 60_000_000)
+        whole, fraction = divmod(rest, 1_000_000)
+        second = f"{whole}.{fraction:06d}".rstrip("0") if fraction else str(whole)
+        parts = f"{f'{hours}H' if hours else ''}{f'{minutes}M' if minutes else ''}{f'{second}S' if rest else ''}"
+        return f"{sign}PT{parts or '0S'}"

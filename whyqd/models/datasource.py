@@ -60,6 +60,9 @@ class DataSourceModel(BaseModel):
         description="A list of key columns required before merging of multiple data sources into an interim data source.",
     )
     dialect: Optional[DialectModel] = Field(None, description="How the file is written, so it can be read.")
+    hidden: Optional[bool] = Field(
+        None, description="The publisher hid this sheet of the workbook; it is read like any other. Absent where visible."
+    )
     attributes: Optional[DataSourceAttributeModel] = Field(
         {},
         description="Optional open dictionary for reader-specific attributes for Pandas' API. E.g. 'quoting' for the CSV library.",
@@ -97,6 +100,7 @@ class DataSourceModel(BaseModel):
     @property
     def name(self) -> str:
         root = "".join(c for c in self.path.split("/")[-1] if c in f"-_. {string.ascii_letters}{string.digits}")
-        if self.sheet_name:
-            return f"{root}::{self.sheet_name}"
+        sheet = self.sheet_name or (self.dialect.sheet if self.dialect else None)
+        if sheet:
+            return f"{root}::{sheet}"
         return root

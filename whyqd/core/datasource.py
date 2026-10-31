@@ -5,7 +5,7 @@ from pathlib import Path
 from pydantic import Json
 
 from whyqd.dtypes import ChecksumContent, MimeType
-from whyqd.models import ChecksumModel, DataSourceModel, CitationModel
+from whyqd.models import ChecksumModel, DataSourceModel, CitationModel, DialectModel
 from whyqd.core.base import BaseDefinition
 from whyqd.config.settings import settings
 
@@ -108,24 +108,30 @@ class DataSourceDefinition(BaseDefinition):
         *,
         source: Path | str,
         mimetype: str | MimeType,
-        header: int | list[int | None] | None = 0,
-        **attributes,
+        dialect: DialectModel | dict | list[DialectModel | dict] | None = None,
+        names: list[str] | dict[str, list[str]] | None = None,
+        **settings,
     ) -> DataSourceModel | list[DataSourceModel]:
-        """Derive a data model schema (or list) from a data source. All columns will be coerced to `string` type to
-        preserve data quality even though this is far less efficient.
+        """Derive a data source from a file, or one a sheet from a workbook. Every cell is read as its text.
 
         Parameters:
           source:  Source filename.
-          mimetype:  Pandas can read a diversity of mimetypes. **whyqd** supports `xls`, `xlsx`, `csv`, `parquet` and `feather`.
-          header:  Row (0-indexed) to use for the column labels of the parsed DataFrame. If there are multiple sheets, then
-                    a list of integers should be provided. If `header` is `None`, row 0 will be treated as values and a
-                    set of field names will be generated indexed to the number of data columns.
-          attributes: dict of specific `mimetype` related Pandas attributes. Use sparingly.
+          mimetype:  **whyqd** supports `xls`, `xlsx`, `csv`, `parquet` and `feather`.
+          dialect: How the file is written, so it can be read: the dialect of CSV on the Web, as `DialectModel`
+                   describes it. Undeclared, each setting takes its default; a CSV's encoding, undeclared, is settled by
+                   whyqd's ladder and recorded. For a workbook, a list, each naming its `sheet`, or one a sheet in order.
+          names: One name per column, for a file with no header row or a header over several rows; for a workbook, a
+                 mapping of sheet to names.
+          settings: Refused, naming the dialect: `header` and pandas' keywords are no longer read.
 
         Returns:
           List of DataSourceModel, or DataSourceModel
         """
-        self.model = self.reader.derive_data_model(source=source, mimetype=mimetype, header=header, **attributes)
+        self.model, table = self.reader.derive_data_model(
+            source=source, mimetype=mimetype, dialect=dialect, names=names, **settings
+        )
+        # Held so the first `get_data` need not read the file again
+        self.data = None if isinstance(self.model, list) else table.to_pandas()
 
     #########################################################################################
     # VALIDATION UTILITIES
@@ -135,7 +141,8 @@ class DataSourceDefinition(BaseDefinition):
         """Verify the source data against the data source's checksum.
 
         A checksum of the table as 1.x read it (`table-1x`) verifies through 1.x's own read, which needs the
-        `verify-1x` extra. Once it verifies, the file's byte hash is added beside it.
+        `verify-1x` extra. Once it verifies, the file's `fp0` and byte hash are added beside it. A data source without
+        one verifies by its byte hash, else by `fp0`, warning that the file was saved again with no cell changed.
 
         Raises:
           ImportError: If a 1.x checksum needs verifying and the `verify-1x` extra is not installed.
@@ -152,21 +159,24 @@ class DataSourceDefinition(BaseDefinition):
         for m in models:
             table = m.get_checksum(ChecksumContent.TABLE_1X)
             if table is None:
-                raise ValueError(f"`{m.path}` has no checksum this whyqd can verify: it verifies `table-1x` only.")
+                self.reader.verify(source=m)
+                continue
             try:
                 from whyqd.parsers.v1 import V1ChecksumParser
             except ImportError as e:
                 raise ImportError("Verifying a 1.x checksum needs the extra: pip install whyqd[verify-1x]") from e
             if V1ChecksumParser().checksum(model=m) != table:
                 raise AssertionError(f"{self.model_name.title()} model checksum does not match derived checksum.")
-            if m.get_checksum(ChecksumContent.BYTES) is None:
-                m.checksums.append(
-                    ChecksumModel(
-                        algorithm=settings.CHECKSUM_ALGORITHM,
-                        checksumValue=self.core.get_checksum(source=m.path),
-                        content=ChecksumContent.BYTES,
+            path = self.reader.locate(source=m.path)
+            found = {ChecksumContent.BYTES: self.reader.fingerprints.byte_hash(source=path)}
+            # One read with pandas' settings has no dialect to parse its grid by
+            if not (m.attributes and m.attributes.terms):
+                found[ChecksumContent.FP0] = self.reader.fingerprint(source=m, path=path)
+            for content, value in found.items():
+                if m.get_checksum(content) is None and value is not None:
+                    m.checksums.append(
+                        ChecksumModel(algorithm=settings.CHECKSUM_ALGORITHM, checksumValue=value, content=content)
                     )
-                )
         return True
 
     #########################################################################################

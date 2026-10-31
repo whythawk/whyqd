@@ -79,7 +79,7 @@ class TestTutorialRates:
             # 3. Define a Crosswalk
             crosswalk = qd.CrosswalkDefinition()
             crosswalk.set(schema_source=schema_source, schema_destination=schema_destination)
-            crosswalk.actions.add_multi(terms=SCHEMA_SCRIPTS[ds.sheet_name])
+            crosswalk.actions.add_multi(terms=SCHEMA_SCRIPTS[ds.dialect.sheet])
             # 4. Transform a data source
             transform = qd.TransformDefinition(crosswalk=crosswalk, data_source=ds)
             transform.process()

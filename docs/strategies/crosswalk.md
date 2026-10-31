@@ -145,14 +145,15 @@ could be used to indicate categories, or text for splitting. A script `modifier`
 specific.
 
 `row` terms are row numbers, meaning they must be in the source table or the script will fail. Rows are numbered from
-`0` by their position in the source as read, and each sheet starts again at `0`. With the header at row `0` (the
-default), row `0` is the first row after it; with `header=None`, another header row, or `names`, row `0` is the file's
-first row. Deleting rows leaves the rest numbered as they were.
+`0` by their position in the table as read, and each sheet starts again at `0`. The header row, and any rows skipped
+above it, are not in the table: row `0` is the first row after the header, or the file's first row where the data
+source's `dialect` declares no header row (`headerRowCount` 0). Deleting rows leaves the rest numbered as they were.
 
-!!! warning "Blank lines in a CSV are not numbered"
-    A blank line in a CSV is skipped at import and not counted, so each one moves every later row's number up by one.
-    Blank rows in an Excel sheet are kept and numbered. Take row numbers from the table **whyqd** shows you, not from
-    a text editor's line numbers.
+!!! warning "Row numbers are not line numbers"
+    A blank line in a CSV is a row, numbered like any other, and a cell holding a line break spans two lines of the file
+    in one row. Take row numbers from the table **whyqd** shows you, not from a text editor's line numbers. A data
+    source saved by **whyqd** 1.x keeps 1.x's numbering, in which a CSV's blank lines were skipped; where that changes a
+    row's number, reading it warns.
 
 !!! abstract "Tutorials"
     It is assumed that you're not working 'blind', that you're actually looking at your data while assigning actions - 

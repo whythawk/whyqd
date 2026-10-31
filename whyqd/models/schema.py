@@ -37,7 +37,7 @@ class SchemaModel(BaseModel):
     )
     index: Optional[int] = Field(
         None,
-        description="Maximum value of a zero-base index for tabular data defined by this schema. Necessary where `actions` apply row-level transforms.",
+        description="A 1.x schema's row count, kept to save it as 1.x. It bounds nothing: a row-level action's rows are checked against its data source's `index`.",
     )
     citation: Optional[CitationModel] = Field(None, description="Optional full citation for the source data.")
     extensions: list[ExtensionModel] = Field([], description="The extension types the schema's fields use.")

@@ -4,7 +4,6 @@ from typing import TYPE_CHECKING
 from pydantic import Json
 import json
 import sys
-import hashlib
 from urllib.parse import urlparse
 import urllib
 import posixpath
@@ -21,7 +20,6 @@ from whyqd.parsers.extension import ExtensionParser
 from whyqd.parsers.format import FormatParser
 
 if TYPE_CHECKING:
-    import pandas as pd
     from whyqd.models import SchemaModel, CrosswalkModel
 
 
@@ -175,30 +173,6 @@ class CoreParser:
         if not self.check_source(source=local_source):
             urllib.request.urlretrieve(source, local_source)
         return local_source
-
-    ###################################################################################################
-    ### CHECKSUMS
-    ###################################################################################################
-
-    def get_checksum(self, *, source: str) -> str:
-        # https://stackoverflow.com/a/47800021
-        checksum = hashlib.blake2b()
-        with open(source, "rb") as f:
-            for chunk in iter(lambda: f.read(4096), b""):
-                checksum.update(chunk)
-        return checksum.hexdigest()
-
-    def get_data_checksum(self, *, df: pd.DataFrame) -> str:
-        import numpy as np
-
-        # The destination data does not have a valid checksum for the file itself, only the data.
-        # Need to ensure arrays are all of the same type. Easiest is to coerce np arrays to lists
-        for column in df.columns:
-            if isinstance(df.iloc[0][column], np.ndarray):
-                df[column] = df[column].apply(lambda x: x.tolist())
-        df_string = df.astype("string").astype("string").to_string(index=False).encode("utf-8")
-        checksum = hashlib.blake2b
-        return checksum(df_string).hexdigest()
 
     ###################################################################################################
     ### JSON & FILE LOAD & SAVE

@@ -19,11 +19,11 @@ class TestTutorialPopulation:
         # 1. Import a data source and derive a source schema
         datasource = qd.DataSourceDefinition()
         # There are three sheets:
-        # - Data, header row + 3
+        # - Data, its header below three rows of title, which the read leaves out of the table
         # - Metadata - Countries
         # - Metadata - Indicators
         # We're only going to use the first
-        datasource.derive_model(source=SOURCE_DATA, mimetype=MIMETYPE, header=[3, 0, 0])
+        datasource.derive_model(source=SOURCE_DATA, mimetype=MIMETYPE, dialect=[{"skipRows": 3}, {}, {}])
         schema_source = qd.SchemaDefinition()
         schema_source.derive_model(data=datasource.get[0])
         # 2. Create a destination schema
@@ -86,8 +86,7 @@ class TestTutorialPopulation:
         schema_scripts = [
             "DEBLANK",
             "DEDUPE",
-            "DELETE_ROWS < [0, 1, 2, 3]",
-            f"PIVOT_LONGER > ['year', 'values'] < {datasource.model[0].names[4:]}",
+            f"PIVOT_LONGER > ['year', 'values'] < {[c.name for c in datasource.model[0].columns][4:]}",
             "RENAME > 'indicator_code' < ['Indicator Code']",
             "RENAME > 'indicator_name' < ['Indicator Name']",
             "RENAME > 'country_code' < ['Country Code']",
