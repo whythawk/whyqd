@@ -1,10 +1,10 @@
 # SPDX-License-Identifier: BSD-3-Clause
 from pathlib import Path
 import csv
-import io
 
 import polars as pl
 
+from whyqd.config.patterns import PythonPatterns
 from whyqd.dtypes import EncodingStep, MimeType
 from whyqd.models import DialectModel
 from whyqd.parsers.encoding import EncodingParser
@@ -27,6 +27,7 @@ class CsvParser:
     def __init__(self) -> None:
         self.encoding = EncodingParser()
         self.grids = GridParser()
+        self.patterns = PythonPatterns()
 
     def grid(
         self, *, source: Path, mime: MimeType, dialect: DialectModel
@@ -72,7 +73,8 @@ class CsvParser:
         if not dialect.doubleQuote:
             settings["escapechar"] = "\\"
         try:
-            reader = csv.reader(io.StringIO(text, newline=""), **settings)
+            # lines matched from the text, since `io.StringIO` copies it at four bytes a character
+            reader = csv.reader((m.group() for m in self.patterns.LINE.finditer(text)), **settings)
         except TypeError as e:
             raise ValueError(
                 f"`{source.name}` cannot be read with `delimiter` {dialect.delimiter!r} and `quoteChar` "

@@ -37,5 +37,7 @@ class PythonPatterns:
     EXCEL_ERROR: ClassVar[re.Pattern] = re.compile(r"Error\((\w+)\)")
     # A cell's reference in a sheet, its column's letters and its row's number: `AB12`
     CELL_REFERENCE: ClassVar[re.Pattern] = re.compile(r"([A-Z]+)([0-9]+)")
+    # A line of text with its end, `\r\n`, `\n`, or `\r`, as `io.StringIO(newline="")` splits it; the last may have none
+    LINE: ClassVar[re.Pattern] = re.compile(r"[^\r\n]*(?:\r\n|\n|\r)|[^\r\n]+\Z")
     # A part of the row key, its name given by `RowKeyParser.ROW`: `__row__`, `__row__1`
     ROW_PART: ClassVar[str] = r"^{row}(\d*)$"

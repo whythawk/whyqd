@@ -85,6 +85,21 @@ class TestDataSource:
         with pytest.raises(AssertionError):
             datasource.validate()
 
+    def test_get_data_is_the_table_the_derive_read(self, tmp_path):
+        source = tmp_path / "source.csv"
+        source.write_bytes(DATA["CSV"].read_bytes())
+        datasource = qd.DataSourceDefinition()
+        datasource.derive_model(source=source, mimetype=CSVTYPE)
+        expected = DataSourceParser().get(source=datasource.get)
+        # Gone, so the data can only be the derive's
+        source.unlink()
+        pd.testing.assert_frame_equal(datasource.get_data(), expected)
+        # A second derive replaces it
+        other = tmp_path / "other.csv"
+        other.write_text("Code\n1\n", encoding="utf-8")
+        datasource.derive_model(source=other, mimetype=CSVTYPE)
+        assert datasource.get_data()["Code"].tolist() == ["1"]
+
     def test_coerce_keeps_rows_on_any_index(self):
         # Actions can leave a frame indexed by labels rather than 0..n; coercion must keep every value in its row
         schema = qd.SchemaDefinition()

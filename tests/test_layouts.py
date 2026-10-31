@@ -54,6 +54,16 @@ def test_each_layout_reads_to_its_key(name):
     assert [[None if pd.isna(c) else c for c in row] for row in df[case["names"]].values.tolist()] == expected
 
 
+def test_only_a_line_end_ends_a_row(tmp_path):
+    # U+0085, U+2028, and a form feed end a line for `str.splitlines`, never a CSV row; the last line has no end
+    source = tmp_path / "separators.csv"
+    source.write_bytes("Code,Name\n1,a\u0085b\n2,c d\f\n3,e".encode("utf-8"))
+    datasource = qd.DataSourceDefinition()
+    datasource.derive_model(source=source, mimetype="CSV")
+    df = DataSourceParser().get(source=datasource.get)
+    assert df[["Code", "Name"]].values.tolist() == [["1", "a\u0085b"], ["2", "c d\f"], ["3", "e"]]
+
+
 def test_a_1x_csv_with_a_blank_line_warns_that_its_rows_are_renumbered():
     # 1.x skipped the blank line, so it read one row fewer and numbered every row after it one lower
     model = qd.models.DataSourceModel(

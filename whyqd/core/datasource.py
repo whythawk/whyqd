@@ -127,9 +127,11 @@ class DataSourceDefinition(BaseDefinition):
         Returns:
           List of DataSourceModel, or DataSourceModel
         """
-        self.model = self.reader.derive_data_model(
+        self.model, table = self.reader.derive_data_model(
             source=source, mimetype=mimetype, dialect=dialect, names=names, **settings
         )
+        # Held so the first `get_data` need not read the file again
+        self.data = None if isinstance(self.model, list) else table.to_pandas()
 
     #########################################################################################
     # VALIDATION UTILITIES

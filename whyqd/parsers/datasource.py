@@ -251,8 +251,9 @@ class DataSourceParser:
         mime: MimeType,
         dialect: DialectModel | dict | None = None,
         names: list[str] | None = None,
-    ) -> DataSourceModel:
-        """A file's data source: its columns, row count, `fp0` and byte hash, and the dialect that reads it."""
+    ) -> tuple[DataSourceModel, pl.DataFrame]:
+        """A file's data source, its columns, row count, `fp0` and byte hash, and the dialect that reads it; and its
+        table, as `get` would read it."""
         path = self.locate(source=source)
         read = self.reader(mime=mime).grid(source=path, mime=mime, dialect=self.declare(dialect=dialect))
         fp0 = None if mime == MimeType.PDF else self.fingerprints.fp0(sheets=[("", read[0], read[1])])
@@ -268,8 +269,8 @@ class DataSourceParser:
         names: list[str] | None,
         fp0: str | None,
         hidden: bool = False,
-    ) -> DataSourceModel:
-        """The data source of a grid as its reader gave it, each column profiled."""
+    ) -> tuple[DataSourceModel, pl.DataFrame]:
+        """The data source of a grid as its reader gave it, each column profiled, and its table."""
         grid, types, lines, dialect = read
         reader = self.reader(mime=mime)
         beside = [grid, types]
@@ -284,7 +285,7 @@ class DataSourceParser:
         ]
         if fp0 is not None:
             checksums.append(self.core.formats.checksum(value=fp0, content=ChecksumContent.FP0))
-        return DataSourceModel(
+        model = DataSourceModel(
             path=str(source),
             mime=mime,
             hidden=hidden or None,
@@ -303,6 +304,7 @@ class DataSourceParser:
             checksums=checksums,
             index=table.height,
         )
+        return model, table
 
     def fingerprint(self, *, source: DataSourceModel, path: Path) -> str | None:
         """The `fp0` of a data source's file as it is now: every sheet of a workbook, or the grid its dialect parses.
@@ -354,8 +356,8 @@ class DataSourceParser:
         mime: MimeType,
         dialect: DialectModel | dict | list[DialectModel | dict] | None = None,
         names: list[str] | dict[str, list[str]] | None = None,
-    ) -> DataSourceModel | list[DataSourceModel]:
-        """A workbook's data sources, one a sheet, every sheet read and a hidden one flagged.
+    ) -> tuple[DataSourceModel | list[DataSourceModel], pl.DataFrame | list[pl.DataFrame]]:
+        """A workbook's data sources, one a sheet, every sheet read and a hidden one flagged, and their tables.
 
         Each sheet is its own table, with its own dialect and names. A list of dialects names each one's `sheet`, a
         sheet named by none taking the defaults; or names none, giving one a sheet in workbook order. `names` maps a
@@ -386,11 +388,16 @@ class DataSourceParser:
             for name in order
         }
         fp0 = self.fingerprints.fp0(sheets=[(name, grid, types) for name, (grid, types, _, _) in reads.items()])
-        models = [
-            self.model(source=source, path=path, mime=mime, read=reads[name], names=names.get(name), fp0=fp0, hidden=hidden)
-            for name, hidden in sheets
-        ]
-        return models[0] if len(models) == 1 else models
+        models, tables = zip(
+            *(
+                self.model(
+                    source=source, path=path, mime=mime, read=reads[name], names=names.get(name), fp0=fp0, hidden=hidden
+                )
+                for name, hidden in sheets
+            ),
+            strict=True,
+        )
+        return (models[0], tables[0]) if len(models) == 1 else (list(models), list(tables))
 
     def sheet_dialects(
         self, *, dialect: DialectModel | dict | list[DialectModel | dict] | None, sheets: list[str], source: Path | str
@@ -426,8 +433,8 @@ class DataSourceParser:
         dialect: DialectModel | dict | list[DialectModel | dict] | None = None,
         names: list[str] | dict[str, list[str]] | None = None,
         **settings,
-    ) -> DataSourceModel | list[DataSourceModel]:
-        """A data source derived from a file: a workbook's one a sheet, as a list where it has several.
+    ) -> tuple[DataSourceModel | list[DataSourceModel], pl.DataFrame | list[pl.DataFrame]]:
+        """A data source derived from a file, and its table: a workbook's one a sheet, as lists where it has several.
 
         Parameters
         ----------
