@@ -256,7 +256,7 @@ class DataSourceParser:
         table, as `get` would read it."""
         path = self.locate(source=source)
         read = self.reader(mime=mime).grid(source=path, mime=mime, dialect=self.declare(dialect=dialect))
-        fp0 = None if mime == MimeType.PDF else self.fingerprints.fp0(sheets=[("", read[0], read[1])])
+        fp0 = None if mime == MimeType.PDF else self.fingerprints.fp0(grid=read[0], types=read[1])
         return self.model(source=source, path=path, mime=mime, read=read, names=names, fp0=fp0)
 
     def model(
@@ -307,20 +307,13 @@ class DataSourceParser:
         return model, table
 
     def fingerprint(self, *, source: DataSourceModel, path: Path) -> str | None:
-        """The `fp0` of a data source's file as it is now: every sheet of a workbook, or the grid its dialect parses.
-        `None` for a PDF, which has none."""
+        """The `fp0` of the sheet or file a data source's dialect reads, as it is now. `None` for a PDF, which has
+        none."""
         mime = self.get_mimetype(mimetype=source.mime)
         if mime == MimeType.PDF:
             return None
-        reader = self.reader(mime=mime)
-        if mime in (MimeType.XLS, MimeType.XLSX):
-            sheets = [
-                (name, *reader.grid(source=path, mime=mime, dialect=DialectModel(sheet=name))[:2])
-                for name, _ in reader.sheets(source=path)
-            ]
-            return self.fingerprints.fp0(sheets=sheets)
-        grid, types, _, _ = reader.grid(source=path, mime=mime, dialect=self.dialect(source=source))
-        return self.fingerprints.fp0(sheets=[("", grid, types)])
+        grid, types, _, _ = self.reader(mime=mime).grid(source=path, mime=mime, dialect=self.dialect(source=source))
+        return self.fingerprints.fp0(grid=grid, types=types)
 
     def verify(self, *, source: DataSourceModel, directory: str | Path | None = None) -> None:
         """Verify a data source's file by its byte hash, else by `fp0`, warning that the file was saved again with no
@@ -341,11 +334,11 @@ class DataSourceParser:
             return
         if fp0 is None or self.fingerprint(source=source, path=path) != fp0:
             raise AssertionError(
-                f"`{source.path}` has changed: its cells are not those its data source was derived from. "
+                f"`{source.name}` has changed: its cells are not those its data source was derived from. "
                 "[whyqd:source-changed]"
             )
         self.core.show_warning(
-            f"`{source.path}` was saved again: its bytes differ, but its cells (`fp0`) do not. "
+            f"`{source.name}` was saved again: the file's bytes differ, but its cells (`fp0`) do not. "
             "[whyqd:source-saved-again]"
         )
 
@@ -359,9 +352,9 @@ class DataSourceParser:
     ) -> tuple[DataSourceModel | list[DataSourceModel], pl.DataFrame | list[pl.DataFrame]]:
         """A workbook's data sources, one a sheet, every sheet read and a hidden one flagged, and their tables.
 
-        Each sheet is its own table, with its own dialect and names. A list of dialects names each one's `sheet`, a
-        sheet named by none taking the defaults; or names none, giving one a sheet in workbook order. `names` maps a
-        sheet to its names, or, for a workbook of one sheet, is that sheet's names.
+        Each sheet is its own table, with its own dialect, names, and `fp0`. A list of dialects names each one's
+        `sheet`, a sheet named by none taking the defaults; or names none, giving one a sheet in workbook order. `names`
+        maps a sheet to its names, or, for a workbook of one sheet, is that sheet's names.
 
         Raises
         ------
@@ -387,11 +380,16 @@ class DataSourceParser:
             name: reader.grid(source=path, mime=mime, dialect=dialects[name].model_copy(update={"sheet": name}))
             for name in order
         }
-        fp0 = self.fingerprints.fp0(sheets=[(name, grid, types) for name, (grid, types, _, _) in reads.items()])
         models, tables = zip(
             *(
                 self.model(
-                    source=source, path=path, mime=mime, read=reads[name], names=names.get(name), fp0=fp0, hidden=hidden
+                    source=source,
+                    path=path,
+                    mime=mime,
+                    read=reads[name],
+                    names=names.get(name),
+                    fp0=self.fingerprints.fp0(grid=reads[name][0], types=reads[name][1]),
+                    hidden=hidden,
                 )
                 for name, hidden in sheets
             ),
