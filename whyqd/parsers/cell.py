@@ -9,7 +9,7 @@ class CellParser:
 
     Readers render the same stored cell differently: a whole number as `1`, `1.0`, or `1.00`; a boolean as `True`,
     `true`, or `1`; a date with or without its midnight. `render` gives whyqd's own text, by the rules `CellType`
-    describes, so a source reads the same through any reader.
+    describes, which name no reader or language, so a source reads the same through any reader.
     """
 
     def render(

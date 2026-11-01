@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: BSD-3-Clause
-"""What each column holds, as read, in counts: its cells by stored type, blank and whitespace-only cells, the
+"""What each column holds, as read, in counts: its cells by type, blank and whitespace-only cells, the
 anomalies, and, for an `.xlsx`, its number and date cells by their format code. Profiling never changes a cell.
 
 A column's profile counts the table's rows, below its header, each cell as stored, before any trim. Excel's date cells

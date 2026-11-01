@@ -19,7 +19,7 @@ class ProfileParser:
         self.patterns = PolarsPatterns()
 
     def profile(self, *, text: pl.Series, types: pl.Series, formats: pl.Series | None = None) -> ProfileModel:
-        """A column's profile from its cells' text, their stored types, and, for an `.xlsx`, their format codes.
+        """A column's profile from its cells' text, their types, and, for an `.xlsx`, their format codes.
 
         Parameters
         ----------

@@ -100,7 +100,7 @@ class TestFp0:
         two = derive(workbook(tmp_path / "two.xlsx", {"A1": "Name"}, sheets=("Two",)), "XLSX").get
         assert one.get_checksum("fp0") == two.get_checksum("fp0")
 
-    def test_a_cells_stored_type_is_in_fp0(self, tmp_path):
+    def test_a_cells_type_is_in_fp0(self, tmp_path):
         number = derive(workbook(tmp_path / "number.xlsx", {"A1": "Code", "A2": 12}), "XLSX").get
         text = derive(workbook(tmp_path / "text.xlsx", {"A1": "Code", "A2": "12"}), "XLSX").get
         assert number.get_checksum("fp0") != text.get_checksum("fp0")

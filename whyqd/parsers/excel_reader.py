@@ -21,6 +21,20 @@ class ExcelParser:
     Every sheet is read, a hidden one included, since it is the publisher's data; each is its own table. A cell is read
     from A1, so a sheet's rows are numbered as the spreadsheet numbers them. python-calamine gives each cell's value,
     but reads an error cell as empty, so fastexcel names the error cells, each read as its code (`#N/A`).
+
+    A workbook stores a date as a number under a format, so the format decides how a number reads, by this rule, which
+    a reader passes by matching the fixtures in `tests/test_cell_rule.py`:
+
+    - **Which**: a stored code's first section alone. Quotes, whatever follows `\\`, `_`, or `*`, and brackets are not
+      tokens, but for a bracket holding only `h`, `m`, or `s`, which makes a duration. The first of `d m y h s` makes a
+      date; once an `a` has come, only `/`, `m`, or `p` still does. A built-in id with no stored code: 14 to 22, 45, and
+      47 are dates, 46 a duration, every other a number. Anything else is a number.
+    - **A date**: the value, plus 1462 in the 1904 system, plus 1 in the 1900 system if that is below 60, is the days
+      since 1899-12-30; times 86,400,000 in double arithmetic, and rounded half away from zero, the milliseconds. So
+      1900's serial 60, a day that never was, reads `1900-02-28`, as serial 59 does. From 0 up to 1, the time alone,
+      unless it rounds up to a whole day, which reads as that date.
+    - **A duration**: the value in days, to the millisecond by the same arithmetic, as `CellType` describes.
+    - **No sensible date**: a value below 0 under a date's code, or past the year 9999, reads as the number.
     """
 
     PLACE = "row"
@@ -85,8 +99,8 @@ class ExcelParser:
     def grid(
         self, *, source: Path, mime: MimeType, dialect: DialectModel
     ) -> tuple[pl.DataFrame, pl.DataFrame, list[int], DialectModel]:
-        """A sheet's grid and each cell's stored type, the spreadsheet's number for each grid row, and the dialect
-        naming the sheet.
+        """A sheet's grid and each cell's type, the spreadsheet's number for each grid row, and the dialect naming the
+        sheet.
 
         Parameters
         ----------
