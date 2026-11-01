@@ -6,7 +6,7 @@ from whyqd.dtypes import CellType
 
 class GridParser:
     """The grid every reader gives: each cell's text, null where empty, in columns `column_0` on, and beside it each
-    cell's stored type, a `CellType`, in a frame of the same shape.
+    cell's type, a `CellType`, in a frame of the same shape.
 
     A format that stores no types (CSV, PDF) holds text only, so each of its cells is `s`. A reader's grid is trimmed
     of trailing empty rows and columns, so a file's grid does not depend on how far a program that saved it left empty

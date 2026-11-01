@@ -1,4 +1,6 @@
 # SPDX-License-Identifier: BSD-3-Clause
+from collections.abc import Iterator
+from datetime import date, time
 import posixpath
 import zipfile
 from pathlib import Path
@@ -21,6 +23,25 @@ class ExcelParser:
     Every sheet is read, a hidden one included, since it is the publisher's data; each is its own table. A cell is read
     from A1, so a sheet's rows are numbered as the spreadsheet numbers them. python-calamine gives each cell's value,
     but reads an error cell as empty, so fastexcel names the error cells, each read as its code (`#N/A`).
+
+    A workbook stores a date as a number under a format, so the format decides how a number reads, by this rule, which
+    a reader passes by matching the fixtures in `tests/test_cell_rule.py`:
+
+    - **Which**: a stored code's first section alone. Quotes, whatever follows `\\`, `_`, or `*`, and brackets are not
+      tokens, but for a bracket holding only `h`, `m`, or `s`, which makes a duration. The first of `d m y h s` makes a
+      date; once an `a` has come, only `/`, `m`, or `p` still does. A built-in id with no stored code: 14 to 22, 45, and
+      47 are dates, 46 a duration, every other a number. Anything else is a number.
+    - **A date**: the value, plus 1462 in the 1904 system, plus 1 in the 1900 system if that is below 60, is the days
+      since 1899-12-30; times 86,400,000 in double arithmetic, and rounded half away from zero, the milliseconds. So
+      1900's serial 60, a day that never was, reads `1900-02-28`, as serial 59 does. From 0 up to 1, the time alone,
+      unless it rounds up to a whole day, which reads as that date.
+    - **A duration**: the value in days, to the millisecond by the same arithmetic, as `CellType` describes.
+    - **No sensible date**: a value below 0 under a date's code, or past the year 9999, reads as the number.
+    - **Too large**: a duration past what the reader can hold is refused, naming its sheet and row.
+
+    python-calamine gives every value below 1 under a date's code as a time, losing a negative's value and a rounded
+    day. An `.xlsx` is read back from its XML for those, and only where a sheet holds a time; an `.xls` stores its cells
+    in another form, and is not, so there they read as python-calamine gives them.
     """
 
     PLACE = "row"
@@ -68,6 +89,9 @@ class ExcelParser:
         49: "@",
     }
 
+    # The date of serial 1, by whether the workbook is in the 1904 date system
+    SERIAL_ONE = {False: date(1900, 1, 1), True: date(1904, 1, 2)}
+
     def __init__(self) -> None:
         self.cell = CellParser()
         self.grids = GridParser()
@@ -85,21 +109,21 @@ class ExcelParser:
     def grid(
         self, *, source: Path, mime: MimeType, dialect: DialectModel
     ) -> tuple[pl.DataFrame, pl.DataFrame, list[int], DialectModel]:
-        """A sheet's grid and each cell's stored type, the spreadsheet's number for each grid row, and the dialect
-        naming the sheet.
+        """A sheet's grid and each cell's type, the spreadsheet's number for each grid row, and the dialect naming the
+        sheet.
 
         Parameters
         ----------
         source: Path
         mime: MimeType
-            Read only to share the interface every reader has.
+            Whether the workbook has XML to read a lost value back from.
         dialect: DialectModel
             Its `sheet` names the sheet; a workbook of one sheet needs none.
 
         Raises
         ------
         ValueError
-            For a sheet the workbook does not have, naming those it has.
+            For a sheet the workbook does not have, naming those it has, or a duration too large to read.
         """
         names = [name for name, _ in self.sheets(source=source)]
         sheet = dialect.sheet
@@ -111,14 +135,23 @@ class ExcelParser:
                 "[whyqd:sheet-unknown]"
             )
         read = python_calamine.CalamineWorkbook.from_path(str(source)).get_sheet_by_name(sheet)
-        rows = read.to_python(skip_empty_area=False)
+        try:
+            rows = read.to_python(skip_empty_area=False)
+        except OverflowError as e:
+            raise ValueError(
+                f"`{source.name}` sheet `{sheet}` row {self.overflow_row(read=read)} holds a duration too large to "
+                "read. Change that cell's format to a number and derive from that copy. [whyqd:duration-range]"
+            ) from e
         errors = self.errors(source=source, sheet=sheet, start=read.start)
+        lost = {}
+        if mime == MimeType.XLSX and any(isinstance(value, time) for row in rows for value in row):
+            lost = self.below_one(source=source, sheet=sheet, rows=rows)
         width = max((len(r) for r in rows), default=0)
         columns = {f"column_{j}": [] for j in range(width)}
         types = {f"column_{j}": [] for j in range(width)}
         for i, row in enumerate(rows):
             for j in range(width):
-                value = row[j] if j < len(row) else None
+                value = lost.get((i, j), row[j] if j < len(row) else None)
                 code = errors.get((i, j))
                 rendered = self.cell.render(value=code, error=True) if code else self.cell.render(value=value)
                 columns[f"column_{j}"].append(None if rendered is None else rendered[1])
@@ -136,32 +169,77 @@ class ExcelParser:
         """
         codes = {f"column_{j}": [None] * height for j in range(width)}
         with zipfile.ZipFile(source) as book:
-            workbook = self.parts(book=book, path="_rels/.rels", where="")["officeDocument"][0][0]
-            folder, name = posixpath.split(workbook)
-            parts = self.parts(book=book, path=posixpath.join(folder, "_rels", f"{name}.rels"), where=folder)
-            ids = {}
-            for element in ElementTree.fromstring(book.read(workbook)).iter():
-                if self.local(element.tag) == "sheet":
-                    ids[element.get("name")] = next(v for k, v in element.attrib.items() if self.local(k) == "id")
-            path = next(target for target, i in parts["worksheet"] if i == ids[sheet])
+            _, parts, path = self.locate(book=book, sheet=sheet)
             styles = self.styles(book=book, path=parts["styles"][0][0]) if "styles" in parts else []
-            row = column = -1
-            with book.open(path) as xml:
-                for event, element in ElementTree.iterparse(xml, events=("start", "end")):
-                    tag = self.local(element.tag)
-                    if event == "start" and tag == "row":
-                        row, column = (int(element.get("r")) - 1 if element.get("r") else row + 1), -1
-                    elif event == "end" and tag == "c":
-                        if reference := element.get("r"):
-                            letters, number = self.patterns.CELL_REFERENCE.fullmatch(reference).groups()
-                            row, column = int(number) - 1, self.column(letters=letters)
-                        else:
-                            column += 1
-                        style = int(element.get("s", 0))
-                        if row < height and column < width:
-                            codes[f"column_{column}"][row] = styles[style] if style < len(styles) else self.BUILT_IN[0]
-                        element.clear()
+            for row, column, element in self.walk(book=book, path=path):
+                style = int(element.get("s", 0))
+                if row < height and column < width:
+                    codes[f"column_{column}"][row] = styles[style] if style < len(styles) else self.BUILT_IN[0]
         return pl.DataFrame(codes, schema={c: pl.String for c in codes})
+
+    def below_one(self, *, source: Path, sheet: str, rows: list[list]) -> dict[tuple[int, int], float | date]:
+        """What each time in a sheet of an `.xlsx` reads as where the reader lost its value, by its row and column
+        from A1: a stored number below 0 as that number, and one that rounded up to midnight as the date of serial 1.
+
+        A value that small rounding down to midnight is a time, and stands.
+        """
+        lost = {}
+        with zipfile.ZipFile(source) as book:
+            workbook, _, path = self.locate(book=book, sheet=sheet)
+            date1904 = any(
+                self.local(e.tag) == "workbookPr" and e.get("date1904", "0") in ("1", "true") for e in workbook.iter()
+            )
+            for row, column, element in self.walk(book=book, path=path):
+                value = rows[row][column] if row < len(rows) and column < len(rows[row]) else None
+                if not isinstance(value, time) or element.get("t", "n") != "n":
+                    continue
+                stored = float(next(e.text for e in element if self.local(e.tag) == "v"))
+                if stored < 0:
+                    lost[(row, column)] = stored
+                elif stored >= 0.5 and value == time(0):
+                    lost[(row, column)] = self.SERIAL_ONE[date1904]
+        return lost
+
+    def overflow_row(self, *, read: python_calamine.CalamineSheet) -> int:
+        """The spreadsheet's number for the row holding a duration too large to read, where the reader, counting
+        from A1, stops."""
+        count = 0
+        try:
+            for _ in read.iter_rows():
+                count += 1
+        except OverflowError:
+            pass
+        return count + 1
+
+    def locate(self, *, book: zipfile.ZipFile, sheet: str) -> tuple[ElementTree.Element, dict, str]:
+        """A workbook's root, its parts by their type's last word, and the path of this sheet's XML."""
+        workbook = self.parts(book=book, path="_rels/.rels", where="")["officeDocument"][0][0]
+        folder, name = posixpath.split(workbook)
+        parts = self.parts(book=book, path=posixpath.join(folder, "_rels", f"{name}.rels"), where=folder)
+        root = ElementTree.fromstring(book.read(workbook))
+        ids = {
+            e.get("name"): next(v for k, v in e.attrib.items() if self.local(k) == "id")
+            for e in root.iter()
+            if self.local(e.tag) == "sheet"
+        }
+        return root, parts, next(target for target, i in parts["worksheet"] if i == ids[sheet])
+
+    def walk(self, *, book: zipfile.ZipFile, path: str) -> Iterator[tuple[int, int, ElementTree.Element]]:
+        """Each cell in a sheet's XML, by its row and column from A1, cleared once it has been read."""
+        row = column = -1
+        with book.open(path) as xml:
+            for event, element in ElementTree.iterparse(xml, events=("start", "end")):
+                tag = self.local(element.tag)
+                if event == "start" and tag == "row":
+                    row, column = (int(element.get("r")) - 1 if element.get("r") else row + 1), -1
+                elif event == "end" and tag == "c":
+                    if reference := element.get("r"):
+                        letters, number = self.patterns.CELL_REFERENCE.fullmatch(reference).groups()
+                        row, column = int(number) - 1, self.column(letters=letters)
+                    else:
+                        column += 1
+                    yield row, column, element
+                    element.clear()
 
     def parts(self, *, book: zipfile.ZipFile, path: str, where: str) -> dict[str, list[tuple[str, str]]]:
         """A relationships part's targets by their type's last word (`worksheet`, `styles`), each with its id."""

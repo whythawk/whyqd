@@ -141,8 +141,9 @@ class DataSourceDefinition(BaseDefinition):
         """Verify the source data against the data source's checksum.
 
         A checksum of the table as 1.x read it (`table-1x`) verifies through 1.x's own read, which needs the
-        `verify-1x` extra. Once it verifies, the file's `fp0` and byte hash are added beside it. A data source without
-        one verifies by its byte hash, else by `fp0`, warning that the file was saved again with no cell changed.
+        `verify-1x` extra. Once it verifies, the `fp0` of what its dialect reads and the file's byte hash are added
+        beside it. A data source without one verifies by its byte hash, else by `fp0`, warning that the file was saved
+        again with no cell changed.
 
         Raises:
           ImportError: If a 1.x checksum needs verifying and the `verify-1x` extra is not installed.

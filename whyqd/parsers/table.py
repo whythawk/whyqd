@@ -11,8 +11,8 @@ class TableParser:
     In order: the rows before the header are skipped (`skipRows`); records over several rows are joined
     (`rowsPerRecord`); each cell is trimmed (`trim`), one left empty becoming empty; the header rows
     (`headerRowCount`) name the columns and leave the table; the row key is added. Nothing is inferred from the data:
-    every setting is the dialect's, with its defaults. Frames beside the grid, such as each cell's stored type, take
-    the same rows, so a column can be profiled as its cells are stored.
+    every setting is the dialect's, with its defaults. Frames beside the grid, such as each cell's type, take the same
+    rows, so a column can be profiled as its cells read.
     """
 
     TRIM = {True: str.strip, "start": str.lstrip, "end": str.rstrip}
@@ -44,7 +44,7 @@ class TableParser:
         place: str, default "line"
             What `lines` counts, as the wrangler would look for it: a text file's `line`, a sheet's `row`.
         beside: list[pl.DataFrame] | None, default None
-            Frames in the grid's shape, such as each cell's stored type.
+            Frames in the grid's shape, such as each cell's type.
 
         Raises
         ------
