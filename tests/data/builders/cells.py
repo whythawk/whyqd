@@ -7,7 +7,7 @@ applies the rule written out below. Neither imports whyqd or the reader under te
 by construction. A cell the rule reads where today's reader may not is named in the key's `cases`.
 
     python tests/data/builders/cells.py build tests/data/synthetic-cells
-    soffice --headless --convert-to xls --outdir <directory> cells-1900.xlsx   # and cells-1904.xlsx
+    soffice --headless --convert-to xls --outdir <directory> cells-1900.xlsx   # and cells-1904.xlsx, overflow.xlsx
     soffice --headless --convert-to xlsx --outdir <elsewhere> cells-1900.xlsx  # moved in as cells-1900-resaved.xlsx
     python tests/data/builders/cells.py key tests/data/synthetic-cells
 """
@@ -74,7 +74,21 @@ CODES = [
     "aaa/m/d",
 ]
 BUILT_IN_IDS = [14, 15, 22, 30, 31, 36, 45, 46, 47, 50, 57, 5, 6, 7, 8, 41, 42, 43, 44, 81]
-SERIALS = ["45383", "45383.5", "0.5", "1.5", "1", "59", "60", "61", "0", "45383.123456789", "0.99999999", "0.999999999"]
+SERIALS = [
+    "45383",
+    "45383.5",
+    "0.5",
+    "1.5",
+    "1",
+    "59",
+    "60",
+    "61",
+    "0",
+    "45383.123456789",
+    "0.99999999",
+    "0.999999999",
+    "0.000000001",
+]
 BEYOND = ["-1", "-0.5", "2958465", "2958465.9999", "2958466", "1000000000000000"]
 SHARED = [
     "<si><t> </t></si>",
@@ -236,7 +250,8 @@ def package(path: Path, sheets: dict[str, str], ids: list[int], custom: list[str
 
 
 def build(directory: Path) -> None:
-    """The cells' workbook in each date system, and a workbook with a duration too large to read, in row 3."""
+    """The cells' workbook in each date system, and a workbook with a duration too large to read: in row 3, and in row
+    5 of a sheet whose data starts at row 4."""
     directory.mkdir(parents=True, exist_ok=True)
     ids = [164 + i for i in range(len(CODES))] + BUILT_IN_IDS
     date_style, duration_style = CODES.index("yyyy-mm-dd"), CODES.index("[h]:mm")
@@ -250,8 +265,12 @@ def build(directory: Path) -> None:
     package(directory / "cells-1900.xlsx", sheets, ids, CODES)
     package(directory / "cells-1904.xlsx", sheets, ids, CODES, date1904=True)
     overflow = number_sheet([[("1", 0)], [("2", 0)], [("1000000000000", 1)], [("4", 0)]])
+    late = worksheet('<row r="4"><c r="B4"><v>1</v></c></row><row r="5"><c r="B5" s="1"><v>1000000000000</v></c></row>')
     package(
-        directory / "overflow.xlsx", {"Plain": number_sheet([[("1", 0)]]), "Lengths": overflow}, [0, 164], ["[h]:mm"]
+        directory / "overflow.xlsx",
+        {"Plain": number_sheet([[("1", 0)]]), "Lengths": overflow, "Late": late},
+        [0, 164],
+        ["[h]:mm"],
     )
 
 
@@ -314,10 +333,9 @@ def date_text(value: float, date1904: bool) -> tuple[str, str, str | None]:
         moment = datetime(1899, 12, 30) + timedelta(milliseconds=whole_milliseconds(days))
     except OverflowError:
         return "n", number_text(value), None
-    if value >= 1 or (value > 0 and moment.time() == datetime.min.time()):
-        case = None if value >= 1 else "rounds-up"
-        text = moment.date().isoformat() if moment.time() == datetime.min.time() else moment.isoformat()
-        return "d", text, case
+    midnight = moment.time() == datetime.min.time()
+    if value >= 1 or (value >= 0.5 and midnight):
+        return "d", moment.date().isoformat() if midnight else moment.isoformat(), None if value >= 1 else "rounds-up"
     return "d", moment.time().isoformat(), None
 
 
@@ -468,7 +486,7 @@ def xls_sheets(path: Path) -> tuple[bool, dict]:
 def key(directory: Path) -> None:
     """The answer key for every workbook in this directory, each cell `[type, text]`, and the cells of each case."""
     found = {}
-    for path in sorted(p for p in directory.iterdir() if p.suffix in (".xlsx", ".xls") and p.name != "overflow.xlsx"):
+    for path in sorted(p for p in directory.iterdir() if p.suffix in (".xlsx", ".xls") and p.stem != "overflow"):
         date1904, sheets = xlsx_sheets(path) if path.suffix == ".xlsx" else xls_sheets(path)
         entry = {"date1904": date1904, "sheets": {}}
         for name, cells in sheets.items():

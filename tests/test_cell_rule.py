@@ -23,7 +23,9 @@ SHEETS = [(name, sheet) for name, entry in KEY.items() for sheet in entry["sheet
 
 
 def faults(name: str, sheet: str) -> list[str]:
-    """The cells the rule reads and today's reader does not."""
+    """The cells below 1 under a date's code that an `.xls` cannot read back, having no XML; none in an `.xlsx`."""
+    if not name.endswith(".xls"):
+        return []
     return [ref for refs in KEY[name]["sheets"][sheet]["cases"].values() for ref in refs]
 
 
@@ -50,7 +52,7 @@ FAULTS = [
     pytest.param(
         name,
         sheet,
-        marks=pytest.mark.xfail(strict=True, reason="values below 1 collapse in the reader"),
+        marks=pytest.mark.xfail(strict=True, reason="the reader collapses values below 1, and an .xls has no XML"),
         id=f"{name}-{sheet}",
     )
     for name, sheet in SHEETS
@@ -66,7 +68,7 @@ class TestRule:
         assert {r: c for r, c in found.items() if r not in leave} == {r: c for r, c in wanted.items() if r not in leave}
 
     @pytest.mark.parametrize(("name", "sheet"), FAULTS)
-    def test_a_value_below_one_keeps_its_value(self, name, sheet):
+    def test_a_value_below_one_in_an_xls_keeps_its_value(self, name, sheet):
         wanted, found = KEY[name]["sheets"][sheet]["cells"], read(name, sheet)
         assert {r: found.get(r) for r in faults(name, sheet)} == {r: wanted[r] for r in faults(name, sheet)}
 
@@ -102,9 +104,35 @@ class TestResave:
                     assert definition.validate()
 
 
+class TestBelowOne:
+    def test_a_sheet_with_no_time_does_not_open_its_xml(self, monkeypatch):
+        def refuse(*args, **kwargs):
+            raise AssertionError("The sheet's XML was opened.")
+
+        monkeypatch.setattr("whyqd.parsers.excel_reader.zipfile.ZipFile", refuse)
+        assert read("cells-1900.xlsx", "Cells")
+
+    def test_a_tiny_value_rounding_down_stays_a_time(self):
+        found = read("cells-1900.xlsx", "Dates")
+        row = next(r for r in range(1, 100) if found[f"A{r}"] == ["d", "2024-04-01"])
+        assert found[f"M{row}"] == ["d", "00:00:00"]
+
+
 class TestOverflow:
-    @pytest.mark.xfail(strict=True, raises=OverflowError, reason="the reader raises its own error for the whole sheet")
-    def test_a_duration_too_large_is_refused_by_sheet_and_row(self):
-        dialect = DialectModel(sheet="Lengths")
-        with pytest.raises(ValueError, match=r"overflow\.xlsx.*Lengths.*row 3.*\[whyqd:duration-range\]"):
-            ExcelParser().grid(source=CELLS / "overflow.xlsx", mime=MimeType.XLSX, dialect=dialect)
+    @pytest.mark.parametrize("suffix", [("xlsx", MimeType.XLSX), ("xls", MimeType.XLS)], ids=["xlsx", "xls"])
+    @pytest.mark.parametrize(("sheet", "row"), [("Lengths", 3), ("Late", 5)])
+    def test_a_duration_too_large_is_refused_by_sheet_and_row(self, suffix, sheet, row):
+        name = f"overflow.{suffix[0]}"
+        with pytest.raises(ValueError, match=rf"overflow\.{suffix[0]}.*{sheet}.*row {row} .*\[whyqd:duration-range\]"):
+            ExcelParser().grid(source=CELLS / name, mime=suffix[1], dialect=DialectModel(sheet=sheet))
+
+    def test_a_sheet_beside_it_reads(self):
+        grid, _, _, _ = ExcelParser().grid(
+            source=CELLS / "overflow.xlsx", mime=MimeType.XLSX, dialect=DialectModel(sheet="Plain")
+        )
+        assert grid.to_dict(as_series=False) == {"column_0": ["1"]}
+
+    def test_it_blocks_deriving_the_workbook(self):
+        datasource = qd.DataSourceDefinition()
+        with pytest.raises(ValueError, match="duration-range"):
+            datasource.derive_model(source=CELLS / "overflow.xlsx", mimetype="XLSX")
