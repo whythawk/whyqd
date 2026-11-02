@@ -124,7 +124,7 @@ class ActionParser:
                 # extraction of the action, then replace the hash with a nested dictionary {action: , source: }
                 # where each 'source' contains the input for that action, and is the input for the higher level.
                 parsed_stack = stack
-                for txt, prsed, hx in parsed:
+                for txt, _, hx in parsed:
                     # replace the txt with hx
                     parsed_stack = parsed_stack.replace(f"[{txt}]", hx)
                 i_prsed = []
@@ -133,7 +133,7 @@ class ActionParser:
                     if len(splt) == 1:
                         i_prsed.extend(self.parser.get_listed_literal(text=s))
                     else:
-                        for txt, prsed, hx in parsed:
+                        for _, prsed, hx in parsed:
                             if hx in s:
                                 prsed["action"] = self.parser.get_action_model(action=splt[0])
                                 if not isinstance(prsed["action"], SchemaActionModel):

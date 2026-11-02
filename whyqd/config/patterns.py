@@ -41,3 +41,5 @@ class PythonPatterns:
     LINE: ClassVar[re.Pattern] = re.compile(r"[^\r\n]*(?:\r\n|\n|\r)|[^\r\n]+\Z")
     # A part of the row key, its name given by `RowKeyParser.ROW`: `__row__`, `__row__1`
     ROW_PART: ClassVar[str] = r"^{row}(\d*)$"
+    # A refusal or warning, its text and its code: `Something was found. [whyqd:a-code]`
+    MESSAGE: ClassVar[re.Pattern] = re.compile(r"^(.*) \[whyqd:([a-z0-9-]+)\]$", re.DOTALL)

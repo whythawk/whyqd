@@ -13,6 +13,7 @@ import polars as pl
 from whyqd.parsers.arrow_reader import ArrowParser
 from whyqd.parsers.core import CoreParser
 from whyqd.parsers.csv_reader import CsvParser
+from whyqd.parsers.diagnosis import DiagnosisParser
 from whyqd.parsers.excel_reader import ExcelParser
 from whyqd.parsers.fingerprint import FingerprintParser
 from whyqd.parsers.pdf_reader import PdfParser
@@ -20,7 +21,7 @@ from whyqd.parsers.profile import ProfileParser
 from whyqd.parsers.row_key import RowKeyParser
 from whyqd.parsers.table import TableParser
 from whyqd.parsers.v1 import V1ChecksumParser
-from whyqd.models import ColumnModel, DataSourceModel, DataSourceAttributeModel, DialectModel
+from whyqd.models import ColumnModel, DataSourceModel, DataSourceAttributeModel, DialectModel, ReportModel
 from whyqd.dtypes import ChecksumContent, MimeType, FieldType
 
 if TYPE_CHECKING:
@@ -35,6 +36,7 @@ class DataSourceParser:
 
     def __init__(self):
         self.core = CoreParser()
+        self.diagnoses = DiagnosisParser()
         self.fingerprints = FingerprintParser()
         self.profiles = ProfileParser()
         self.v1 = V1ChecksumParser()
@@ -124,8 +126,8 @@ class DataSourceParser:
             source = Path(source)
         try:
             source = source.with_suffix(f".{mimetype.name}")
-        except Exception:
-            raise FileExistsError(f"Save mimetype not supported, `{mimetype}`.")
+        except Exception as e:
+            raise FileExistsError(f"Save mimetype not supported, `{mimetype}`.") from e
         if mimetype in [MimeType.PRQ, MimeType.PARQUET]:
             df.to_parquet(path=source, engine="pyarrow", index=False)
         if mimetype in [MimeType.FTR, MimeType.FEATHER]:
@@ -150,15 +152,19 @@ class DataSourceParser:
                         validate["matched"].append(c.name)
                     else:
                         # Try coerce the column to the type
-                        df[c.name] = self.coerce_column_to_dtype(column=pd.Series(df[c.name].to_numpy(), index=df.index), coerce=prospect.dtype)
+                        df[c.name] = self.coerce_column_to_dtype(
+                            column=pd.Series(df[c.name].to_numpy(), index=df.index), coerce=prospect.dtype
+                        )
                         validate["coerced"].append(c.name)
-                    df[c.name] = pd.Series(df[c.name].to_numpy(), index=df.index).astype(FieldType(prospect.dtype).astype)
-                except (TypeError, SyntaxError, ValueError):
+                    df[c.name] = pd.Series(df[c.name].to_numpy(), index=df.index).astype(
+                        FieldType(prospect.dtype).astype
+                    )
+                except (TypeError, SyntaxError, ValueError) as error:
                     from_type = c.dtype
                     if isinstance(df[c.name][0], list):
                         from_type = "array"
                     e = f"Column '{c.name}' in Data cannot be converted from type '{from_type}' to '{prospect.dtype}'."
-                    raise TypeError(e)
+                    raise TypeError(e) from error
             else:
                 validate["unmatched"].append(c.name)
         if validate["unmatched"]:
@@ -460,7 +466,44 @@ class DataSourceParser:
             return self.derive_sheets(source=source, mime=mimetype, dialect=dialect, names=names)
         return self.derive(source=source, mime=mimetype, dialect=dialect, names=names)
 
-    def get_source_data_model(self, *, df: pd.DataFrame, source: Path | str, mimetype: str | MimeType) -> DataSourceModel:
+    def diagnose(
+        self,
+        *,
+        source: Path | str,
+        mimetype: str | MimeType,
+        dialect: DialectModel | dict | None = None,
+        propose: bool = False,
+    ) -> list[ReportModel]:
+        """How a file reads under a dialect, and what was found there: one report, or one a sheet of a workbook, or only
+        the sheet the dialect names. A file that cannot be read gives a report saying so, rather than raising.
+
+        Raises
+        ------
+        ValueError
+            For a declaration whyqd cannot read, or a format it does not: neither is a fault in the file.
+        FileNotFoundError
+            For a file that is not there.
+        """
+        mime = self.get_mimetype(mimetype=mimetype)
+        given, path, reader = self.declare(dialect=dialect), self.locate(source=source), self.reader(mime=mime)
+        if mime not in (MimeType.XLS, MimeType.XLSX):
+            return [self.diagnoses.report(source=path, mime=mime, reader=reader, given=given, propose=propose)]
+        try:
+            sheets = reader.sheets(source=path)
+        except ValueError as e:
+            return [self.diagnoses.refused(source=path, mime=mime, reader=reader, error=e)]
+        if given.sheet is not None:
+            sheets = [(given.sheet, dict(sheets).get(given.sheet, False))]
+        return [
+            self.diagnoses.report(
+                source=path, mime=mime, reader=reader, given=given, sheet=sheet, hidden=hidden, propose=propose
+            )
+            for sheet, hidden in sheets
+        ]
+
+    def get_source_data_model(
+        self, *, df: pd.DataFrame, source: Path | str, mimetype: str | MimeType
+    ) -> DataSourceModel:
         """The data source of a transform's output, from the frame it was saved from, with its `table-1x` checksum.
 
         Parameters
@@ -538,7 +581,7 @@ class DataSourceParser:
         """
         try:
             # `int` formatted dates will fail with `AttributeError`
-            datetime.fromisoformat(x.replace('Z', '+00:00'))
+            datetime.fromisoformat(x.replace("Z", "+00:00"))
         except (ValueError, TypeError, AttributeError):
             return False
         return True
@@ -634,9 +677,9 @@ class DataSourceParser:
         """
         # https://stackoverflow.com/a/71206446
         if x.group(3):
-            return f"{x.group(1).replace(',','').replace('.','')}.{x.group(3)}"
+            return f"{x.group(1).replace(',', '').replace('.', '')}.{x.group(3)}"
         elif x.group(2):
-            return f"{x.group(1).replace(',','').replace('.','')}"
+            return f"{x.group(1).replace(',', '').replace('.', '')}"
         else:
             return np.nan
 

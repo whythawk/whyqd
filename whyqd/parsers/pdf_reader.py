@@ -18,6 +18,7 @@ class PdfParser:
     """
 
     PLACE = "row"
+    DIALECT = ("cells", "pages", "columns")
     # Points between the tops of two words on one line: pdfplumber's own `y_tolerance`
     LINE = 3
 
@@ -36,13 +37,21 @@ class PdfParser:
         ImportError
             Without the `pdf` extra.
         ValueError
-            For a PDF with no text, such as a scan, or pages it does not have.
+            For a file that is not a PDF, a PDF with no text, such as a scan, or pages it does not have.
         """
         try:
             import pdfplumber
+            from pdfplumber.utils.exceptions import PdfminerException
         except ImportError as e:
             raise ImportError("Reading a PDF needs the extra: pip install whyqd[pdf] [whyqd:pdf-extra]") from e
-        with pdfplumber.open(source) as pdf:
+        try:
+            opened = pdfplumber.open(source)
+        except PdfminerException as e:
+            raise ValueError(
+                f"`{source.name}` cannot be opened as a PDF file. Check its format, or ask its owner for a sound copy. "
+                "[whyqd:file-unreadable]"
+            ) from e
+        with opened as pdf:
             pages = self.pages(pages=pdf.pages, declared=dialect.pages, source=source)
             if not any(page.chars for page in pages):
                 raise ValueError(
@@ -110,7 +119,9 @@ class PdfParser:
                 top = word["top"]
             column = max([0, *(i for i, edge in enumerate(columns) if word["x0"] >= edge)])
             rows[-1][column].append(word)
-        return [[" ".join(w["text"] for w in sorted(cell, key=lambda w: w["x0"])) or None for cell in row] for row in rows]
+        return [
+            [" ".join(w["text"] for w in sorted(cell, key=lambda w: w["x0"])) or None for cell in row] for row in rows
+        ]
 
     def unrepeated(self, *, rows: list[list[str | None]], dialect: DialectModel) -> list[list[str | None]]:
         """The rows without any equal to a header row after the header, each being that header atop a later page."""

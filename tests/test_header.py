@@ -79,6 +79,56 @@ class TestHeader:
         assert datasource.get.dialect.headerRowCount == 0
         assert df[["x", "y"]].values.tolist() == [["a", "b"], ["1", "2"]]
 
+    def test_names_past_the_grid_are_columns_the_file_leaves_empty(self, tmp_path):
+        # A format with a fixed set of fields, whose last are empty throughout this file, so the grid trims them
+        datasource = qd.DataSourceDefinition()
+        source = write(tmp_path, "a*b**\n1*2**\n")
+        dialect = {"delimiter": "*", "headerRowCount": 0}
+        datasource.derive_model(source=source, mimetype="CSV", dialect=dialect, names=["x", "y", "z", "w"])
+        df = table(datasource)
+        assert [c.name for c in datasource.get.columns] == ["x", "y", "z", "w"]
+        assert datasource.get.columns[3].profile.blank == 2
+        assert values(df[["x", "y", "z", "w"]]) == [["a", "b", None, None], ["1", "2", None, None]]
+
+    def test_names_past_the_grid_leave_the_fingerprint_alone(self, tmp_path):
+        source = write(tmp_path, "a,b\n1,2\n")
+        dialect = {"headerRowCount": 0}
+        short, long = qd.DataSourceDefinition(), qd.DataSourceDefinition()
+        short.derive_model(source=source, mimetype="CSV", dialect=dialect)
+        long.derive_model(source=source, mimetype="CSV", dialect=dialect, names=["x", "y", "z"])
+        assert long.get.get_checksum("fp0") == short.get.get_checksum("fp0")
+
+    def test_every_file_of_a_fixed_format_reads_to_one_shape(self):
+        source = next((DATA / "sample" / "voa").glob("*listentries*"))
+        names = [f"field_{i}" for i in range(34)]
+        datasource = qd.DataSourceDefinition()
+        datasource.derive_model(
+            source=source,
+            mimetype="CSV",
+            dialect={"delimiter": "*", "quoteChar": None, "headerRowCount": 0},
+            names=names,
+        )
+        assert [c.name for c in datasource.get.columns] == names
+        assert table(datasource)["field_0"].tolist()[0] == "0660"
+
+    def test_columns_past_the_names_are_named_by_position_and_nothing_shifts(self, tmp_path):
+        datasource = qd.DataSourceDefinition()
+        source = write(tmp_path, "a,b,c,d\n1,2,3,4\n")
+        with pytest.warns(UserWarning, match=r"\[whyqd:names-short\]"):
+            datasource.derive_model(source=source, mimetype="CSV", dialect={"headerRowCount": 0}, names=["x", "y"])
+        names = ["x", "y", "Unnamed: 2", "Unnamed: 3"]
+        assert [c.name for c in datasource.get.columns] == names
+        assert table(datasource)[names].values.tolist() == [["a", "b", "c", "d"], ["1", "2", "3", "4"]]
+
+    def test_a_name_by_position_gives_way_to_a_name_given(self, tmp_path):
+        datasource = qd.DataSourceDefinition()
+        source = write(tmp_path, "a,b,c\n")
+        with pytest.warns(UserWarning, match=r"\[whyqd:names-short\]"):
+            datasource.derive_model(
+                source=source, mimetype="CSV", dialect={"headerRowCount": 0}, names=["Unnamed: 2", "y"]
+            )
+        assert len({c.name for c in datasource.get.columns}) == 3
+
     def test_a_header_over_two_rows_takes_the_names_given(self, tmp_path):
         datasource = qd.DataSourceDefinition()
         source = write(tmp_path, "Rate,Rate\nfrom,to\n1,2\n")
@@ -115,7 +165,13 @@ class TestHeader1x:
         expected = V1ChecksumParser().read(source=model)
         df = DataSourceParser().get(source=model)
         assert df[ROW].tolist() == list(range(len(expected))) == list(range(268))
-        assert values(df[["Country Name"]])[:5] == [["Data Source"], ["Last Updated Date"], [None], ["Country Name"], ["Aruba"]]
+        assert values(df[["Country Name"]])[:5] == [
+            ["Data Source"],
+            ["Last Updated Date"],
+            [None],
+            ["Country Name"],
+            ["Aruba"],
+        ]
         assert df["Country Name"].fillna("").tolist() == expected["Country Name"].fillna("").tolist()
 
     def test_a_stored_crosswalk_gives_the_same_output(self):

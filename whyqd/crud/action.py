@@ -197,7 +197,7 @@ class CRUDAction(CRUDBase[ActionScriptModel]):
         """Return a transformed dataframe according to a single script.
 
         Parameters:
-          df: A Pandas (Modin) dataframe.
+          df: A pandas dataframe.
           script: A string term, or ActionScriptModel conforming to the script structure for a specific action.
 
         Returns:
@@ -216,7 +216,7 @@ class CRUDAction(CRUDBase[ActionScriptModel]):
         """Return a transformed dataframe after processing all scripts.
 
         Parameters:
-          df: A Pandas (Modin) dataframe.
+          df: A pandas dataframe.
 
         Returns:
           Transformed dataframe.

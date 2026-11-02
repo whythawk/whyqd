@@ -22,7 +22,7 @@ SCRIPTS = [
     "CATEGORISE > 'occupation_state_reliefs'::'retail' < 'AddRlfCd'::['RETDS3']",
     "CATEGORISE > 'occupation_state_reliefs'::'small_business' < 'SBRFlag'::['yes']",
     "CATEGORISE > 'occupation_state'::False < 'ChgType'::['V']",
-    "COLLATE > 'prop_ba_rates' < ['MandRlf', 'DiscRlf', 'AdditionalRlf', ~]"
+    "COLLATE > 'prop_ba_rates' < ['MandRlf', 'DiscRlf', 'AdditionalRlf', ~]",
 ]
 
 

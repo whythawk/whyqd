@@ -1,5 +1,5 @@
 {
-  "generated": "2026-10-30T19:48:46",
+  "generated": "2026-11-02T17:36:36",
   "csv": {
     "title-above.csv": {
       "lines": [
@@ -127,10 +127,15 @@
           "  Landlord "
         ]
       ],
-      "propose": {
-        "skipRows": 3,
-        "why": "the first line with as many fields as the data is line 3"
-      }
+      "findings": {
+        "blank-rows": {
+          "rows": [
+            2,
+            3
+          ]
+        }
+      },
+      "proposals": {}
     },
     "blank-line-inside.csv": {
       "lines": [
@@ -260,11 +265,14 @@
           "  Landlord "
         ]
       ],
-      "propose": {
-        "blank_rows": [
-          3
-        ]
-      }
+      "findings": {
+        "blank-rows": {
+          "rows": [
+            5
+          ]
+        }
+      },
+      "proposals": {}
     },
     "quoted-line-break.csv": {
       "lines": [
@@ -384,7 +392,9 @@
           "30/01/2026",
           "  Landlord "
         ]
-      ]
+      ],
+      "findings": {},
+      "proposals": {}
     },
     "semicolon.csv": {
       "lines": [
@@ -507,7 +517,8 @@
           "  Landlord "
         ]
       ],
-      "propose": {
+      "findings": {},
+      "proposals": {
         "delimiter": ";"
       }
     },
@@ -632,9 +643,16 @@
           "  Landlord "
         ]
       ],
-      "propose": {
-        "quoteChar": null,
-        "why": "an opening quote with no close before the end of the file"
+      "findings": {
+        "csv-quote": {
+          "rows": [
+            4
+          ],
+          "setting": "quoteChar"
+        }
+      },
+      "proposals": {
+        "quoteChar": null
       }
     },
     "trailing-delimiter.csv": {
@@ -763,9 +781,8 @@
           "  Landlord "
         ]
       ],
-      "propose": {
-        "why": "the empty last column is trimmed with the grid, as fp0 trims it"
-      }
+      "findings": {},
+      "proposals": {}
     },
     "two-line-records.csv": {
       "lines": [
@@ -933,12 +950,18 @@
           "  Landlord "
         ]
       ],
-      "propose": {
+      "findings": {
+        "blank-rows": {
+          "rows": [
+            10
+          ]
+        }
+      },
+      "proposals": {
         "rowsPerRecord": [
           5,
           1
-        ],
-        "why": "every second line has one value, in its first field"
+        ]
       },
       "refuse": "a record without its second line, or a second line with values past its first field"
     },
@@ -1080,12 +1103,18 @@
           "  Landlord "
         ]
       ],
-      "propose": {
+      "findings": {
+        "blank-rows": {
+          "rows": [
+            10
+          ]
+        }
+      },
+      "proposals": {
         "rowsPerRecord": [
           5,
           1
-        ],
-        "why": "every second line has at most one value"
+        ]
       }
     },
     "backslash-escape.csv": {
@@ -1209,9 +1238,16 @@
           "  Landlord "
         ]
       ],
-      "propose": {
-        "doubleQuote": false,
-        "why": "a backslash before a quote inside a quoted cell"
+      "findings": {
+        "csv-quote": {
+          "rows": [
+            4
+          ],
+          "setting": "doubleQuote"
+        }
+      },
+      "proposals": {
+        "doubleQuote": false
       }
     },
     "cr-line-ends.csv": {
@@ -1332,7 +1368,9 @@
           "30/01/2026",
           "  Landlord "
         ]
-      ]
+      ],
+      "findings": {},
+      "proposals": {}
     },
     "header-narrower.csv": {
       "lines": [
@@ -1452,7 +1490,9 @@
           "  Landlord "
         ]
       ],
-      "renamed": "the column past the header by position, as an empty name is"
+      "renamed": "the column past the header by position, as an empty name is",
+      "findings": {},
+      "proposals": {}
     },
     "first-row-narrower.csv": {
       "lines": [
@@ -1565,7 +1605,9 @@
           "30/01/2026",
           "  Landlord "
         ]
-      ]
+      ],
+      "findings": {},
+      "proposals": {}
     },
     "row-narrower.csv": {
       "lines": [
@@ -1683,7 +1725,9 @@
           "30/01/2026",
           "  Landlord "
         ]
-      ]
+      ],
+      "findings": {},
+      "proposals": {}
     },
     "hostile-headers.csv": {
       "lines": [
@@ -1797,7 +1841,9 @@
         "Rate Relief",
         "__row__.1"
       ],
-      "renamed": "the empty name by position, as stored schemas name it; the repeat and the row key's own name by RowKeyParser.deconflict"
+      "renamed": "the empty name by position, as stored schemas name it; the repeat and the row key's own name by RowKeyParser.deconflict",
+      "findings": {},
+      "proposals": {}
     },
     "missing-like-text.csv": {
       "lines": [
@@ -1877,7 +1923,9 @@
           "None",
           "7"
         ]
-      ]
+      ],
+      "findings": {},
+      "proposals": {}
     }
   },
   "workbook": {
@@ -1949,9 +1997,14 @@
           "E5",
           "E7"
         ],
-        "propose": {
-          "skipRows": 3
-        }
+        "findings": {
+          "blank-rows": {
+            "rows": [
+              3
+            ]
+          }
+        },
+        "proposals": {}
       },
       "MergedHeader": {
         "problem": "a header over two rows: one name merged down both, two merged across two columns each",
@@ -2025,10 +2078,16 @@
         ],
         "names": "supplied by the wrangler, one per column: a merged cell over two may be one title or a heading over subheadings, so whyqd never builds a name from it",
         "refuse": "headerRowCount 2 without names: the header rows and merged ranges named, and names asked for",
-        "propose": {
-          "headerRowCount": 2,
-          "why": "merged ranges in rows 1 and 2, and data from row 3"
-        }
+        "findings": {
+          "merged-range": {
+            "cells": [
+              "A1:A2",
+              "B1:C1",
+              "D1:E1"
+            ]
+          }
+        },
+        "proposals": {}
       },
       "BlankColumns": {
         "problem": "an empty column inside the table, and three empty but formatted columns after it",
@@ -2098,12 +2157,14 @@
             "  Landlord "
           ]
         ],
-        "propose": {
-          "empty_columns": [
-            2
-          ],
-          "why": "the trailing columns hold formatting only, and are trimmed"
-        }
+        "findings": {
+          "blank-columns": {
+            "columns": [
+              2
+            ]
+          }
+        },
+        "proposals": {}
       },
       "SubTables": {
         "problem": "a second table below a blank row, then footnotes; loaded as given, every row is in the table",
@@ -2230,20 +2291,15 @@
             null
           ]
         ],
-        "propose": {
-          "table_rows": [
-            0,
-            5
-          ],
-          "second_table": {
-            "header_row": 7,
-            "rows": 3
-          },
-          "footnotes": [
-            12,
-            13
-          ]
-        }
+        "findings": {
+          "blank-rows": {
+            "rows": [
+              8,
+              13
+            ]
+          }
+        },
+        "proposals": {}
       },
       "Errors": {
         "problem": "error cells in a number column",
@@ -2310,7 +2366,17 @@
           "D3": "#N/A",
           "D5": "#DIV/0!",
           "D7": "#REF!"
-        }
+        },
+        "findings": {
+          "error-cells": {
+            "cells": [
+              "D3",
+              "D5",
+              "D7"
+            ]
+          }
+        },
+        "proposals": {}
       },
       "Workings": {
         "problem": "a hidden sheet, read like any other and flagged",
@@ -2322,7 +2388,11 @@
         "rows": [],
         "formula_cells": {
           "A2": "a formula written without its cached value, so the row is empty here and trimmed; the .xls, saved by LibreOffice, caches 0"
-        }
+        },
+        "findings": {
+          "hidden-sheet": {}
+        },
+        "proposals": {}
       }
     },
     "layouts.xls": "layouts.xlsx saved as .xls in LibreOffice; read to the same key",
@@ -2352,11 +2422,14 @@
             "Mandatory Charity Relief"
           ]
         ],
-        "propose": {
-          "blank_rows": [
-            0
-          ]
-        }
+        "findings": {
+          "blank-rows": {
+            "rows": [
+              2
+            ]
+          }
+        },
+        "proposals": {}
       }
     }
   },

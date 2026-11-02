@@ -5,7 +5,7 @@ from pathlib import Path
 from pydantic import Json
 
 from whyqd.dtypes import ChecksumContent, MimeType
-from whyqd.models import ChecksumModel, DataSourceModel, CitationModel, DialectModel
+from whyqd.models import ChecksumModel, DataSourceModel, CitationModel, DialectModel, ReportModel
 from whyqd.core.base import BaseDefinition
 from whyqd.config.settings import settings
 
@@ -87,7 +87,7 @@ class DataSourceDefinition(BaseDefinition):
             self.model = self.core.create_or_update_model(modelType=DataSourceModel, source=schema, model=self.model)
 
     def get_data(self, *, refresh: bool = False) -> pd.DataFrame | None:
-        """Get a Pandas (Modin) dataframe.
+        """Get the data source's table as a pandas dataframe.
 
         Parameters:
           refresh: Force an update of the dataframe if there have been attribute changes.
@@ -121,7 +121,8 @@ class DataSourceDefinition(BaseDefinition):
                    describes it. Undeclared, each setting takes its default; a CSV's encoding, undeclared, is settled by
                    whyqd's ladder and recorded. For a workbook, a list, each naming its `sheet`, or one a sheet in order.
           names: One name per column, for a file with no header row or a header over several rows; for a workbook, a
-                 mapping of sheet to names.
+                 mapping of sheet to names. Names past the file's last filled column are added as empty columns;
+                 columns past the last name are named by position, with a warning.
           settings: Refused, naming the dialect: `header` and pandas' keywords are no longer read.
 
         Returns:
@@ -132,6 +133,43 @@ class DataSourceDefinition(BaseDefinition):
         )
         # Held so the first `get_data` need not read the file again
         self.data = None if isinstance(self.model, list) else table.to_pandas()
+
+    def diagnose(
+        self,
+        *,
+        source: Path | str,
+        mimetype: str | MimeType,
+        dialect: DialectModel | dict | None = None,
+        propose: bool = False,
+    ) -> list[ReportModel]:
+        """How whyqd read a file and what it found there, to review before going on. Nothing is applied, and this
+        definition does not change: declare what you decide in `derive_model`'s `dialect`.
+
+        A report says which setting took which value, and whether you declared it. A fault is a file that cannot be read
+        as written, or was read with a loss; a fact is something the file holds, with no claim of what it means, for the
+        crosswalk to act on. A file that cannot be read gives a report saying why, rather than raising.
+
+        Parameters:
+          source:  Source filename.
+          mimetype:  **whyqd** supports `xls`, `xlsx`, `csv`, `parquet`, `feather`, and, with its extra, `pdf`.
+          dialect: How the file is written, as in `derive_model`. For a workbook, one naming its `sheet` reports on that
+                   sheet alone; otherwise each sheet reads by it, and has its own report.
+          propose: Also propose settings that would read past a fault, each with its evidence.
+
+        Returns:
+          One ReportModel, or one a sheet of a workbook.
+
+        Example:
+          ```python
+          import whyqd as qd
+
+          report = qd.DataSourceDefinition().diagnose(source=DATASOURCE_PATH, mimetype=MIMETYPE)[0]
+          print(report.preview)
+          for finding in report.findings:
+              print(finding)
+          ```
+        """
+        return self.reader.diagnose(source=source, mimetype=mimetype, dialect=dialect, propose=propose)
 
     #########################################################################################
     # VALIDATION UTILITIES
@@ -196,7 +234,9 @@ class DataSourceDefinition(BaseDefinition):
         if not isinstance(self.model, list):
             return super().get_citation()
         return [
-            m.citation.model_dump(by_alias=True, exclude_defaults=True, exclude_none=True) for m in self.model if m.citation
+            m.citation.model_dump(by_alias=True, exclude_defaults=True, exclude_none=True)
+            for m in self.model
+            if m.citation
         ]
 
     def set_citation(self, *, citation: CitationModel, index: int = None) -> None:

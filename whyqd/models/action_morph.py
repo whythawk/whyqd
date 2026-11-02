@@ -20,6 +20,6 @@ class MorphActionModel(BaseModel):
     @classmethod
     def check_valid_models(cls, v: Optional[List[str]]):
         for s in v:
-            if not (s in ["fields", "rows", "source"]):
+            if s not in ["fields", "rows", "source"]:
                 raise ValueError(f"Structure ({s}) must be of either `source`, `fields`, or `rows`.")
         return v

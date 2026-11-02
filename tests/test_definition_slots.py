@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: BSD-3-Clause
 import json
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 import pytest
@@ -216,7 +216,10 @@ def transform() -> qd.TransformDefinition:
 class TestTransformRecord:
     def test_run_recorded(self, transform):
         model = transform.get
-        assert transform.before <= model.started <= model.ended <= datetime.now(timezone.utc)
+        # A machine's clock may step back by a second or more as it synchronises, so each is ordered within a margin
+        margin = timedelta(seconds=30)
+        assert transform.before - margin <= model.started <= model.ended + margin
+        assert model.ended - margin <= datetime.now(timezone.utc)
         assert model.whyqd == qd.__version__
 
     def test_written_in_utc(self, transform):

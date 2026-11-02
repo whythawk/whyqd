@@ -104,9 +104,7 @@ class TestDataSource:
         # Actions can leave a frame indexed by labels rather than 0..n; coercion must keep every value in its row
         schema = qd.SchemaDefinition()
         schema.set(schema={"name": "coercion"})
-        schema.fields.add_multi(
-            terms=[{"name": "amount", "type": "number"}, {"name": "reliefs", "type": "array"}]
-        )
+        schema.fields.add_multi(terms=[{"name": "amount", "type": "number"}, {"name": "reliefs", "type": "array"}])
         df = pd.DataFrame(
             {"amount": ["80.0", "88.5"], "reliefs": [["80.0", None], ["88.5", "12.0"]]},
             index=["7", "3"],
@@ -117,7 +115,9 @@ class TestDataSource:
 
     def test_a_frames_columns_are_typed_as_1x_typed_them(self):
         # A date column is recorded as `string`, as 1.x recorded it; typing records dates
-        df = pd.DataFrame({"a": [1.5], "b": pd.array([1], dtype="Int64"), "c": pd.to_datetime(["2024-01-04"]), "d": ["x"]})
+        df = pd.DataFrame(
+            {"a": [1.5], "b": pd.array([1], dtype="Int64"), "c": pd.to_datetime(["2024-01-04"]), "d": ["x"]}
+        )
         columns = DataSourceParser().get_header_columns(df=df)
         assert [c.dtype for c in columns] == ["number", "number", "string", "string"]
 

@@ -45,7 +45,9 @@ class EncodingParser:
             "[whyqd:encoding-unknown]"
         )
 
-    def decode(self, *, data: bytes, declared: str | None = None, source: str = "The file") -> tuple[str, str, EncodingStep]:
+    def decode(
+        self, *, data: bytes, declared: str | None = None, source: str = "The file"
+    ) -> tuple[str, str, EncodingStep]:
         """A file's text, the encoding that decoded it, and the step that settled it.
 
         A declared encoding that cannot decode some bytes still loads: each such byte reads as U+FFFD, as the standard's
@@ -67,7 +69,7 @@ class EncodingParser:
         """
         for mark, name in self.BOMS:
             if data.startswith(mark):
-                return self.read(data=data[len(mark):], name=name, source=source), name, EncodingStep.BOM
+                return self.read(data=data[len(mark) :], name=name, source=source), name, EncodingStep.BOM
         if declared is not None:
             name = self.name(label=declared)
             return self.read(data=data, name=name, source=source), name, EncodingStep.DECLARED
@@ -75,6 +77,35 @@ class EncodingParser:
             return data.decode("utf-8"), "utf-8", EncodingStep.UTF8
         except UnicodeDecodeError:
             return self.read(data=data, name="windows-1252"), "windows-1252", EncodingStep.WINDOWS_1252
+
+    def detect(self, *, data: bytes) -> tuple[str, str] | None:
+        """The encoding a file's bytes most likely are, among those whyqd shortlists, and the evidence. A guess, so only
+        ever a proposal, and it never runs in a load. Read through charset-normalizer, the `diagnose` extra.
+
+        Raises
+        ------
+        ImportError
+            Without the `diagnose` extra.
+
+        Returns
+        -------
+        tuple[str, str] | None
+            The encoding's name and the evidence, or `None` where none of the shortlist decodes the bytes.
+        """
+        try:
+            import charset_normalizer
+        except ImportError as e:
+            raise ImportError(
+                "Proposing an encoding needs the extra: pip install whyqd[diagnose] [whyqd:diagnose-extra]"
+            ) from e
+        names = {codecs.lookup(settings.ENCODINGS[n]["codec"]).name: n for n in settings.ENCODING_SHORTLIST}
+        best = charset_normalizer.from_bytes(data, cp_isolation=list(names)).best()
+        if best is None:
+            return None
+        return names[codecs.lookup(best.encoding).name], (
+            f"Of {', '.join(settings.ENCODING_SHORTLIST)}, its bytes read most cleanly as this, by charset-normalizer: "
+            f"{best.chaos:.1%} of its text looks wrong. Check the accented letters and symbols in the preview."
+        )
 
     def read(self, *, data: bytes, name: str, source: str = "The file") -> str:
         if name == "windows-1252":

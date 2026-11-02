@@ -51,7 +51,9 @@ class SchemaDefinition(BaseDefinition):
                 self.crud.add_multi(terms=self.model.fields)
             else:
                 self.crud.add_multi(
-                    terms=[f.model_dump(by_alias=True, exclude_defaults=True, exclude_none=True) for f in self.model.fields]
+                    terms=[
+                        f.model_dump(by_alias=True, exclude_defaults=True, exclude_none=True) for f in self.model.fields
+                    ]
                 )
         if self.model and not self.model.fields:
             self.crud.reset()

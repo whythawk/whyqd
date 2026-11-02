@@ -17,6 +17,7 @@ class ArrowParser:
     """
 
     PLACE = "row"
+    DIALECT = ()
 
     def __init__(self) -> None:
         self.cell = CellParser()
@@ -31,9 +32,15 @@ class ArrowParser:
         Raises
         ------
         ValueError
-            For a column holding a type whyqd has no text for, naming it.
+            For a file that is not what its format says, or a column holding a type whyqd has no text for, naming it.
         """
-        df = pl.read_parquet(source) if mime in (MimeType.PARQUET, MimeType.PRQ) else pl.read_ipc(source)
+        try:
+            df = pl.read_parquet(source) if mime in (MimeType.PARQUET, MimeType.PRQ) else pl.read_ipc(source)
+        except pl.exceptions.PolarsError as e:
+            raise ValueError(
+                f"`{source.name}` cannot be opened as a {mime.name} file. Check its format, or ask its owner for a "
+                "sound copy. [whyqd:file-unreadable]"
+            ) from e
         columns, types = {}, {}
         for i, name in enumerate(df.columns):
             try:
@@ -46,5 +53,7 @@ class ArrowParser:
             columns[f"column_{i}"] = [name, *(None if c is None else c[1] for c in cells)]
             types[f"column_{i}"] = [CellType.STRING.value, *(None if c is None else c[0].value for c in cells)]
         schema = {c: pl.String for c in columns}
-        grid, types = self.grids.trim(grid=pl.DataFrame(columns, schema=schema), types=pl.DataFrame(types, schema=schema))
+        grid, types = self.grids.trim(
+            grid=pl.DataFrame(columns, schema=schema), types=pl.DataFrame(types, schema=schema)
+        )
         return grid, types, list(range(1, grid.height + 1)), dialect

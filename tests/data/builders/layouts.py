@@ -8,9 +8,11 @@ problems found in published spreadsheets, on records borrowed from tests/data/sa
 with the defects real files carry added (dates beside text, `N/A`, whitespace).
 
 The key is the contract. For each file or sheet: `lines` (CSV), each row's fields as written; `dialect`, the settings
-that read it as intended, which a wrangler declares and diagnosis should propose; `names` and `rows`, the table those
-settings give, each row padded to the names; and `propose`, what diagnosis should find beyond the dialect. Workbook
-cells are given as stored, a date as its ISO text, with `date_cells` naming them. Two files are finished by hand in
+that read it as intended, which a wrangler declares; `names` and `rows`, the table those settings give, each row padded
+to the names; `findings`, by code, what a report on the file read with no setting declared should find and where; and
+`proposals`, the settings it should propose when asked, which is none unless the file cannot be read as written, its
+layout being the wrangler's to interpret. Rows count as a wrangler would look for them, a line or sheet row from 1;
+columns by position from 0. Workbook cells are given as stored, a date as its ISO text, with `date_cells` naming them. Two files are finished by hand in
 LibreOffice: layouts.xlsx saved as layouts.xls, and pdf-source.xlsx exported as pdf-source.pdf, sheet by sheet.
 """
 
@@ -33,25 +35,59 @@ HEADER = ["Propref", "Property Address", "Ret Code", "R/V", "Start Date", "Conta
 # Start Date as text; in a workbook the first and third are date cells, as Excel leaves a day-first column it could
 # partly read (the Stockport case). Contact carries N/A, a lone space, an empty cell, and padding.
 RECORDS = [
-    ["NN00101700004185", "Unit 5, Orpheus House, Calleva Park, Aldermaston, Reading, RG7 8TA", "SBR3", "13250",
-     "04/01/2024", "N/A"],
+    [
+        "NN00101700004185",
+        "Unit 5, Orpheus House, Calleva Park, Aldermaston, Reading, RG7 8TA",
+        "SBR3",
+        "13250",
+        "04/01/2024",
+        "N/A",
+    ],
     ["NN03905740027005", "27-31, Meadow Road, Newbury, RG14 7AH", "SBRE", "10250", "13/04/2024", " "],
-    ["NN04105100003115", "At Station Road, Pangbourne, Reading, RG8 7AN", "RH0", "8600", "05/02/2024",
-     "Parish Clerk"],
-    ["NN0010170000401A", "1, Andromeda House, Calleva Park, Aldermaston, Reading, RG7 8AN", "SBR1", "16250",
-     "25/12/2024", ""],
-    ["NN0010420000111A", "Aldermaston Parish Hall, The Street, Aldermaston, Reading, Berkshire, RG7 4LW", "MAN",
-     "5400", "01/02/2026", "N/A"],
+    ["NN04105100003115", "At Station Road, Pangbourne, Reading, RG8 7AN", "RH0", "8600", "05/02/2024", "Parish Clerk"],
+    [
+        "NN0010170000401A",
+        "1, Andromeda House, Calleva Park, Aldermaston, Reading, RG7 8AN",
+        "SBR1",
+        "16250",
+        "25/12/2024",
+        "",
+    ],
+    [
+        "NN0010420000111A",
+        "Aldermaston Parish Hall, The Street, Aldermaston, Reading, Berkshire, RG7 4LW",
+        "MAN",
+        "5400",
+        "01/02/2026",
+        "N/A",
+    ],
     ["NN00201200001117", "The Bell Inn, Aldworth, Reading, RG8 9SE", "PU15", "24000", "30/01/2026", "  Landlord "],
 ]
 DATE_CELLS = {0: date(2024, 1, 4), 2: date(2024, 2, 5)}
-CODES = [["Code", "Description"], ["SBR3", "Small Business Rate Relief"], ["RH0", "Retail, Hospitality and Leisure"],
-         ["MAN", "Mandatory Charity Relief"]]
+CODES = [
+    ["Code", "Description"],
+    ["SBR3", "Small Business Rate Relief"],
+    ["RH0", "Retail, Hospitality and Leisure"],
+    ["MAN", "Mandatory Charity Relief"],
+]
 FOOTNOTES = [["Source: business rates system, extracted 15/04/2026"], ["* R/V is the rateable value in pounds"]]
 # Each a name a script must still resolve to one field: quotes, brackets, comparison signs, a comma, padding, a line
 # break, an empty name, a repeat, one name inside another, and the row key's own name.
-HOSTILE = ["Owner's name", 'The "Main" Rate', "Rate [2026]", "R/V > 0", "<none>", "Code, Local", " padded ",
-           "line\nbreak", "", "Rate", "Rate", "Rate Relief", "__row__"]
+HOSTILE = [
+    "Owner's name",
+    'The "Main" Rate',
+    "Rate [2026]",
+    "R/V > 0",
+    "<none>",
+    "Code, Local",
+    " padded ",
+    "line\nbreak",
+    "",
+    "Rate",
+    "Rate",
+    "Rate Relief",
+    "__row__",
+]
 MISSING_LIKE = ["N/A", "NA", "null", "NaN", "#N/A", "n/a", "-", "None"]
 
 
@@ -70,72 +106,134 @@ def padded(rows, width):
     return [row + [""] * (width - len(row)) for row in rows]
 
 
+def expect(findings=None, proposals=None):
+    return {"findings": findings or {}, "proposals": proposals or {}}
+
+
 def csv_cases():
     """Each case: its file's lines, the text written (where it is not csv_text of the lines), and its key."""
     width = len(HEADER)
     cases = {}
 
     lines = [["Business rates reliefs, April 2026"], [], [], HEADER, *RECORDS]
-    cases["title-above.csv"] = (lines, None, {
-        "problem": "a title and two blank lines above the header",
-        "dialect": {"skipRows": 3}, "names": HEADER, "rows": RECORDS,
-        "propose": {"skipRows": 3, "why": "the first line with as many fields as the data is line 3"}})
+    cases["title-above.csv"] = (
+        lines,
+        None,
+        {
+            "problem": "a title and two blank lines above the header",
+            "dialect": {"skipRows": 3},
+            "names": HEADER,
+            "rows": RECORDS,
+            **expect({"blank-rows": {"rows": [2, 3]}}),
+        },
+    )
 
     lines = [HEADER, *RECORDS[:3], [], *RECORDS[3:]]
-    cases["blank-line-inside.csv"] = (lines, None, {
-        "problem": "a blank line inside the data, kept as a row and numbered",
-        "dialect": {}, "names": HEADER, "rows": padded([*RECORDS[:3], [], *RECORDS[3:]], width),
-        "propose": {"blank_rows": [3]}})
+    cases["blank-line-inside.csv"] = (
+        lines,
+        None,
+        {
+            "problem": "a blank line inside the data, kept as a row and numbered",
+            "dialect": {},
+            "names": HEADER,
+            "rows": padded([*RECORDS[:3], [], *RECORDS[3:]], width),
+            **expect({"blank-rows": {"rows": [5]}}),
+        },
+    )
 
     records = [r.copy() for r in RECORDS]
     records[1][1] = "27-31, Meadow Road\nNewbury, RG14 7AH"
     lines = [HEADER, *records]
-    cases["quoted-line-break.csv"] = (lines, None, {
-        "problem": "a quoted cell holding a line break, one record over two lines of the file",
-        "dialect": {}, "names": HEADER, "rows": records})
+    cases["quoted-line-break.csv"] = (
+        lines,
+        None,
+        {
+            "problem": "a quoted cell holding a line break, one record over two lines of the file",
+            "dialect": {},
+            "names": HEADER,
+            "rows": records,
+            **expect(),
+        },
+    )
 
     lines = [HEADER, *RECORDS]
-    cases["semicolon.csv"] = (lines, csv_text(lines, delimiter=";"), {
-        "problem": "`;` between cells, and commas inside the addresses unquoted",
-        "dialect": {"delimiter": ";"}, "names": HEADER, "rows": RECORDS,
-        "propose": {"delimiter": ";"}})
+    cases["semicolon.csv"] = (
+        lines,
+        csv_text(lines, delimiter=";"),
+        {
+            "problem": "`;` between cells, and commas inside the addresses unquoted",
+            "dialect": {"delimiter": ";"},
+            "names": HEADER,
+            "rows": RECORDS,
+            **expect(proposals={"delimiter": ";"}),
+        },
+    )
 
     # No cell is quoted, so the addresses lose their commas; one cell opens with a quote that never closes
     records = [[v.replace(",", "") for v in r] for r in RECORDS]
     records[2][1] = '"Old Mill Station Road Pangbourne'
     lines = [HEADER, *records]
     text = "\r\n".join(",".join(line) for line in lines) + "\r\n"
-    cases["stray-quote.csv"] = (lines, text, {
-        "problem": "a cell opening with a quote that never closes, which swallows the rest of the file if read as a "
-                   "quote (1.x needed `quoting=csv.QUOTE_NONE`)",
-        "dialect": {"quoteChar": None}, "names": HEADER, "rows": records,
-        "propose": {"quoteChar": None, "why": "an opening quote with no close before the end of the file"}})
+    cases["stray-quote.csv"] = (
+        lines,
+        text,
+        {
+            "problem": "a cell opening with a quote that never closes, which swallows the rest of the file if read as a "
+            "quote (1.x needed `quoting=csv.QUOTE_NONE`)",
+            "dialect": {"quoteChar": None},
+            "names": HEADER,
+            "rows": records,
+            **expect({"csv-quote": {"rows": [4], "setting": "quoteChar"}}, {"quoteChar": None}),
+        },
+    )
 
     lines = [[*line, ""] for line in [HEADER, *RECORDS]]
-    cases["trailing-delimiter.csv"] = (lines, None, {
-        "problem": "every line ends with a delimiter, an empty last column with an empty header",
-        "dialect": {}, "names": HEADER, "rows": RECORDS,
-        "propose": {"why": "the empty last column is trimmed with the grid, as fp0 trims it"}})
+    cases["trailing-delimiter.csv"] = (
+        lines,
+        None,
+        {
+            "problem": "every line ends with a delimiter, an empty last column with an empty header",
+            "dialect": {},
+            "names": HEADER,
+            "rows": RECORDS,
+            **expect(),
+        },
+    )
 
     # Each record over two lines of the file, as every line has the same fields: the second holds one value
     first = HEADER[:5]
     lines = [first, [HEADER[5], "", "", "", ""]]
     for r in RECORDS:
         lines += [r[:5], [r[5], "", "", "", ""]]
-    cases["two-line-records.csv"] = (lines, None, {
-        "problem": "each record, header included, over two lines: five fields, then one in the first field",
-        "dialect": {"rowsPerRecord": [5, 1]}, "names": HEADER, "rows": RECORDS,
-        "propose": {"rowsPerRecord": [5, 1], "why": "every second line has one value, in its first field"},
-        "refuse": "a record without its second line, or a second line with values past its first field"})
+    cases["two-line-records.csv"] = (
+        lines,
+        None,
+        {
+            "problem": "each record, header included, over two lines: five fields, then one in the first field",
+            "dialect": {"rowsPerRecord": [5, 1]},
+            "names": HEADER,
+            "rows": RECORDS,
+            **expect({"blank-rows": {"rows": [10]}}, {"rowsPerRecord": [5, 1]}),
+            "refuse": "a record without its second line, or a second line with values past its first field",
+        },
+    )
 
     # The same records with nothing after a record's one value: a lone empty value is a blank line
     lines = [first, [HEADER[5]]]
     for r in RECORDS:
         lines += [r[:5], [r[5]]]
-    cases["two-line-records-unpadded.csv"] = (lines, None, {
-        "problem": "each record over two lines, the second holding its one value and no delimiters, so an empty "
-                   "value is a blank line", "dialect": {"rowsPerRecord": [5, 1]}, "names": HEADER, "rows": RECORDS,
-        "propose": {"rowsPerRecord": [5, 1], "why": "every second line has at most one value"}})
+    cases["two-line-records-unpadded.csv"] = (
+        lines,
+        None,
+        {
+            "problem": "each record over two lines, the second holding its one value and no delimiters, so an empty "
+            "value is a blank line",
+            "dialect": {"rowsPerRecord": [5, 1]},
+            "names": HEADER,
+            "rows": RECORDS,
+            **expect({"blank-rows": {"rows": [10]}}, {"rowsPerRecord": [5, 1]}),
+        },
+    )
 
     records = [r.copy() for r in RECORDS]
     records[2][1] = 'The "Old" Mill, Station Road, Pangbourne, Reading, RG8 7AN'
@@ -147,48 +245,103 @@ def csv_cases():
         return value
 
     text = "".join(",".join(escaped(v) for v in line) + "\r\n" for line in lines)
-    cases["backslash-escape.csv"] = (lines, text, {
-        "problem": "a quote inside a quoted cell escaped by a backslash, not doubled",
-        "dialect": {"doubleQuote": False}, "names": HEADER, "rows": records,
-        "propose": {"doubleQuote": False, "why": "a backslash before a quote inside a quoted cell"}})
+    cases["backslash-escape.csv"] = (
+        lines,
+        text,
+        {
+            "problem": "a quote inside a quoted cell escaped by a backslash, not doubled",
+            "dialect": {"doubleQuote": False},
+            "names": HEADER,
+            "rows": records,
+            **expect({"csv-quote": {"rows": [4], "setting": "doubleQuote"}}, {"doubleQuote": False}),
+        },
+    )
 
     lines = [HEADER, *RECORDS]
-    cases["cr-line-ends.csv"] = (lines, csv_text(lines, eol="\r"), {
-        "problem": "every line ending `\\r` alone, as old Mac files do", "dialect": {}, "names": HEADER,
-        "rows": RECORDS})
+    cases["cr-line-ends.csv"] = (
+        lines,
+        csv_text(lines, eol="\r"),
+        {
+            "problem": "every line ending `\\r` alone, as old Mac files do",
+            "dialect": {},
+            "names": HEADER,
+            "rows": RECORDS,
+            **expect(),
+        },
+    )
 
     lines = [HEADER[:5], *RECORDS]
-    cases["header-narrower.csv"] = (lines, None, {
-        "problem": "the header a field narrower than the data, so the last column has no name",
-        "dialect": {}, "names": [*HEADER[:5], "Unnamed: 5"], "rows": RECORDS,
-        "renamed": "the column past the header by position, as an empty name is"})
+    cases["header-narrower.csv"] = (
+        lines,
+        None,
+        {
+            "problem": "the header a field narrower than the data, so the last column has no name",
+            "dialect": {},
+            "names": [*HEADER[:5], "Unnamed: 5"],
+            "rows": RECORDS,
+            "renamed": "the column past the header by position, as an empty name is",
+            **expect(),
+        },
+    )
 
     lines = [RECORDS[0][:5], *RECORDS[1:]]
-    cases["first-row-narrower.csv"] = (lines, None, {
-        "problem": "no header, and the first row a field narrower than the rest",
-        "dialect": {"headerRowCount": 0}, "names": [f"column_{i}" for i in range(width)],
-        "rows": padded(lines, width)})
+    cases["first-row-narrower.csv"] = (
+        lines,
+        None,
+        {
+            "problem": "no header, and the first row a field narrower than the rest",
+            "dialect": {"headerRowCount": 0},
+            "names": [f"column_{i}" for i in range(width)],
+            "rows": padded(lines, width),
+            **expect(),
+        },
+    )
 
     lines = [HEADER, *RECORDS[:2], RECORDS[2][:4], *RECORDS[3:]]
-    cases["row-narrower.csv"] = (lines, None, {
-        "problem": "one row two fields narrower than the header, its last cells empty",
-        "dialect": {}, "names": HEADER, "rows": padded(lines[1:], width)})
+    cases["row-narrower.csv"] = (
+        lines,
+        None,
+        {
+            "problem": "one row two fields narrower than the header, its last cells empty",
+            "dialect": {},
+            "names": HEADER,
+            "rows": padded(lines[1:], width),
+            **expect(),
+        },
+    )
 
     rows = [[f"v{i}{j}" for j in range(len(HOSTILE))] for i in range(2)]
     lines = [HOSTILE, *rows]
-    cases["hostile-headers.csv"] = (lines, None, {
-        "problem": "header names a script must still resolve: every name read exactly, none trimmed or joined",
-        "dialect": {}, "names_as_written": HOSTILE, "rows": rows,
-        "names": [f"Unnamed: {i}" if n == "" else n for i, n in enumerate(HOSTILE[:-3])] + ["Rate.1", "Rate Relief",
-                                                                                          "__row__.1"],
-        "renamed": "the empty name by position, as stored schemas name it; the repeat and the row key's own name "
-                   "by RowKeyParser.deconflict"})
+    cases["hostile-headers.csv"] = (
+        lines,
+        None,
+        {
+            "problem": "header names a script must still resolve: every name read exactly, none trimmed or joined",
+            "dialect": {},
+            "names_as_written": HOSTILE,
+            "rows": rows,
+            "names": [f"Unnamed: {i}" if n == "" else n for i, n in enumerate(HOSTILE[:-3])]
+            + ["Rate.1", "Rate Relief", "__row__.1"],
+            "renamed": "the empty name by position, as stored schemas name it; the repeat and the row key's own name "
+            "by RowKeyParser.deconflict",
+            **expect(),
+        },
+    )
 
     rows = [[v, str(i)] for i, v in enumerate(MISSING_LIKE)]
     lines = [["Contact", "n"], *rows]
-    cases["missing-like-text.csv"] = (lines, None, {
-        "problem": "text pandas reads as missing by default; every one is text, and only the source schema can "
-                   "say it means missing", "dialect": {}, "names": ["Contact", "n"], "rows": rows})
+    cases["missing-like-text.csv"] = (
+        lines,
+        None,
+        {
+            "problem": "text pandas reads as missing by default; every one is text, and only the source schema can "
+            "say it means missing",
+            "dialect": {},
+            "names": ["Contact", "n"],
+            "rows": rows,
+            **expect(),
+        },
+    )
     return cases
 
 
@@ -231,9 +384,14 @@ def layouts_workbook():
     ws.title = "Titled"
     ws["A1"], ws["A2"] = "West Berkshire Council", "Business rates reliefs, April 2026"
     dates = write_records(ws, top=4)
-    key["Titled"] = {"problem": "a title and subtitle, then a blank row, above the header on row 4",
-                     "dialect": {"skipRows": 3}, "names": HEADER, "rows": workbook_rows(), "date_cells": dates,
-                     "propose": {"skipRows": 3}}
+    key["Titled"] = {
+        "problem": "a title and subtitle, then a blank row, above the header on row 4",
+        "dialect": {"skipRows": 3},
+        "names": HEADER,
+        "rows": workbook_rows(),
+        "date_cells": dates,
+        **expect({"blank-rows": {"rows": [3]}}),
+    }
 
     ws = wb.create_sheet("MergedHeader")
     ws["A1"], ws["B1"], ws["D1"] = "Propref", "Property", "Relief"
@@ -248,13 +406,15 @@ def layouts_workbook():
             ws.cell(row=i, column=c, value=value)
     key["MergedHeader"] = {
         "problem": "a header over two rows: one name merged down both, two merged across two columns each",
-        "dialect": {"headerRowCount": 2}, "header_rows": [["Propref", "Property", None, "Relief", None],
-                                                          [None, "Address", "Postcode", "Code", "R/V"]],
-        "merged": ["A1:A2", "B1:C1", "D1:E1"], "rows": records,
+        "dialect": {"headerRowCount": 2},
+        "header_rows": [["Propref", "Property", None, "Relief", None], [None, "Address", "Postcode", "Code", "R/V"]],
+        "merged": ["A1:A2", "B1:C1", "D1:E1"],
+        "rows": records,
         "names": "supplied by the wrangler, one per column: a merged cell over two may be one title or a heading "
-                 "over subheadings, so whyqd never builds a name from it",
+        "over subheadings, so whyqd never builds a name from it",
         "refuse": "headerRowCount 2 without names: the header rows and merged ranges named, and names asked for",
-        "propose": {"headerRowCount": 2, "why": "merged ranges in rows 1 and 2, and data from row 3"}}
+        **expect({"merged-range": {"cells": ["A1:A2", "B1:C1", "D1:E1"]}}),
+    }
 
     ws = wb.create_sheet("BlankColumns")
     names = HEADER[:2] + [None] + HEADER[2:]
@@ -269,9 +429,11 @@ def layouts_workbook():
             ws.cell(row=i, column=c).border = border
     key["BlankColumns"] = {
         "problem": "an empty column inside the table, and three empty but formatted columns after it",
-        "dialect": {}, "names": [*HEADER[:2], "Unnamed: 2", *HEADER[2:]],
+        "dialect": {},
+        "names": [*HEADER[:2], "Unnamed: 2", *HEADER[2:]],
         "rows": [[v if v != "" else None for v in r[:2] + [None] + r[2:]] for r in RECORDS],
-        "propose": {"empty_columns": [2], "why": "the trailing columns hold formatting only, and are trimmed"}}
+        **expect({"blank-columns": {"columns": [2]}}),
+    }
 
     ws = wb.create_sheet("SubTables")
     write_records(ws, top=1, dates=False)
@@ -284,10 +446,11 @@ def layouts_workbook():
     rows = [*RECORDS, [""] * 6, *padded(CODES, 6), [""] * 6, *padded(FOOTNOTES, 6)]
     key["SubTables"] = {
         "problem": "a second table below a blank row, then footnotes; loaded as given, every row is in the table",
-        "dialect": {}, "names": HEADER, "rows": [[v if v != "" else None for v in r] for r in rows],
-        "propose": {"table_rows": [0, len(RECORDS) - 1],
-                    "second_table": {"header_row": len(RECORDS) + 1, "rows": len(CODES) - 1},
-                    "footnotes": [len(RECORDS) + len(CODES) + 2, len(rows) - 1]}}
+        "dialect": {},
+        "names": HEADER,
+        "rows": [[v if v != "" else None for v in r] for r in rows],
+        **expect({"blank-rows": {"rows": [len(RECORDS) + 2, len(RECORDS) + len(CODES) + 3]}}),
+    }
 
     ws = wb.create_sheet("Errors")
     write_records(ws, top=1, dates=False)
@@ -298,16 +461,30 @@ def layouts_workbook():
     rows = [[v if v != "" else None for v in r] for r in RECORDS]
     for coordinate, value in errors.items():
         rows[int(coordinate[1:]) - 2][3] = value
-    key["Errors"] = {"problem": "error cells in a number column", "dialect": {}, "names": HEADER, "rows": rows,
-                     "error_cells": errors}
+    key["Errors"] = {
+        "problem": "error cells in a number column",
+        "dialect": {},
+        "names": HEADER,
+        "rows": rows,
+        "error_cells": errors,
+        **expect({"error-cells": {"cells": list(errors)}}),
+    }
 
     ws = wb.create_sheet("Workings")
     ws.sheet_state = "hidden"
     ws["A1"], ws["A2"] = "Total R/V", "=SUM(Titled!D5:D10)"
-    key["Workings"] = {"problem": "a hidden sheet, read like any other and flagged", "state": "hidden", "dialect": {},
-                       "names": ["Total R/V"], "rows": [],
-                       "formula_cells": {"A2": "a formula written without its cached value, so the row is empty "
-                                               "here and trimmed; the .xls, saved by LibreOffice, caches 0"}}
+    key["Workings"] = {
+        "problem": "a hidden sheet, read like any other and flagged",
+        "state": "hidden",
+        "dialect": {},
+        "names": ["Total R/V"],
+        "rows": [],
+        "formula_cells": {
+            "A2": "a formula written without its cached value, so the row is empty "
+            "here and trimmed; the .xls, saved by LibreOffice, caches 0"
+        },
+        **expect({"hidden-sheet": {}}),
+    }
     return wb, key
 
 
@@ -320,8 +497,13 @@ def single_sheet_workbook():
     for r, row in enumerate(CODES[1:], start=3):
         for c, value in enumerate(row, start=1):
             ws.cell(row=r, column=c, value=value)
-    key = {"problem": "the only sheet, with row 2 blank: 1.x's one-row probe judged it empty and dropped it",
-           "dialect": {}, "names": CODES[0], "rows": [[None, None], *CODES[1:]], "propose": {"blank_rows": [0]}}
+    key = {
+        "problem": "the only sheet, with row 2 blank: 1.x's one-row probe judged it empty and dropped it",
+        "dialect": {},
+        "names": CODES[0],
+        "rows": [[None, None], *CODES[1:]],
+        **expect({"blank-rows": {"rows": [2]}}),
+    }
     return wb, key
 
 
@@ -361,12 +543,15 @@ def pdf_workbook():
     ws.column_dimensions["B"].width = 30
     for row in ws.iter_rows(min_col=2, max_col=2):
         row[0].alignment = Alignment(wrap_text=True)
-    key["Ruled"] = {"problem": "a ruled grid, long addresses wrapped over several lines in their cells",
-                    "names": HEADER, "rows": printed(RECORDS),
-                    "note": "a date cell exports as its displayed text, dd/mm/yyyy, so the rows are the text",
-                    "wrapped": "an address extracts with a line break at each wrap, and keeps it: a wrap and a line "
-                               "break in the cell look the same in a PDF, so joining is a declared step, never the "
-                               "reader's; the ruling keeps each wrapped cell in its one row"}
+    key["Ruled"] = {
+        "problem": "a ruled grid, long addresses wrapped over several lines in their cells",
+        "names": HEADER,
+        "rows": printed(RECORDS),
+        "note": "a date cell exports as its displayed text, dd/mm/yyyy, so the rows are the text",
+        "wrapped": "an address extracts with a line break at each wrap, and keeps it: a wrap and a line "
+        "break in the cell look the same in a PDF, so joining is a declared step, never the "
+        "reader's; the ruling keeps each wrapped cell in its one row",
+    }
 
     ws = wb.create_sheet("MergedHeader")
     ws["A1"], ws["B1"], ws["D1"] = "Propref", "Property", "Relief"
@@ -380,10 +565,12 @@ def pdf_workbook():
         for c, value in enumerate(record, start=1):
             ws.cell(row=i, column=c, value=value)
     rule(ws)
-    key["MergedHeader"] = {"problem": "a ruled header over two rows with merged cells",
-                           "header_rows": [["Propref", "Property", "", "Relief", ""],
-                                           ["", "Address", "Postcode", "Code", "R/V"]], "rows": records,
-                           "names": "supplied by the wrangler, as layouts.xlsx § MergedHeader"}
+    key["MergedHeader"] = {
+        "problem": "a ruled header over two rows with merged cells",
+        "header_rows": [["Propref", "Property", "", "Relief", ""], ["", "Address", "Postcode", "Code", "R/V"]],
+        "rows": records,
+        "names": "supplied by the wrangler, as layouts.xlsx § MergedHeader",
+    }
 
     ws = wb.create_sheet("TwoTables")
     write_records(ws, top=1, dates=False)
@@ -391,36 +578,40 @@ def pdf_workbook():
         for c, value in enumerate(row, start=1):
             ws.cell(row=r, column=c, value=value)
     fit(ws)
-    key["TwoTables"] = {"problem": "two tables on one page, unruled, two blank rows apart",
-                        "tables": [{"names": HEADER, "rows": printed(RECORDS)},
-                                   {"names": CODES[0], "rows": CODES[1:]}]}
+    key["TwoTables"] = {
+        "problem": "two tables on one page, unruled, two blank rows apart",
+        "tables": [{"names": HEADER, "rows": printed(RECORDS)}, {"names": CODES[0], "rows": CODES[1:]}],
+    }
 
     ws = wb.create_sheet("Landscape")
     wide = [*HEADER, "Liable From", "Account Holder", "Ward", "Band"]
-    extra = [["01/04/2010", "Orpheus Holdings Ltd", "Aldermaston", "B"],
-             ["01/04/2017", "Meadow Road Traders", "Newbury Central", "C"],
-             ["12/06/2019", "Pangbourne Station Ltd", "Pangbourne", "A"],
-             ["01/04/2023", "Andromeda Estates", "Aldermaston", "B"],
-             ["01/04/2005", "Aldermaston Parish Council", "Aldermaston", "A"],
-             ["30/09/2016", "The Bell Inn (Aldworth) Ltd", "Basildon", "B"]]
+    extra = [
+        ["01/04/2010", "Orpheus Holdings Ltd", "Aldermaston", "B"],
+        ["01/04/2017", "Meadow Road Traders", "Newbury Central", "C"],
+        ["12/06/2019", "Pangbourne Station Ltd", "Pangbourne", "A"],
+        ["01/04/2023", "Andromeda Estates", "Aldermaston", "B"],
+        ["01/04/2005", "Aldermaston Parish Council", "Aldermaston", "A"],
+        ["30/09/2016", "The Bell Inn (Aldworth) Ltd", "Basildon", "B"],
+    ]
     wide_rows = [r + e for r, e in zip(RECORDS, extra, strict=True)]
     write_records(ws, top=1, records=wide_rows, header=wide, dates=False)
     ws.page_setup.orientation = "landscape"
     rule(ws)
-    key["Landscape"] = {"problem": "a wide table on a landscape page", "names": wide,
-                        "rows": printed(wide_rows)}
+    key["Landscape"] = {"problem": "a wide table on a landscape page", "names": wide, "rows": printed(wide_rows)}
 
-    many = [[f"NN{900000000000 + i:014d}", r[1], r[2], r[3], r[4], r[5]]
-            for i, r in enumerate(RECORDS * 25)]
+    many = [[f"NN{900000000000 + i:014d}", r[1], r[2], r[3], r[4], r[5]] for i, r in enumerate(RECORDS * 25)]
     for title, repeat in (("RepeatedHeader", True), ("HeaderOnce", False)):
         ws = wb.create_sheet(title)
         write_records(ws, top=1, records=many, dates=False)
         if repeat:
             ws.print_title_rows = "1:1"
         rule(ws)
-        key[title] = {"problem": f"{len(many)} rows over several pages, the header "
-                                 + ("repeated on every page" if repeat else "on the first page only"),
-                      "names": HEADER, "rows": printed(many)}
+        key[title] = {
+            "problem": f"{len(many)} rows over several pages, the header "
+            + ("repeated on every page" if repeat else "on the first page only"),
+            "names": HEADER,
+            "rows": printed(many),
+        }
 
     ws = wb.create_sheet("UnruledWrapped")
     write_records(ws, top=1)
@@ -430,12 +621,14 @@ def pdf_workbook():
         row[0].alignment = Alignment(wrap_text=True)
     key["UnruledWrapped"] = {
         "problem": "no ruling, and long addresses wrapped in their cells: read by text position, each wrapped line "
-                   "becomes a row of its own and words split across columns",
-        "names": HEADER, "rows": printed(RECORDS),
+        "becomes a row of its own and words split across columns",
+        "names": HEADER,
+        "rows": printed(RECORDS),
         "report": "loaded by the default reading, the rows that look like continuations (an empty first cell, text "
-                  "only where a cell wraps) are shown, so the wrangler can declare how the table is read",
+        "only where a cell wraps) are shown, so the wrangler can declare how the table is read",
         "declared": "with the table's reading declared (its columns' bounds, which rows continue a record), the rows "
-                    "above, each wrap a line break in its cell"}
+        "above, each wrap a line break in its cell",
+    }
     return wb, key
 
 
@@ -457,12 +650,15 @@ def main():
     key["workbook"]["single-sheet.xlsx"] = {"Reliefs": sheet}
     wb, sheets = pdf_workbook()
     save(wb, TARGET / "pdf-source.xlsx")
-    key["pdf"] = {"pdf-source.pdf": sheets,
-                  "made": "pdf-source.xlsx exported in LibreOffice, every sheet, one PDF; each sheet's table "
-                          "read across its pages"}
+    key["pdf"] = {
+        "pdf-source.pdf": sheets,
+        "made": "pdf-source.xlsx exported in LibreOffice, every sheet, one PDF; each sheet's table "
+        "read across its pages",
+    }
 
-    (TARGET / "answer-key.json").write_text(json.dumps(key, indent=2, ensure_ascii=False, default=str),
-                                            encoding="utf-8")
+    (TARGET / "answer-key.json").write_text(
+        json.dumps(key, indent=2, ensure_ascii=False, default=str), encoding="utf-8"
+    )
     print(sorted(p.name for p in TARGET.iterdir()))
 
 
