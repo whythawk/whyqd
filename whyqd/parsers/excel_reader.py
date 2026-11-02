@@ -11,7 +11,7 @@ import polars as pl
 import python_calamine
 
 from whyqd.config.patterns import PythonPatterns
-from whyqd.dtypes import MimeType
+from whyqd.dtypes import CellType, MimeType
 from whyqd.models import DialectModel
 from whyqd.parsers.cell import CellParser
 from whyqd.parsers.grid import GridParser
@@ -45,6 +45,7 @@ class ExcelParser:
     """
 
     PLACE = "row"
+    DIALECT = ("sheet",)
     # Each error's code, as Excel shows it: calamine's `CellErrorType` (https://github.com/tafia/calamine, `lib.rs`)
     ERRORS = {
         "Div0": "#DIV/0!",
@@ -98,8 +99,20 @@ class ExcelParser:
         self.patterns = PythonPatterns()
 
     def sheets(self, *, source: Path) -> list[tuple[str, bool]]:
-        """Each worksheet's name, in workbook order, and whether its publisher hid it."""
-        workbook = python_calamine.CalamineWorkbook.from_path(str(source))
+        """Each worksheet's name, in workbook order, and whether its publisher hid it.
+
+        Raises
+        ------
+        ValueError
+            For a file that is not a sound workbook.
+        """
+        try:
+            workbook = python_calamine.CalamineWorkbook.from_path(str(source))
+        except python_calamine.CalamineError as e:
+            raise ValueError(
+                f"`{source.name}` cannot be opened as a workbook. Check its format, or ask its owner for a sound copy. "
+                "[whyqd:file-unreadable]"
+            ) from e
         return [
             (m.name, m.visible != python_calamine.SheetVisibleEnum.Visible)
             for m in workbook.sheets_metadata
@@ -159,6 +172,28 @@ class ExcelParser:
         schema = {c: pl.String for c in columns}
         grid, types = self.grids.trim(grid=pl.DataFrame(columns, schema=schema), types=pl.DataFrame(types, schema=schema))
         return grid, types, list(range(1, grid.height + 1)), dialect.model_copy(update={"sheet": sheet})
+
+    def facts(self, *, source: Path, sheet: str, types: pl.DataFrame) -> dict[str, list[str]]:
+        """What a sheet holds that its grid's text does not show: its `merged` ranges and its `errors`, each cell named
+        as a workbook names it, in reading order."""
+        read = python_calamine.CalamineWorkbook.from_path(str(source)).get_sheet_by_name(sheet)
+        merged = sorted(read.merged_cell_ranges or [])
+        errors = sorted(
+            (i, j) for j, c in enumerate(types.columns) for i in types[c].eq(CellType.ERROR.value).arg_true().to_list()
+        )
+        reference = self.reference
+        return {
+            "merged": [f"{reference(row=a, column=b)}:{reference(row=c, column=d)}" for (a, b), (c, d) in merged],
+            "errors": [self.reference(row=i, column=j) for i, j in errors],
+        }
+
+    def reference(self, *, row: int, column: int) -> str:
+        """A cell's reference from its row and column, each counted from 0: `B3` is row 2, column 1."""
+        letters, column = "", column + 1
+        while column:
+            column, remainder = divmod(column - 1, 26)
+            letters = chr(65 + remainder) + letters
+        return f"{letters}{row + 1}"
 
     def formats(self, *, source: Path, sheet: str, height: int, width: int) -> pl.DataFrame:
         """Each cell's number format code in a sheet of an `.xlsx`, in the shape of its grid.

@@ -1,4 +1,5 @@
 # SPDX-License-Identifier: BSD-3-Clause
+from itertools import islice
 from pathlib import Path
 import csv
 
@@ -8,7 +9,7 @@ from whyqd.config.patterns import PythonPatterns
 from whyqd.dtypes import EncodingStep, MimeType
 from whyqd.models import DialectModel
 from whyqd.parsers.encoding import EncodingParser
-from whyqd.parsers.grid import GridParser
+from whyqd.parsers.grid import GridParser, ReadFault
 
 
 class CsvParser:
@@ -23,6 +24,7 @@ class CsvParser:
     """
 
     PLACE = "line"
+    DIALECT = ("encoding", "encodingStep", "delimiter", "quoteChar", "doubleQuote")
 
     def __init__(self) -> None:
         self.encoding = EncodingParser()
@@ -87,9 +89,18 @@ class CsvParser:
                 lines.append(line)
                 line = reader.line_num + 1
         except csv.Error as e:
-            raise ValueError(
-                f"`{source.name}` cannot be read from line {line}: {e}. If a quote there is text, declare `quoteChar` "
-                "as null. [whyqd:csv-quote]"
+            found = next(islice(self.patterns.LINE.finditer(text), line - 1, None), None)
+            escaped = found is not None and f"\\{dialect.quoteChar}" in found.group()
+            setting = "doubleQuote" if escaped else "quoteChar"
+            advice = (
+                "If a backslash escapes a quote there, declare `doubleQuote` as false."
+                if escaped
+                else "If a quote there is text, declare `quoteChar` as null."
+            )
+            raise ReadFault(
+                f"`{source.name}` cannot be read from line {line}: {e}. {advice} [whyqd:csv-quote]",
+                rows=[line],
+                setting=setting,
             ) from e
         return rows, lines
 

@@ -12,6 +12,13 @@ class Settings(BaseSettings):
     FORMAT_VERSIONS: ClassVar[tuple[str, ...]] = ("1.x", "2.0")
     FORMAT_CURRENT: ClassVar[str] = "2.0"
     CHECKSUM_ALGORITHM: ClassVar[str] = "BLAKE2b-512"
+    # What a report shows, so the same file gives the same report anywhere: its places named in a finding, and its
+    # preview's rows from the top and the end, the length of a cell, and the length of a line
+    REPORT_PLACES: ClassVar[int] = 100
+    REPORT_PREVIEW_HEAD: ClassVar[int] = 15
+    REPORT_PREVIEW_TAIL: ClassVar[int] = 5
+    REPORT_CELL_WIDTH: ClassVar[int] = 40
+    REPORT_LINE_WIDTH: ClassVar[int] = 160
     # The encodings a dialect may declare, by the WHATWG Encoding Standard's name in lower case, each with its labels
     # (https://encoding.spec.whatwg.org/#names-and-labels) and the Python codec that decodes it as the standard does
     ENCODINGS: ClassVar[dict[str, dict]] = {

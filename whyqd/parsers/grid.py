@@ -4,6 +4,15 @@ import polars as pl
 from whyqd.dtypes import CellType
 
 
+class ReadFault(ValueError):
+    """A file that cannot be read as its dialect describes, saying where, and which setting addresses it."""
+
+    def __init__(self, message: str, *, rows: list[int] | None = None, setting: str | None = None) -> None:
+        super().__init__(message)
+        self.rows = rows or []
+        self.setting = setting
+
+
 class GridParser:
     """The grid every reader gives: each cell's text, null where empty, in columns `column_0` on, and beside it each
     cell's type, a `CellType`, in a frame of the same shape.

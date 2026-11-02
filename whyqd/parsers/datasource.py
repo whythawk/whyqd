@@ -13,6 +13,7 @@ import polars as pl
 from whyqd.parsers.arrow_reader import ArrowParser
 from whyqd.parsers.core import CoreParser
 from whyqd.parsers.csv_reader import CsvParser
+from whyqd.parsers.diagnosis import DiagnosisParser
 from whyqd.parsers.excel_reader import ExcelParser
 from whyqd.parsers.fingerprint import FingerprintParser
 from whyqd.parsers.pdf_reader import PdfParser
@@ -20,7 +21,7 @@ from whyqd.parsers.profile import ProfileParser
 from whyqd.parsers.row_key import RowKeyParser
 from whyqd.parsers.table import TableParser
 from whyqd.parsers.v1 import V1ChecksumParser
-from whyqd.models import ColumnModel, DataSourceModel, DataSourceAttributeModel, DialectModel
+from whyqd.models import ColumnModel, DataSourceModel, DataSourceAttributeModel, DialectModel, ReportModel
 from whyqd.dtypes import ChecksumContent, MimeType, FieldType
 
 if TYPE_CHECKING:
@@ -35,6 +36,7 @@ class DataSourceParser:
 
     def __init__(self):
         self.core = CoreParser()
+        self.diagnoses = DiagnosisParser()
         self.fingerprints = FingerprintParser()
         self.profiles = ProfileParser()
         self.v1 = V1ChecksumParser()
@@ -459,6 +461,34 @@ class DataSourceParser:
         if mimetype in (MimeType.XLS, MimeType.XLSX):
             return self.derive_sheets(source=source, mime=mimetype, dialect=dialect, names=names)
         return self.derive(source=source, mime=mimetype, dialect=dialect, names=names)
+
+    def diagnose(
+        self, *, source: Path | str, mimetype: str | MimeType, dialect: DialectModel | dict | None = None
+    ) -> list[ReportModel]:
+        """How a file reads under a dialect, and what was found there: one report, or one a sheet of a workbook, or only
+        the sheet the dialect names. A file that cannot be read gives a report saying so, rather than raising.
+
+        Raises
+        ------
+        ValueError
+            For a declaration whyqd cannot read, or a format it does not: neither is a fault in the file.
+        FileNotFoundError
+            For a file that is not there.
+        """
+        mime = self.get_mimetype(mimetype=mimetype)
+        given, path, reader = self.declare(dialect=dialect), self.locate(source=source), self.reader(mime=mime)
+        if mime not in (MimeType.XLS, MimeType.XLSX):
+            return [self.diagnoses.report(source=path, mime=mime, reader=reader, given=given)]
+        try:
+            sheets = reader.sheets(source=path)
+        except ValueError as e:
+            return [self.diagnoses.refused(source=path, mime=mime, reader=reader, error=e)]
+        if given.sheet is not None:
+            sheets = [(given.sheet, dict(sheets).get(given.sheet, False))]
+        return [
+            self.diagnoses.report(source=path, mime=mime, reader=reader, given=given, sheet=sheet, hidden=hidden)
+            for sheet, hidden in sheets
+        ]
 
     def get_source_data_model(self, *, df: pd.DataFrame, source: Path | str, mimetype: str | MimeType) -> DataSourceModel:
         """The data source of a transform's output, from the frame it was saved from, with its `table-1x` checksum.
