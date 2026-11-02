@@ -87,7 +87,7 @@ class DataSourceDefinition(BaseDefinition):
             self.model = self.core.create_or_update_model(modelType=DataSourceModel, source=schema, model=self.model)
 
     def get_data(self, *, refresh: bool = False) -> pd.DataFrame | None:
-        """Get a Pandas (Modin) dataframe.
+        """Get the data source's table as a pandas dataframe.
 
         Parameters:
           refresh: Force an update of the dataframe if there have been attribute changes.

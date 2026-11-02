@@ -14,9 +14,10 @@ class FingerprintParser:
 
     `fp0` proves a source's data, not its file, however the means of reading it changes, so it is defined here without
     reference to any library, and anyone can recompute it. Each sheet of a workbook has its own, a hidden one included,
-    and each other file one. It is taken before any row is skipped, joined, or taken as the header, and before any cell
-    is trimmed, so no setting changes it. A file saved again with its data unchanged keeps it, in any encoding; a save
-    that changes a cell's type or text does not, even if the file looks the same. Both are BLAKE2b-512.
+    and each other file one, but for a PDF, which has none, since its grid depends on how it is read. It is taken
+    before any row is skipped, joined, or taken as the header, and before any cell is trimmed, so no setting changes it.
+    A file saved again with its data unchanged keeps it, in any encoding; a save that changes a cell's type or text does
+    not, even if the file looks the same. Both are BLAKE2b-512.
 
     The bytes hashed, in UTF-8: `fp0`, then, each after a `\\n`, a line for each row of the grid, its trailing empty
     rows and columns trimmed. A line is a JSON array in the canonical form of
