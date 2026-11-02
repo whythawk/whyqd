@@ -8,9 +8,11 @@ problems found in published spreadsheets, on records borrowed from tests/data/sa
 with the defects real files carry added (dates beside text, `N/A`, whitespace).
 
 The key is the contract. For each file or sheet: `lines` (CSV), each row's fields as written; `dialect`, the settings
-that read it as intended, which a wrangler declares and diagnosis should propose; `names` and `rows`, the table those
-settings give, each row padded to the names; and `propose`, what diagnosis should find beyond the dialect. Workbook
-cells are given as stored, a date as its ISO text, with `date_cells` naming them. Two files are finished by hand in
+that read it as intended, which a wrangler declares; `names` and `rows`, the table those settings give, each row padded
+to the names; `findings`, by code, what a report on the file read with no setting declared should find and where; and
+`proposals`, the settings it should propose when asked, which is none unless the file cannot be read as written, its
+layout being the wrangler's to interpret. Rows count as a wrangler would look for them, a line or sheet row from 1;
+columns by position from 0. Workbook cells are given as stored, a date as its ISO text, with `date_cells` naming them. Two files are finished by hand in
 LibreOffice: layouts.xlsx saved as layouts.xls, and pdf-source.xlsx exported as pdf-source.pdf, sheet by sheet.
 """
 
@@ -70,6 +72,10 @@ def padded(rows, width):
     return [row + [""] * (width - len(row)) for row in rows]
 
 
+def expect(findings=None, proposals=None):
+    return {"findings": findings or {}, "proposals": proposals or {}}
+
+
 def csv_cases():
     """Each case: its file's lines, the text written (where it is not csv_text of the lines), and its key."""
     width = len(HEADER)
@@ -79,26 +85,26 @@ def csv_cases():
     cases["title-above.csv"] = (lines, None, {
         "problem": "a title and two blank lines above the header",
         "dialect": {"skipRows": 3}, "names": HEADER, "rows": RECORDS,
-        "propose": {"skipRows": 3, "why": "the first line with as many fields as the data is line 3"}})
+        **expect({"blank-rows": {"rows": [2, 3]}})})
 
     lines = [HEADER, *RECORDS[:3], [], *RECORDS[3:]]
     cases["blank-line-inside.csv"] = (lines, None, {
         "problem": "a blank line inside the data, kept as a row and numbered",
         "dialect": {}, "names": HEADER, "rows": padded([*RECORDS[:3], [], *RECORDS[3:]], width),
-        "propose": {"blank_rows": [3]}})
+        **expect({"blank-rows": {"rows": [5]}})})
 
     records = [r.copy() for r in RECORDS]
     records[1][1] = "27-31, Meadow Road\nNewbury, RG14 7AH"
     lines = [HEADER, *records]
     cases["quoted-line-break.csv"] = (lines, None, {
         "problem": "a quoted cell holding a line break, one record over two lines of the file",
-        "dialect": {}, "names": HEADER, "rows": records})
+        "dialect": {}, "names": HEADER, "rows": records, **expect()})
 
     lines = [HEADER, *RECORDS]
     cases["semicolon.csv"] = (lines, csv_text(lines, delimiter=";"), {
         "problem": "`;` between cells, and commas inside the addresses unquoted",
         "dialect": {"delimiter": ";"}, "names": HEADER, "rows": RECORDS,
-        "propose": {"delimiter": ";"}})
+        **expect(proposals={"delimiter": ";"})})
 
     # No cell is quoted, so the addresses lose their commas; one cell opens with a quote that never closes
     records = [[v.replace(",", "") for v in r] for r in RECORDS]
@@ -109,13 +115,13 @@ def csv_cases():
         "problem": "a cell opening with a quote that never closes, which swallows the rest of the file if read as a "
                    "quote (1.x needed `quoting=csv.QUOTE_NONE`)",
         "dialect": {"quoteChar": None}, "names": HEADER, "rows": records,
-        "propose": {"quoteChar": None, "why": "an opening quote with no close before the end of the file"}})
+        **expect({"csv-quote": {"rows": [4], "setting": "quoteChar"}}, {"quoteChar": None})})
 
     lines = [[*line, ""] for line in [HEADER, *RECORDS]]
     cases["trailing-delimiter.csv"] = (lines, None, {
         "problem": "every line ends with a delimiter, an empty last column with an empty header",
         "dialect": {}, "names": HEADER, "rows": RECORDS,
-        "propose": {"why": "the empty last column is trimmed with the grid, as fp0 trims it"}})
+        **expect()})
 
     # Each record over two lines of the file, as every line has the same fields: the second holds one value
     first = HEADER[:5]
@@ -125,7 +131,7 @@ def csv_cases():
     cases["two-line-records.csv"] = (lines, None, {
         "problem": "each record, header included, over two lines: five fields, then one in the first field",
         "dialect": {"rowsPerRecord": [5, 1]}, "names": HEADER, "rows": RECORDS,
-        "propose": {"rowsPerRecord": [5, 1], "why": "every second line has one value, in its first field"},
+        **expect({"blank-rows": {"rows": [10]}}, {"rowsPerRecord": [5, 1]}),
         "refuse": "a record without its second line, or a second line with values past its first field"})
 
     # The same records with nothing after a record's one value: a lone empty value is a blank line
@@ -135,7 +141,7 @@ def csv_cases():
     cases["two-line-records-unpadded.csv"] = (lines, None, {
         "problem": "each record over two lines, the second holding its one value and no delimiters, so an empty "
                    "value is a blank line", "dialect": {"rowsPerRecord": [5, 1]}, "names": HEADER, "rows": RECORDS,
-        "propose": {"rowsPerRecord": [5, 1], "why": "every second line has at most one value"}})
+        **expect({"blank-rows": {"rows": [10]}}, {"rowsPerRecord": [5, 1]})})
 
     records = [r.copy() for r in RECORDS]
     records[2][1] = 'The "Old" Mill, Station Road, Pangbourne, Reading, RG8 7AN'
@@ -150,29 +156,29 @@ def csv_cases():
     cases["backslash-escape.csv"] = (lines, text, {
         "problem": "a quote inside a quoted cell escaped by a backslash, not doubled",
         "dialect": {"doubleQuote": False}, "names": HEADER, "rows": records,
-        "propose": {"doubleQuote": False, "why": "a backslash before a quote inside a quoted cell"}})
+        **expect({"csv-quote": {"rows": [4], "setting": "doubleQuote"}}, {"doubleQuote": False})})
 
     lines = [HEADER, *RECORDS]
     cases["cr-line-ends.csv"] = (lines, csv_text(lines, eol="\r"), {
         "problem": "every line ending `\\r` alone, as old Mac files do", "dialect": {}, "names": HEADER,
-        "rows": RECORDS})
+        "rows": RECORDS, **expect()})
 
     lines = [HEADER[:5], *RECORDS]
     cases["header-narrower.csv"] = (lines, None, {
         "problem": "the header a field narrower than the data, so the last column has no name",
         "dialect": {}, "names": [*HEADER[:5], "Unnamed: 5"], "rows": RECORDS,
-        "renamed": "the column past the header by position, as an empty name is"})
+        "renamed": "the column past the header by position, as an empty name is", **expect()})
 
     lines = [RECORDS[0][:5], *RECORDS[1:]]
     cases["first-row-narrower.csv"] = (lines, None, {
         "problem": "no header, and the first row a field narrower than the rest",
         "dialect": {"headerRowCount": 0}, "names": [f"column_{i}" for i in range(width)],
-        "rows": padded(lines, width)})
+        "rows": padded(lines, width), **expect()})
 
     lines = [HEADER, *RECORDS[:2], RECORDS[2][:4], *RECORDS[3:]]
     cases["row-narrower.csv"] = (lines, None, {
         "problem": "one row two fields narrower than the header, its last cells empty",
-        "dialect": {}, "names": HEADER, "rows": padded(lines[1:], width)})
+        "dialect": {}, "names": HEADER, "rows": padded(lines[1:], width), **expect()})
 
     rows = [[f"v{i}{j}" for j in range(len(HOSTILE))] for i in range(2)]
     lines = [HOSTILE, *rows]
@@ -182,13 +188,13 @@ def csv_cases():
         "names": [f"Unnamed: {i}" if n == "" else n for i, n in enumerate(HOSTILE[:-3])] + ["Rate.1", "Rate Relief",
                                                                                           "__row__.1"],
         "renamed": "the empty name by position, as stored schemas name it; the repeat and the row key's own name "
-                   "by RowKeyParser.deconflict"})
+                   "by RowKeyParser.deconflict", **expect()})
 
     rows = [[v, str(i)] for i, v in enumerate(MISSING_LIKE)]
     lines = [["Contact", "n"], *rows]
     cases["missing-like-text.csv"] = (lines, None, {
         "problem": "text pandas reads as missing by default; every one is text, and only the source schema can "
-                   "say it means missing", "dialect": {}, "names": ["Contact", "n"], "rows": rows})
+                   "say it means missing", "dialect": {}, "names": ["Contact", "n"], "rows": rows, **expect()})
     return cases
 
 
@@ -233,7 +239,7 @@ def layouts_workbook():
     dates = write_records(ws, top=4)
     key["Titled"] = {"problem": "a title and subtitle, then a blank row, above the header on row 4",
                      "dialect": {"skipRows": 3}, "names": HEADER, "rows": workbook_rows(), "date_cells": dates,
-                     "propose": {"skipRows": 3}}
+                     **expect({"blank-rows": {"rows": [3]}})}
 
     ws = wb.create_sheet("MergedHeader")
     ws["A1"], ws["B1"], ws["D1"] = "Propref", "Property", "Relief"
@@ -254,7 +260,7 @@ def layouts_workbook():
         "names": "supplied by the wrangler, one per column: a merged cell over two may be one title or a heading "
                  "over subheadings, so whyqd never builds a name from it",
         "refuse": "headerRowCount 2 without names: the header rows and merged ranges named, and names asked for",
-        "propose": {"headerRowCount": 2, "why": "merged ranges in rows 1 and 2, and data from row 3"}}
+        **expect({"merged-range": {"cells": ["A1:A2", "B1:C1", "D1:E1"]}})}
 
     ws = wb.create_sheet("BlankColumns")
     names = HEADER[:2] + [None] + HEADER[2:]
@@ -271,7 +277,7 @@ def layouts_workbook():
         "problem": "an empty column inside the table, and three empty but formatted columns after it",
         "dialect": {}, "names": [*HEADER[:2], "Unnamed: 2", *HEADER[2:]],
         "rows": [[v if v != "" else None for v in r[:2] + [None] + r[2:]] for r in RECORDS],
-        "propose": {"empty_columns": [2], "why": "the trailing columns hold formatting only, and are trimmed"}}
+        **expect({"blank-columns": {"columns": [2]}})}
 
     ws = wb.create_sheet("SubTables")
     write_records(ws, top=1, dates=False)
@@ -285,9 +291,7 @@ def layouts_workbook():
     key["SubTables"] = {
         "problem": "a second table below a blank row, then footnotes; loaded as given, every row is in the table",
         "dialect": {}, "names": HEADER, "rows": [[v if v != "" else None for v in r] for r in rows],
-        "propose": {"table_rows": [0, len(RECORDS) - 1],
-                    "second_table": {"header_row": len(RECORDS) + 1, "rows": len(CODES) - 1},
-                    "footnotes": [len(RECORDS) + len(CODES) + 2, len(rows) - 1]}}
+        **expect({"blank-rows": {"rows": [len(RECORDS) + 2, len(RECORDS) + len(CODES) + 3]}})}
 
     ws = wb.create_sheet("Errors")
     write_records(ws, top=1, dates=False)
@@ -299,7 +303,7 @@ def layouts_workbook():
     for coordinate, value in errors.items():
         rows[int(coordinate[1:]) - 2][3] = value
     key["Errors"] = {"problem": "error cells in a number column", "dialect": {}, "names": HEADER, "rows": rows,
-                     "error_cells": errors}
+                     "error_cells": errors, **expect({"error-cells": {"cells": list(errors)}})}
 
     ws = wb.create_sheet("Workings")
     ws.sheet_state = "hidden"
@@ -307,7 +311,8 @@ def layouts_workbook():
     key["Workings"] = {"problem": "a hidden sheet, read like any other and flagged", "state": "hidden", "dialect": {},
                        "names": ["Total R/V"], "rows": [],
                        "formula_cells": {"A2": "a formula written without its cached value, so the row is empty "
-                                               "here and trimmed; the .xls, saved by LibreOffice, caches 0"}}
+                                               "here and trimmed; the .xls, saved by LibreOffice, caches 0"},
+                       **expect({"hidden-sheet": {}})}
     return wb, key
 
 
@@ -321,7 +326,7 @@ def single_sheet_workbook():
         for c, value in enumerate(row, start=1):
             ws.cell(row=r, column=c, value=value)
     key = {"problem": "the only sheet, with row 2 blank: 1.x's one-row probe judged it empty and dropped it",
-           "dialect": {}, "names": CODES[0], "rows": [[None, None], *CODES[1:]], "propose": {"blank_rows": [0]}}
+           "dialect": {}, "names": CODES[0], "rows": [[None, None], *CODES[1:]], **expect({"blank-rows": {"rows": [2]}})}
     return wb, key
 
 
