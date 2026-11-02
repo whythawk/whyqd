@@ -111,11 +111,23 @@ class TestHeader:
         assert [c.name for c in datasource.get.columns] == names
         assert table(datasource)["field_0"].tolist()[0] == "0660"
 
-    def test_fewer_names_than_columns_are_refused(self, tmp_path):
+    def test_columns_past_the_names_are_named_by_position_and_nothing_shifts(self, tmp_path):
         datasource = qd.DataSourceDefinition()
-        source = write(tmp_path, "a,b,c\n1,2,3\n")
-        with pytest.raises(ValueError, match=r"\[whyqd:names-count\]"):
+        source = write(tmp_path, "a,b,c,d\n1,2,3,4\n")
+        with pytest.warns(UserWarning, match=r"\[whyqd:names-short\]"):
             datasource.derive_model(source=source, mimetype="CSV", dialect={"headerRowCount": 0}, names=["x", "y"])
+        names = ["x", "y", "Unnamed: 2", "Unnamed: 3"]
+        assert [c.name for c in datasource.get.columns] == names
+        assert table(datasource)[names].values.tolist() == [["a", "b", "c", "d"], ["1", "2", "3", "4"]]
+
+    def test_a_name_by_position_gives_way_to_a_name_given(self, tmp_path):
+        datasource = qd.DataSourceDefinition()
+        source = write(tmp_path, "a,b,c\n")
+        with pytest.warns(UserWarning, match=r"\[whyqd:names-short\]"):
+            datasource.derive_model(
+                source=source, mimetype="CSV", dialect={"headerRowCount": 0}, names=["Unnamed: 2", "y"]
+            )
+        assert len({c.name for c in datasource.get.columns}) == 3
 
     def test_a_header_over_two_rows_takes_the_names_given(self, tmp_path):
         datasource = qd.DataSourceDefinition()

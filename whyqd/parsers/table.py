@@ -1,4 +1,6 @@
 # SPDX-License-Identifier: BSD-3-Clause
+import warnings
+
 import polars as pl
 
 from whyqd.models import DialectModel
@@ -42,7 +44,8 @@ class TableParser:
         names: list[str] | None, default None
             One name per column, in place of the header row's; required for a header over several rows. Names past the
             grid's last column are columns the file leaves empty, which the grid trims: each is added, empty, so every
-            file of a format with fixed fields reads to one shape.
+            file of a format with fixed fields reads to one shape. Columns past the last name are named by position,
+            with a warning, so no cell is lost and none moves.
         place: str, default "line"
             What `lines` counts, as the wrangler would look for it: a text file's `line`, a sheet's `row`.
         beside: list[pl.DataFrame] | None, default None
@@ -96,10 +99,13 @@ class TableParser:
         width = header.width
         if names is not None:
             if len(names) < width:
-                raise ValueError(
-                    f"`names` gives {len(names)} names for a table of {width} columns. Give one per column, in order. "
-                    "[whyqd:names-count]"
+                warnings.warn(
+                    f"`names` gives {len(names)} names for a table of {width} columns, so the rest are named by "
+                    "position. Check the list, and give one per column, in order. [whyqd:names-short]",
+                    UserWarning,
+                    stacklevel=2,
                 )
+                names = [*names, *(f"Unnamed: {i}" for i in range(len(names), width))]
         elif dialect.headerRowCount > 1:
             raise ValueError(
                 f"`headerRowCount` is {dialect.headerRowCount}, so declare the names in `names`, one for each of its "

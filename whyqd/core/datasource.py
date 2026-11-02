@@ -121,7 +121,8 @@ class DataSourceDefinition(BaseDefinition):
                    describes it. Undeclared, each setting takes its default; a CSV's encoding, undeclared, is settled by
                    whyqd's ladder and recorded. For a workbook, a list, each naming its `sheet`, or one a sheet in order.
           names: One name per column, for a file with no header row or a header over several rows; for a workbook, a
-                 mapping of sheet to names. Names past the file's last filled column are added as empty columns.
+                 mapping of sheet to names. Names past the file's last filled column are added as empty columns;
+                 columns past the last name are named by position, with a warning.
           settings: Refused, naming the dialect: `header` and pandas' keywords are no longer read.
 
         Returns:
