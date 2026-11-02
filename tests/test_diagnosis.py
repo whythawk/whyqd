@@ -6,8 +6,10 @@ what the file holds, and it proposes a setting only for a file that cannot be re
 """
 
 import json
+import sys
 from pathlib import Path
 
+import pandas as pd
 import pytest
 
 import whyqd as qd
@@ -24,12 +26,6 @@ WORKBOOK = [
 ]
 CASES = CSV + WORKBOOK
 IDS = [f"{name}-{dialect.get('sheet', '')}" for name, _, dialect, _ in CASES]
-PROPOSING = [
-    pytest.param(
-        *c, marks=[pytest.mark.xfail(strict=True, reason="proposals are not built")] if c[3]["proposals"] else []
-    )
-    for c in CASES
-]
 SYNTHETIC = LAYOUTS.parent / "synthetic"
 FENLAND = LAYOUTS.parent / "sample" / "fenland" / "2026-10-25-Fenland District Council.csv"
 
@@ -58,11 +54,69 @@ def test_each_layout_finds_what_its_key_says(name, mimetype, dialect, case):
     assert found(diagnose(name, mimetype, dialect)) == case["findings"]
 
 
-@pytest.mark.parametrize("name,mimetype,dialect,case", PROPOSING, ids=IDS)
+@pytest.mark.parametrize("name,mimetype,dialect,case", CASES, ids=IDS)
 def test_each_layout_proposes_what_its_key_says(name, mimetype, dialect, case):
     report = diagnose(name, mimetype, dialect, propose=True)
     assert {p.setting: p.value for p in report.proposals} == case["proposals"]
     assert all(p.evidence for p in report.proposals)
+
+
+@pytest.mark.parametrize("name", [n for n, case in KEY["csv"].items() if case["proposals"]])
+def test_each_proposal_once_declared_reads_to_the_key(name):
+    case = KEY["csv"][name]
+    report = diagnose(name, "CSV", {}, propose=True)
+    datasource = qd.DataSourceDefinition()
+    datasource.derive_model(
+        source=LAYOUTS / name, mimetype="CSV", dialect={p.setting: p.value for p in report.proposals}
+    )
+    df = datasource.get_data()
+    assert [c.name for c in datasource.get.columns] == case["names"]
+    assert [[None if pd.isna(c) else c for c in row] for row in df[case["names"]].values.tolist()] == [
+        [c if c != "" else None for c in row] for row in case["rows"]
+    ]
+
+
+def test_fenland_is_proposed_its_records():
+    report = diagnose_source(FENLAND, "CSV", {}, propose=True)
+    assert [(p.setting, p.value) for p in report.proposals] == [("rowsPerRecord", [47, 1])]
+
+
+def test_a_file_declared_its_records_is_not_proposed_them_again():
+    assert diagnose_source(FENLAND, "CSV", {"rowsPerRecord": [47, 1]}, propose=True).proposals == []
+
+
+@pytest.mark.parametrize(
+    "name,dialect,proposed",
+    [
+        ("fixture-mac-roman.csv", {}, "macintosh"),
+        ("fixture-windows-1252.csv", {}, None),
+        ("fixture-windows-1252.csv", {"encoding": "utf-8"}, "windows-1252"),
+        ("fixture-utf8.csv", {}, None),
+        ("fixture-utf8-bom.csv", {}, None),
+    ],
+)
+def test_an_encoding_is_proposed_only_for_a_file_that_did_not_decode_as_itself(name, dialect, proposed):
+    report = diagnose_source(SYNTHETIC / name, "CSV", dialect, propose=True)
+    assert [p.value for p in report.proposals if p.setting == "encoding"] == ([proposed] if proposed else [])
+
+
+def test_without_the_extra_a_finding_says_so_where_an_encoding_would_be_proposed(monkeypatch):
+    monkeypatch.setitem(sys.modules, "charset_normalizer", None)
+    report = diagnose_source(SYNTHETIC / "fixture-mac-roman.csv", "CSV", {}, propose=True)
+    assert report.proposals == []
+    assert "diagnose-extra" in [f.code for f in report.findings]
+    assert diagnose_source(SYNTHETIC / "fixture-utf8.csv", "CSV", {}, propose=True).findings == []
+
+
+def test_detection_does_not_run_in_a_load(monkeypatch):
+    monkeypatch.setitem(sys.modules, "charset_normalizer", None)
+    qd.DataSourceDefinition().derive_model(source=SYNTHETIC / "fixture-mac-roman.csv", mimetype="CSV")
+
+
+def test_a_clean_comma_file_with_semicolons_in_its_cells_is_not_second_guessed(tmp_path):
+    source = tmp_path / "semis.csv"
+    source.write_text("a,b\n1;2,3\n4;5,6\n", encoding="utf-8")
+    assert diagnose_source(source, "CSV", {}, propose=True).proposals == []
 
 
 @pytest.mark.parametrize("name,mimetype,dialect,case", CASES, ids=IDS)

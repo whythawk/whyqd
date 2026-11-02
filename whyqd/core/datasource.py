@@ -168,7 +168,7 @@ class DataSourceDefinition(BaseDefinition):
               print(finding)
           ```
         """
-        return self.reader.diagnose(source=source, mimetype=mimetype, dialect=dialect)
+        return self.reader.diagnose(source=source, mimetype=mimetype, dialect=dialect, propose=propose)
 
     #########################################################################################
     # VALIDATION UTILITIES

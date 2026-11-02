@@ -463,7 +463,12 @@ class DataSourceParser:
         return self.derive(source=source, mime=mimetype, dialect=dialect, names=names)
 
     def diagnose(
-        self, *, source: Path | str, mimetype: str | MimeType, dialect: DialectModel | dict | None = None
+        self,
+        *,
+        source: Path | str,
+        mimetype: str | MimeType,
+        dialect: DialectModel | dict | None = None,
+        propose: bool = False,
     ) -> list[ReportModel]:
         """How a file reads under a dialect, and what was found there: one report, or one a sheet of a workbook, or only
         the sheet the dialect names. A file that cannot be read gives a report saying so, rather than raising.
@@ -478,7 +483,7 @@ class DataSourceParser:
         mime = self.get_mimetype(mimetype=mimetype)
         given, path, reader = self.declare(dialect=dialect), self.locate(source=source), self.reader(mime=mime)
         if mime not in (MimeType.XLS, MimeType.XLSX):
-            return [self.diagnoses.report(source=path, mime=mime, reader=reader, given=given)]
+            return [self.diagnoses.report(source=path, mime=mime, reader=reader, given=given, propose=propose)]
         try:
             sheets = reader.sheets(source=path)
         except ValueError as e:
@@ -486,7 +491,9 @@ class DataSourceParser:
         if given.sheet is not None:
             sheets = [(given.sheet, dict(sheets).get(given.sheet, False))]
         return [
-            self.diagnoses.report(source=path, mime=mime, reader=reader, given=given, sheet=sheet, hidden=hidden)
+            self.diagnoses.report(
+                source=path, mime=mime, reader=reader, given=given, sheet=sheet, hidden=hidden, propose=propose
+            )
             for sheet, hidden in sheets
         ]
 

@@ -19,6 +19,10 @@ class Settings(BaseSettings):
     REPORT_PREVIEW_TAIL: ClassVar[int] = 5
     REPORT_CELL_WIDTH: ClassVar[int] = 40
     REPORT_LINE_WIDTH: ClassVar[int] = 160
+    # The lines a proposed delimiter is judged on, and the encodings a proposal chooses among, from `ENCODINGS` below:
+    # unconstrained, detection misreads small files, and UTF-16 is read by its byte-order mark alone
+    REPORT_SAMPLE_LINES: ClassVar[int] = 1000
+    ENCODING_SHORTLIST: ClassVar[tuple[str, ...]] = ("utf-8", "windows-1252", "macintosh")
     # The encodings a dialect may declare, by the WHATWG Encoding Standard's name in lower case, each with its labels
     # (https://encoding.spec.whatwg.org/#names-and-labels) and the Python codec that decodes it as the standard does
     ENCODINGS: ClassVar[dict[str, dict]] = {

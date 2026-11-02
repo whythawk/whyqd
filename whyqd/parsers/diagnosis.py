@@ -7,7 +7,7 @@ import polars as pl
 from whyqd.config.patterns import PythonPatterns
 from whyqd.config.settings import settings
 from whyqd.dtypes import FindingKind, MimeType, SettingSource
-from whyqd.models import DialectModel, FindingModel, ReportModel, SettingModel
+from whyqd.models import DialectModel, FindingModel, ProposalModel, ReportModel, SettingModel
 from whyqd.parsers.table import TableParser
 
 
@@ -47,6 +47,7 @@ class DiagnosisParser:
         given: DialectModel,
         sheet: str | None = None,
         hidden: bool = False,
+        propose: bool = False,
     ) -> ReportModel:
         """The report on a file, or one sheet of a workbook.
 
@@ -62,6 +63,8 @@ class DiagnosisParser:
             The sheet to read, where the wrangler did not name it.
         hidden: bool, default False
             Whether the workbook's publisher hid the sheet.
+        propose: bool, default False
+            Also propose settings that would read past a fault. Never applied.
         """
         dialect = given.model_copy(update={"sheet": sheet}) if sheet else given
         with warnings.catch_warnings(record=True) as caught:
@@ -69,7 +72,12 @@ class DiagnosisParser:
             try:
                 grid, types, lines, read = reader.grid(source=source, mime=mime, dialect=dialect)
             except ValueError as e:
-                return self.refused(source=source, mime=mime, reader=reader, error=e, sheet=dialect.sheet)
+                report = self.refused(source=source, mime=mime, reader=reader, error=e, sheet=dialect.sheet)
+                return (
+                    self.propose(report=report, source=source, mime=mime, reader=reader, dialect=dialect)
+                    if propose
+                    else report
+                )
         findings = [f for w in caught if (f := self.finding(error=str(w.message))) is not None]
         for w in caught:
             if not self.patterns.MESSAGE.match(str(w.message)):
@@ -89,7 +97,7 @@ class DiagnosisParser:
             widths=widths,
             hidden=hidden,
         )
-        return ReportModel(
+        report = ReportModel(
             path=str(source),
             mime=mime,
             sheet=read.sheet,
@@ -100,6 +108,54 @@ class DiagnosisParser:
             rowWidths=dict(sorted(widths.value_counts().iter_rows())),
             findings=findings,
             preview=self.preview(grid=grid, lines=lines, place=reader.PLACE),
+        )
+        if propose:
+            return self.propose(report=report, source=source, mime=mime, reader=reader, dialect=dialect, widths=widths)
+        return report
+
+    def propose(
+        self,
+        *,
+        report: ReportModel,
+        source: Path,
+        mime: MimeType,
+        reader,
+        dialect: DialectModel,
+        widths: pl.Series | None = None,
+    ) -> ReportModel:
+        """A report with the settings that would read past the file's faults added. Without the extra that one needs, a
+        finding says so, in place of that proposal."""
+        faults = report.findings
+        proposals = []
+        if hasattr(reader, "proposals"):
+            proposals += reader.proposals(source=source, mime=mime, dialect=dialect, faults=faults)
+            try:
+                if encoding := reader.encoding_proposal(source=source, dialect=dialect, faults=faults):
+                    proposals.append(encoding)
+            except ImportError as e:
+                message = self.patterns.MESSAGE.match(str(e))
+                report.findings.append(self.fact(code=message.group(2), message=message.group(1)))
+        if widths is not None and (records := self.records(widths=widths, dialect=dialect)):
+            proposals.append(records)
+        report.proposals = proposals
+        return report
+
+    def records(self, *, widths: pl.Series, dialect: DialectModel) -> ProposalModel | None:
+        """`rowsPerRecord`, where rows alternate through the whole file, past any declared `skipRows`: every first row
+        of a pair reaches past every second, and every second holds something somewhere. Anything less is left silent:
+        a record over more rows, or a mix, is for the wrangler to read and declare."""
+        if dialect.rowsPerRecord:
+            return None
+        reaches = widths.to_list()[dialect.skipRows :]
+        first, second = reaches[::2], reaches[1::2]
+        if len(reaches) < 4 or len(first) != len(second) or min(first) <= max(second) or max(second) == 0:
+            return None
+        fields = [max(first), max(second)]
+        return ProposalModel(
+            setting="rowsPerRecord",
+            value=fields,
+            evidence=f"All {len(reaches)} rows alternate: one reaching up to {fields[0]} cells, then one up to "
+            f"{fields[1]}, and every first reaches past every second.",
         )
 
     def refused(

@@ -2796,6 +2796,9 @@ dependencies = [
 ]
 
 [package.optional-dependencies]
+diagnose = [
+    { name = "charset-normalizer" },
+]
 pdf = [
     { name = "pdfplumber" },
 ]
@@ -2829,6 +2832,7 @@ notebooks = [
 
 [package.metadata]
 requires-dist = [
+    { name = "charset-normalizer", marker = "extra == 'diagnose'", specifier = ">=3.5.2,<4" },
     { name = "fastexcel", specifier = ">=0.21.0,<0.22" },
     { name = "numpy", specifier = ">=2.4.6,<3" },
     { name = "openpyxl", marker = "extra == 'verify-1x'", specifier = ">=3.1.5,<4" },
@@ -2846,7 +2850,7 @@ requires-dist = [
     { name = "rfc8785", specifier = ">=0.1.4,<0.2" },
     { name = "xlrd", marker = "extra == 'verify-1x'", specifier = ">=2.0.2,<3" },
 ]
-provides-extras = ["pdf", "verify-1x"]
+provides-extras = ["diagnose", "pdf", "verify-1x"]
 
 [package.metadata.requires-dev]
 dev = [
