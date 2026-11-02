@@ -35,7 +35,9 @@ class DataSourceModel(BaseModel):
         None,
         description="A complete description of the data source. Depending on how complex your work becomes, try and be as helpful as possible to 'future-you'. You'll thank yourself later.",
     )
-    path: Annotated[str, StringConstraints(strip_whitespace=True)] = Field(..., description="Full path to valid source data file.")
+    path: Annotated[str, StringConstraints(strip_whitespace=True)] = Field(
+        ..., description="Full path to valid source data file."
+    )
     mime: MimeType = Field(..., description="Mime type for source data. Automatically generated.")
     header: Optional[int] = Field(
         0, description="Row (0-indexed) to use for the column labels of the parsed DataFrame. "
@@ -61,7 +63,8 @@ class DataSourceModel(BaseModel):
     )
     dialect: Optional[DialectModel] = Field(None, description="How the file is written, so it can be read.")
     hidden: Optional[bool] = Field(
-        None, description="The publisher hid this sheet of the workbook; it is read like any other. Absent where visible."
+        None,
+        description="The publisher hid this sheet of the workbook; it is read like any other. Absent where visible.",
     )
     attributes: Optional[DataSourceAttributeModel] = Field(
         {},

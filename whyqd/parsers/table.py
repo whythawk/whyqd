@@ -60,7 +60,9 @@ class TableParser:
         """
         beside = beside or []
         if grid.width == 0:
-            return pl.DataFrame({self.row_key.ROW: []}, schema={self.row_key.ROW: pl.UInt32}), [pl.DataFrame()] * len(beside)
+            return pl.DataFrame({self.row_key.ROW: []}, schema={self.row_key.ROW: pl.UInt32}), [pl.DataFrame()] * len(
+                beside
+            )
         frames, lines = [f.slice(dialect.skipRows) for f in [grid, *beside]], lines[dialect.skipRows :]
         if dialect.rowsPerRecord:
             self.fit(grid=frames[0], lines=lines, fields=dialect.rowsPerRecord, place=place)

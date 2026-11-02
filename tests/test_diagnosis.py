@@ -28,6 +28,7 @@ CASES = CSV + WORKBOOK
 IDS = [f"{name}-{dialect.get('sheet', '')}" for name, _, dialect, _ in CASES]
 SYNTHETIC = LAYOUTS.parent / "synthetic"
 FENLAND = LAYOUTS.parent / "sample" / "fenland" / "2026-10-25-Fenland District Council.csv"
+ASTERISK = sorted((LAYOUTS.parent / "sample" / "voa").glob("*.csv"))
 
 
 def diagnose_source(source: Path, mimetype: str, dialect: dict, propose: bool = False) -> ReportModel:
@@ -116,6 +117,38 @@ def test_detection_does_not_run_in_a_load(monkeypatch):
 def test_a_clean_comma_file_with_semicolons_in_its_cells_is_not_second_guessed(tmp_path):
     source = tmp_path / "semis.csv"
     source.write_text("a,b\n1;2,3\n4;5,6\n", encoding="utf-8")
+    assert diagnose_source(source, "CSV", {}, propose=True).proposals == []
+
+
+def test_an_uneven_comma_file_with_a_character_on_every_line_is_not_second_guessed(tmp_path):
+    source = tmp_path / "uneven.csv"
+    source.write_text("a/b,c,d\n1/2,3,4\n5/6,7\n", encoding="utf-8")
+    assert diagnose_source(source, "CSV", {}, propose=True).proposals == []
+
+
+@pytest.mark.parametrize("source", ASTERISK, ids=[p.name[:40] for p in ASTERISK])
+def test_any_character_may_be_proposed_as_a_delimiter(source):
+    # One holds commas in its addresses and gives each line 34 cells; the other no comma, and several kinds of record
+    report = diagnose_source(source, "CSV", {}, propose=True)
+    assert [(p.setting, p.value) for p in report.proposals] == [("delimiter", "*")]
+    assert diagnose_source(source, "CSV", {"delimiter": "*"}, propose=True).proposals == []
+
+
+def test_a_delimiter_is_proposed_where_the_one_read_by_is_in_no_line(tmp_path):
+    source = tmp_path / "no-commas.csv"
+    source.write_text("a*b*c\n1*2*3\n4*5*6\n", encoding="utf-8")
+    assert [p.value for p in diagnose_source(source, "CSV", {}, propose=True).proposals] == ["*"]
+
+
+def test_a_single_column_is_not_given_a_delimiter(tmp_path):
+    source = tmp_path / "single.csv"
+    source.write_text("name\nalpha\nbeta\n", encoding="utf-8")
+    assert diagnose_source(source, "CSV", {}, propose=True).proposals == []
+
+
+def test_two_characters_that_both_fit_leave_the_delimiter_unproposed(tmp_path):
+    source = tmp_path / "mixed.csv"
+    source.write_text("a*b;c\n1*2;3\n4*5;6\n", encoding="utf-8")
     assert diagnose_source(source, "CSV", {}, propose=True).proposals == []
 
 

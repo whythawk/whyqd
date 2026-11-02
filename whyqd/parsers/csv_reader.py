@@ -27,8 +27,6 @@ class CsvParser:
 
     PLACE = "line"
     DIALECT = ("encoding", "encodingStep", "delimiter", "quoteChar", "doubleQuote")
-    # What a proposed delimiter is chosen among
-    DELIMITERS = (",", ";", "\t", "|")
     # What a `csv-quote` fault's setting takes, to read past it
     PAST_QUOTE = {"quoteChar": None, "doubleQuote": False}
 
@@ -81,9 +79,12 @@ class CsvParser:
         """The settings that would read past this file's faults, each with its evidence: what lets the file read at all,
         or else a delimiter that fits its lines where the one read by does not.
 
-        A quote setting is proposed only once the whole file has read with it. A delimiter is proposed only where one
-        alone gives every line the same width, over one cell, and the one read by does not, so a sound file is never
-        second-guessed. Where the evidence is mixed, nothing is proposed.
+        A quote setting is proposed only once the whole file has read with it. A delimiter may be any character that is
+        not a letter, a digit, or a space (a tab may be), since a publisher may use any: it is proposed only where it
+        alone splits every line, the first included, and the one read by leaves them uneven or does not split them.
+        Where that one leaves most lines unsplit, the new one's widths may differ, as a file holding several kinds of
+        record does; otherwise they must not, and it must give as many cells as that one's widest row, so a sound file
+        is never second-guessed. Where the evidence is mixed, nothing is proposed.
         """
         found = []
         with warnings.catch_warnings():
@@ -111,26 +112,39 @@ class CsvParser:
     def delimiter(self, *, text: str, dialect: DialectModel) -> list[ProposalModel]:
         lines = [m.group() for m in islice(self.patterns.LINE.finditer(text), settings.REPORT_SAMPLE_LINES)]
         lines = [line for line in lines if line.strip("\r\n")]
-
-        def width(delimiter: str) -> int | None:
-            try:
-                widths = {len(row) for row in csv.reader(lines, delimiter=delimiter) if row}
-            except csv.Error:
-                return None
-            return widths.pop() if len(widths) == 1 else None
-
-        if width(dialect.delimiter) is not None:
+        if len(lines) < 2:
             return []
-        fits = {d: w for d in self.DELIMITERS if d != dialect.delimiter and (w := width(d)) is not None and w > 1}
+
+        def widths(delimiter: str) -> list[int]:
+            try:
+                return [len(row) for row in csv.reader(lines, delimiter=delimiter) if row]
+            except csv.Error:
+                return []
+
+        read = widths(dialect.delimiter)
+        if len(set(read)) == 1 and read[0] != 1:
+            return []
+        unsplit = sum(w == 1 for w in read) > len(read) / 2
+        candidates = sorted(
+            c
+            for c in set(lines[0])
+            if not c.isalnum() and (c == "\t" or not c.isspace()) and c not in (dialect.delimiter, dialect.quoteChar)
+        )
+        fits = {}
+        for candidate in candidates:
+            found = set(widths(candidate))
+            if found and min(found) > 1 and (unsplit or (len(found) == 1 and min(found) >= max(read))):
+                fits[candidate] = found
         if len(fits) != 1:
             return []
-        delimiter, cells = fits.popitem()
+        delimiter, found = fits.popitem()
+        cells = " or ".join(str(w) for w in sorted(found))
+        before = "leaves most of them unsplit" if unsplit else "gives them differing widths"
         return [
             ProposalModel(
                 setting="delimiter",
                 value=delimiter,
-                evidence=f"It gives each of the first {len(lines)} lines {cells} cells; "
-                f"`{dialect.delimiter}` gives them differing widths.",
+                evidence=f"It gives each of the first {len(lines)} lines {cells} cells; `{dialect.delimiter}` {before}.",
             )
         ]
 

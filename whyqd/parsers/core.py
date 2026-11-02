@@ -46,7 +46,7 @@ class CoreParser:
             yield lst[i : i + n]
 
     def show_warning(self, message: str) -> None:
-        warnings.warn(message, UserWarning)
+        warnings.warn(message, UserWarning, stacklevel=2)
 
     ###################################################################################################
     ### MODEL UTILITIES
@@ -198,9 +198,8 @@ class CoreParser:
         with open(source, "r", encoding="utf-8") as f:
             try:
                 return json.load(f)
-            except json.decoder.JSONDecodeError:
-                e = "File at `{}` not valid json.".format(source)
-                raise json.decoder.JSONDecodeError(e)
+            except json.decoder.JSONDecodeError as e:
+                raise json.decoder.JSONDecodeError(f"File at `{source}` not valid json. {e.msg}", e.doc, e.pos) from e
 
     def save_json(self, *, data: dict, source: str) -> bool:
         """

@@ -119,7 +119,9 @@ class PdfParser:
                 top = word["top"]
             column = max([0, *(i for i, edge in enumerate(columns) if word["x0"] >= edge)])
             rows[-1][column].append(word)
-        return [[" ".join(w["text"] for w in sorted(cell, key=lambda w: w["x0"])) or None for cell in row] for row in rows]
+        return [
+            [" ".join(w["text"] for w in sorted(cell, key=lambda w: w["x0"])) or None for cell in row] for row in rows
+        ]
 
     def unrepeated(self, *, rows: list[list[str | None]], dialect: DialectModel) -> list[list[str | None]]:
         """The rows without any equal to a header row after the header, each being that header atop a later page."""

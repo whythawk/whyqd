@@ -20,6 +20,6 @@ class CategoryActionModel(BaseModel):
     @classmethod
     def check_valid_models(cls, v: Optional[List[str]]):
         for s in v:
-            if not (s in ["boolean", "unique"]):
+            if s not in ["boolean", "unique"]:
                 raise ValueError(f"Structure ({s}) must be of either `boolean` or `unique`.")
         return v

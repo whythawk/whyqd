@@ -39,9 +39,7 @@ def lines(name: str) -> list[list[str]]:
 
 def polars_lines(name: str, **settings) -> list[list[str]]:
     # Each row as read: a field the row lacks is null, an empty field empty text
-    df = pl.read_csv(
-        LAYOUTS / name, has_header=False, infer_schema=False, empty_string_is_null=False, **settings
-    )
+    df = pl.read_csv(LAYOUTS / name, has_header=False, infer_schema=False, empty_string_is_null=False, **settings)
     read = []
     for row in df.rows():
         row = list(row)
@@ -60,7 +58,9 @@ class TestHandover:
         assert cells(back) == HOSTILE
 
     def test_polars_to_pandas(self):
-        grid = pl.DataFrame([dict(zip(NAMES, row, strict=True)) for row in HOSTILE], schema={n: pl.String for n in NAMES})
+        grid = pl.DataFrame(
+            [dict(zip(NAMES, row, strict=True)) for row in HOSTILE], schema={n: pl.String for n in NAMES}
+        )
         df = grid.to_pandas()
         assert list(df.columns) == NAMES
         assert cells(df) == HOSTILE

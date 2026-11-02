@@ -53,5 +53,7 @@ class ArrowParser:
             columns[f"column_{i}"] = [name, *(None if c is None else c[1] for c in cells)]
             types[f"column_{i}"] = [CellType.STRING.value, *(None if c is None else c[0].value for c in cells)]
         schema = {c: pl.String for c in columns}
-        grid, types = self.grids.trim(grid=pl.DataFrame(columns, schema=schema), types=pl.DataFrame(types, schema=schema))
+        grid, types = self.grids.trim(
+            grid=pl.DataFrame(columns, schema=schema), types=pl.DataFrame(types, schema=schema)
+        )
         return grid, types, list(range(1, grid.height + 1)), dialect

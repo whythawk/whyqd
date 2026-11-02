@@ -76,7 +76,9 @@ class TestKnownFaults:
     def test_separate_passes_nulls_through(self):
         df = pd.DataFrame({"s": ["a;b", None, "c;d"]})
         destination = [FieldModel(name="p", type="string"), FieldModel(name="q", type="string")]
-        df = Separate().transform(df=df, destination=destination, source=[FieldModel(name="s", type="string")], source_param=";")
+        df = Separate().transform(
+            df=df, destination=destination, source=[FieldModel(name="s", type="string")], source_param=";"
+        )
         assert df[["p", "q"]].values.tolist() == [["a", "b"], [None, None], ["c", "d"]]
 
     @pytest.mark.xfail(strict=True, raises=KeyError, reason="a null header row raises KeyError")
@@ -84,5 +86,8 @@ class TestKnownFaults:
         df = pd.DataFrame({"c": ["Cat1", "t2", None, "t4"]})
         with pytest.raises(ValueError, match="2"):
             PivotCategories().transform(
-                df=df, destination=FieldModel(name="cat", type="string"), source=FieldModel(name="c", type="string"), assigned=[0, 2]
+                df=df,
+                destination=FieldModel(name="cat", type="string"),
+                source=FieldModel(name="c", type="string"),
+                assigned=[0, 2],
             )

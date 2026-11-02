@@ -233,7 +233,9 @@ class DataSourceDefinition(BaseDefinition):
         if not isinstance(self.model, list):
             return super().get_citation()
         return [
-            m.citation.model_dump(by_alias=True, exclude_defaults=True, exclude_none=True) for m in self.model if m.citation
+            m.citation.model_dump(by_alias=True, exclude_defaults=True, exclude_none=True)
+            for m in self.model
+            if m.citation
         ]
 
     def set_citation(self, *, citation: CitationModel, index: int = None) -> None:

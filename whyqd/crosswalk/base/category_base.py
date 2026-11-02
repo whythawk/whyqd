@@ -204,7 +204,7 @@ class BaseCategoryAction:
                 # Permits reconstruction of datasets using array transformations
                 # https://stackoverflow.com/a/18411610
                 # new_column = [sorted(list(set([c for clist in x for c in clist])), key=lambda x: (x is None, x)) for x in zip(*new_column)]
-                new_column = [[c for clist in x for c in clist] for x in zip(*new_column)]
+                new_column = [[c for clist in x for c in clist] for x in zip(*new_column, strict=False)]
             else:
                 new_column = [[x] if not isinstance(x, list) else x for x in new_column[0]]
             # for n in new_column:

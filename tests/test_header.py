@@ -115,7 +115,13 @@ class TestHeader1x:
         expected = V1ChecksumParser().read(source=model)
         df = DataSourceParser().get(source=model)
         assert df[ROW].tolist() == list(range(len(expected))) == list(range(268))
-        assert values(df[["Country Name"]])[:5] == [["Data Source"], ["Last Updated Date"], [None], ["Country Name"], ["Aruba"]]
+        assert values(df[["Country Name"]])[:5] == [
+            ["Data Source"],
+            ["Last Updated Date"],
+            [None],
+            ["Country Name"],
+            ["Aruba"],
+        ]
         assert df["Country Name"].fillna("").tolist() == expected["Country Name"].fillna("").tolist()
 
     def test_a_stored_crosswalk_gives_the_same_output(self):

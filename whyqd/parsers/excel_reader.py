@@ -170,7 +170,9 @@ class ExcelParser:
                 columns[f"column_{j}"].append(None if rendered is None else rendered[1])
                 types[f"column_{j}"].append(None if rendered is None else rendered[0].value)
         schema = {c: pl.String for c in columns}
-        grid, types = self.grids.trim(grid=pl.DataFrame(columns, schema=schema), types=pl.DataFrame(types, schema=schema))
+        grid, types = self.grids.trim(
+            grid=pl.DataFrame(columns, schema=schema), types=pl.DataFrame(types, schema=schema)
+        )
         return grid, types, list(range(1, grid.height + 1)), dialect.model_copy(update={"sheet": sheet})
 
     def facts(self, *, source: Path, sheet: str, types: pl.DataFrame) -> dict[str, list[str]]:
@@ -282,16 +284,16 @@ class ExcelParser:
         for element in ElementTree.fromstring(book.read(path)).iter():
             if self.local(element.tag) == "Relationship":
                 target = element.get("Target")
-                target = target.lstrip("/") if target.startswith("/") else posixpath.normpath(posixpath.join(where, target))
+                target = (
+                    target.lstrip("/") if target.startswith("/") else posixpath.normpath(posixpath.join(where, target))
+                )
                 found.setdefault(element.get("Type").rsplit("/", 1)[-1], []).append((target, element.get("Id")))
         return found
 
     def styles(self, *, book: zipfile.ZipFile, path: str) -> list[str]:
         """Each cell style's format code, by the style's index (`cellXfs`)."""
         root = ElementTree.fromstring(book.read(path))
-        custom = {
-            int(e.get("numFmtId")): e.get("formatCode") for e in root.iter() if self.local(e.tag) == "numFmt"
-        }
+        custom = {int(e.get("numFmtId")): e.get("formatCode") for e in root.iter() if self.local(e.tag) == "numFmt"}
         cell_styles = next((e for e in root.iter() if self.local(e.tag) == "cellXfs"), [])
         codes = []
         for xf in cell_styles:

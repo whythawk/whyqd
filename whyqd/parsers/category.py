@@ -185,9 +185,11 @@ class CategoryParser:
         self.schema_source = schema_source
         self.schema_destination = schema_destination
 
-    def get_schema_field_category(self, *, field: FieldModel, term: str, is_source: bool = True) -> CategoryModel | None:
+    def get_schema_field_category(
+        self, *, field: FieldModel, term: str, is_source: bool = True
+    ) -> CategoryModel | None:
         """
-        Recover a field category model from a string. It is possible that source and destination schema category share 
+        Recover a field category model from a string. It is possible that source and destination schema category share
         a common name, so we need to check all possibilities.
 
         Parameters
@@ -287,12 +289,9 @@ class CategoryParser:
         source_field = self.schema_source.fields.get(name=field_name(source_script[0]))
         if not source_field:
             raise ValueError(f'Source field not found: "{script}"')
-        hexing_terms.extend([
-            [source_field],
-            hexing_categories(source_field)
-        ])
+        hexing_terms.extend([[source_field], hexing_categories(source_field)])
         hexed = []
-        for x, f in zip(hexing_script, hexing_terms):
+        for x, f in zip(hexing_script, hexing_terms, strict=False):
             hexed.append(self.parser.get_hexed_script(script=x, fields=f))
         if len(hexed) == 3:
             return f"{root_split[0]} > {hexed[0]} < {hexed[1]}::{hexed[2]}"
@@ -302,4 +301,7 @@ class CategoryParser:
         terms = list(self.parser.generate_contents(text=text))
         if len(terms) != 1:
             raise ValueError(f"Category assignment actions must not be nested. ({text}).")
-        return [self.parser.get_literal(text=t) for t in self.parser.get_split_terms(script=terms[0][1], by=",", maxsplit=-1)]
+        return [
+            self.parser.get_literal(text=t)
+            for t in self.parser.get_split_terms(script=terms[0][1], by=",", maxsplit=-1)
+        ]

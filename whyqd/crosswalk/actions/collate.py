@@ -21,7 +21,7 @@ class Action(BaseSchemaAction):
         Where the order of collation is important and is used to create an array (list) of values from corresponding sources.
         Any missing values will be included as `None`.
 
-    This can be used as part of a process which will permit multiple corresponding columns (e.g. a `date`, `description`, 
+    This can be used as part of a process which will permit multiple corresponding columns (e.g. a `date`, `description`,
     `value` sequence) to each be placed in an array, and then pivoted using `df.explode`.
 
     !!! example
@@ -96,16 +96,11 @@ class Action(BaseSchemaAction):
             if isinstance(s, FieldModel):
                 # It's not a spacer column
                 source_column = df[s.name].tolist()
-            new_column.append(
-                [
-                    [x] if not isinstance(x, list) else x
-                    for x in source_column
-                ]
-            )
+            new_column.append([[x] if not isinstance(x, list) else x for x in source_column])
         if len(new_column) > 1:
             # Permits reconstruction of datasets using array transformations
             # https://stackoverflow.com/a/18411610
-            new_column = [[c for clist in x for c in clist] for x in zip(*new_column)]
+            new_column = [[c for clist in x for c in clist] for x in zip(*new_column, strict=False)]
         else:
             new_column = [[x] if not isinstance(x, list) else x for x in new_column[0]]
         df[destination.name] = new_column
