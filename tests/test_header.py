@@ -79,6 +79,44 @@ class TestHeader:
         assert datasource.get.dialect.headerRowCount == 0
         assert df[["x", "y"]].values.tolist() == [["a", "b"], ["1", "2"]]
 
+    def test_names_past_the_grid_are_columns_the_file_leaves_empty(self, tmp_path):
+        # A format with a fixed set of fields, whose last are empty throughout this file, so the grid trims them
+        datasource = qd.DataSourceDefinition()
+        source = write(tmp_path, "a*b**\n1*2**\n")
+        dialect = {"delimiter": "*", "headerRowCount": 0}
+        datasource.derive_model(source=source, mimetype="CSV", dialect=dialect, names=["x", "y", "z", "w"])
+        df = table(datasource)
+        assert [c.name for c in datasource.get.columns] == ["x", "y", "z", "w"]
+        assert datasource.get.columns[3].profile.blank == 2
+        assert values(df[["x", "y", "z", "w"]]) == [["a", "b", None, None], ["1", "2", None, None]]
+
+    def test_names_past_the_grid_leave_the_fingerprint_alone(self, tmp_path):
+        source = write(tmp_path, "a,b\n1,2\n")
+        dialect = {"headerRowCount": 0}
+        short, long = qd.DataSourceDefinition(), qd.DataSourceDefinition()
+        short.derive_model(source=source, mimetype="CSV", dialect=dialect)
+        long.derive_model(source=source, mimetype="CSV", dialect=dialect, names=["x", "y", "z"])
+        assert long.get.get_checksum("fp0") == short.get.get_checksum("fp0")
+
+    def test_every_file_of_a_fixed_format_reads_to_one_shape(self):
+        source = next((DATA / "sample" / "voa").glob("*listentries*"))
+        names = [f"field_{i}" for i in range(34)]
+        datasource = qd.DataSourceDefinition()
+        datasource.derive_model(
+            source=source,
+            mimetype="CSV",
+            dialect={"delimiter": "*", "quoteChar": None, "headerRowCount": 0},
+            names=names,
+        )
+        assert [c.name for c in datasource.get.columns] == names
+        assert table(datasource)["field_0"].tolist()[0] == "0660"
+
+    def test_fewer_names_than_columns_are_refused(self, tmp_path):
+        datasource = qd.DataSourceDefinition()
+        source = write(tmp_path, "a,b,c\n1,2,3\n")
+        with pytest.raises(ValueError, match=r"\[whyqd:names-count\]"):
+            datasource.derive_model(source=source, mimetype="CSV", dialect={"headerRowCount": 0}, names=["x", "y"])
+
     def test_a_header_over_two_rows_takes_the_names_given(self, tmp_path):
         datasource = qd.DataSourceDefinition()
         source = write(tmp_path, "Rate,Rate\nfrom,to\n1,2\n")

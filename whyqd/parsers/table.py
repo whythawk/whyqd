@@ -40,7 +40,9 @@ class TableParser:
             Where in the file each grid row starts, counted from 1, for messages.
         dialect: DialectModel
         names: list[str] | None, default None
-            One name per column, in place of the header row's; required for a header over several rows.
+            One name per column, in place of the header row's; required for a header over several rows. Names past the
+            grid's last column are columns the file leaves empty, which the grid trims: each is added, empty, so every
+            file of a format with fixed fields reads to one shape.
         place: str, default "line"
             What `lines` counts, as the wrangler would look for it: a text file's `line`, a sheet's `row`.
         beside: list[pl.DataFrame] | None, default None
@@ -83,6 +85,8 @@ class TableParser:
             kept = ~frames[0].select(pl.all_horizontal(pl.all().is_null())).to_series()
             frames = [f.filter(kept) for f in frames]
         columns = self.names(header=header, names=names, dialect=dialect)
+        empty = [pl.lit(None, dtype=pl.String).alias(f"empty_{i}") for i in range(header.width, len(columns))]
+        frames = [f.with_columns(empty) for f in frames]
         for frame in frames:
             frame.columns = columns
         grid, *beside = frames
@@ -91,7 +95,7 @@ class TableParser:
     def names(self, *, header: pl.DataFrame, names: list[str] | None, dialect: DialectModel) -> list[str]:
         width = header.width
         if names is not None:
-            if len(names) != width:
+            if len(names) < width:
                 raise ValueError(
                     f"`names` gives {len(names)} names for a table of {width} columns. Give one per column, in order. "
                     "[whyqd:names-count]"
