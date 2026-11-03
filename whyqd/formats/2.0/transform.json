@@ -1521,6 +1521,28 @@
           "title": "Monthabbreviations",
           "type": "array"
         },
+        "dayPeriods": {
+          "default": [],
+          "description": "The two names `a` reads, morning first, such as `AM` and `PM`.",
+          "items": {
+            "type": "string"
+          },
+          "title": "Dayperiods",
+          "type": "array"
+        },
+        "zone": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "The IANA time zone a datetime's clock is in, such as `UTC` or `Europe/London`. With none, a datetime stays without a zone. A `Z` in the cell is a quoted literal in its pattern, beside `UTC` here.",
+          "title": "Zone"
+        },
         "cellFormats": {
           "additionalProperties": {
             "type": "string"

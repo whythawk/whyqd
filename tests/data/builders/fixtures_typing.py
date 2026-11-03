@@ -331,7 +331,78 @@ DATE = {
         note="A policy's text rules read only text cells: a stored date is already a value.",
     ),
 }
+DATE |= {
+    "early_years": group(
+        "date",
+        {"format": "dd/MM/yyy", "rules": {"alternateFormats": ["dd/MM/yyyy"]}},
+        [
+            v("01/04/800", "0800-04-01"),
+            v("01/04/0800", "0800-04-01"),
+            v("01/04/2024", "2024-04-01"),
+            r("01/04/24", "not-in-format"),
+        ],
+        note="Three digits are declared by `yyy`; four, zero-padded or not, by `yyyy`.",
+    ),
+}
+MONTH = {
+    "canonical": group(
+        "month",
+        None,
+        [
+            v("2024-04", "2024-04-30"),
+            v("2024-02", "2024-02-29"),
+            r("04/2024", "not-in-format"),
+            r("2024-13", "impossible-date"),
+            {"cell_type": "d", "text": "2024-04-15", "outcome": "value", "value": "2024-04-30"},
+            *BLANK_CASES,
+        ],
+    ),
+    "named": group(
+        "month",
+        {"format": "MMM yyyy", "rules": {"monthAbbreviations": SHORT}},
+        [v("Apr 2024", "2024-04-30"), v("Dec 1997", "1997-12-31"), r("Avr 2024", "not-in-format")],
+    ),
+}
+QUARTER = {
+    "canonical": group(
+        "quarter",
+        None,
+        [v("2024-06", "2024-06-30"), v("2024-04", "2024-06-30"), r("2024Q2", "not-in-format"), *BLANK_CASES],
+    ),
+    "declared": group(
+        "quarter",
+        {"format": "yyyy'Q'Q", "rules": {"alternateFormats": ["'Q'Q yyyy"]}},
+        [
+            v("2024Q1", "2024-03-31"),
+            v("2024Q2", "2024-06-30"),
+            v("2024Q4", "2024-12-31"),
+            v("Q3 2024", "2024-09-30"),
+            r("2024Q5", "impossible-date"),
+            r("2024Q0", "impossible-date"),
+        ],
+    ),
+}
+YEAR = {
+    "canonical": group("year", None, [v("2024", "2024-12-31"), r("24", "not-in-format"), *BLANK_CASES]),
+    "two_digit": group(
+        "year", {"format": "yy", "rules": {"yearStart": 1950}}, [v("24", "2024-12-31"), v("97", "1997-12-31")]
+    ),
+}
 TIME = {
+    "twelve_hour": group(
+        "time",
+        {"format": "h:mm a", "rules": {"dayPeriods": ["AM", "PM"]}},
+        [
+            v("9:30 AM", "09:30:00"),
+            v("9:30 PM", "21:30:00"),
+            v("12:00 AM", "00:00:00"),
+            v("12:00 PM", "12:00:00"),
+            r("13:00 PM", "impossible-date"),
+            r("0:30 AM", "impossible-date"),
+            r("9:30", "not-in-format"),
+            r("9:30 pm", "not-in-format"),
+        ],
+    ),
     "canonical": group(
         "time",
         None,
@@ -352,6 +423,31 @@ DATETIME = {
     ),
     "declared": group(
         "datetime", {"format": "dd/MM/yyyy HH:mm"}, [v("13/04/2024 12:45", "2024-04-13T12:45:00")]
+    ),
+    "twelve_hour": group(
+        "datetime",
+        {"format": "dd/MM/yyyy h:mm a", "rules": {"dayPeriods": ["a. m.", "p. m."]}},
+        [v("13/04/2024 9:30 p. m.", "2024-04-13T21:30:00")],
+    ),
+    "utc": group(
+        "datetime",
+        {"format": "yyyy-MM-dd'T'HH:mm:ss'Z'", "rules": {"zone": "UTC"}},
+        [
+            v("2024-04-13T12:45:00Z", "2024-04-13T12:45:00+00:00"),
+            r("2024-04-13T12:45:00", "not-in-format"),
+            r("2024-04-13T12:45:00+01:00", "not-in-format"),
+        ],
+    ),
+    "london": group(
+        "datetime",
+        {"format": "dd/MM/yyyy HH:mm", "rules": {"zone": "Europe/London"}},
+        [
+            v("13/06/2024 12:45", "2024-06-13T12:45:00+01:00"),
+            v("13/01/2024 12:45", "2024-01-13T12:45:00+00:00"),
+            r("31/03/2024 01:30", "impossible-date"),
+            r("27/10/2024 01:30", "impossible-date"),
+        ],
+        note="A clock time that never happened, or happened twice as the clocks changed, states no one moment.",
     ),
 }
 DURATION = {
@@ -427,6 +523,9 @@ TYPES = {
     "integer": INTEGER,
     "boolean": BOOLEAN,
     "date": DATE,
+    "month": MONTH,
+    "quarter": QUARTER,
+    "year": YEAR,
     "time": TIME,
     "datetime": DATETIME,
     "duration": DURATION,

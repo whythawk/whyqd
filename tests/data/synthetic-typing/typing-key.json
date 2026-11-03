@@ -1,5 +1,5 @@
 {
-  "generated": "2026-11-03T17:40:16",
+  "generated": "2026-11-03T17:55:30",
   "number": {
     "canonical": {
       "type": "number",
@@ -1375,9 +1375,355 @@
         }
       ],
       "note": "A policy's text rules read only text cells: a stored date is already a value."
+    },
+    "early_years": {
+      "type": "date",
+      "policy": {
+        "format": "dd/MM/yyy",
+        "rules": {
+          "alternateFormats": [
+            "dd/MM/yyyy"
+          ]
+        }
+      },
+      "cases": [
+        {
+          "text": "01/04/800",
+          "outcome": "value",
+          "value": "0800-04-01",
+          "note": ""
+        },
+        {
+          "text": "01/04/0800",
+          "outcome": "value",
+          "value": "0800-04-01",
+          "note": ""
+        },
+        {
+          "text": "01/04/2024",
+          "outcome": "value",
+          "value": "2024-04-01",
+          "note": ""
+        },
+        {
+          "text": "01/04/24",
+          "outcome": "refuse",
+          "reason": "not-in-format"
+        }
+      ],
+      "note": "Three digits are declared by `yyy`; four, zero-padded or not, by `yyyy`."
+    }
+  },
+  "month": {
+    "canonical": {
+      "type": "month",
+      "policy": null,
+      "cases": [
+        {
+          "text": "2024-04",
+          "outcome": "value",
+          "value": "2024-04-30",
+          "note": ""
+        },
+        {
+          "text": "2024-02",
+          "outcome": "value",
+          "value": "2024-02-29",
+          "note": ""
+        },
+        {
+          "text": "04/2024",
+          "outcome": "refuse",
+          "reason": "not-in-format"
+        },
+        {
+          "text": "2024-13",
+          "outcome": "refuse",
+          "reason": "impossible-date"
+        },
+        {
+          "cell_type": "d",
+          "text": "2024-04-15",
+          "outcome": "value",
+          "value": "2024-04-30"
+        },
+        {
+          "text": "",
+          "outcome": "blank"
+        },
+        {
+          "text": "   ",
+          "outcome": "blank"
+        },
+        {
+          "text": " ",
+          "outcome": "blank"
+        },
+        {
+          "text": "\t",
+          "outcome": "blank"
+        },
+        {
+          "text": " ",
+          "outcome": "blank"
+        }
+      ]
+    },
+    "named": {
+      "type": "month",
+      "policy": {
+        "format": "MMM yyyy",
+        "rules": {
+          "monthAbbreviations": [
+            "Jan",
+            "Feb",
+            "Mar",
+            "Apr",
+            "May",
+            "Jun",
+            "Jul",
+            "Aug",
+            "Sep",
+            "Oct",
+            "Nov",
+            "Dec"
+          ]
+        }
+      },
+      "cases": [
+        {
+          "text": "Apr 2024",
+          "outcome": "value",
+          "value": "2024-04-30",
+          "note": ""
+        },
+        {
+          "text": "Dec 1997",
+          "outcome": "value",
+          "value": "1997-12-31",
+          "note": ""
+        },
+        {
+          "text": "Avr 2024",
+          "outcome": "refuse",
+          "reason": "not-in-format"
+        }
+      ]
+    }
+  },
+  "quarter": {
+    "canonical": {
+      "type": "quarter",
+      "policy": null,
+      "cases": [
+        {
+          "text": "2024-06",
+          "outcome": "value",
+          "value": "2024-06-30",
+          "note": ""
+        },
+        {
+          "text": "2024-04",
+          "outcome": "value",
+          "value": "2024-06-30",
+          "note": ""
+        },
+        {
+          "text": "2024Q2",
+          "outcome": "refuse",
+          "reason": "not-in-format"
+        },
+        {
+          "text": "",
+          "outcome": "blank"
+        },
+        {
+          "text": "   ",
+          "outcome": "blank"
+        },
+        {
+          "text": " ",
+          "outcome": "blank"
+        },
+        {
+          "text": "\t",
+          "outcome": "blank"
+        },
+        {
+          "text": " ",
+          "outcome": "blank"
+        }
+      ]
+    },
+    "declared": {
+      "type": "quarter",
+      "policy": {
+        "format": "yyyy'Q'Q",
+        "rules": {
+          "alternateFormats": [
+            "'Q'Q yyyy"
+          ]
+        }
+      },
+      "cases": [
+        {
+          "text": "2024Q1",
+          "outcome": "value",
+          "value": "2024-03-31",
+          "note": ""
+        },
+        {
+          "text": "2024Q2",
+          "outcome": "value",
+          "value": "2024-06-30",
+          "note": ""
+        },
+        {
+          "text": "2024Q4",
+          "outcome": "value",
+          "value": "2024-12-31",
+          "note": ""
+        },
+        {
+          "text": "Q3 2024",
+          "outcome": "value",
+          "value": "2024-09-30",
+          "note": ""
+        },
+        {
+          "text": "2024Q5",
+          "outcome": "refuse",
+          "reason": "impossible-date"
+        },
+        {
+          "text": "2024Q0",
+          "outcome": "refuse",
+          "reason": "impossible-date"
+        }
+      ]
+    }
+  },
+  "year": {
+    "canonical": {
+      "type": "year",
+      "policy": null,
+      "cases": [
+        {
+          "text": "2024",
+          "outcome": "value",
+          "value": "2024-12-31",
+          "note": ""
+        },
+        {
+          "text": "24",
+          "outcome": "refuse",
+          "reason": "not-in-format"
+        },
+        {
+          "text": "",
+          "outcome": "blank"
+        },
+        {
+          "text": "   ",
+          "outcome": "blank"
+        },
+        {
+          "text": " ",
+          "outcome": "blank"
+        },
+        {
+          "text": "\t",
+          "outcome": "blank"
+        },
+        {
+          "text": " ",
+          "outcome": "blank"
+        }
+      ]
+    },
+    "two_digit": {
+      "type": "year",
+      "policy": {
+        "format": "yy",
+        "rules": {
+          "yearStart": 1950
+        }
+      },
+      "cases": [
+        {
+          "text": "24",
+          "outcome": "value",
+          "value": "2024-12-31",
+          "note": ""
+        },
+        {
+          "text": "97",
+          "outcome": "value",
+          "value": "1997-12-31",
+          "note": ""
+        }
+      ]
     }
   },
   "time": {
+    "twelve_hour": {
+      "type": "time",
+      "policy": {
+        "format": "h:mm a",
+        "rules": {
+          "dayPeriods": [
+            "AM",
+            "PM"
+          ]
+        }
+      },
+      "cases": [
+        {
+          "text": "9:30 AM",
+          "outcome": "value",
+          "value": "09:30:00",
+          "note": ""
+        },
+        {
+          "text": "9:30 PM",
+          "outcome": "value",
+          "value": "21:30:00",
+          "note": ""
+        },
+        {
+          "text": "12:00 AM",
+          "outcome": "value",
+          "value": "00:00:00",
+          "note": ""
+        },
+        {
+          "text": "12:00 PM",
+          "outcome": "value",
+          "value": "12:00:00",
+          "note": ""
+        },
+        {
+          "text": "13:00 PM",
+          "outcome": "refuse",
+          "reason": "impossible-date"
+        },
+        {
+          "text": "0:30 AM",
+          "outcome": "refuse",
+          "reason": "impossible-date"
+        },
+        {
+          "text": "9:30",
+          "outcome": "refuse",
+          "reason": "not-in-format"
+        },
+        {
+          "text": "9:30 pm",
+          "outcome": "refuse",
+          "reason": "not-in-format"
+        }
+      ]
+    },
     "canonical": {
       "type": "time",
       "policy": null,
@@ -1491,6 +1837,87 @@
           "note": ""
         }
       ]
+    },
+    "twelve_hour": {
+      "type": "datetime",
+      "policy": {
+        "format": "dd/MM/yyyy h:mm a",
+        "rules": {
+          "dayPeriods": [
+            "a. m.",
+            "p. m."
+          ]
+        }
+      },
+      "cases": [
+        {
+          "text": "13/04/2024 9:30 p. m.",
+          "outcome": "value",
+          "value": "2024-04-13T21:30:00",
+          "note": ""
+        }
+      ]
+    },
+    "utc": {
+      "type": "datetime",
+      "policy": {
+        "format": "yyyy-MM-dd'T'HH:mm:ss'Z'",
+        "rules": {
+          "zone": "UTC"
+        }
+      },
+      "cases": [
+        {
+          "text": "2024-04-13T12:45:00Z",
+          "outcome": "value",
+          "value": "2024-04-13T12:45:00+00:00",
+          "note": ""
+        },
+        {
+          "text": "2024-04-13T12:45:00",
+          "outcome": "refuse",
+          "reason": "not-in-format"
+        },
+        {
+          "text": "2024-04-13T12:45:00+01:00",
+          "outcome": "refuse",
+          "reason": "not-in-format"
+        }
+      ]
+    },
+    "london": {
+      "type": "datetime",
+      "policy": {
+        "format": "dd/MM/yyyy HH:mm",
+        "rules": {
+          "zone": "Europe/London"
+        }
+      },
+      "cases": [
+        {
+          "text": "13/06/2024 12:45",
+          "outcome": "value",
+          "value": "2024-06-13T12:45:00+01:00",
+          "note": ""
+        },
+        {
+          "text": "13/01/2024 12:45",
+          "outcome": "value",
+          "value": "2024-01-13T12:45:00+00:00",
+          "note": ""
+        },
+        {
+          "text": "31/03/2024 01:30",
+          "outcome": "refuse",
+          "reason": "impossible-date"
+        },
+        {
+          "text": "27/10/2024 01:30",
+          "outcome": "refuse",
+          "reason": "impossible-date"
+        }
+      ],
+      "note": "A clock time that never happened, or happened twice as the clocks changed, states no one moment."
     }
   },
   "duration": {

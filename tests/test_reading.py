@@ -28,7 +28,7 @@ DATA = Path(__file__).resolve().parent / "data"
 TYPING = json.loads((DATA / "synthetic-typing" / "typing-key.json").read_text(encoding="utf-8"))
 LOCALES = json.loads((DATA / "synthetic-locales" / "answer-key.json").read_text(encoding="utf-8"))
 SOURCES = DATA / "synthetic-locales"
-TYPES = ("number", "integer", "boolean", "date", "time", "datetime", "duration", "string")
+TYPES = ("number", "integer", "boolean", "date", "month", "quarter", "year", "time", "datetime", "duration", "string")
 READ = TYPES
 GROUPS = [(dtype, name) for dtype in TYPES for name in TYPING[dtype]]
 CASES = [

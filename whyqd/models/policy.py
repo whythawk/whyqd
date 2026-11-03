@@ -1,6 +1,7 @@
 # SPDX-License-Identifier: BSD-3-Clause
 from __future__ import annotations
 from typing import Any, ClassVar, Optional, Union
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 from whyqd.config.patterns import PythonPatterns
@@ -29,9 +30,12 @@ class RulesModel(BaseModel):
         {"currency", "marks", "negative", "percent", "perMille", "exponent", "nonFinite"}
     )
     UNWHOLE: ClassVar[frozenset[str]] = frozenset({"percent", "perMille", "nonFinite"})
-    TEMPORAL: ClassVar[frozenset[str]] = frozenset({"yearStart", "monthNames", "monthAbbreviations"})
+    TEMPORAL: ClassVar[frozenset[str]] = frozenset(
+        {"yearStart", "monthNames", "monthAbbreviations", "dayPeriods", "zone"}
+    )
     PATTERNED: ClassVar[frozenset[str]] = frozenset({"alternateFormats"})
     MONTHS: ClassVar[int] = 12
+    DAY_PERIODS: ClassVar[int] = 2
     NUMBER_PLACE: ClassVar[str] = "x"
 
     currency: list[str] = Field([], description="Currency marks a number may carry, such as `£`, `CHF`, or `¬£`.")
@@ -58,6 +62,12 @@ class RulesModel(BaseModel):
     )
     monthNames: list[str] = Field([], description="The twelve names `MMMM` reads, from January.")
     monthAbbreviations: list[str] = Field([], description="The twelve names `MMM` reads, from January.")
+    dayPeriods: list[str] = Field([], description="The two names `a` reads, morning first, such as `AM` and `PM`.")
+    zone: Optional[str] = Field(
+        None,
+        description="The IANA time zone a datetime's clock is in, such as `UTC` or `Europe/London`. With none, a "
+        "datetime stays without a zone. A `Z` in the cell is a quoted literal in its pattern, beside `UTC` here.",
+    )
     cellFormats: dict[CellType, str] = Field(
         {},
         description="By a workbook's stored cell type, a pattern reading that cell's rendering, where it differs from "
@@ -74,6 +84,26 @@ class RulesModel(BaseModel):
                     f"The negative form `{form}` has no single `x` for its number. Write it as `(x)` or `x CR`. "
                     "[whyqd:policy-negative-form]"
                 )
+        return v
+
+    @field_validator("dayPeriods")
+    @classmethod
+    def two_periods(cls, v: list[str]) -> list[str]:
+        if v and (len(v) != cls.DAY_PERIODS or len(set(v)) != cls.DAY_PERIODS):
+            raise ValueError(
+                f"{len(v)} day periods are declared, and a 12-hour clock needs two different ones, morning first. "
+                "[whyqd:policy-day-periods]"
+            )
+        return v
+
+    @field_validator("zone")
+    @classmethod
+    def known_zone(cls, v: Optional[str]) -> Optional[str]:
+        try:
+            if v is not None:
+                ZoneInfo(v)
+        except (ZoneInfoNotFoundError, ValueError, OSError) as error:
+            raise ValueError(f"`{v}` is no IANA time zone. Use a name such as `Europe/London`. [whyqd:policy-zone]") from error
         return v
 
     @field_validator("monthNames", "monthAbbreviations")
@@ -108,23 +138,36 @@ class PolicyModel(BaseModel):
     PAIR: ClassVar[str] = "|"
     # Fields whyqd reads, from UAX 35's date patterns. Each is exact where its length says so, and `y` is four digits,
     # since a reader taking fewer would read `01/04/24` as the year 24. On a duration each is a quantity, not a clock.
-    DATE_FIELDS: ClassVar[frozenset[str]] = frozenset({"y", "yy", "yyyy", "M", "MM", "MMM", "MMMM", "d", "dd"})
-    TIME_FIELDS: ClassVar[frozenset[str]] = frozenset({"H", "HH", "m", "mm", "s", "ss", "S"})
+    YEAR_FIELDS: ClassVar[frozenset[str]] = frozenset({"y", "yy", "yyy", "yyyy"})
+    MONTH_FIELDS: ClassVar[frozenset[str]] = frozenset({"M", "MM", "MMM", "MMMM"})
+    DATE_FIELDS: ClassVar[frozenset[str]] = YEAR_FIELDS | MONTH_FIELDS | {"d", "dd"}
+    TIME_FIELDS: ClassVar[frozenset[str]] = frozenset({"H", "HH", "h", "hh", "a", "m", "mm", "s", "ss", "S"})
     READABLE: ClassVar[dict[str, frozenset[str]]] = {
         FieldType.DATE.value: DATE_FIELDS,
         FieldType.TIME.value: TIME_FIELDS,
         FieldType.DATETIME.value: DATE_FIELDS | TIME_FIELDS,
+        FieldType.MONTH.value: YEAR_FIELDS | MONTH_FIELDS,
+        FieldType.QUARTER.value: YEAR_FIELDS | MONTH_FIELDS | {"Q"},
+        FieldType.YEAR.value: YEAR_FIELDS,
         FieldType.DURATION.value: frozenset({"d", "dd", "H", "HH", "m", "mm", "s", "ss", "S"}),
     }
     NEEDED: ClassVar[dict[str, frozenset[str]]] = {
         FieldType.DATE.value: frozenset("yMd"),
         FieldType.TIME.value: frozenset("H"),
         FieldType.DATETIME.value: frozenset("yMdH"),
+        FieldType.MONTH.value: frozenset("yM"),
+        FieldType.QUARTER.value: frozenset("yM"),
+        FieldType.YEAR.value: frozenset("y"),
     }
     WIDTHS: ClassVar[dict[str, tuple[int, int]]] = {
         "y": (4, 4),
         "yyyy": (4, 4),
         "yy": (2, 2),
+        "yyy": (3, 3),
+        "Q": (1, 1),
+        "h": (1, 2),
+        "hh": (2, 2),
+        "a": (1, 99),
         "M": (1, 2),
         "MM": (2, 2),
         "MMM": (1, 99),
@@ -170,6 +213,8 @@ class PolicyModel(BaseModel):
         unfit += [f"`rules.{rule}`" for rule in declared & RulesModel.UNWHOLE if dtype == FieldType.INTEGER.value]
         unfit += [f"`rules.{rule}`" for rule in declared & RulesModel.TEMPORAL if not temporal]
         unfit += [f"`rules.{rule}`" for rule in declared & RulesModel.PATTERNED if number]
+        if "zone" in declared and dtype != FieldType.DATETIME.value:
+            unfit.append("`rules.zone`")
         patterns = [self.format] * isinstance(self.format, str) + rules.alternateFormats
         if boolean:
             unfit += [f"`{pair}`, not one `true|false` pair" for pair in patterns if pair.count(self.PAIR) != 1]
@@ -198,7 +243,7 @@ class PolicyModel(BaseModel):
         for pattern, held in zip(patterns, fields):
             allowed = self.READABLE.get(dtype, self.READABLE[FieldType.DATE.value])
             needed = self.NEEDED.get(dtype, frozenset())
-            letters = {field[0] for field in held}
+            letters = {field[0].replace("h", "H").replace("Q", "M") for field in held}
             if held - allowed or not needed <= letters or (dtype == FieldType.DURATION.value and not held):
                 raise ValueError(
                     f"Field `{name}` is `{dtype}`, and its pattern `{pattern}` holds a field it cannot read, or lacks "
@@ -214,6 +259,12 @@ class PolicyModel(BaseModel):
             raise ValueError(
                 f"Field `{name}` needs `rules.monthNames` with an `MMMM` pattern and `rules.monthAbbreviations` "
                 "with an `MMM` one, and only then. Declare both sides. [whyqd:policy-month-names]"
+            )
+        twelve_hour = {field[0] for field in every} & {"h", "a"}
+        if bool(rules.dayPeriods) != bool(twelve_hour) or twelve_hour not in (set(), {"h", "a"}):
+            raise ValueError(
+                f"Field `{name}` needs `h` and `a` and `rules.dayPeriods` together, for a 12-hour clock, and only then. "
+                "Declare all three, or none. [whyqd:policy-day-periods]"
             )
         for index, first in enumerate(patterns):
             for second in patterns[index + 1 :]:

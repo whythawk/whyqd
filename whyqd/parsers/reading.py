@@ -44,7 +44,18 @@ class ReadingParser:
         "date": ["yyyy-MM-dd"],
         "time": ["HH:mm:ss", "HH:mm:ss.S"],
         "datetime": ["yyyy-MM-dd'T'HH:mm:ss", "yyyy-MM-dd'T'HH:mm:ss.S"],
+        "month": ["yyyy-MM"],
+        "quarter": ["yyyy-MM"],
+        "year": ["yyyy"],
     }
+    PERIODS: ClassVar[frozenset[str]] = frozenset(
+        {FieldType.MONTH.value, FieldType.QUARTER.value, FieldType.YEAR.value}
+    )
+    # A period names no day, and a year no month, so its date is first read at the period's start
+    DEFAULTS: ClassVar[dict[str, str]] = {"M": "1", "d": "1"}
+    QUARTER_MONTHS: ClassVar[int] = 3
+    HALF_DAY: ClassVar[int] = 12
+    NO_HOUR: ClassVar[str] = "99"
     STORED_DATETIME_MIDNIGHT: ClassVar[str] = "yyyy-MM-dd"
     # Each type's text for Polars to check, once the declared rules have read a cell: never Polars' own `%y` or `%b`,
     # which take a fixed century and the machine's month names
@@ -85,6 +96,9 @@ class ReadingParser:
             FieldType.DATE.value: partial(self.read_temporal, dtype=FieldType.DATE.value),
             FieldType.TIME.value: partial(self.read_temporal, dtype=FieldType.TIME.value),
             FieldType.DATETIME.value: partial(self.read_temporal, dtype=FieldType.DATETIME.value),
+            FieldType.MONTH.value: partial(self.read_temporal, dtype=FieldType.MONTH.value),
+            FieldType.QUARTER.value: partial(self.read_temporal, dtype=FieldType.QUARTER.value),
+            FieldType.YEAR.value: partial(self.read_temporal, dtype=FieldType.YEAR.value),
             FieldType.DURATION.value: self.read_duration,
         }
 
@@ -395,7 +409,7 @@ class ReadingParser:
         """A declared pattern as a regular expression capturing each field, and those fields in order. On a duration the
         first field is a quantity of any length: `H:mm` reads `100:30`."""
         p, regex, fields = self.patterns, [], []
-        names = {"MMM": rules.monthAbbreviations, "MMMM": rules.monthNames}
+        names = {"MMM": rules.monthAbbreviations, "MMMM": rules.monthNames, "a": rules.dayPeriods}
         for is_field, text in PolicyModel.parts(self.normalised(pattern)):
             if not is_field:
                 regex.append(p.literal(text))
@@ -431,9 +445,17 @@ class ReadingParser:
             if field == "yy":
                 column = (rules.yearStart + ((column.cast(pl.Int64) - rules.yearStart) % 100)).cast(pl.String)
             parts[field[0]] = column
+        if "Q" in parts:
+            parts["M"] = (parts["Q"].cast(pl.Int64) * self.QUARTER_MONTHS - (self.QUARTER_MONTHS - 1)).cast(pl.String)
+        if "h" in parts:
+            parts["H"] = self.twenty_four_hour(hours=parts["h"], periods=parts["a"], rules=rules)
         written, letters, form = self.ISO[dtype]
-        zero = pl.repeat("0", text.len(), eager=True, dtype=pl.String)
-        frame = pl.DataFrame({letter: parts.get(letter, zero) for letter in letters})
+        frame = pl.DataFrame(
+            {
+                letter: parts.get(letter, pl.repeat(self.DEFAULTS.get(letter, "0"), text.len(), eager=True))
+                for letter in letters
+            }
+        )
         widths = {"y": self.YEAR_WIDTH, "S": 1}
         columns = [pl.col(letter).str.zfill(widths.get(letter, self.FIELD_WIDTH)) for letter in letters]
         joined = frame.select(pl.format(written, *columns).alias(self.CELL))[self.CELL]
@@ -445,20 +467,42 @@ class ReadingParser:
             value = joined.str.to_datetime(form, strict=False, time_unit="us")
         return found["1"].is_not_null().alias(self.CELL), value.alias(self.CELL)
 
+    def twenty_four_hour(self, *, hours: pl.Series, periods: pl.Series, rules: RulesModel) -> pl.Series:
+        """A 12-hour clock's hour and declared day period as a 24-hour hour; one outside 1 to 12 reads as no such time."""
+        hour = hours.cast(pl.Int64)
+        afternoon = periods == self.normalised(rules.dayPeriods[1])
+        written = (hour % self.HALF_DAY + afternoon.cast(pl.Int64) * self.HALF_DAY).cast(pl.String)
+        valid = ((hour >= 1) & (hour <= self.HALF_DAY)).fill_null(False)
+        return written.zip_with(valid, pl.repeat(self.NO_HOUR, hours.len(), eager=True))
+
+    def period_end(self, value: pl.Series, dtype: str) -> pl.Series:
+        """A month, quarter, or year as the date it ends on, as its `FieldType` states."""
+        if dtype == FieldType.MONTH.value:
+            return value.dt.month_end()
+        every = {FieldType.QUARTER.value: "1q", FieldType.YEAR.value: "1y"}[dtype]
+        return value.dt.truncate(every).dt.offset_by(every).dt.offset_by("-1d")
+
     def read_temporal(self, *, dtype: str, cells: pl.Series, types: pl.Series, policy: PolicyModel) -> pl.DataFrame:
-        """A date, time, or datetime by its declared patterns, or with none its canonical form. A stored date cell is
-        already a value, so it reads by its rendering, or by the pattern `rules.cellFormats` gives that rendering."""
+        """A date, time, datetime, or period by its declared patterns, or with none its canonical form. A stored date
+        cell is already a value, so it reads by its rendering, or by the pattern `rules.cellFormats` gives that
+        rendering. A period reads as the date it ends on, and `rules.zone` states the zone of a datetime's clock."""
         rules = policy.rules or RulesModel()
         declared = [policy.format] * isinstance(policy.format, str) + rules.alternateFormats
         text, mixed = self.digits(self.steps(cells))
-        read = self.patterns_read(text=text, patterns=declared or self.CANONICAL[dtype], rules=rules, dtype=dtype)
+        period = dtype in self.PERIODS
+        parsed = FieldType.DATE.value if period else dtype
+        read = self.patterns_read(text=text, patterns=declared or self.CANONICAL[dtype], rules=rules, dtype=parsed)
         is_stored = types == CellType.DATE.value
         if is_stored.any():
             stored = rules.cellFormats.get(CellType.DATE)
             patterns = [stored] if stored else self.stored_patterns(dtype)
-            rendered = self.patterns_read(text=text, patterns=patterns, rules=rules, dtype=dtype)
+            rendered = self.patterns_read(text=text, patterns=patterns, rules=rules, dtype=parsed)
             read = tuple(one.zip_with(is_stored, other) for one, other in zip(rendered, read))
         fits, twice, value = read
+        if period:
+            value = self.period_end(value, dtype).alias(self.CELL)
+        if rules.zone:
+            value = value.dt.replace_time_zone(rules.zone, ambiguous="null", non_existent="null").alias(self.CELL)
         frame = self.temporal_frame(cells=cells, types=types, mixed=mixed, fits=fits, twice=twice, named=value.is_not_null())
         return self.outcome(frame, value)
 
@@ -479,7 +523,10 @@ class ReadingParser:
         return frame.with_columns(self.temporal_reason())
 
     def stored_patterns(self, dtype: str) -> list[str]:
-        """What a stored date cell's rendering may be, for a type: a datetime at midnight renders as a date."""
+        """What a stored date cell's rendering may be, for a type: a datetime at midnight renders as a date, and a period
+        is whichever date the cell holds."""
+        if dtype in self.PERIODS:
+            return [self.STORED_DATETIME_MIDNIGHT]
         canonical = self.CANONICAL[dtype]
         return [*canonical, self.STORED_DATETIME_MIDNIGHT] if dtype == FieldType.DATETIME.value else canonical
 
