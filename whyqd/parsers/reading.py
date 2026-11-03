@@ -2,6 +2,7 @@
 from __future__ import annotations
 import unicodedata
 from decimal import Decimal
+from functools import partial
 from typing import ClassVar
 
 import polars as pl
@@ -38,6 +39,24 @@ class ReadingParser:
     PERCENT: ClassVar[int] = 2
     PER_MILLE: ClassVar[int] = 3
     BOOLEANS: ClassVar[dict[str, bool]] = {"true": True, "1": True, "false": False, "0": False}
+    # A type's canonical patterns, which also read a stored cell's rendering, as `CellType.describe` states it
+    CANONICAL: ClassVar[dict[str, list[str]]] = {
+        "date": ["yyyy-MM-dd"],
+        "time": ["HH:mm:ss", "HH:mm:ss.S"],
+        "datetime": ["yyyy-MM-dd'T'HH:mm:ss", "yyyy-MM-dd'T'HH:mm:ss.S"],
+    }
+    STORED_DATETIME_MIDNIGHT: ClassVar[str] = "yyyy-MM-dd"
+    # Each type's text for Polars to check, once the declared rules have read a cell: never Polars' own `%y` or `%b`,
+    # which take a fixed century and the machine's month names
+    ISO: ClassVar[dict[str, tuple[str, str, str]]] = {
+        "date": ("{}-{}-{}", "yMd", "%Y-%m-%d"),
+        "time": ("{}:{}:{}.{}", "HmsS", "%H:%M:%S%.f"),
+        "datetime": ("{}-{}-{} {}:{}:{}.{}", "yMdHmsS", "%Y-%m-%d %H:%M:%S%.f"),
+    }
+    YEAR_WIDTH: ClassVar[int] = 4
+    FIELD_WIDTH: ClassVar[int] = 2
+    MICROSECONDS: ClassVar[dict[str, int]] = {"d": 86_400_000_000, "H": 3_600_000_000, "m": 60_000_000, "s": 1_000_000}
+    BOUNDS: ClassVar[dict[str, int]] = {"H": 24, "m": 60, "s": 60}
     ADVICE: ClassVar[dict[str, tuple[str, str]]] = {
         "no-number": ("holds no number", "declare it in the schema's `missingValues`"),
         "two-numbers": ("holds two numbers", "split it with a crosswalk action"),
@@ -51,7 +70,8 @@ class ReadingParser:
         "too-many-digits": ("has more digits than its type holds", "declare `base` as `decimal`"),
         "not-an-integer": ("holds a fraction", "change the field's type to `number`"),
         "not-in-format": ("does not fit the format", "correct `format`, or add to `rules.alternateFormats`"),
-        "impossible-date": ("names no such date", "correct `format`, or delete the row"),
+        "two-readings": ("fits two declared patterns differently", "keep the pattern the file uses"),
+        "impossible-date": ("names no such date or time", "correct `format`, or delete the row"),
         "error-cell": ("is a workbook's error cell", "use `missingValues`, or delete the row"),
     }
 
@@ -62,6 +82,10 @@ class ReadingParser:
             FieldType.INTEGER.value: self.read_integer,
             FieldType.BOOLEAN.value: self.read_boolean,
             FieldType.STRING.value: self.read_string,
+            FieldType.DATE.value: partial(self.read_temporal, dtype=FieldType.DATE.value),
+            FieldType.TIME.value: partial(self.read_temporal, dtype=FieldType.TIME.value),
+            FieldType.DATETIME.value: partial(self.read_temporal, dtype=FieldType.DATETIME.value),
+            FieldType.DURATION.value: self.read_duration,
         }
 
     def read(
@@ -366,6 +390,193 @@ class ReadingParser:
         """A text field keeps a cell exactly as written. A blank is a blank, and nothing can be refused."""
         read = pl.DataFrame({"blank": self.is_blank(cells) & (types == CellType.STRING.value), "type": types})
         return self.outcome(read.with_columns(pl.lit(None, dtype=pl.String).alias("reason")), cells)
+
+    def pattern_regex(self, pattern: str, rules: RulesModel, *, quantities: bool = False) -> tuple[str, list[str]]:
+        """A declared pattern as a regular expression capturing each field, and those fields in order. On a duration the
+        first field is a quantity of any length: `H:mm` reads `100:30`."""
+        p, regex, fields = self.patterns, [], []
+        names = {"MMM": rules.monthAbbreviations, "MMMM": rules.monthNames}
+        for is_field, text in PolicyModel.parts(self.normalised(pattern)):
+            if not is_field:
+                regex.append(p.literal(text))
+                continue
+            if text in names:
+                captured = p.any_of([self.normalised(name) for name in names[text]])
+            elif quantities and not fields:
+                captured = "[0-9]+"
+            elif text == "S":
+                captured = "[0-9]+"
+            else:
+                low, high = PolicyModel.WIDTHS[text]
+                captured = f"[0-9]{{{low},{high}}}"
+            regex.append(f"({captured})")
+            fields.append(text)
+        return "^" + "".join(regex) + "$", fields
+
+    def month_numbers(self, names: list[str]) -> dict[str, str]:
+        return {self.normalised(name): f"{index + 1:02d}" for index, name in enumerate(names)}
+
+    def pattern_value(
+        self, *, text: pl.Series, pattern: str, rules: RulesModel, dtype: str
+    ) -> tuple[pl.Series, pl.Series]:
+        """Whether each cell fits `pattern`, and its value, null for a cell that fits and names no such date."""
+        regex, fields = self.pattern_regex(pattern, rules)
+        found = text.str.extract_groups(regex).struct.unnest()
+        parts = {}
+        for index, field in enumerate(fields):
+            column = found[str(index + 1)].alias(self.CELL)
+            if field in ("MMM", "MMMM"):
+                names = rules.monthAbbreviations if field == "MMM" else rules.monthNames
+                column = column.replace_strict(self.month_numbers(names), default=None, return_dtype=pl.String)
+            if field == "yy":
+                column = (rules.yearStart + ((column.cast(pl.Int64) - rules.yearStart) % 100)).cast(pl.String)
+            parts[field[0]] = column
+        written, letters, form = self.ISO[dtype]
+        zero = pl.repeat("0", text.len(), eager=True, dtype=pl.String)
+        frame = pl.DataFrame({letter: parts.get(letter, zero) for letter in letters})
+        widths = {"y": self.YEAR_WIDTH, "S": 1}
+        columns = [pl.col(letter).str.zfill(widths.get(letter, self.FIELD_WIDTH)) for letter in letters]
+        joined = frame.select(pl.format(written, *columns).alias(self.CELL))[self.CELL]
+        if dtype == FieldType.DATE.value:
+            value = joined.str.to_date(form, strict=False)
+        elif dtype == FieldType.TIME.value:
+            value = joined.str.to_time(form, strict=False)
+        else:
+            value = joined.str.to_datetime(form, strict=False, time_unit="us")
+        return found["1"].is_not_null().alias(self.CELL), value.alias(self.CELL)
+
+    def read_temporal(self, *, dtype: str, cells: pl.Series, types: pl.Series, policy: PolicyModel) -> pl.DataFrame:
+        """A date, time, or datetime by its declared patterns, or with none its canonical form. A stored date cell is
+        already a value, so it reads by its rendering, or by the pattern `rules.cellFormats` gives that rendering."""
+        rules = policy.rules or RulesModel()
+        declared = [policy.format] * isinstance(policy.format, str) + rules.alternateFormats
+        text, mixed = self.digits(self.steps(cells))
+        read = self.patterns_read(text=text, patterns=declared or self.CANONICAL[dtype], rules=rules, dtype=dtype)
+        is_stored = types == CellType.DATE.value
+        if is_stored.any():
+            stored = rules.cellFormats.get(CellType.DATE)
+            patterns = [stored] if stored else self.stored_patterns(dtype)
+            rendered = self.patterns_read(text=text, patterns=patterns, rules=rules, dtype=dtype)
+            read = tuple(one.zip_with(is_stored, other) for one, other in zip(rendered, read))
+        fits, twice, value = read
+        frame = self.temporal_frame(cells=cells, types=types, mixed=mixed, fits=fits, twice=twice, named=value.is_not_null())
+        return self.outcome(frame, value)
+
+    def temporal_frame(
+        self, *, cells: pl.Series, types: pl.Series, mixed: pl.Series, fits: pl.Series, twice: pl.Series, named: pl.Series
+    ) -> pl.DataFrame:
+        frame = pl.DataFrame(
+            {
+                "blank": self.is_blank(cells),
+                "type": types,
+                "form": cells.str.contains(self.patterns.NUMBER_FORM).fill_null(False),
+                "mixed": mixed,
+                "fits": fits,
+                "twice": twice,
+                "named": named,
+            }
+        )
+        return frame.with_columns(self.temporal_reason())
+
+    def stored_patterns(self, dtype: str) -> list[str]:
+        """What a stored date cell's rendering may be, for a type: a datetime at midnight renders as a date."""
+        canonical = self.CANONICAL[dtype]
+        return [*canonical, self.STORED_DATETIME_MIDNIGHT] if dtype == FieldType.DATETIME.value else canonical
+
+    def patterns_read(
+        self, *, text: pl.Series, patterns: list[str], rules: RulesModel, dtype: str
+    ) -> tuple[pl.Series, pl.Series, pl.Series]:
+        """Whether each cell fits any pattern, whether two read it differently, and its value by the first that fits."""
+        fits, twice, value = None, None, None
+        for pattern in patterns:
+            written = self.pattern_dtype(pattern, dtype)
+            fit, read = self.pattern_value(text=text, pattern=pattern, rules=rules, dtype=written)
+            read = read if written == dtype else read.cast(pl.Datetime("us")).alias(self.CELL)
+            if fits is None:
+                fits, twice, value = fit, pl.repeat(False, text.len(), eager=True).alias(self.CELL), read
+                continue
+            twice = twice | (fits & fit & (value != read).fill_null(False))
+            value = value.zip_with(fits, read)
+            fits = fits | fit
+        return fits, twice, value
+
+    def pattern_dtype(self, pattern: str, dtype: str) -> str:
+        """The type a pattern alone can state: a datetime's stored midnight states only a date."""
+        return FieldType.DATE.value if pattern == self.STORED_DATETIME_MIDNIGHT and dtype != FieldType.DATE.value else dtype
+
+    def temporal_reason(self) -> pl.Expr:
+        """Why a date, time, or duration cell is refused, the first of these that holds."""
+        refusals = (
+            (pl.col("type") == CellType.ERROR.value, RefusalReason.ERROR_CELL),
+            (~pl.col("type").is_in([CellType.STRING.value, CellType.DATE.value]), RefusalReason.NOT_IN_FORMAT),
+            (pl.col("blank"), None),
+            (pl.col("form"), RefusalReason.NUMBER_FORM),
+            (pl.col("mixed"), RefusalReason.MIXED_DIGITS),
+            (~pl.col("fits"), RefusalReason.NOT_IN_FORMAT),
+            (pl.col("twice"), RefusalReason.TWO_READINGS),
+            (~pl.col("named"), RefusalReason.IMPOSSIBLE_DATE),
+        )
+        reason = pl.lit(None, dtype=pl.String)
+        for condition, refusal in reversed(refusals):
+            refused = pl.lit(None, dtype=pl.String) if refusal is None else pl.lit(refusal.value)
+            reason = pl.when(condition).then(refused).otherwise(reason)
+        return reason.alias("reason")
+
+    def read_duration(self, *, cells: pl.Series, types: pl.Series, policy: PolicyModel) -> pl.DataFrame:
+        """ISO 8601 days, hours, minutes, and seconds, or a declared pattern's quantities: `H:mm` reads `1:30`, and
+        `m' min'` reads `25 min`. Years and months have no fixed length, so neither can be read. A stored duration reads
+        by its rendering."""
+        rules = policy.rules or RulesModel()
+        declared = [policy.format] * isinstance(policy.format, str) + rules.alternateFormats
+        text, mixed = self.digits(self.steps(cells))
+        fits, within, value = self.iso_durations(text)
+        if declared:
+            written = None
+            for pattern in declared:
+                read = self.pattern_duration(text=text, pattern=pattern, rules=rules)
+                written = read if written is None else (
+                    written[0] | read[0],
+                    written[1].zip_with(written[0], read[1]),
+                    written[2].zip_with(written[0], read[2]),
+                )
+            is_stored = types == CellType.DATE.value
+            fits, within, value = (one.zip_with(is_stored, other) for one, other in zip((fits, within, value), written))
+        twice = pl.repeat(False, cells.len(), eager=True)
+        frame = self.temporal_frame(cells=cells, types=types, mixed=mixed, fits=fits, twice=twice, named=within)
+        return self.outcome(frame, value.cast(pl.Duration("us")))
+
+    def iso_durations(self, text: pl.Series) -> tuple[pl.Series, pl.Series, pl.Series]:
+        """Whether each cell is an ISO 8601 duration, that it is always in range, and its microseconds."""
+        found = text.str.extract_groups(self.patterns.DURATION).struct.unnest()
+        amounts = {
+            letter: found[str(index + 2)].cast(pl.Float64).fill_null(0.0).alias(self.CELL)
+            for index, letter in enumerate("dHms")
+        }
+        any_part = pl.DataFrame({str(i): found[str(i)] for i in range(2, 6)}).select(
+            pl.any_horizontal(pl.all().is_not_null()).alias(self.CELL)
+        )[self.CELL]
+        total = sum(amounts[letter] * float(self.MICROSECONDS[letter]) for letter in "dHms")
+        negative = found["1"].is_not_null().alias(self.CELL)
+        signed = (total * -1.0).zip_with(negative, total).round().cast(pl.Int64).alias(self.CELL)
+        return any_part, pl.repeat(True, text.len(), eager=True).alias(self.CELL), signed
+
+    def pattern_duration(self, *, text: pl.Series, pattern: str, rules: RulesModel) -> tuple[pl.Series, pl.Series, pl.Series]:
+        """Whether each cell fits a duration's pattern, that every field after the first is in range, and its
+        microseconds. A fraction `S` is of a second."""
+        regex, fields = self.pattern_regex(pattern, rules, quantities=True)
+        found = text.str.extract_groups(regex).struct.unnest()
+        total = pl.repeat(0.0, text.len(), eager=True, dtype=pl.Float64).alias(self.CELL)
+        within = pl.repeat(True, text.len(), eager=True).alias(self.CELL)
+        for index, field in enumerate(fields):
+            column = found[str(index + 1)].alias(self.CELL)
+            if field == "S":
+                total = total + ("0." + column).cast(pl.Float64).fill_null(0.0) * float(self.MICROSECONDS["s"])
+                continue
+            amount = column.cast(pl.Float64).fill_null(0.0)
+            total = total + amount * float(self.MICROSECONDS[field[0]])
+            if index and field[0] in self.BOUNDS:
+                within = within & (amount < self.BOUNDS[field[0]])
+        return found["1"].is_not_null().alias(self.CELL), within, total.round().cast(pl.Int64).alias(self.CELL)
 
     def stored_types(self, types: pl.Series) -> dict[str, int]:
         """How many of a text field's cells a workbook stored as another type, which Excel may have converted on

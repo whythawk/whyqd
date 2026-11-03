@@ -266,6 +266,12 @@ DATE = {
         [v("04/01/2024", "2024-04-01"), r("13/04/2024", "impossible-date"), r("2024/04/01", "not-in-format")],
     ),
     "dotted": group("date", {"format": "dd.MM.yyyy"}, [v("01.04.2010", "2010-04-01")]),
+    "any_length_year": group(
+        "date",
+        {"format": "dd/MM/y"},
+        [v("01/04/2024", "2024-04-01"), r("01/04/24", "not-in-format"), r("1/4/2024", "not-in-format")],
+        note="`y` is four digits, or `01/04/24` would read as the year 24.",
+    ),
     "year_first": group(
         "date", {"format": "yyyy/MM/dd"}, [v("2024/04/01", "2024-04-01"), r("2024/13/01", "impossible-date")]
     ),
@@ -353,16 +359,35 @@ DURATION = {
         "duration",
         None,
         [
-            v("PT25M", "PT25M"),
-            v("PT1H30M", "PT1H30M"),
-            v("P1DT2H", "P1DT2H"),
+            v("PT25M", 1500),
+            v("PT1H30M", 5400),
+            v("P1DT2H", 93600),
+            v("-PT1M", -60),
+            v("PT0.5S", 0.5),
             r("P1Y", "not-in-format"),
             r("P1M", "not-in-format"),
+            r("P", "not-in-format"),
             r("25 min", "not-in-format"),
-            {"cell_type": "d", "text": "PT25H30M", "outcome": "value", "value": "PT25H30M"},
+            {"cell_type": "d", "text": "PT25H30M", "outcome": "value", "value": 91800},
             *BLANK_CASES,
         ],
-        note="Years and months have no fixed length. How a publisher's `1:30` or `25 min` is declared is not settled.",
+        note="A value is in seconds. Years and months have no fixed length.",
+    ),
+    "hours_and_minutes": group(
+        "duration",
+        {"format": "H:mm"},
+        [
+            v("1:30", 5400),
+            v("100:30", 361800, "a quantity, not a clock"),
+            r("1:75", "impossible-date"),
+            r("25 min", "not-in-format"),
+            {"cell_type": "d", "text": "PT25H30M", "outcome": "value", "value": 91800},
+        ],
+    ),
+    "with_words": group(
+        "duration",
+        {"format": "m' min'", "rules": {"alternateFormats": ["H'h'mm"]}},
+        [v("25 min", 1500), v("90 min", 5400), v("12h45", 45900), r("12:45", "not-in-format")],
     ),
 }
 STRING = {

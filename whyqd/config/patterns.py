@@ -44,6 +44,14 @@ class PolarsPatterns:
     )
 
 
+    # An ISO 8601 duration of days, hours, minutes, and seconds, each captured, with no years or months
+    DURATION: ClassVar[str] = r"^(-)?P(?:([0-9]+)D)?(?:T(?:([0-9]+)H)?(?:([0-9]+)M)?(?:([0-9]+(?:\.[0-9]+)?)S)?)?$"
+
+    @staticmethod
+    def literal(text: str) -> str:
+        """Text to be matched exactly, in a pattern built from a declaration."""
+        return re.escape(text)
+
     @staticmethod
     def any_of(tokens: list[str]) -> str:
         """Any one of `tokens` literally, the longest first, so `¬£` is found before the `£` inside it."""
@@ -89,12 +97,9 @@ class PolarsPatterns:
 class PythonPatterns:
     """Patterns Python's `re` runs, compiled once."""
 
-    # A quoted literal in a date pattern, Unicode's UAX 35: the `de` of `d 'de' MMM`
-    PATTERN_LITERAL: ClassVar[re.Pattern] = re.compile(r"'[^']*'")
-    # A date pattern's field, each exactly its length: `yy` is two digits of a year, as `yyyy` is not
-    PATTERN_TWO_DIGIT_YEAR: ClassVar[re.Pattern] = re.compile(r"(?<!y)yy(?!y)")
-    PATTERN_MONTH_NAME: ClassVar[re.Pattern] = re.compile(r"(?<!M)MMMM(?!M)")
-    PATTERN_MONTH_ABBREVIATION: ClassVar[re.Pattern] = re.compile(r"(?<!M)MMM(?!M)")
+    # A date pattern's parts, Unicode's UAX 35: a quoted literal (the `de` of `d 'de' MMM`), a field of one repeated
+    # letter, or other literal characters
+    PATTERN_PART: ClassVar[re.Pattern] = re.compile(r"'[^']*'|([A-Za-z])\1*|[^'A-Za-z]+")
     # An error cell as fastexcel reports it, naming calamine's `CellErrorType`: `Error(Div0)`
     EXCEL_ERROR: ClassVar[re.Pattern] = re.compile(r"Error\((\w+)\)")
     # A cell's reference in a sheet, its column's letters and its row's number: `AB12`

@@ -45,6 +45,7 @@ class RefusalReason(str, Enum):
     TOO_MANY_DIGITS = "too-many-digits"
     NOT_AN_INTEGER = "not-an-integer"
     NOT_IN_FORMAT = "not-in-format"
+    TWO_READINGS = "two-readings"
     IMPOSSIBLE_DATE = "impossible-date"
     ERROR_CELL = "error-cell"
 
@@ -64,7 +65,8 @@ class RefusalReason(str, Enum):
             "too-many-digits": "More digits than a `Float64` holds; declaring `base` as `decimal` keeps them.",
             "not-an-integer": "An integer field's cell holds a fraction.",
             "not-in-format": "The cell fits neither the declared format nor the type's canonical form, if none.",
-            "impossible-date": "The cell fits the pattern and names no such date, such as 31 April.",
+            "two-readings": "The cell fits two of the field's declared patterns, and they read it differently.",
+            "impossible-date": "The cell fits the pattern and names no such date or time, such as 31 April.",
             "error-cell": "A workbook's error cell, such as `#N/A`, which is no value of any type.",
         }
         return description[self.value]

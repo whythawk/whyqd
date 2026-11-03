@@ -106,6 +106,38 @@ class PolicyModel(BaseModel):
     UNREAD: ClassVar[frozenset[str]] = frozenset({FieldType.STRING.value, FieldType.ARRAY.value, FieldType.ANY.value})
     EXACT: ClassVar[str] = "decimal"
     PAIR: ClassVar[str] = "|"
+    # Fields whyqd reads, from UAX 35's date patterns. Each is exact where its length says so, and `y` is four digits,
+    # since a reader taking fewer would read `01/04/24` as the year 24. On a duration each is a quantity, not a clock.
+    DATE_FIELDS: ClassVar[frozenset[str]] = frozenset({"y", "yy", "yyyy", "M", "MM", "MMM", "MMMM", "d", "dd"})
+    TIME_FIELDS: ClassVar[frozenset[str]] = frozenset({"H", "HH", "m", "mm", "s", "ss", "S"})
+    READABLE: ClassVar[dict[str, frozenset[str]]] = {
+        FieldType.DATE.value: DATE_FIELDS,
+        FieldType.TIME.value: TIME_FIELDS,
+        FieldType.DATETIME.value: DATE_FIELDS | TIME_FIELDS,
+        FieldType.DURATION.value: frozenset({"d", "dd", "H", "HH", "m", "mm", "s", "ss", "S"}),
+    }
+    NEEDED: ClassVar[dict[str, frozenset[str]]] = {
+        FieldType.DATE.value: frozenset("yMd"),
+        FieldType.TIME.value: frozenset("H"),
+        FieldType.DATETIME.value: frozenset("yMdH"),
+    }
+    WIDTHS: ClassVar[dict[str, tuple[int, int]]] = {
+        "y": (4, 4),
+        "yyyy": (4, 4),
+        "yy": (2, 2),
+        "M": (1, 2),
+        "MM": (2, 2),
+        "MMM": (1, 99),
+        "MMMM": (1, 99),
+        "d": (1, 2),
+        "dd": (2, 2),
+        "H": (1, 2),
+        "HH": (2, 2),
+        "m": (1, 2),
+        "mm": (2, 2),
+        "s": (1, 2),
+        "ss": (2, 2),
+    }
 
     base: Optional[str] = Field(
         None, description="The datatype the text is read as: the field's type, or `decimal` for an exact number."
@@ -147,27 +179,68 @@ class PolicyModel(BaseModel):
                 "or remove them. [whyqd:policy-conflict]"
             )
         if temporal:
-            self.check_patterns(name=name, patterns=patterns, rules=rules)
+            self.check_patterns(name=name, dtype=dtype, patterns=patterns, rules=rules)
 
-    def check_patterns(self, *, name: str, patterns: list[str], rules: RulesModel) -> None:
-        """Refuse a date pattern that needs a rule not declared, and a rule no pattern needs. A quoted literal, such as
-        `'de'`, is no part of a pattern."""
-        written = [PythonPatterns.PATTERN_LITERAL.sub("", pattern) for pattern in patterns]
-        two_digit = any(PythonPatterns.PATTERN_TWO_DIGIT_YEAR.search(pattern) for pattern in written)
-        if two_digit != (rules.yearStart is not None):
+    @classmethod
+    def parts(cls, pattern: str) -> list[tuple[bool, str]]:
+        """A date pattern's parts in order, each `(is_field, text)`; a quoted literal without its quotes."""
+        found = []
+        for match in PythonPatterns.PATTERN_PART.finditer(pattern):
+            text = match.group()
+            quoted = text.startswith("'")
+            found.append((bool(match.group(1)), text[1:-1] if quoted else text))
+        return found
+
+    def check_patterns(self, *, name: str, dtype: str, patterns: list[str], rules: RulesModel) -> None:
+        """Refuse a pattern whyqd cannot read, one that needs a rule not declared, a rule no pattern needs, and two
+        patterns giving one cell different readings."""
+        fields = [{text for is_field, text in self.parts(pattern) if is_field} for pattern in patterns]
+        for pattern, held in zip(patterns, fields):
+            allowed = self.READABLE.get(dtype, self.READABLE[FieldType.DATE.value])
+            needed = self.NEEDED.get(dtype, frozenset())
+            letters = {field[0] for field in held}
+            if held - allowed or not needed <= letters or (dtype == FieldType.DURATION.value and not held):
+                raise ValueError(
+                    f"Field `{name}` is `{dtype}`, and its pattern `{pattern}` holds a field it cannot read, or lacks "
+                    f"one it needs ({', '.join(sorted(needed)) or 'any'}). Correct the pattern. [whyqd:policy-pattern]"
+                )
+        every = set().union(*fields) if fields else set()
+        if ("yy" in every) != (rules.yearStart is not None):
             raise ValueError(
                 f"Field `{name}` needs `rules.yearStart` with a `yy` pattern, and only then: `yy` does not say which "
                 "century. Declare both, or neither. [whyqd:policy-year-start]"
             )
-        for names, search in (
-            (rules.monthNames, PythonPatterns.PATTERN_MONTH_NAME),
-            (rules.monthAbbreviations, PythonPatterns.PATTERN_MONTH_ABBREVIATION),
-        ):
-            if bool(names) != any(search.search(pattern) for pattern in written):
-                raise ValueError(
-                    f"Field `{name}` needs `rules.monthNames` with an `MMMM` pattern and `rules.monthAbbreviations` "
-                    "with an `MMM` one, and only then. Declare both sides. [whyqd:policy-month-names]"
-                )
+        if bool(rules.monthNames) != ("MMMM" in every) or bool(rules.monthAbbreviations) != ("MMM" in every):
+            raise ValueError(
+                f"Field `{name}` needs `rules.monthNames` with an `MMMM` pattern and `rules.monthAbbreviations` "
+                "with an `MMM` one, and only then. Declare both sides. [whyqd:policy-month-names]"
+            )
+        for index, first in enumerate(patterns):
+            for second in patterns[index + 1 :]:
+                if self.two_readings(first, second):
+                    raise ValueError(
+                        f"Field `{name}`: a cell could fit both `{first}` and `{second}`, and read differently. Keep "
+                        "the one the file uses. [whyqd:policy-two-readings]"
+                    )
+
+    @classmethod
+    def two_readings(cls, first: str, second: str) -> bool:
+        """Whether one cell could fit both patterns and read differently: the same literals, widths that meet, and a
+        position that means something else. `d/M/yyyy` and `dd/MM/yyyy` read alike, and `MM/dd/yyyy` does not."""
+        ones, others = cls.parts(first), cls.parts(second)
+        if len(ones) != len(others):
+            return False
+        differs = False
+        for (one_field, one), (other_field, other) in zip(ones, others):
+            if one_field != other_field or (not one_field and one != other):
+                return False
+            if one_field:
+                low_one, high_one = cls.WIDTHS.get(one, (0, 0))
+                low_other, high_other = cls.WIDTHS.get(other, (0, 0))
+                if max(low_one, low_other) > min(high_one, high_other):
+                    return False
+                differs = differs or one[0] != other[0]
+        return differs
 
 
 class CellReadingModel(BaseModel):

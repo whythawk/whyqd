@@ -21,7 +21,7 @@ import pytest
 import whyqd as qd
 from tests.test_locale import machine_locale  # noqa: F401
 from whyqd import parsers
-from whyqd.dtypes import RefusalReason
+from whyqd.dtypes import MimeType, RefusalReason
 from whyqd.models import FieldModel, PolicyModel
 
 DATA = Path(__file__).resolve().parent / "data"
@@ -29,7 +29,7 @@ TYPING = json.loads((DATA / "synthetic-typing" / "typing-key.json").read_text(en
 LOCALES = json.loads((DATA / "synthetic-locales" / "answer-key.json").read_text(encoding="utf-8"))
 SOURCES = DATA / "synthetic-locales"
 TYPES = ("number", "integer", "boolean", "date", "time", "datetime", "duration", "string")
-READ = ("number", "integer", "boolean", "string")
+READ = TYPES
 GROUPS = [(dtype, name) for dtype in TYPES for name in TYPING[dtype]]
 CASES = [
     (dtype, name, index) for dtype, name in GROUPS for index in range(len(TYPING[dtype][name]["cases"]))
@@ -80,11 +80,6 @@ def check_reading(dtype: str, name: str, index: int) -> None:
 class TestReader:
     @pytest.mark.parametrize("dtype, name, index", [c for c in CASES if c[0] in READ], ids=case_id)
     def test_a_cell_reads_as_the_key_says(self, dtype, name, index):
-        check_reading(dtype, name, index)
-
-    @pytest.mark.xfail(strict=True, raises=AttributeError, reason="dates, times, and durations are not built")
-    @pytest.mark.parametrize("dtype, name, index", [c for c in CASES if c[0] not in READ], ids=case_id)
-    def test_a_later_type_reads_as_the_key_says(self, dtype, name, index):
         check_reading(dtype, name, index)
 
     def test_a_column_reads_each_cell_by_the_one_declaration(self):
@@ -145,11 +140,14 @@ def same(dtype: str, got, want) -> bool:
         return want is None and pd.isna(got)
     if dtype == "boolean":
         return bool(got) == want
+    if dtype == "duration":
+        return got.total_seconds() == want
     if dtype in ("number", "integer"):
         if isinstance(got, float):
             return math.isclose(got, float(want)) or (math.isnan(got) and want == "NaN")
         return Decimal(str(got)) == Decimal(want)
-    return str(got)[: len(want)] == want
+    written = str(got).replace(" ", "T") if dtype == "datetime" else str(got)
+    return written[: len(want)] == want if dtype != "string" else written == want
 
 
 def source_schema(datasource: qd.DataSourceDefinition, declare: dict) -> qd.SchemaDefinition:
@@ -187,35 +185,69 @@ class TestLocaleColumns:
     MIXED = [name for name in LOCALES["files"] if name.startswith(("mixed", "footer"))]
 
     @staticmethod
-    def columns(name: str) -> dict[str, pl.Series]:
-        datasource = qd.DataSourceDefinition()
-        datasource.derive_model(source=SOURCES / name, mimetype=LOCALES["files"][name]["mime"])
-        frame = parsers.DataSourceParser().get(source=datasource.get)
-        return {f: pl.Series(f, [None if pd.isna(v) else v for v in frame[f]], dtype=pl.String) for f in DESTINATION}
+    def columns(source: Path, mime: str) -> tuple[pl.DataFrame, pl.DataFrame]:
+        """A file's table and each cell's stored type, by whyqd's own read."""
+        reader = parsers.DataSourceParser()
+        kind = MimeType[mime]
+        grid, types, lines, dialect = reader.reader(mime=kind).grid(source=source, mime=kind, dialect=reader.declare(dialect=None))
+        table, (text, types) = reader.tables.table(
+            grid=grid, lines=lines, dialect=dialect, names=None, place=reader.reader(mime=kind).PLACE, beside=[grid, types]
+        )
+        return text, types
 
-    @pytest.mark.parametrize("name", CLEAN)
-    def test_a_clean_file_reads_as_the_true_values(self, name, machine_locale):  # noqa: F811
+    def readings(self, name: str, declare: dict) -> dict[str, pl.DataFrame]:
+        text, types = self.columns(SOURCES / name, LOCALES["files"][name]["mime"])
+        return {
+            field: parsers.ReadingParser().column(
+                cells=text[field],
+                types=types[field],
+                dtype=dtype,
+                policy=PolicyModel(**declare[field]) if field in declare else None,
+            )
+            for field, dtype in self.READ_FIELDS.items()
+        }
+
+    @pytest.mark.parametrize("name", [*CLEAN, "excel-en_GB.xlsx"])
+    def test_a_file_reads_as_the_true_values(self, name, machine_locale):  # noqa: F811
         entry = LOCALES["files"][name]
-        columns = self.columns(name)
-        declared = entry["rounds"][-1]["declare"]["fields"]
+        readings = self.readings(name, entry["rounds"][-1]["declare"]["fields"])
         for field, dtype in self.READ_FIELDS.items():
-            policy = PolicyModel(**declared[field]) if field in declared else None
-            read = parsers.ReadingParser().column(cells=columns[field], dtype=dtype, policy=policy)
+            read = readings[field]
             assert read["reason"].drop_nulls().to_list() == [], (field, read)
             for got, want in zip(read["value"].to_list(), entry["values"]):
                 assert same(dtype, got, want[field]), (field, got, want[field])
 
     @pytest.mark.parametrize("name", MIXED)
     def test_a_declaration_leaves_only_the_damage(self, name):
-        entry = LOCALES["files"][name]
-        columns = self.columns(name)
-        round_ = entry["rounds"][1]
-        for field, dtype in self.READ_FIELDS.items():
-            policy = round_["declare"]["fields"].get(field)
-            read = parsers.ReadingParser().column(
-                cells=columns[field], dtype=dtype, policy=PolicyModel(**policy) if policy else None
-            )
-            assert read["reason"].drop_nulls().len() == round_["halts"].get(field, 0), (field, read)
+        round_ = LOCALES["files"][name]["rounds"][1]
+        readings = self.readings(name, round_["declare"]["fields"])
+        for field in self.READ_FIELDS:
+            assert readings[field]["reason"].drop_nulls().len() == round_["halts"].get(field, 0), (field, readings[field])
+
+    def test_excels_swapped_dates_read_wrongly_only_until_declared(self):
+        round_ = LOCALES["files"]["excel-en_GB.xlsx"]["rounds"]
+        before = self.readings("excel-en_GB.xlsx", round_[1]["declare"]["fields"])["start"]
+        assert str(before["value"][1]) == "1997-04-01"
+        after = self.readings("excel-en_GB.xlsx", round_[2]["declare"]["fields"])["start"]
+        assert str(after["value"][1]) == "1997-01-04"
+
+    def test_excels_conversions_of_text_are_counted(self):
+        _, types = self.columns(SOURCES / "excel-en_GB.xlsx", "XLSX")
+        assert parsers.ReadingParser().stored_types(types["id"]) == {"d": 1, "n": 1}
+
+
+class TestStockport:
+    """A column Excel partly converted: its date cells were swapped under a month-first locale, its text is as published."""
+
+    SOURCE = DATA / "sample" / "stockport" / "2026-09-04-stockport-original.XLSX"
+    POLICY = PolicyModel(format="dd/MM/yyyy", rules={"cellFormats": {"d": "yyyy-dd-MM"}})
+
+    def test_liability_start_reads_by_its_cell_types(self):
+        text, types = TestLocaleColumns.columns(self.SOURCE, "XLSX")
+        column, tags = text["LiabStart"], types["LiabStart"]
+        assert (tags == "d").sum() == 4232 and (tags == "s").sum() == 2382
+        read = parsers.ReadingParser().column(cells=column, types=tags, dtype="date", policy=self.POLICY)
+        assert (read["kind"] == "value").sum() == 4232 + 2382
 
 
 class TestConversion:

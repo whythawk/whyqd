@@ -65,6 +65,16 @@ MISFITS = [
     ("date", {"format": "d MMM yyyy"}, "policy-month-names"),
     ("date", {"format": "d MMM yyyy", "rules": {"monthNames": MONTHS}}, "policy-month-names"),
     ("date", {"format": "dd/MM/yyyy", "rules": {"monthAbbreviations": MONTHS}}, "policy-month-names"),
+    ("date", {"format": "yyyy-MM-DD"}, "policy-pattern"),
+    ("date", {"format": "YYYY-MM-dd"}, "policy-pattern"),
+    ("date", {"format": "dd/MM/yyyy HH:mm"}, "policy-pattern"),
+    ("date", {"format": "MM/yyyy"}, "policy-pattern"),
+    ("time", {"format": "h:mm a"}, "policy-pattern"),
+    ("datetime", {"format": "dd/MM/yyyy"}, "policy-pattern"),
+    ("duration", {"format": "M 'months'"}, "policy-pattern"),
+    ("duration", {"format": "y"}, "policy-pattern"),
+    ("date", {"format": "dd/MM/yyyy", "rules": {"alternateFormats": ["MM/dd/yyyy"]}}, "policy-two-readings"),
+    ("date", {"format": "yyyy-MM-dd", "rules": {"alternateFormats": ["yyyy-dd-MM"]}}, "policy-two-readings"),
     ("number", {"rules": {"negative": ["CR"]}}, "policy-negative-form"),
     ("date", {"format": "d MMM yyyy", "rules": {"monthAbbreviations": MONTHS[:11]}}, "policy-month-names"),
 ]
@@ -77,6 +87,10 @@ FITS = [
     ("date", {"format": "d 'de' MMM 'de' y", "rules": {"monthAbbreviations": MONTHS}}),
     ("date", {"format": "'yy' dd.MM.yyyy"}),
     ("month", {"format": "yyyy-MM"}),
+    ("date", {"format": "d/M/yyyy", "rules": {"alternateFormats": ["dd/MM/yyyy"]}}),
+    ("date", {"format": "dd.MM.yy", "rules": {"alternateFormats": ["dd.MM.y"], "yearStart": 1950}}),
+    ("duration", {"format": "H:mm"}),
+    ("time", {"format": "HH:mm"}),
     ("number", {"base": "number"}),
 ]
 

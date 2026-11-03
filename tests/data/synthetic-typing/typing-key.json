@@ -1,5 +1,5 @@
 {
-  "generated": "2026-11-03T15:36:17",
+  "generated": "2026-11-03T17:40:16",
   "number": {
     "canonical": {
       "type": "number",
@@ -1127,6 +1127,31 @@
         }
       ]
     },
+    "any_length_year": {
+      "type": "date",
+      "policy": {
+        "format": "dd/MM/y"
+      },
+      "cases": [
+        {
+          "text": "01/04/2024",
+          "outcome": "value",
+          "value": "2024-04-01",
+          "note": ""
+        },
+        {
+          "text": "01/04/24",
+          "outcome": "refuse",
+          "reason": "not-in-format"
+        },
+        {
+          "text": "1/4/2024",
+          "outcome": "refuse",
+          "reason": "not-in-format"
+        }
+      ],
+      "note": "`y` is four digits, or `01/04/24` would read as the year 24."
+    },
     "year_first": {
       "type": "date",
       "policy": {
@@ -1476,19 +1501,31 @@
         {
           "text": "PT25M",
           "outcome": "value",
-          "value": "PT25M",
+          "value": 1500,
           "note": ""
         },
         {
           "text": "PT1H30M",
           "outcome": "value",
-          "value": "PT1H30M",
+          "value": 5400,
           "note": ""
         },
         {
           "text": "P1DT2H",
           "outcome": "value",
-          "value": "P1DT2H",
+          "value": 93600,
+          "note": ""
+        },
+        {
+          "text": "-PT1M",
+          "outcome": "value",
+          "value": -60,
+          "note": ""
+        },
+        {
+          "text": "PT0.5S",
+          "outcome": "value",
+          "value": 0.5,
           "note": ""
         },
         {
@@ -1502,6 +1539,11 @@
           "reason": "not-in-format"
         },
         {
+          "text": "P",
+          "outcome": "refuse",
+          "reason": "not-in-format"
+        },
+        {
           "text": "25 min",
           "outcome": "refuse",
           "reason": "not-in-format"
@@ -1510,7 +1552,7 @@
           "cell_type": "d",
           "text": "PT25H30M",
           "outcome": "value",
-          "value": "PT25H30M"
+          "value": 91800
         },
         {
           "text": "",
@@ -1533,7 +1575,79 @@
           "outcome": "blank"
         }
       ],
-      "note": "Years and months have no fixed length. How a publisher's `1:30` or `25 min` is declared is not settled."
+      "note": "A value is in seconds. Years and months have no fixed length."
+    },
+    "hours_and_minutes": {
+      "type": "duration",
+      "policy": {
+        "format": "H:mm"
+      },
+      "cases": [
+        {
+          "text": "1:30",
+          "outcome": "value",
+          "value": 5400,
+          "note": ""
+        },
+        {
+          "text": "100:30",
+          "outcome": "value",
+          "value": 361800,
+          "note": "a quantity, not a clock"
+        },
+        {
+          "text": "1:75",
+          "outcome": "refuse",
+          "reason": "impossible-date"
+        },
+        {
+          "text": "25 min",
+          "outcome": "refuse",
+          "reason": "not-in-format"
+        },
+        {
+          "cell_type": "d",
+          "text": "PT25H30M",
+          "outcome": "value",
+          "value": 91800
+        }
+      ]
+    },
+    "with_words": {
+      "type": "duration",
+      "policy": {
+        "format": "m' min'",
+        "rules": {
+          "alternateFormats": [
+            "H'h'mm"
+          ]
+        }
+      },
+      "cases": [
+        {
+          "text": "25 min",
+          "outcome": "value",
+          "value": 1500,
+          "note": ""
+        },
+        {
+          "text": "90 min",
+          "outcome": "value",
+          "value": 5400,
+          "note": ""
+        },
+        {
+          "text": "12h45",
+          "outcome": "value",
+          "value": 45900,
+          "note": ""
+        },
+        {
+          "text": "12:45",
+          "outcome": "refuse",
+          "reason": "not-in-format"
+        }
+      ]
     }
   },
   "string": {
