@@ -1,5 +1,5 @@
 {
-  "generated": "2026-11-03T17:55:30",
+  "generated": "2026-11-03T19:25:59",
   "number": {
     "canonical": {
       "type": "number",
@@ -977,6 +977,31 @@
           "note": ""
         },
         {
+          "text": "2024-4-3",
+          "outcome": "value",
+          "value": "2024-04-03",
+          "note": "a number's width says nothing of its meaning"
+        },
+        {
+          "text": "2024-04-13T00:00:00",
+          "outcome": "value",
+          "value": "2024-04-13",
+          "note": ""
+        },
+        {
+          "text": "2024-04-13 00:00:00",
+          "outcome": "value",
+          "value": "2024-04-13",
+          "note": ""
+        },
+        {
+          "text": "2024-04-13 12:45",
+          "outcome": "value",
+          "value": "2024-04-13",
+          "note": "",
+          "warning": "time-dropped"
+        },
+        {
           "text": "13/04/2024",
           "outcome": "refuse",
           "reason": "not-in-format"
@@ -1054,8 +1079,15 @@
         },
         {
           "text": "2010-04-01 00:00:00",
-          "outcome": "refuse",
-          "reason": "not-in-format"
+          "outcome": "value",
+          "value": "2010-04-01",
+          "note": ""
+        },
+        {
+          "text": "1/4/2024",
+          "outcome": "value",
+          "value": "2024-04-01",
+          "note": ""
         },
         {
           "text": "31/02/2024",
@@ -1140,17 +1172,118 @@
           "note": ""
         },
         {
+          "text": "01/04/800",
+          "outcome": "value",
+          "value": "0800-04-01",
+          "note": "",
+          "warning": "year-below-1000"
+        },
+        {
+          "text": "01/04/24",
+          "outcome": "value",
+          "value": "0024-04-01",
+          "note": "",
+          "warning": "year-below-1000"
+        }
+      ],
+      "note": "`y` is any length, as UAX 35 has it, and a year below 1000 reads with a warning."
+    },
+    "four_digit_year": {
+      "type": "date",
+      "policy": {
+        "format": "dd/MM/yyyy"
+      },
+      "cases": [
+        {
+          "text": "01/04/2024",
+          "outcome": "value",
+          "value": "2024-04-01",
+          "note": ""
+        },
+        {
+          "text": "01/04/0800",
+          "outcome": "value",
+          "value": "0800-04-01",
+          "note": "",
+          "warning": "year-below-1000"
+        },
+        {
           "text": "01/04/24",
           "outcome": "refuse",
           "reason": "not-in-format"
+        }
+      ]
+    },
+    "typed_as_excel": {
+      "type": "date",
+      "policy": {
+        "format": "dd/mm/yyyy"
+      },
+      "cases": [
+        {
+          "text": "13/04/2024",
+          "outcome": "value",
+          "value": "2024-04-13",
+          "note": ""
+        }
+      ]
+    },
+    "typed_for_strptime": {
+      "type": "date",
+      "policy": {
+        "format": "%d/%m/%Y"
+      },
+      "cases": [
+        {
+          "text": "13/04/2024",
+          "outcome": "value",
+          "value": "2024-04-13",
+          "note": ""
+        }
+      ]
+    },
+    "digits_run_together": {
+      "type": "date",
+      "policy": {
+        "format": "yyyyMMdd"
+      },
+      "cases": [
+        {
+          "text": "20240413",
+          "outcome": "value",
+          "value": "2024-04-13",
+          "note": ""
         },
         {
-          "text": "1/4/2024",
+          "text": "2024413",
           "outcome": "refuse",
           "reason": "not-in-format"
         }
+      ]
+    },
+    "weekday": {
+      "type": "date",
+      "policy": {
+        "format": "EEE d MMM yyyy",
+        "rules": {
+          "language": "en"
+        }
+      },
+      "cases": [
+        {
+          "text": "Mon 1 Apr 2024",
+          "outcome": "value",
+          "value": "2024-04-01",
+          "note": ""
+        },
+        {
+          "text": "MONDAY 1 april 2024",
+          "outcome": "value",
+          "value": "2024-04-01",
+          "note": ""
+        }
       ],
-      "note": "`y` is four digits, or `01/04/24` would read as the year 24."
+      "note": "A weekday is read past, and not checked against its date."
     },
     "year_first": {
       "type": "date",
@@ -1216,37 +1349,7 @@
       "policy": {
         "format": "d MMMM yyyy",
         "rules": {
-          "alternateFormats": [
-            "d MMM yyyy"
-          ],
-          "monthNames": [
-            "January",
-            "February",
-            "March",
-            "April",
-            "May",
-            "June",
-            "July",
-            "August",
-            "September",
-            "October",
-            "November",
-            "December"
-          ],
-          "monthAbbreviations": [
-            "Jan",
-            "Feb",
-            "Mar",
-            "Apr",
-            "May",
-            "Jun",
-            "Jul",
-            "Aug",
-            "Sep",
-            "Oct",
-            "Nov",
-            "Dec"
-          ]
+          "language": "en"
         }
       },
       "cases": [
@@ -1263,12 +1366,75 @@
           "note": ""
         },
         {
+          "text": "1 APRIL 2024",
+          "outcome": "value",
+          "value": "2024-04-01",
+          "note": ""
+        },
+        {
+          "text": "1 apr. 2024",
+          "outcome": "value",
+          "value": "2024-04-01",
+          "note": ""
+        },
+        {
+          "text": "1 Sep 2024",
+          "outcome": "value",
+          "value": "2024-09-01",
+          "note": ""
+        },
+        {
+          "text": "1 Sept 2024",
+          "outcome": "value",
+          "value": "2024-09-01",
+          "note": ""
+        },
+        {
           "text": "1 Avril 2024",
           "outcome": "refuse",
           "reason": "not-in-format"
+        }
+      ]
+    },
+    "month_names_added": {
+      "type": "date",
+      "policy": {
+        "format": "d MMM yyyy",
+        "rules": {
+          "monthNames": [
+            "Jan",
+            "Feb",
+            "Mar",
+            "Apr",
+            "May",
+            "Jun",
+            "Jul",
+            "Aug",
+            [
+              "Sep",
+              "Spt"
+            ],
+            "Oct",
+            "Nov",
+            "Dec"
+          ]
+        }
+      },
+      "cases": [
+        {
+          "text": "1 Spt 2024",
+          "outcome": "value",
+          "value": "2024-09-01",
+          "note": ""
         },
         {
-          "text": "1 APRIL 2024",
+          "text": "1 sep 2024",
+          "outcome": "value",
+          "value": "2024-09-01",
+          "note": ""
+        },
+        {
+          "text": "1 April 2024",
           "outcome": "refuse",
           "reason": "not-in-format"
         }
@@ -1279,25 +1445,18 @@
       "policy": {
         "format": "d 'de' MMM 'de' y",
         "rules": {
-          "monthAbbreviations": [
-            "jan.",
-            "fev.",
-            "mar.",
-            "abr.",
-            "mai",
-            "jun.",
-            "jul.",
-            "ago.",
-            "set.",
-            "out.",
-            "nov.",
-            "dez."
-          ]
+          "language": "pt"
         }
       },
       "cases": [
         {
           "text": "1 de abr. de 2024",
+          "outcome": "value",
+          "value": "2024-04-01",
+          "note": ""
+        },
+        {
+          "text": "1 de abril de 2024",
           "outcome": "value",
           "value": "2024-04-01",
           "note": ""
@@ -1375,43 +1534,6 @@
         }
       ],
       "note": "A policy's text rules read only text cells: a stored date is already a value."
-    },
-    "early_years": {
-      "type": "date",
-      "policy": {
-        "format": "dd/MM/yyy",
-        "rules": {
-          "alternateFormats": [
-            "dd/MM/yyyy"
-          ]
-        }
-      },
-      "cases": [
-        {
-          "text": "01/04/800",
-          "outcome": "value",
-          "value": "0800-04-01",
-          "note": ""
-        },
-        {
-          "text": "01/04/0800",
-          "outcome": "value",
-          "value": "0800-04-01",
-          "note": ""
-        },
-        {
-          "text": "01/04/2024",
-          "outcome": "value",
-          "value": "2024-04-01",
-          "note": ""
-        },
-        {
-          "text": "01/04/24",
-          "outcome": "refuse",
-          "reason": "not-in-format"
-        }
-      ],
-      "note": "Three digits are declared by `yyy`; four, zero-padded or not, by `yyyy`."
     }
   },
   "month": {
@@ -1474,20 +1596,7 @@
       "policy": {
         "format": "MMM yyyy",
         "rules": {
-          "monthAbbreviations": [
-            "Jan",
-            "Feb",
-            "Mar",
-            "Apr",
-            "May",
-            "Jun",
-            "Jul",
-            "Aug",
-            "Sep",
-            "Oct",
-            "Nov",
-            "Dec"
-          ]
+          "language": "en"
         }
       },
       "cases": [
@@ -1669,13 +1778,7 @@
     "twelve_hour": {
       "type": "time",
       "policy": {
-        "format": "h:mm a",
-        "rules": {
-          "dayPeriods": [
-            "AM",
-            "PM"
-          ]
-        }
+        "format": "h:mm AM/PM"
       },
       "cases": [
         {
@@ -1686,6 +1789,18 @@
         },
         {
           "text": "9:30 PM",
+          "outcome": "value",
+          "value": "21:30:00",
+          "note": ""
+        },
+        {
+          "text": "9:30 pm",
+          "outcome": "value",
+          "value": "21:30:00",
+          "note": ""
+        },
+        {
+          "text": "9:30 P.M.",
           "outcome": "value",
           "value": "21:30:00",
           "note": ""
@@ -1716,11 +1831,6 @@
           "text": "9:30",
           "outcome": "refuse",
           "reason": "not-in-format"
-        },
-        {
-          "text": "9:30 pm",
-          "outcome": "refuse",
-          "reason": "not-in-format"
         }
       ]
     },
@@ -1736,8 +1846,15 @@
         },
         {
           "text": "12:45",
-          "outcome": "refuse",
-          "reason": "not-in-format"
+          "outcome": "value",
+          "value": "12:45:00",
+          "note": ""
+        },
+        {
+          "text": "9:30",
+          "outcome": "value",
+          "value": "09:30:00",
+          "note": ""
         },
         {
           "text": "25:00:00",
@@ -1798,6 +1915,18 @@
           "note": ""
         },
         {
+          "text": "2024-04-13 12:45:00",
+          "outcome": "value",
+          "value": "2024-04-13T12:45:00",
+          "note": ""
+        },
+        {
+          "text": "2024-04-13 12:45",
+          "outcome": "value",
+          "value": "2024-04-13T12:45:00",
+          "note": ""
+        },
+        {
           "text": "13/04/2024 12:45",
           "outcome": "refuse",
           "reason": "not-in-format"
@@ -1824,6 +1953,31 @@
         }
       ]
     },
+    "stated_offset": {
+      "type": "datetime",
+      "policy": null,
+      "cases": [
+        {
+          "text": "2024-04-13T12:45:00Z",
+          "outcome": "value",
+          "value": "2024-04-13T12:45:00+00:00",
+          "note": ""
+        },
+        {
+          "text": "2024-04-13 12:45:00+01:00",
+          "outcome": "value",
+          "value": "2024-04-13T11:45:00+00:00",
+          "note": ""
+        },
+        {
+          "text": "2024-04-13T12:45:00-05:30",
+          "outcome": "value",
+          "value": "2024-04-13T18:15:00+00:00",
+          "note": ""
+        }
+      ],
+      "note": "An offset is unambiguous, so a cell reads its own, and a column of them reads as UTC."
+    },
     "declared": {
       "type": "datetime",
       "policy": {
@@ -1843,10 +1997,7 @@
       "policy": {
         "format": "dd/MM/yyyy h:mm a",
         "rules": {
-          "dayPeriods": [
-            "a. m.",
-            "p. m."
-          ]
+          "language": "es"
         }
       },
       "cases": [
@@ -1875,13 +2026,15 @@
         },
         {
           "text": "2024-04-13T12:45:00",
-          "outcome": "refuse",
-          "reason": "not-in-format"
+          "outcome": "value",
+          "value": "2024-04-13T12:45:00+00:00",
+          "note": ""
         },
         {
           "text": "2024-04-13T12:45:00+01:00",
-          "outcome": "refuse",
-          "reason": "not-in-format"
+          "outcome": "value",
+          "value": "2024-04-13T11:45:00+00:00",
+          "note": ""
         }
       ]
     },
@@ -1913,11 +2066,13 @@
         },
         {
           "text": "27/10/2024 01:30",
-          "outcome": "refuse",
-          "reason": "impossible-date"
+          "outcome": "value",
+          "value": "2024-10-27T01:30:00+01:00",
+          "note": "",
+          "warning": "repeated-hour"
         }
       ],
-      "note": "A clock time that never happened, or happened twice as the clocks changed, states no one moment."
+      "note": "A clock time the clocks skipped never happened; one they repeated reads as the earlier, with a warning."
     }
   },
   "duration": {

@@ -32,6 +32,23 @@ class ReadingKind(str, Enum):
         return description[self.value]
 
 
+class ReadingWarning(str, Enum):
+    YEAR_BELOW_1000 = "year-below-1000"
+    TIME_DROPPED = "time-dropped"
+    REPEATED_HOUR = "repeated-hour"
+
+    @property
+    def describe(self):
+        description = {
+            "year-below-1000": "The cell read as a year before 1000, which is more often a shortened year: `24` under "
+            "`y` is the year 24. A `yy` pattern with `rules.yearStart` reads a century.",
+            "time-dropped": "A date field's cell also held a time other than midnight, which a date does not keep. A "
+            "`datetime` field keeps it.",
+            "repeated-hour": "The clocks went back, so this time happened twice, and it read as the earlier.",
+        }
+        return description[self.value]
+
+
 class RefusalReason(str, Enum):
     NO_NUMBER = "no-number"
     TWO_NUMBERS = "two-numbers"
@@ -46,6 +63,7 @@ class RefusalReason(str, Enum):
     NOT_AN_INTEGER = "not-an-integer"
     NOT_IN_FORMAT = "not-in-format"
     TWO_READINGS = "two-readings"
+    NO_ZONE = "no-zone"
     IMPOSSIBLE_DATE = "impossible-date"
     ERROR_CELL = "error-cell"
 
@@ -66,6 +84,7 @@ class RefusalReason(str, Enum):
             "not-an-integer": "An integer field's cell holds a fraction.",
             "not-in-format": "The cell fits neither the declared format nor the type's canonical form, if none.",
             "two-readings": "The cell fits two of the field's declared patterns, and they read it differently.",
+            "no-zone": "The cell states no offset, beside cells that do, and the field declares no zone.",
             "impossible-date": "The cell fits the pattern and names no such date or time, such as 31 April.",
             "error-cell": "A workbook's error cell, such as `#N/A`, which is no value of any type.",
         }

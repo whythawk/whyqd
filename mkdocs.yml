@@ -37,6 +37,7 @@ nav:
   - Curation: strategies/curation.md
   - Schema: strategies/schema.md
   - Data source: strategies/datasource.md
+  - Reading types: strategies/reading.md
   - Crosswalks: strategies/crosswalk.md
 - Tutorials:
   - Multiple sources: tutorials/tutorial1.md

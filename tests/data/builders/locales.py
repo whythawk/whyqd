@@ -115,6 +115,7 @@ class Publisher:
     """One locale's way of writing a value, from its conventions alone."""
 
     def __init__(self, tag: str) -> None:
+        self.tag = tag
         self.c = LOCALES[tag]
         self.digits = ZEROS.get(self.c["numbering"])
 
@@ -215,10 +216,8 @@ class Publisher:
         tokens = [t for t in DATE_FIELD.findall(pattern) if not t.startswith("'")]
         if "yy" in tokens:
             rules["yearStart"] = YEAR_START
-        if "MMM" in tokens:
-            rules["monthAbbreviations"] = self.c["monthsAbbreviated"]
-        if "MMMM" in tokens:
-            rules["monthNames"] = self.c["monthsWide"]
+        if {"MMM", "MMMM"} & set(tokens):
+            rules["language"] = self.tag.split("_")[0]
         return {"format": pattern} | ({"rules": rules} if rules else {})
 
 

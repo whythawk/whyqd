@@ -61,18 +61,16 @@ MISFITS = [
     ("boolean", {"format": "Y|N", "rules": {"alternateFormats": ["A|B|C"]}}, "policy-conflict"),
     ("date", {"format": "dd.MM.yy"}, "policy-year-start"),
     ("date", {"format": "dd.MM.yyyy", "rules": {"yearStart": 1950}}, "policy-year-start"),
-    ("date", {"format": "d MMMM yyyy"}, "policy-month-names"),
-    ("date", {"format": "d MMM yyyy"}, "policy-month-names"),
-    ("date", {"format": "d MMM yyyy", "rules": {"monthNames": MONTHS}}, "policy-month-names"),
-    ("date", {"format": "dd/MM/yyyy", "rules": {"monthAbbreviations": MONTHS}}, "policy-month-names"),
-    ("date", {"format": "yyyy-MM-DD"}, "policy-pattern"),
-    ("date", {"format": "YYYY-MM-dd"}, "policy-pattern"),
+    ("date", {"format": "d MMMM yyyy"}, "policy-names"),
+    ("date", {"format": "d MMM yyyy"}, "policy-names"),
+    ("date", {"format": "EEE d MM yyyy", "rules": {"monthNames": MONTHS}}, "policy-names"),
+    ("date", {"format": "d MMM yyyy", "rules": {"language": "klingon"}}, "policy-names"),
+    ("date", {"format": "d MMM yyyy", "rules": {"monthNames": MONTHS[:11]}}, "policy-names"),
+    ("date", {"format": "d MMM yyyy", "rules": {"monthNames": [*MONTHS[:11], "Jan"]}}, "policy-names"),
+    ("time", {"format": "h:mm a", "rules": {"dayPeriods": ["AM"]}}, "policy-names"),
     ("date", {"format": "dd/MM/yyyy HH:mm"}, "policy-pattern"),
     ("date", {"format": "MM/yyyy"}, "policy-pattern"),
-    ("time", {"format": "h:mm a"}, "policy-day-periods"),
-    ("time", {"format": "h:mm", "rules": {"dayPeriods": ["AM", "PM"]}}, "policy-day-periods"),
-    ("time", {"format": "HH:mm", "rules": {"dayPeriods": ["AM", "PM"]}}, "policy-day-periods"),
-    ("time", {"format": "h:mm a", "rules": {"dayPeriods": ["AM"]}}, "policy-day-periods"),
+    ("date", {"format": "dd/MM/yyyy GGG"}, "policy-pattern"),
     ("datetime", {"format": "yyyy-MM-dd HH:mm", "rules": {"zone": "Mars/Olympus"}}, "policy-zone"),
     ("date", {"format": "yyyy-MM-dd", "rules": {"zone": "UTC"}}, "policy-conflict"),
     ("time", {"rules": {"zone": "UTC"}}, "policy-conflict"),
@@ -84,8 +82,34 @@ MISFITS = [
     ("duration", {"format": "y"}, "policy-pattern"),
     ("date", {"format": "dd/MM/yyyy", "rules": {"alternateFormats": ["MM/dd/yyyy"]}}, "policy-two-readings"),
     ("date", {"format": "yyyy-MM-dd", "rules": {"alternateFormats": ["yyyy-dd-MM"]}}, "policy-two-readings"),
+    (
+        "date",
+        {"format": "dd.MM.yy", "rules": {"alternateFormats": ["dd.MM.y"], "yearStart": 1950}},
+        "policy-two-readings",
+    ),
     ("number", {"rules": {"negative": ["CR"]}}, "policy-negative-form"),
-    ("date", {"format": "d MMM yyyy", "rules": {"monthAbbreviations": MONTHS[:11]}}, "policy-month-names"),
+]
+# A pattern as it may be typed, for Excel or Python's `strptime`, and as it is saved
+TYPED = [
+    ("date", "dd/mm/yyyy", "dd/MM/yyyy"),
+    ("date", "DD/MM/YYYY", "dd/MM/yyyy"),
+    ("date", "yyyy-mm-dd", "yyyy-MM-dd"),
+    ("date", "%d/%m/%Y", "dd/MM/yyyy"),
+    ("date", "yyyy-MM-DD", "yyyy-MM-dd"),
+    ("date", "yyy-MM-dd", "y-MM-dd"),
+    ("date", "[$-409]d/m/yyyy;@", "d/M/yyyy"),
+    ("datetime", "dd/mm/yyyy hh:mm", "dd/MM/yyyy HH:mm"),
+    ("datetime", "yyyy-MM-ddTHH:mm:ssZ", "yyyy-MM-dd'T'HH:mm:ss"),
+    ("datetime", "yyyy-MM-dd'T'HH:mm:ss'Z'", "yyyy-MM-dd'T'HH:mm:ss"),
+    ("datetime", "M/d/yyyy h:mm:ss AM/PM", "M/d/yyyy h:mm:ss a"),
+    ("time", "HH:MM:SS", "HH:mm:ss"),
+    ("time", "hh:mm:ss.000", "HH:mm:ss.S"),
+    ("time", "h:mm", "H:mm"),
+    ("duration", "[h]:mm", "H:mm"),
+    ("duration", "m' min'", "m' min'"),
+    ("month", "mm/yyyy", "MM/yyyy"),
+    ("quarter", "yyyy'Q'Q", "yyyy'Q'Q"),
+    ("date", "d 'de' MMM 'de' y", "d 'de' MMM 'de' y"),
 ]
 FITS = [
     ("number", {"base": "decimal", "format": {"decimalChar": ",", "groupChar": ".", "pattern": "#,##,##0"}}),
@@ -93,11 +117,12 @@ FITS = [
     ("number", {"rules": {"exponent": True, "nonFinite": True}}),
     ("integer", {"format": {"groupChar": ","}}),
     ("date", {"format": "dd/MM/yyyy", "rules": {"alternateFormats": ["yyyy-MM-dd"]}}),
-    ("date", {"format": "d 'de' MMM 'de' y", "rules": {"monthAbbreviations": MONTHS}}),
+    ("date", {"format": "d 'de' MMM 'de' y", "rules": {"language": "pt"}}),
+    ("date", {"format": "d MMM yyyy", "rules": {"monthNames": MONTHS}}),
+    ("time", {"format": "h:mm a", "rules": {"dayPeriods": ["vorm", "nachm"]}}),
     ("date", {"format": "'yy' dd.MM.yyyy"}),
     ("month", {"format": "yyyy-MM"}),
     ("date", {"format": "d/M/yyyy", "rules": {"alternateFormats": ["dd/MM/yyyy"]}}),
-    ("date", {"format": "dd.MM.yy", "rules": {"alternateFormats": ["dd.MM.y"], "yearStart": 1950}}),
     ("duration", {"format": "H:mm"}),
     ("time", {"format": "HH:mm"}),
     ("number", {"base": "number"}),
@@ -169,6 +194,12 @@ class TestFieldPolicy:
     @pytest.mark.parametrize("dtype, policy", FITS, ids=lambda p: p if isinstance(p, str) else "")
     def test_fits_its_field(self, dtype, policy):
         assert round_trip(qd.SchemaDefinition, schema(policy, dtype))["fields"][0]["policy"] == policy
+
+    @pytest.mark.parametrize("dtype, typed, saved", TYPED, ids=str)
+    def test_a_pattern_saves_as_the_standard_writes_it(self, dtype, typed, saved):
+        rules = {"language": "pt"} if "MMM" in typed else None
+        written = round_trip(qd.SchemaDefinition, schema({"format": typed} | ({"rules": rules} if rules else {}), dtype))
+        assert written["fields"][0]["policy"]["format"] == saved
 
     @pytest.mark.parametrize("dtype, policy, code", MISFITS, ids=lambda p: p if isinstance(p, str) else "")
     def test_refused_when_declared(self, dtype, policy, code):

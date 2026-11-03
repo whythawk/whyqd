@@ -47,6 +47,20 @@ class PolarsPatterns:
     # An ISO 8601 duration of days, hours, minutes, and seconds, each captured, with no years or months
     DURATION: ClassVar[str] = r"^(-)?P(?:([0-9]+)D)?(?:T(?:([0-9]+)H)?(?:([0-9]+)M)?(?:([0-9]+(?:\.[0-9]+)?)S)?)?$"
 
+    # A time left on a date's cell, which reads with it; and an offset on a datetime's cell, split from what it follows
+    TIME_TAIL: ClassVar[str] = r"(?:[ T][0-9]{1,2}:[0-9]{2}(?::[0-9]{2}(?:\.[0-9]+)?)?)?"
+    TIME_AT_END: ClassVar[str] = r"[ T]([0-9]{1,2}:[0-9]{2}(?::[0-9]{2}(?:\.[0-9]+)?)?)$"
+    NOT_ZERO: ClassVar[str] = "[1-9]"
+    OFFSET: ClassVar[str] = r"^(.*[0-9]:[0-9]{2}(?::[0-9]{2}(?:\.[0-9]+)?)?(?: ?[^0-9 ]+)?)\s*(Z|[+-][0-9]{2}(?::?[0-9]{2})?)$"
+    TRAILING_DOT: ClassVar[str] = r"\.$"
+    DOT_OR_SPACE: ClassVar[str] = r"[.\s]"
+
+    @staticmethod
+    def names(tokens: list[str]) -> str:
+        """Any of `tokens` in any case, with or without a closing `.`."""
+        spelled = "|".join(re.escape(token) for token in sorted(tokens, key=len, reverse=True))
+        return rf"(?i:{spelled})\.?"
+
     @staticmethod
     def literal(text: str) -> str:
         """Text to be matched exactly, in a pattern built from a declaration."""
@@ -100,6 +114,14 @@ class PythonPatterns:
     # A date pattern's parts, Unicode's UAX 35: a quoted literal (the `de` of `d 'de' MMM`), a field of one repeated
     # letter, or other literal characters
     PATTERN_PART: ClassVar[re.Pattern] = re.compile(r"'[^']*'|([A-Za-z])\1*|[^'A-Za-z]+")
+    # What a pattern typed for Excel or Python's `strptime` holds that UAX 35 writes otherwise
+    STRPTIME: ClassVar[re.Pattern] = re.compile(r"%(.)")
+    EXCEL_DROPPED: ClassVar[re.Pattern] = re.compile(r"\[\$[^\]]*\]|;@")
+    EXCEL_ELAPSED: ClassVar[re.Pattern] = re.compile(r"\[([hHmMsS]+)\]")
+    EXCEL_DAY_PERIOD: ClassVar[re.Pattern] = re.compile(r"(?i)AM/PM|A/P")
+    EXCEL_QUOTED: ClassVar[re.Pattern] = re.compile(r'"([^"]*)"')
+    EXCEL_ESCAPED: ClassVar[re.Pattern] = re.compile(r"\\(.)")
+    EXCEL_FRACTION: ClassVar[re.Pattern] = re.compile(r"\.0+")
     # An error cell as fastexcel reports it, naming calamine's `CellErrorType`: `Error(Div0)`
     EXCEL_ERROR: ClassVar[re.Pattern] = re.compile(r"Error\((\w+)\)")
     # A cell's reference in a sheet, its column's letters and its row's number: `AB12`

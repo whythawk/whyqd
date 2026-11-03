@@ -75,6 +75,7 @@ def check_reading(dtype: str, name: str, index: int) -> None:
         assert reading.reason == case["reason"], (case, reading)
     if case["outcome"] == "value":
         assert same(group["type"], reading.value, case["value"]), (case, reading)
+    assert reading.warning == case.get("warning"), (case, reading)
 
 
 class TestReader:
@@ -100,6 +101,18 @@ class TestReader:
         assert read[0].value == 1234.5 and read[1].value == 2.5e-05
         assert read[2].reason == "not-in-format"
 
+    def test_a_cell_with_no_offset_beside_those_with_one_needs_a_zone(self):
+        cells = ["2024-04-13T12:45:00Z", "2024-04-13T12:45:00"]
+        read = parsers.ReadingParser().read(cells=cells, dtype="datetime")
+        assert read[1].reason == "no-zone"
+        zoned = parsers.ReadingParser().read(cells=cells, dtype="datetime", policy=PolicyModel(rules={"zone": "UTC"}))
+        assert [r.kind for r in zoned] == ["value", "value"]
+
+    @pytest.mark.parametrize("cell", ["1st April 2024", "c. 1850", "<5", "Mon–Fri", "12E4", "٣4", "½", "#N/A", "anything"])
+    def test_text_is_always_the_way_out(self, cell):
+        reading = parsers.ReadingParser().read(cells=[cell], dtype="string")[0]
+        assert (reading.kind, reading.value) == ("value", cell)
+
     def test_a_negative_is_never_read_twice_into_a_positive(self):
         read = parsers.ReadingParser().read(cells=["(-5)"], dtype="number", policy=PolicyModel(rules={"negative": ["(x)"]}))
         assert read[0].reason == "undeclared-sign"
@@ -120,6 +133,11 @@ class TestReader:
         policy = PolicyModel(rules={"currency": ["£", "€", "¬£"]})
         assert reader.currencies(cells=cells, policy=policy) == {"£": 2, "€": 1, "¬£": 1}
         assert reader.currencies(cells=cells, policy=PolicyModel(rules={"currency": ["£"]})) == {}
+
+    def test_commonly_typed_patterns_read(self):
+        for typed in ("dd/mm/yyyy", "DD/MM/YYYY", "%d/%m/%Y", "dd/MM/yyyy"):
+            read = parsers.ReadingParser().read(cells=["1/4/2024"], dtype="date", policy=PolicyModel(format=typed))
+            assert str(read[0].value) == "2024-04-01", typed
 
     def test_refusals_group_by_shape(self):
         reader = parsers.ReadingParser()

@@ -1,5 +1,5 @@
 {
-  "generated": "2026-11-03T15:37:55",
+  "generated": "2026-11-03T19:25:59",
   "conventions": {
     "source": "Unicode CLDR",
     "babel": "2.18.0"
@@ -116,20 +116,7 @@
               "end": {
                 "format": "d MMM y",
                 "rules": {
-                  "monthAbbreviations": [
-                    "Jan",
-                    "Feb",
-                    "Mar",
-                    "Apr",
-                    "May",
-                    "Jun",
-                    "Jul",
-                    "Aug",
-                    "Sept",
-                    "Oct",
-                    "Nov",
-                    "Dec"
-                  ]
+                  "language": "en"
                 }
               },
               "active": {
@@ -266,20 +253,7 @@
               "end": {
                 "format": "MMM d, y",
                 "rules": {
-                  "monthAbbreviations": [
-                    "Jan",
-                    "Feb",
-                    "Mar",
-                    "Apr",
-                    "May",
-                    "Jun",
-                    "Jul",
-                    "Aug",
-                    "Sep",
-                    "Oct",
-                    "Nov",
-                    "Dec"
-                  ]
+                  "language": "en"
                 }
               },
               "active": {
@@ -544,20 +518,7 @@
               "end": {
                 "format": "d MMM y",
                 "rules": {
-                  "monthAbbreviations": [
-                    "janv.",
-                    "févr.",
-                    "mars",
-                    "avr.",
-                    "mai",
-                    "juin",
-                    "juil.",
-                    "août",
-                    "sept.",
-                    "oct.",
-                    "nov.",
-                    "déc."
-                  ]
+                  "language": "fr"
                 }
               },
               "active": {
@@ -828,20 +789,7 @@
               "end": {
                 "format": "d MMM y",
                 "rules": {
-                  "monthAbbreviations": [
-                    "Jan",
-                    "Feb",
-                    "Mar",
-                    "Apr",
-                    "May",
-                    "Jun",
-                    "Jul",
-                    "Aug",
-                    "Sept",
-                    "Oct",
-                    "Nov",
-                    "Dec"
-                  ]
+                  "language": "en"
                 }
               },
               "active": {
@@ -971,20 +919,7 @@
               "end": {
                 "format": "d MMM y",
                 "rules": {
-                  "monthAbbreviations": [
-                    "jan.",
-                    "feb.",
-                    "mars",
-                    "apr.",
-                    "maj",
-                    "juni",
-                    "juli",
-                    "aug.",
-                    "sep.",
-                    "okt.",
-                    "nov.",
-                    "dec."
-                  ]
+                  "language": "sv"
                 }
               },
               "active": {
@@ -1246,20 +1181,7 @@
               "end": {
                 "format": "d 'de' MMM 'de' y",
                 "rules": {
-                  "monthAbbreviations": [
-                    "jan.",
-                    "fev.",
-                    "mar.",
-                    "abr.",
-                    "mai.",
-                    "jun.",
-                    "jul.",
-                    "ago.",
-                    "set.",
-                    "out.",
-                    "nov.",
-                    "dez."
-                  ]
+                  "language": "pt"
                 }
               },
               "active": {
@@ -1524,20 +1446,7 @@
               "end": {
                 "format": "d MMM y",
                 "rules": {
-                  "monthAbbreviations": [
-                    "Jan",
-                    "Feb",
-                    "Mar",
-                    "Apr",
-                    "May",
-                    "Jun",
-                    "Jul",
-                    "Aug",
-                    "Sept",
-                    "Oct",
-                    "Nov",
-                    "Dec"
-                  ]
+                  "language": "en"
                 }
               },
               "active": {
@@ -1599,20 +1508,7 @@
               "end": {
                 "format": "d MMM y",
                 "rules": {
-                  "monthAbbreviations": [
-                    "Jan",
-                    "Feb",
-                    "Mar",
-                    "Apr",
-                    "May",
-                    "Jun",
-                    "Jul",
-                    "Aug",
-                    "Sept",
-                    "Oct",
-                    "Nov",
-                    "Dec"
-                  ]
+                  "language": "en"
                 }
               },
               "active": {
@@ -1680,20 +1576,7 @@
               "end": {
                 "format": "d MMM y",
                 "rules": {
-                  "monthAbbreviations": [
-                    "Jan",
-                    "Feb",
-                    "Mar",
-                    "Apr",
-                    "May",
-                    "Jun",
-                    "Jul",
-                    "Aug",
-                    "Sept",
-                    "Oct",
-                    "Nov",
-                    "Dec"
-                  ]
+                  "language": "en"
                 }
               },
               "active": {
@@ -2024,20 +1907,7 @@
               "end": {
                 "format": "d MMM y",
                 "rules": {
-                  "monthAbbreviations": [
-                    "Jan",
-                    "Feb",
-                    "Mar",
-                    "Apr",
-                    "May",
-                    "Jun",
-                    "Jul",
-                    "Aug",
-                    "Sept",
-                    "Oct",
-                    "Nov",
-                    "Dec"
-                  ]
+                  "language": "en"
                 }
               },
               "active": {
@@ -2104,20 +1974,7 @@
               "end": {
                 "format": "d MMM y",
                 "rules": {
-                  "monthAbbreviations": [
-                    "Jan",
-                    "Feb",
-                    "Mar",
-                    "Apr",
-                    "May",
-                    "Jun",
-                    "Jul",
-                    "Aug",
-                    "Sept",
-                    "Oct",
-                    "Nov",
-                    "Dec"
-                  ]
+                  "language": "en"
                 }
               },
               "active": {

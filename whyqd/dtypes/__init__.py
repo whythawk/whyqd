@@ -6,4 +6,4 @@ from .cell import CellType
 from .checksum import ChecksumContent
 from .encoding import EncodingStep
 from .extension import ExtensionKind
-from .report import FindingKind, ReadingKind, RefusalReason, SettingSource
+from .report import FindingKind, ReadingKind, ReadingWarning, RefusalReason, SettingSource

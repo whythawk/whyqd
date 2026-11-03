@@ -1,11 +1,11 @@
 # SPDX-License-Identifier: BSD-3-Clause
 from __future__ import annotations
 from typing import Any, ClassVar, Optional, Union
-from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
+from whyqd.config.names import NameTables
 from whyqd.config.patterns import PythonPatterns
-from whyqd.dtypes import CellType, FieldType, ReadingKind, RefusalReason
+from whyqd.dtypes import CellType, FieldType, ReadingKind, ReadingWarning, RefusalReason
 
 
 class NumberFormatModel(BaseModel):
@@ -30,9 +30,7 @@ class RulesModel(BaseModel):
         {"currency", "marks", "negative", "percent", "perMille", "exponent", "nonFinite"}
     )
     UNWHOLE: ClassVar[frozenset[str]] = frozenset({"percent", "perMille", "nonFinite"})
-    TEMPORAL: ClassVar[frozenset[str]] = frozenset(
-        {"yearStart", "monthNames", "monthAbbreviations", "dayPeriods", "zone"}
-    )
+    TEMPORAL: ClassVar[frozenset[str]] = frozenset({"yearStart", "language", "monthNames", "dayPeriods", "zone"})
     PATTERNED: ClassVar[frozenset[str]] = frozenset({"alternateFormats"})
     MONTHS: ClassVar[int] = 12
     DAY_PERIODS: ClassVar[int] = 2
@@ -60,13 +58,19 @@ class RulesModel(BaseModel):
         le=9999,
         description="The first year of the 100 years a `yy` pattern reads: `1950` reads `49` as 2049 and `50` as 1950.",
     )
-    monthNames: list[str] = Field([], description="The twelve names `MMMM` reads, from January.")
-    monthAbbreviations: list[str] = Field([], description="The twelve names `MMM` reads, from January.")
-    dayPeriods: list[str] = Field([], description="The two names `a` reads, morning first, such as `AM` and `PM`.")
+    language: Optional[str] = Field(
+        None, description="The language of month and weekday names, by its tag, such as `de`: any spelling and any case."
+    )
+    monthNames: list[Union[str, list[str]]] = Field(
+        [],
+        description="Twelve entries from January, each a name or a list of names, read beside any of `language`'s.",
+    )
+    dayPeriods: list[Union[str, list[str]]] = Field(
+        [], description="Two entries, morning first, each a name or a list, read beside `AM`, `PM`, and `language`'s."
+    )
     zone: Optional[str] = Field(
         None,
-        description="The IANA time zone a datetime's clock is in, such as `UTC` or `Europe/London`. With none, a "
-        "datetime stays without a zone. A `Z` in the cell is a quoted literal in its pattern, beside `UTC` here.",
+        description="The IANA time zone of a datetime's clock where a cell states no offset, such as `Europe/London`.",
     )
     cellFormats: dict[CellType, str] = Field(
         {},
@@ -86,34 +90,35 @@ class RulesModel(BaseModel):
                 )
         return v
 
-    @field_validator("dayPeriods")
+    @field_validator("language")
     @classmethod
-    def two_periods(cls, v: list[str]) -> list[str]:
-        if v and (len(v) != cls.DAY_PERIODS or len(set(v)) != cls.DAY_PERIODS):
+    def known_language(cls, v: Optional[str]) -> Optional[str]:
+        if v is not None and NameTables.language(v) is None:
+            raise ValueError(f"whyqd holds no names for `{v}`. Use a tag such as `de`, or `rules.monthNames`. [whyqd:policy-names]")
+        return v
+
+    @field_validator("monthNames", "dayPeriods")
+    @classmethod
+    def one_for_each(cls, v: list, info) -> list:
+        wanted = cls.MONTHS if info.field_name == "monthNames" else cls.DAY_PERIODS
+        spelled = [name.lower().rstrip(".") for entry in v for name in ([entry] if isinstance(entry, str) else entry)]
+        if v and (len(v) != wanted or len(spelled) != len(set(spelled))):
             raise ValueError(
-                f"{len(v)} day periods are declared, and a 12-hour clock needs two different ones, morning first. "
-                "[whyqd:policy-day-periods]"
+                f"`rules.{info.field_name}` needs {wanted} entries, in order, with no name in two of them. "
+                "[whyqd:policy-names]"
             )
         return v
 
     @field_validator("zone")
     @classmethod
     def known_zone(cls, v: Optional[str]) -> Optional[str]:
+        from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
+
         try:
             if v is not None:
                 ZoneInfo(v)
         except (ZoneInfoNotFoundError, ValueError, OSError) as error:
             raise ValueError(f"`{v}` is no IANA time zone. Use a name such as `Europe/London`. [whyqd:policy-zone]") from error
-        return v
-
-    @field_validator("monthNames", "monthAbbreviations")
-    @classmethod
-    def twelve_months(cls, v: list[str]) -> list[str]:
-        if v and (len(v) != cls.MONTHS or len(set(v)) != cls.MONTHS):
-            raise ValueError(
-                f"{len(v)} month names are declared, and a date's month needs twelve different ones, from January. "
-                "[whyqd:policy-month-names]"
-            )
         return v
 
 
@@ -122,25 +127,30 @@ class PolicyModel(BaseModel):
     ([Metadata Vocabulary for Tabular Data, section 5.11.2](https://www.w3.org/TR/tabular-metadata/#derived-datatypes)),
     `base` and `format`, with whyqd's own `rules` beside it.
 
+    A date pattern may be written as Excel, Python's `strptime`, or [UAX 35](
+    https://www.unicode.org/reports/tr35/tr35-dates.html#Date_Field_Symbol_Table) writes it. It is saved as UAX 35's,
+    which is what CSV on the Web reads, so `dd/mm/yyyy` is saved as `dd/MM/yyyy`.
+
     A field without a policy is read as text.
 
     Example:
       ```python
       {"format": {"decimalChar": ",", "groupChar": "."}, "rules": {"currency": ["€"], "negative": ["x-"]}}
-      {"format": "dd.MM.yy", "rules": {"yearStart": 1950}}
+      {"format": "dd/mm/yy", "rules": {"yearStart": 1950}}
+      {"format": "d MMMM yyyy", "rules": {"language": "de"}}
       {"format": "Y|N", "rules": {"alternateFormats": ["Yes|No"]}}
       ```
     """
 
     NUMBERS: ClassVar[frozenset[str]] = frozenset({FieldType.NUMBER.value, FieldType.INTEGER.value})
     UNREAD: ClassVar[frozenset[str]] = frozenset({FieldType.STRING.value, FieldType.ARRAY.value, FieldType.ANY.value})
+    QUANTITIES: ClassVar[frozenset[str]] = frozenset({FieldType.TIME.value, FieldType.DURATION.value})
     EXACT: ClassVar[str] = "decimal"
     PAIR: ClassVar[str] = "|"
-    # Fields whyqd reads, from UAX 35's date patterns. Each is exact where its length says so, and `y` is four digits,
-    # since a reader taking fewer would read `01/04/24` as the year 24. On a duration each is a quantity, not a clock.
-    YEAR_FIELDS: ClassVar[frozenset[str]] = frozenset({"y", "yy", "yyy", "yyyy"})
+    YEAR_FIELDS: ClassVar[frozenset[str]] = frozenset({"y", "yy", "yyyy"})
     MONTH_FIELDS: ClassVar[frozenset[str]] = frozenset({"M", "MM", "MMM", "MMMM"})
-    DATE_FIELDS: ClassVar[frozenset[str]] = YEAR_FIELDS | MONTH_FIELDS | {"d", "dd"}
+    NAME_FIELDS: ClassVar[frozenset[str]] = frozenset({"MMM", "MMMM", "E", "EEE", "EEEE"})
+    DATE_FIELDS: ClassVar[frozenset[str]] = YEAR_FIELDS | MONTH_FIELDS | {"d", "dd", "E", "EEE", "EEEE"}
     TIME_FIELDS: ClassVar[frozenset[str]] = frozenset({"H", "HH", "h", "hh", "a", "m", "mm", "s", "ss", "S"})
     READABLE: ClassVar[dict[str, frozenset[str]]] = {
         FieldType.DATE.value: DATE_FIELDS,
@@ -159,28 +169,44 @@ class PolicyModel(BaseModel):
         FieldType.QUARTER.value: frozenset("yM"),
         FieldType.YEAR.value: frozenset("y"),
     }
+    # How many digits or characters a field reads, a number's width saying nothing of its meaning: `dd` reads `1`
     WIDTHS: ClassVar[dict[str, tuple[int, int]]] = {
-        "y": (4, 4),
-        "yyyy": (4, 4),
+        "y": (1, 99),
+        "yyyy": (4, 99),
         "yy": (2, 2),
-        "yyy": (3, 3),
         "Q": (1, 1),
-        "h": (1, 2),
-        "hh": (2, 2),
-        "a": (1, 99),
         "M": (1, 2),
-        "MM": (2, 2),
-        "MMM": (1, 99),
-        "MMMM": (1, 99),
+        "MM": (1, 2),
         "d": (1, 2),
-        "dd": (2, 2),
+        "dd": (1, 2),
         "H": (1, 2),
-        "HH": (2, 2),
+        "HH": (1, 2),
+        "h": (1, 2),
+        "hh": (1, 2),
         "m": (1, 2),
-        "mm": (2, 2),
+        "mm": (1, 2),
         "s": (1, 2),
-        "ss": (2, 2),
+        "ss": (1, 2),
     }
+    STRPTIME: ClassVar[dict[str, str]] = {
+        "d": "dd",
+        "e": "d",
+        "m": "MM",
+        "Y": "yyyy",
+        "y": "yy",
+        "H": "HH",
+        "I": "hh",
+        "M": "mm",
+        "S": "ss",
+        "f": "S",
+        "b": "MMM",
+        "B": "MMMM",
+        "a": "EEE",
+        "A": "EEEE",
+        "p": "a",
+        "z": "X",
+    }
+    OFFSET_FIELDS: ClassVar[frozenset[str]] = frozenset("XxZO")
 
     base: Optional[str] = Field(
         None, description="The datatype the text is read as: the field's type, or `decimal` for an exact number."
@@ -194,7 +220,8 @@ class PolicyModel(BaseModel):
     model_config = ConfigDict(extra="forbid", validate_assignment=True)
 
     def check(self, *, name: str, dtype: str) -> None:
-        """Refuse a policy that cannot read a field `name` of type `dtype`, when it is declared rather than at a read.
+        """Save a date pattern in UAX 35's form, and refuse a policy that cannot read a field `name` of type `dtype`,
+        when it is declared rather than at a read.
 
         Raises:
           ValueError: Naming what does not fit, with its code.
@@ -203,6 +230,8 @@ class PolicyModel(BaseModel):
         declared = rules.model_fields_set
         number, boolean = dtype in self.NUMBERS, dtype == FieldType.BOOLEAN.value
         temporal = not (number or boolean or dtype in self.UNREAD)
+        if temporal:
+            self.standardise(dtype=dtype, rules=rules)
         exact = number and self.base == self.EXACT and dtype == FieldType.NUMBER.value
         unfit = [f"`base` {self.base}"] if self.base not in (None, dtype) and not exact else []
         if dtype in self.UNREAD and (self.format is not None or declared):
@@ -226,28 +255,92 @@ class PolicyModel(BaseModel):
         if temporal:
             self.check_patterns(name=name, dtype=dtype, patterns=patterns, rules=rules)
 
+    def standardise(self, *, dtype: str, rules: RulesModel) -> None:
+        """Write each date pattern as UAX 35 does, however it was typed."""
+        if isinstance(self.format, str):
+            self.format = self.standard_pattern(self.format, dtype)
+        if rules.alternateFormats:
+            rules.alternateFormats = [self.standard_pattern(pattern, dtype) for pattern in rules.alternateFormats]
+        if rules.cellFormats:
+            rules.cellFormats = {tag: self.standard_pattern(p, dtype) for tag, p in rules.cellFormats.items()}
+
+    @classmethod
+    def standard_pattern(cls, typed: str, dtype: str) -> str:
+        """A pattern as UAX 35 writes it, from Excel's or `strptime`'s spelling.
+
+        A letter's case means nothing in Excel, so `DD` and `YYYY` read as day and year, as they were meant, and `m` is
+        minutes beside an hour or a second and otherwise a month, by Excel's own rule. An offset is not part of a
+        pattern, a datetime's cell reading one wherever it holds one.
+        """
+        p = PythonPatterns
+        text = p.STRPTIME.sub(lambda match: cls.STRPTIME.get(match.group(1), match.group()), typed)
+        text = p.EXCEL_DROPPED.sub("", text)
+        text = p.EXCEL_ELAPSED.sub(lambda match: match.group(1), text)
+        text = p.EXCEL_DAY_PERIOD.sub("a", text)
+        text = p.EXCEL_QUOTED.sub(lambda match: f"'{match.group(1)}'", text)
+        text = p.EXCEL_ESCAPED.sub(lambda match: f"'{match.group(1)}'", text)
+        text = p.EXCEL_FRACTION.sub(".S", text)
+        parts = cls.parts(text)
+        fields = [part for is_field, part in parts if is_field]
+        twelve_hour = any(field[0] in "aA" for field in fields)
+        written = []
+        for index, (is_field, part) in enumerate(parts):
+            if not is_field:
+                dropped = part == "Z" and dtype == FieldType.DATETIME.value
+                written.append("" if dropped else f"'{part}'" if any(c.isalpha() for c in part) else part)
+                continue
+            before = next((f for is_f, f in reversed(parts[:index]) if is_f), "")
+            after = next((f for is_f, f in parts[index + 1 :] if is_f), "")
+            written.append(cls.standard_field(part, dtype, before, after, twelve_hour))
+        return "".join(written).rstrip()
+
+    @classmethod
+    def standard_field(cls, field: str, dtype: str, before: str, after: str, twelve_hour: bool) -> str:
+        letter, length = field[0], len(field)
+        if letter in "yY":
+            return "yy" if length == 2 else "yyyy" if length == 4 else "y"
+        if letter in "dD":
+            return {3: "EEE", 4: "EEEE"}.get(length, "d" * min(length, 2))
+        if letter in "mM":
+            if length > 2:
+                return "M" * length
+            minutes = before[:1] in tuple("hH") or after[:1] in tuple("sS") or (letter == "m" and dtype in cls.QUANTITIES)
+            return ("m" if minutes else "M") * length
+        if letter in "hH":
+            return ("h" if twelve_hour else "H") * min(length, 2)
+        if letter in "sS":
+            return "S" if before[:1] in tuple("sS") else "s" * min(length, 2)
+        if letter in "aA":
+            return "a"
+        if letter in "qQ":
+            return "Q"
+        if letter == "T":
+            return "'T'"
+        if letter in cls.OFFSET_FIELDS and dtype == FieldType.DATETIME.value:
+            return ""
+        return field
+
     @classmethod
     def parts(cls, pattern: str) -> list[tuple[bool, str]]:
         """A date pattern's parts in order, each `(is_field, text)`; a quoted literal without its quotes."""
         found = []
         for match in PythonPatterns.PATTERN_PART.finditer(pattern):
             text = match.group()
-            quoted = text.startswith("'")
-            found.append((bool(match.group(1)), text[1:-1] if quoted else text))
+            found.append((bool(match.group(1)), text[1:-1] if text.startswith("'") else text))
         return found
 
     def check_patterns(self, *, name: str, dtype: str, patterns: list[str], rules: RulesModel) -> None:
-        """Refuse a pattern whyqd cannot read, one that needs a rule not declared, a rule no pattern needs, and two
-        patterns giving one cell different readings."""
+        """Refuse a pattern whyqd cannot read, one that needs a rule not declared, and two patterns giving one cell
+        different readings."""
         fields = [{text for is_field, text in self.parts(pattern) if is_field} for pattern in patterns]
         for pattern, held in zip(patterns, fields):
-            allowed = self.READABLE.get(dtype, self.READABLE[FieldType.DATE.value])
             needed = self.NEEDED.get(dtype, frozenset())
             letters = {field[0].replace("h", "H").replace("Q", "M") for field in held}
-            if held - allowed or not needed <= letters or (dtype == FieldType.DURATION.value and not held):
+            if held - self.READABLE[dtype] or not needed <= letters or (dtype == FieldType.DURATION.value and not held):
                 raise ValueError(
                     f"Field `{name}` is `{dtype}`, and its pattern `{pattern}` holds a field it cannot read, or lacks "
-                    f"one it needs ({', '.join(sorted(needed)) or 'any'}). Correct the pattern. [whyqd:policy-pattern]"
+                    f"one it needs ({', '.join(sorted(needed)) or 'any'}). Correct the pattern, or keep the field as "
+                    "`string`. [whyqd:policy-pattern]"
                 )
         every = set().union(*fields) if fields else set()
         if ("yy" in every) != (rules.yearStart is not None):
@@ -255,16 +348,15 @@ class PolicyModel(BaseModel):
                 f"Field `{name}` needs `rules.yearStart` with a `yy` pattern, and only then: `yy` does not say which "
                 "century. Declare both, or neither. [whyqd:policy-year-start]"
             )
-        if bool(rules.monthNames) != ("MMMM" in every) or bool(rules.monthAbbreviations) != ("MMM" in every):
+        if every & self.NAME_FIELDS and not rules.language and not (rules.monthNames and "E" not in str(every)):
             raise ValueError(
-                f"Field `{name}` needs `rules.monthNames` with an `MMMM` pattern and `rules.monthAbbreviations` "
-                "with an `MMM` one, and only then. Declare both sides. [whyqd:policy-month-names]"
+                f"Field `{name}` has names in its pattern, so it needs `rules.language`, such as `de`, to say which "
+                "names they are. [whyqd:policy-names]"
             )
-        twelve_hour = {field[0] for field in every} & {"h", "a"}
-        if bool(rules.dayPeriods) != bool(twelve_hour) or twelve_hour not in (set(), {"h", "a"}):
+        if ("h" in every or "hh" in every) != ("a" in every):
             raise ValueError(
-                f"Field `{name}` needs `h` and `a` and `rules.dayPeriods` together, for a 12-hour clock, and only then. "
-                "Declare all three, or none. [whyqd:policy-day-periods]"
+                f"Field `{name}`: a 12-hour `h` and a day period `a` go together. Declare both, or use `H`. "
+                "[whyqd:policy-day-periods]"
             )
         for index, first in enumerate(patterns):
             for second in patterns[index + 1 :]:
@@ -286,21 +378,24 @@ class PolicyModel(BaseModel):
             if one_field != other_field or (not one_field and one != other):
                 return False
             if one_field:
-                low_one, high_one = cls.WIDTHS.get(one, (0, 0))
-                low_other, high_other = cls.WIDTHS.get(other, (0, 0))
+                low_one, high_one = cls.WIDTHS.get(one, (1, 99))
+                low_other, high_other = cls.WIDTHS.get(other, (1, 99))
                 if max(low_one, low_other) > min(high_one, high_other):
                     return False
-                differs = differs or one[0] != other[0]
+                meaning = [field if field == "yy" else field[0] for field in (one, other)]
+                differs = differs or meaning[0] != meaning[1]
         return differs
 
 
 class CellReadingModel(BaseModel):
-    """What one cell read as under its field's declaration: a value, a blank, or a refusal with its reason."""
+    """What one cell read as under its field's declaration: a value, a blank, or a refusal with its reason, and a warning
+    where a value was read with something worth checking."""
 
     kind: ReadingKind = Field(..., description="A value, a blank, or a refusal.")
     value: Any = Field(None, description="The value read, for a cell that held one.")
     reason: Optional[RefusalReason] = Field(None, description="Why the cell was refused.")
     detail: Optional[str] = Field(None, description="What in the cell was refused, such as the character it holds.")
+    warning: Optional[ReadingWarning] = Field(None, description="What to check about a value that was read.")
     model_config = ConfigDict(use_enum_values=True, validate_assignment=True)
 
     @model_validator(mode="after")

@@ -239,6 +239,10 @@ DATE = {
         None,
         [
             v("2024-04-13", "2024-04-13"),
+            v("2024-4-3", "2024-04-03", "a number's width says nothing of its meaning"),
+            v("2024-04-13T00:00:00", "2024-04-13"),
+            v("2024-04-13 00:00:00", "2024-04-13"),
+            {**v("2024-04-13 12:45", "2024-04-13"), "warning": "time-dropped"},
             r("13/04/2024", "not-in-format"),
             r("2024/04/13", "not-in-format"),
             r("2024-02-30", "impossible-date"),
@@ -254,7 +258,8 @@ DATE = {
             v("2024-04-01", "2024-04-01"),
             r("2024/04/01", "not-in-format"),
             r("01.04.2010", "not-in-format"),
-            r("2010-04-01 00:00:00", "not-in-format"),
+            v("2010-04-01 00:00:00", "2010-04-01"),
+            v("1/4/2024", "2024-04-01"),
             r("31/02/2024", "impossible-date"),
             r("45295", "not-in-format"),
             *BLANK_CASES,
@@ -269,8 +274,28 @@ DATE = {
     "any_length_year": group(
         "date",
         {"format": "dd/MM/y"},
-        [v("01/04/2024", "2024-04-01"), r("01/04/24", "not-in-format"), r("1/4/2024", "not-in-format")],
-        note="`y` is four digits, or `01/04/24` would read as the year 24.",
+        [
+            v("01/04/2024", "2024-04-01"),
+            {**v("01/04/800", "0800-04-01"), "warning": "year-below-1000"},
+            {**v("01/04/24", "0024-04-01"), "warning": "year-below-1000"},
+        ],
+        note="`y` is any length, as UAX 35 has it, and a year below 1000 reads with a warning.",
+    ),
+    "four_digit_year": group(
+        "date",
+        {"format": "dd/MM/yyyy"},
+        [v("01/04/2024", "2024-04-01"), {**v("01/04/0800", "0800-04-01"), "warning": "year-below-1000"}, r("01/04/24", "not-in-format")],
+    ),
+    "typed_as_excel": group("date", {"format": "dd/mm/yyyy"}, [v("13/04/2024", "2024-04-13")]),
+    "typed_for_strptime": group("date", {"format": "%d/%m/%Y"}, [v("13/04/2024", "2024-04-13")]),
+    "digits_run_together": group(
+        "date", {"format": "yyyyMMdd"}, [v("20240413", "2024-04-13"), r("2024413", "not-in-format")]
+    ),
+    "weekday": group(
+        "date",
+        {"format": "EEE d MMM yyyy", "rules": {"language": "en"}},
+        [v("Mon 1 Apr 2024", "2024-04-01"), v("MONDAY 1 april 2024", "2024-04-01")],
+        note="A weekday is read past, and not checked against its date.",
     ),
     "year_first": group(
         "date", {"format": "yyyy/MM/dd"}, [v("2024/04/01", "2024-04-01"), r("2024/13/01", "impossible-date")]
@@ -288,24 +313,26 @@ DATE = {
     ),
     "month_names": group(
         "date",
-        {
-            "format": "d MMMM yyyy",
-            "rules": {"alternateFormats": ["d MMM yyyy"], "monthNames": MONTHS, "monthAbbreviations": SHORT},
-        },
+        {"format": "d MMMM yyyy", "rules": {"language": "en"}},
         [
             v("1 April 2024", "2024-04-01"),
             v("1 Apr 2024", "2024-04-01"),
+            v("1 APRIL 2024", "2024-04-01"),
+            v("1 apr. 2024", "2024-04-01"),
+            v("1 Sep 2024", "2024-09-01"),
+            v("1 Sept 2024", "2024-09-01"),
             r("1 Avril 2024", "not-in-format"),
-            r("1 APRIL 2024", "not-in-format"),
         ],
+    ),
+    "month_names_added": group(
+        "date",
+        {"format": "d MMM yyyy", "rules": {"monthNames": [*SHORT[:8], ["Sep", "Spt"], *SHORT[9:]]}},
+        [v("1 Spt 2024", "2024-09-01"), v("1 sep 2024", "2024-09-01"), r("1 April 2024", "not-in-format")],
     ),
     "quoted": group(
         "date",
-        {
-            "format": "d 'de' MMM 'de' y",
-            "rules": {"monthAbbreviations": "jan. fev. mar. abr. mai jun. jul. ago. set. out. nov. dez.".split()},
-        },
-        [v("1 de abr. de 2024", "2024-04-01"), r("1 abr. 2024", "not-in-format")],
+        {"format": "d 'de' MMM 'de' y", "rules": {"language": "pt"}},
+        [v("1 de abr. de 2024", "2024-04-01"), v("1 de abril de 2024", "2024-04-01"), r("1 abr. 2024", "not-in-format")],
     ),
     "Arabic": group(
         "date",
@@ -331,19 +358,6 @@ DATE = {
         note="A policy's text rules read only text cells: a stored date is already a value.",
     ),
 }
-DATE |= {
-    "early_years": group(
-        "date",
-        {"format": "dd/MM/yyy", "rules": {"alternateFormats": ["dd/MM/yyyy"]}},
-        [
-            v("01/04/800", "0800-04-01"),
-            v("01/04/0800", "0800-04-01"),
-            v("01/04/2024", "2024-04-01"),
-            r("01/04/24", "not-in-format"),
-        ],
-        note="Three digits are declared by `yyy`; four, zero-padded or not, by `yyyy`.",
-    ),
-}
 MONTH = {
     "canonical": group(
         "month",
@@ -359,7 +373,7 @@ MONTH = {
     ),
     "named": group(
         "month",
-        {"format": "MMM yyyy", "rules": {"monthAbbreviations": SHORT}},
+        {"format": "MMM yyyy", "rules": {"language": "en"}},
         [v("Apr 2024", "2024-04-30"), v("Dec 1997", "1997-12-31"), r("Avr 2024", "not-in-format")],
     ),
 }
@@ -391,16 +405,17 @@ YEAR = {
 TIME = {
     "twelve_hour": group(
         "time",
-        {"format": "h:mm a", "rules": {"dayPeriods": ["AM", "PM"]}},
+        {"format": "h:mm AM/PM"},
         [
             v("9:30 AM", "09:30:00"),
             v("9:30 PM", "21:30:00"),
+            v("9:30 pm", "21:30:00"),
+            v("9:30 P.M.", "21:30:00"),
             v("12:00 AM", "00:00:00"),
             v("12:00 PM", "12:00:00"),
             r("13:00 PM", "impossible-date"),
             r("0:30 AM", "impossible-date"),
             r("9:30", "not-in-format"),
-            r("9:30 pm", "not-in-format"),
         ],
     ),
     "canonical": group(
@@ -408,7 +423,8 @@ TIME = {
         None,
         [
             v("12:45:00", "12:45:00"),
-            r("12:45", "not-in-format"),
+            v("12:45", "12:45:00"),
+            v("9:30", "09:30:00"),
             r("25:00:00", "impossible-date"),
             *BLANK_CASES,
         ],
@@ -419,14 +435,30 @@ DATETIME = {
     "canonical": group(
         "datetime",
         None,
-        [v("2024-04-13T12:45:00", "2024-04-13T12:45:00"), r("13/04/2024 12:45", "not-in-format"), *BLANK_CASES],
+        [
+            v("2024-04-13T12:45:00", "2024-04-13T12:45:00"),
+            v("2024-04-13 12:45:00", "2024-04-13T12:45:00"),
+            v("2024-04-13 12:45", "2024-04-13T12:45:00"),
+            r("13/04/2024 12:45", "not-in-format"),
+            *BLANK_CASES,
+        ],
+    ),
+    "stated_offset": group(
+        "datetime",
+        None,
+        [
+            v("2024-04-13T12:45:00Z", "2024-04-13T12:45:00+00:00"),
+            v("2024-04-13 12:45:00+01:00", "2024-04-13T11:45:00+00:00"),
+            v("2024-04-13T12:45:00-05:30", "2024-04-13T18:15:00+00:00"),
+        ],
+        note="An offset is unambiguous, so a cell reads its own, and a column of them reads as UTC.",
     ),
     "declared": group(
         "datetime", {"format": "dd/MM/yyyy HH:mm"}, [v("13/04/2024 12:45", "2024-04-13T12:45:00")]
     ),
     "twelve_hour": group(
         "datetime",
-        {"format": "dd/MM/yyyy h:mm a", "rules": {"dayPeriods": ["a. m.", "p. m."]}},
+        {"format": "dd/MM/yyyy h:mm a", "rules": {"language": "es"}},
         [v("13/04/2024 9:30 p. m.", "2024-04-13T21:30:00")],
     ),
     "utc": group(
@@ -434,8 +466,8 @@ DATETIME = {
         {"format": "yyyy-MM-dd'T'HH:mm:ss'Z'", "rules": {"zone": "UTC"}},
         [
             v("2024-04-13T12:45:00Z", "2024-04-13T12:45:00+00:00"),
-            r("2024-04-13T12:45:00", "not-in-format"),
-            r("2024-04-13T12:45:00+01:00", "not-in-format"),
+            v("2024-04-13T12:45:00", "2024-04-13T12:45:00+00:00"),
+            v("2024-04-13T12:45:00+01:00", "2024-04-13T11:45:00+00:00"),
         ],
     ),
     "london": group(
@@ -445,9 +477,9 @@ DATETIME = {
             v("13/06/2024 12:45", "2024-06-13T12:45:00+01:00"),
             v("13/01/2024 12:45", "2024-01-13T12:45:00+00:00"),
             r("31/03/2024 01:30", "impossible-date"),
-            r("27/10/2024 01:30", "impossible-date"),
+            {**v("27/10/2024 01:30", "2024-10-27T01:30:00+01:00"), "warning": "repeated-hour"},
         ],
-        note="A clock time that never happened, or happened twice as the clocks changed, states no one moment.",
+        note="A clock time the clocks skipped never happened; one they repeated reads as the earlier, with a warning.",
     ),
 }
 DURATION = {

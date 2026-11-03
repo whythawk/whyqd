@@ -600,7 +600,7 @@
     },
     "PolicyModel": {
       "additionalProperties": false,
-      "description": "How to read a field's text as its type: a CSV on the Web derived datatype\n([Metadata Vocabulary for Tabular Data, section 5.11.2](https://www.w3.org/TR/tabular-metadata/#derived-datatypes)),\n`base` and `format`, with whyqd's own `rules` beside it.\n\nA field without a policy is read as text.\n\nExample:\n  ```python\n  {\"format\": {\"decimalChar\": \",\", \"groupChar\": \".\"}, \"rules\": {\"currency\": [\"€\"], \"negative\": [\"x-\"]}}\n  {\"format\": \"dd.MM.yy\", \"rules\": {\"yearStart\": 1950}}\n  {\"format\": \"Y|N\", \"rules\": {\"alternateFormats\": [\"Yes|No\"]}}\n  ```",
+      "description": "How to read a field's text as its type: a CSV on the Web derived datatype\n([Metadata Vocabulary for Tabular Data, section 5.11.2](https://www.w3.org/TR/tabular-metadata/#derived-datatypes)),\n`base` and `format`, with whyqd's own `rules` beside it.\n\nA date pattern may be written as Excel, Python's `strptime`, or [UAX 35](\nhttps://www.unicode.org/reports/tr35/tr35-dates.html#Date_Field_Symbol_Table) writes it. It is saved as UAX 35's,\nwhich is what CSV on the Web reads, so `dd/mm/yyyy` is saved as `dd/MM/yyyy`.\n\nA field without a policy is read as text.\n\nExample:\n  ```python\n  {\"format\": {\"decimalChar\": \",\", \"groupChar\": \".\"}, \"rules\": {\"currency\": [\"€\"], \"negative\": [\"x-\"]}}\n  {\"format\": \"dd/mm/yy\", \"rules\": {\"yearStart\": 1950}}\n  {\"format\": \"d MMMM yyyy\", \"rules\": {\"language\": \"de\"}}\n  {\"format\": \"Y|N\", \"rules\": {\"alternateFormats\": [\"Yes|No\"]}}\n  ```",
       "properties": {
         "base": {
           "anyOf": [
@@ -846,29 +846,53 @@
           "description": "The first year of the 100 years a `yy` pattern reads: `1950` reads `49` as 2049 and `50` as 1950.",
           "title": "Yearstart"
         },
+        "language": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "The language of month and weekday names, by its tag, such as `de`: any spelling and any case.",
+          "title": "Language"
+        },
         "monthNames": {
           "default": [],
-          "description": "The twelve names `MMMM` reads, from January.",
+          "description": "Twelve entries from January, each a name or a list of names, read beside any of `language`'s.",
           "items": {
-            "type": "string"
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              }
+            ]
           },
           "title": "Monthnames",
           "type": "array"
         },
-        "monthAbbreviations": {
-          "default": [],
-          "description": "The twelve names `MMM` reads, from January.",
-          "items": {
-            "type": "string"
-          },
-          "title": "Monthabbreviations",
-          "type": "array"
-        },
         "dayPeriods": {
           "default": [],
-          "description": "The two names `a` reads, morning first, such as `AM` and `PM`.",
+          "description": "Two entries, morning first, each a name or a list, read beside `AM`, `PM`, and `language`'s.",
           "items": {
-            "type": "string"
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              }
+            ]
           },
           "title": "Dayperiods",
           "type": "array"
@@ -883,7 +907,7 @@
             }
           ],
           "default": null,
-          "description": "The IANA time zone a datetime's clock is in, such as `UTC` or `Europe/London`. With none, a datetime stays without a zone. A `Z` in the cell is a quoted literal in its pattern, beside `UTC` here.",
+          "description": "The IANA time zone of a datetime's clock where a cell states no offset, such as `Europe/London`.",
           "title": "Zone"
         },
         "cellFormats": {
