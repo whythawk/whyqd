@@ -50,6 +50,8 @@ MISFITS = [
     ("number", {"rules": {"yearStart": 1950}}, "policy-conflict"),
     ("number", {"rules": {"alternateFormats": ["#.##0"]}}, "policy-conflict"),
     ("integer", {"base": "decimal"}, "policy-conflict"),
+    ("integer", {"rules": {"percent": "%"}}, "policy-conflict"),
+    ("integer", {"rules": {"nonFinite": True}}, "policy-conflict"),
     ("date", {"format": GERMAN}, "policy-conflict"),
     ("date", {"base": "decimal"}, "policy-conflict"),
     ("date", {"format": "yyyy-MM-dd", "rules": {"currency": ["£"]}}, "policy-conflict"),

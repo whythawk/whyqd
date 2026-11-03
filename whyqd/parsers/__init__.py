@@ -17,4 +17,8 @@ def __getattr__(name: str):
         from .datasource import DataSourceParser
 
         return DataSourceParser
+    if name == "ReadingParser":
+        from .reading import ReadingParser
+
+        return ReadingParser
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")

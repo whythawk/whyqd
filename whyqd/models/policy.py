@@ -28,6 +28,7 @@ class RulesModel(BaseModel):
     NUMBER: ClassVar[frozenset[str]] = frozenset(
         {"currency", "marks", "negative", "percent", "perMille", "exponent", "nonFinite"}
     )
+    UNWHOLE: ClassVar[frozenset[str]] = frozenset({"percent", "perMille", "nonFinite"})
     TEMPORAL: ClassVar[frozenset[str]] = frozenset({"yearStart", "monthNames", "monthAbbreviations"})
     PATTERNED: ClassVar[frozenset[str]] = frozenset({"alternateFormats"})
     MONTHS: ClassVar[int] = 12
@@ -134,6 +135,7 @@ class PolicyModel(BaseModel):
         if isinstance(self.format, NumberFormatModel) != number and self.format is not None:
             unfit.append(f"`format` {self.format}")
         unfit += [f"`rules.{rule}`" for rule in declared & RulesModel.NUMBER if not number]
+        unfit += [f"`rules.{rule}`" for rule in declared & RulesModel.UNWHOLE if dtype == FieldType.INTEGER.value]
         unfit += [f"`rules.{rule}`" for rule in declared & RulesModel.TEMPORAL if not temporal]
         unfit += [f"`rules.{rule}`" for rule in declared & RulesModel.PATTERNED if number]
         patterns = [self.format] * isinstance(self.format, str) + rules.alternateFormats
