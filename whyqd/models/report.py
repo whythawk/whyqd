@@ -25,7 +25,11 @@ class FindingModel(BaseModel):
     code: str = Field(..., description="Short, stable, and kebab-case, naming the finding's documentation page.")
     kind: FindingKind = Field(..., description="A fault in the file, or a plain fact about it.")
     message: str = Field(..., description="What was found and where, without its code.")
-    rows: list[int] = Field([], description="The rows concerned: a text file's lines or a sheet's rows, from 1.")
+    rows: list[int] = Field(
+        [],
+        description="The rows concerned: a text file's lines or a sheet's rows, from 1; or for a transform, the row "
+        "keys, from 0, that `DELETE_ROWS` names.",
+    )
     columns: list[int] = Field([], description="The columns concerned, by position in the grid, from 0.")
     cells: list[str] = Field([], description="The cells or ranges concerned, as a workbook names them: `B2:C3`.")
     setting: Optional[str] = Field(None, description="For a fault, the setting or policy slot that addresses it.")

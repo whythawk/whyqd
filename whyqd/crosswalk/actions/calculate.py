@@ -64,8 +64,9 @@ class Action(BaseSchemaAction):
         sub_fields = [
             field.name for modifier, field in self.core.chunks(lst=source, n=term_set) if modifier.name == "-"
         ]
+        policies = {field.name: field.policy for modifier, field in self.core.chunks(lst=source, n=term_set)}
         for field in add_fields + sub_fields:
-            df[field] = df[field].apply(self.reader.parse_float)
+            df[field] = self.reader.values(column=df[field], dtype="number", policy=policies.get(field))
         # Need to maintain NaNs ... default is to treat NaNs as zeros, so even a sum of two NaNs is zero
         # If we don't know, we don't know ... but ... if a sum is mixed, then ignore the NaNs
         _add = df[add_fields].sum(min_count=1, axis=1).array

@@ -72,8 +72,7 @@ class TestTutorialPopulation:
                 "name": "values",
                 "title": "Values",
                 "type": "number",
-                "description": "Value for the Year and Indicator Name.",
-                "constraints": {"required": True},
+                "description": "Value for the Year and Indicator Name. Empty where a country reported none.",
             },
         ]
         schema_destination = qd.SchemaDefinition()

@@ -172,11 +172,10 @@ class BaseCategoryAction:
             # Conditions are contingent on values in a column
             # If assigned is `True`, then values are `True`, else values are `False` and nulls are `True`
             if source.dtype and source.dtype not in ["string", "object"]:
-                conditions = self.reader.coerce_column_to_dtype(column=df[source.name], coerce=source.dtype)
-                if conditions.dtype in ["float64", "int64", "Float64", "Int64"]:
+                if pd.api.types.is_numeric_dtype(conditions) and not pd.api.types.is_bool_dtype(conditions):
                     conditions = conditions.replace({0: np.nan})
-                if conditions.dtype in ["datetime64[ns]"]:
-                    conditions = conditions.apply(self.reader.parse_dates_coerced)
+            else:
+                conditions = self.reader.without_blanks(column=conditions)
             if assigned[0].name:
                 # i.e. values are assigned True
                 conditions = pd.Series([not (pd.isnull(x) or not x) for x in conditions.tolist()])

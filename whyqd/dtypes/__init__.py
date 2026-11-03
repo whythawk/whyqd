@@ -2,7 +2,7 @@
 from .status import StatusType
 from .mime import MimeType
 from .field import FieldType
-from .cell import CellType
+from .cell import CellType, SerialDate
 from .checksum import ChecksumContent
 from .encoding import EncodingStep
 from .extension import ExtensionKind

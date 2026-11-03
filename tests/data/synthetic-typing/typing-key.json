@@ -1,5 +1,5 @@
 {
-  "generated": "2026-11-03T19:25:59",
+  "generated": "2026-11-03T20:49:50",
   "number": {
     "canonical": {
       "type": "number",
@@ -1214,6 +1214,115 @@
         }
       ]
     },
+    "serial": {
+      "type": "date",
+      "policy": {
+        "format": "dd/mm/yyyy",
+        "rules": {
+          "serial": "excel-1900"
+        }
+      },
+      "cases": [
+        {
+          "text": "45295",
+          "outcome": "value",
+          "value": "2024-01-04",
+          "note": ""
+        },
+        {
+          "text": "43630",
+          "outcome": "value",
+          "value": "2019-06-14",
+          "note": ""
+        },
+        {
+          "text": "13/04/2024",
+          "outcome": "value",
+          "value": "2024-04-13",
+          "note": "a pattern still reads beside a serial"
+        },
+        {
+          "cell_type": "n",
+          "text": "45295",
+          "outcome": "value",
+          "value": "2024-01-04"
+        },
+        {
+          "text": "45295.5",
+          "outcome": "value",
+          "value": "2024-01-04",
+          "note": "",
+          "warning": "time-dropped"
+        },
+        {
+          "text": "1",
+          "outcome": "value",
+          "value": "1900-01-01",
+          "note": ""
+        },
+        {
+          "text": "59",
+          "outcome": "value",
+          "value": "1900-02-28",
+          "note": ""
+        },
+        {
+          "text": "61",
+          "outcome": "value",
+          "value": "1900-03-01",
+          "note": ""
+        },
+        {
+          "text": "60",
+          "outcome": "refuse",
+          "reason": "impossible-date"
+        },
+        {
+          "text": "0",
+          "outcome": "refuse",
+          "reason": "impossible-date"
+        },
+        {
+          "text": "2958466",
+          "outcome": "refuse",
+          "reason": "impossible-date"
+        },
+        {
+          "text": "12345678",
+          "outcome": "refuse",
+          "reason": "not-in-format"
+        }
+      ],
+      "note": "Serial 60 is Excel's 29 February 1900, which never happened. Values checked against openpyxl's reading."
+    },
+    "serial_1904": {
+      "type": "date",
+      "policy": {
+        "rules": {
+          "serial": "excel-1904"
+        }
+      },
+      "cases": [
+        {
+          "text": "0",
+          "outcome": "value",
+          "value": "1904-01-01",
+          "note": ""
+        },
+        {
+          "text": "43630",
+          "outcome": "value",
+          "value": "2023-06-15",
+          "note": ""
+        },
+        {
+          "text": "2024-04-13",
+          "outcome": "value",
+          "value": "2024-04-13",
+          "note": ""
+        }
+      ]
+    },
     "typed_as_excel": {
       "type": "date",
       "policy": {
@@ -1988,6 +2097,28 @@
           "text": "13/04/2024 12:45",
           "outcome": "value",
           "value": "2024-04-13T12:45:00",
+          "note": ""
+        }
+      ]
+    },
+    "serial": {
+      "type": "datetime",
+      "policy": {
+        "rules": {
+          "serial": "excel-1900"
+        }
+      },
+      "cases": [
+        {
+          "text": "45295.5",
+          "outcome": "value",
+          "value": "2024-01-04T12:00:00",
+          "note": ""
+        },
+        {
+          "text": "45295",
+          "outcome": "value",
+          "value": "2024-01-04T00:00:00",
           "note": ""
         }
       ]

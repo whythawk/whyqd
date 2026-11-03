@@ -910,6 +910,18 @@
           "description": "The IANA time zone of a datetime's clock where a cell states no offset, such as `Europe/London`.",
           "title": "Zone"
         },
+        "serial": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SerialDate"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Read a bare number as a date serial, in Excel's `excel-1900` or `excel-1904` system, beside any patterns: `45295` reads as 2024-01-04 under `excel-1900`."
+        },
         "cellFormats": {
           "additionalProperties": {
             "type": "string"
@@ -1064,6 +1076,14 @@
       ],
       "title": "SchemaModel",
       "type": "object"
+    },
+    "SerialDate": {
+      "enum": [
+        "excel-1900",
+        "excel-1904"
+      ],
+      "title": "SerialDate",
+      "type": "string"
     },
     "VersionModel": {
       "properties": {

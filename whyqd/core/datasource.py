@@ -141,9 +141,13 @@ class DataSourceDefinition(BaseDefinition):
         mimetype: str | MimeType,
         dialect: DialectModel | dict | None = None,
         propose: bool = False,
+        schema: SchemaDefinition | None = None,
     ) -> list[ReportModel]:
         """How whyqd read a file and what it found there, to review before going on. Nothing is applied, and this
         definition does not change: declare what you decide in `derive_model`'s `dialect`.
+
+        With a `schema`, the report also reads each field it declares, so a declaration can be checked before any
+        crosswalk exists. A cell that does not fit is a fault here, and stops nothing.
 
         A report says which setting took which value, and whether you declared it. A fault is a file that cannot be read
         as written, or was read with a loss; a fact is something the file holds, with no claim of what it means, for the
@@ -155,6 +159,7 @@ class DataSourceDefinition(BaseDefinition):
           dialect: How the file is written, as in `derive_model`. For a workbook, one naming its `sheet` reports on that
                    sheet alone; otherwise each sheet reads by it, and has its own report.
           propose: Also propose settings that would read past a fault, each with its evidence.
+          schema: A source schema whose declared fields to read against the file.
 
         Returns:
           One ReportModel, or one a sheet of a workbook.
@@ -169,7 +174,13 @@ class DataSourceDefinition(BaseDefinition):
               print(finding)
           ```
         """
-        return self.reader.diagnose(source=source, mimetype=mimetype, dialect=dialect, propose=propose)
+        reports = self.reader.diagnose(source=source, mimetype=mimetype, dialect=dialect, propose=propose)
+        if schema is not None:
+            for report in reports:
+                report.findings += self.reader.schema_findings(
+                    source=source, mimetype=mimetype, dialect=dialect, sheet=report.sheet, schema=schema
+                )
+        return reports
 
     #########################################################################################
     # VALIDATION UTILITIES

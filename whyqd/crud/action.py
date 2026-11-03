@@ -292,7 +292,9 @@ class CRUDAction(CRUDBase[ActionScriptModel]):
         if not isinstance(fields, list):
             fields = [fields]
         for f in fields:
+            # A script's name finds the source field first, where both schemas have one of that name
+            target = self.schema_destination.fields.get(name=f.name) or f
             if remove:
-                self.uncrossed = self.uncrossed ^ {f.uuid}
+                self.uncrossed = self.uncrossed ^ {target.uuid}
             else:
-                self.uncrossed = self.uncrossed - {f.uuid}
+                self.uncrossed = self.uncrossed - {target.uuid}

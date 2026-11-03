@@ -69,6 +69,17 @@ spellings in `rules.monthNames`. `AM` and `PM` are always read, and a weekday is
 **A period reads as the date it ends on**, as a `month`, `quarter`, or `year` field: `2024-04` is 2024-04-30, `2024` is
 2024-12-31, and `2024Q2` under `yyyy'Q'Q` is 2024-06-30.
 
+**A bare number can be a date, once you say so.** Excel stores a date as a count of days, and sometimes that count is all
+that reaches you: `45295` in a date column, as a number or as text. Declare the system it counts in, `excel-1900` for
+nearly every workbook and `excel-1904` for some older ones from a Mac, and it reads beside any patterns you declare:
+
+```python
+{"format": "dd/mm/yyyy", "rules": {"serial": "excel-1900"}}
+```
+
+`45295` is then 2024-01-04, and `45295.5` is noon that day in a `datetime` field. whyqd cannot tell a serial from a plain
+number, and the two systems differ by four years, which is why this is declared.
+
 ## What reads with a warning
 
 These read, and the report says so, because you may want to check them:

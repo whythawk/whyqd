@@ -5,7 +5,7 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator, model_valida
 
 from whyqd.config.names import NameTables
 from whyqd.config.patterns import PythonPatterns
-from whyqd.dtypes import CellType, FieldType, ReadingKind, ReadingWarning, RefusalReason
+from whyqd.dtypes import CellType, FieldType, ReadingKind, ReadingWarning, RefusalReason, SerialDate
 
 
 class NumberFormatModel(BaseModel):
@@ -30,7 +30,9 @@ class RulesModel(BaseModel):
         {"currency", "marks", "negative", "percent", "perMille", "exponent", "nonFinite"}
     )
     UNWHOLE: ClassVar[frozenset[str]] = frozenset({"percent", "perMille", "nonFinite"})
-    TEMPORAL: ClassVar[frozenset[str]] = frozenset({"yearStart", "language", "monthNames", "dayPeriods", "zone"})
+    TEMPORAL: ClassVar[frozenset[str]] = frozenset(
+        {"yearStart", "language", "monthNames", "dayPeriods", "zone", "serial"}
+    )
     PATTERNED: ClassVar[frozenset[str]] = frozenset({"alternateFormats"})
     MONTHS: ClassVar[int] = 12
     DAY_PERIODS: ClassVar[int] = 2
@@ -71,6 +73,11 @@ class RulesModel(BaseModel):
     zone: Optional[str] = Field(
         None,
         description="The IANA time zone of a datetime's clock where a cell states no offset, such as `Europe/London`.",
+    )
+    serial: Optional[SerialDate] = Field(
+        None,
+        description="Read a bare number as a date serial, in Excel's `excel-1900` or `excel-1904` system, beside any "
+        "patterns: `45295` reads as 2024-01-04 under `excel-1900`.",
     )
     cellFormats: dict[CellType, str] = Field(
         {},
@@ -147,6 +154,8 @@ class PolicyModel(BaseModel):
     QUANTITIES: ClassVar[frozenset[str]] = frozenset({FieldType.TIME.value, FieldType.DURATION.value})
     EXACT: ClassVar[str] = "decimal"
     PAIR: ClassVar[str] = "|"
+    # What a 1.x `usdate` stated: month first, with any of its separators
+    USDATE: ClassVar[dict] = {"format": "MM/dd/yyyy", "rules": {"alternateFormats": ["MM-dd-yyyy", "MM.dd.yyyy"]}}
     YEAR_FIELDS: ClassVar[frozenset[str]] = frozenset({"y", "yy", "yyyy"})
     MONTH_FIELDS: ClassVar[frozenset[str]] = frozenset({"M", "MM", "MMM", "MMMM"})
     NAME_FIELDS: ClassVar[frozenset[str]] = frozenset({"MMM", "MMMM", "E", "EEE", "EEEE"})
@@ -154,6 +163,7 @@ class PolicyModel(BaseModel):
     TIME_FIELDS: ClassVar[frozenset[str]] = frozenset({"H", "HH", "h", "hh", "a", "m", "mm", "s", "ss", "S"})
     READABLE: ClassVar[dict[str, frozenset[str]]] = {
         FieldType.DATE.value: DATE_FIELDS,
+        FieldType.USDATE.value: DATE_FIELDS,
         FieldType.TIME.value: TIME_FIELDS,
         FieldType.DATETIME.value: DATE_FIELDS | TIME_FIELDS,
         FieldType.MONTH.value: YEAR_FIELDS | MONTH_FIELDS,
@@ -244,6 +254,8 @@ class PolicyModel(BaseModel):
         unfit += [f"`rules.{rule}`" for rule in declared & RulesModel.PATTERNED if number]
         if "zone" in declared and dtype != FieldType.DATETIME.value:
             unfit.append("`rules.zone`")
+        if "serial" in declared and dtype in self.QUANTITIES:
+            unfit.append("`rules.serial`")
         patterns = [self.format] * isinstance(self.format, str) + rules.alternateFormats
         if boolean:
             unfit += [f"`{pair}`, not one `true|false` pair" for pair in patterns if pair.count(self.PAIR) != 1]

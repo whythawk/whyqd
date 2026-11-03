@@ -286,6 +286,30 @@ DATE = {
         {"format": "dd/MM/yyyy"},
         [v("01/04/2024", "2024-04-01"), {**v("01/04/0800", "0800-04-01"), "warning": "year-below-1000"}, r("01/04/24", "not-in-format")],
     ),
+    "serial": group(
+        "date",
+        {"format": "dd/mm/yyyy", "rules": {"serial": "excel-1900"}},
+        [
+            v("45295", "2024-01-04"),
+            v("43630", "2019-06-14"),
+            v("13/04/2024", "2024-04-13", "a pattern still reads beside a serial"),
+            {"cell_type": "n", "text": "45295", "outcome": "value", "value": "2024-01-04"},
+            {**v("45295.5", "2024-01-04"), "warning": "time-dropped"},
+            v("1", "1900-01-01"),
+            v("59", "1900-02-28"),
+            v("61", "1900-03-01"),
+            r("60", "impossible-date"),
+            r("0", "impossible-date"),
+            r("2958466", "impossible-date"),
+            r("12345678", "not-in-format"),
+        ],
+        note="Serial 60 is Excel's 29 February 1900, which never happened. Values checked against openpyxl's reading.",
+    ),
+    "serial_1904": group(
+        "date",
+        {"rules": {"serial": "excel-1904"}},
+        [v("0", "1904-01-01"), v("43630", "2023-06-15"), v("2024-04-13", "2024-04-13")],
+    ),
     "typed_as_excel": group("date", {"format": "dd/mm/yyyy"}, [v("13/04/2024", "2024-04-13")]),
     "typed_for_strptime": group("date", {"format": "%d/%m/%Y"}, [v("13/04/2024", "2024-04-13")]),
     "digits_run_together": group(
@@ -455,6 +479,11 @@ DATETIME = {
     ),
     "declared": group(
         "datetime", {"format": "dd/MM/yyyy HH:mm"}, [v("13/04/2024 12:45", "2024-04-13T12:45:00")]
+    ),
+    "serial": group(
+        "datetime",
+        {"rules": {"serial": "excel-1900"}},
+        [v("45295.5", "2024-01-04T12:00:00"), v("45295", "2024-01-04T00:00:00")],
     ),
     "twelve_hour": group(
         "datetime",

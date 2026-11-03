@@ -52,6 +52,7 @@ class PolarsPatterns:
     TIME_AT_END: ClassVar[str] = r"[ T]([0-9]{1,2}:[0-9]{2}(?::[0-9]{2}(?:\.[0-9]+)?)?)$"
     NOT_ZERO: ClassVar[str] = "[1-9]"
     OFFSET: ClassVar[str] = r"^(.*[0-9]:[0-9]{2}(?::[0-9]{2}(?:\.[0-9]+)?)?(?: ?[^0-9 ]+)?)\s*(Z|[+-][0-9]{2}(?::?[0-9]{2})?)$"
+    SERIAL: ClassVar[str] = r"^[0-9]{1,7}(?:\.[0-9]+)?$"
     TRAILING_DOT: ClassVar[str] = r"\.$"
     DOT_OR_SPACE: ClassVar[str] = r"[.\s]"
 

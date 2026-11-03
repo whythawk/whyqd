@@ -35,7 +35,6 @@ CASES = [
     (dtype, name, index) for dtype, name in GROUPS for index in range(len(TYPING[dtype][name]["cases"]))
 ]
 DESTINATION = {f["name"]: f["type"] for f in LOCALES["destination"]["fields"]}
-NOT_BUILT = (AttributeError, AssertionError, TypeError, ValueError, pytest.fail.Exception)
 
 
 def case_id(value) -> str:
@@ -269,7 +268,6 @@ class TestStockport:
 
 
 class TestConversion:
-    @pytest.mark.xfail(strict=True, raises=NOT_BUILT, reason="typing and conformance are not built")
     @pytest.mark.parametrize("name", list(LOCALES["files"]))
     def test_a_file_converts_round_by_round(self, name, machine_locale):  # noqa: F811
         entry = LOCALES["files"][name]
@@ -278,7 +276,10 @@ class TestConversion:
             if round_["halts"]:
                 with pytest.raises(ValueError):
                     run.process()
-                counts = {f.field: f.count for f in run.report.findings if f.kind == "fault" and f.field}
+                counts = {}
+                for found in run.report.findings:
+                    if found.kind == "fault":
+                        counts[found.field] = counts.get(found.field, 0) + found.count
                 assert counts == round_["halts"]
                 continue
             run.process()

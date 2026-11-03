@@ -2,6 +2,20 @@
 from enum import Enum
 
 
+class SerialDate(str, Enum):
+    EXCEL_1900 = "excel-1900"
+    EXCEL_1904 = "excel-1904"
+
+    @property
+    def describe(self):
+        description = {
+            "excel-1900": "Days counted as most workbooks count them, serial 1 being 1900-01-01. Serial 60 is a 29 "
+            "February 1900 that never happened, so it refuses, as does serial 0.",
+            "excel-1904": "Days counted as a workbook in the 1904 date system counts them, serial 0 being 1904-01-01.",
+        }
+        return description[self.value]
+
+
 class CellType(str, Enum):
     STRING = "s"
     NUMBER = "n"

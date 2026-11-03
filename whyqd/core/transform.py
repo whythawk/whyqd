@@ -3,7 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 
 from whyqd.dtypes import ChecksumContent, MimeType
-from whyqd.models import DataSourceModel, CrosswalkModel, TransformModel
+from whyqd.models import ActionScriptModel, DataSourceModel, CrosswalkModel, FieldModel, TransformModel
 from whyqd.models.utc import UtcParser
 from whyqd.core import CrosswalkDefinition
 from whyqd.core.base import BaseDefinition
@@ -41,6 +41,7 @@ class TransformDefinition(BaseDefinition):
         super().__init__(model_name="transform")
         self.data_source = None
         self.data = None
+        self.report = None
         self.crosswalk = CrosswalkDefinition()
         self.utc = UtcParser()
         self.set(transform=transform, crosswalk=crosswalk, data_source=data_source)
@@ -111,20 +112,101 @@ class TransformDefinition(BaseDefinition):
         # Validate crosswalk
         self.crosswalk.validate()
         self.bound(source=self.model.dataSource)
-        # Perform crosswalk, coercing to source schema prior to crosswalk
-        df = self.reader.get(source=self.model.dataSource)
-        df = self.reader.coerce_to_schema(df=df, schema=self.crosswalk.schema_source)
-        df = self.crosswalk.crud.transform_all(df=df)
-        destination_names = [f.name for f in self.crosswalk.schema_destination.fields.get_all() if f.name in df.columns]
-        # Coerce to schema and prepare data source model
-        df = self.reader.coerce_to_schema(df=df[destination_names], schema=self.crosswalk.schema_destination)
-        required_names = [f.name for f in self.crosswalk.schema_destination.fields.get_required()]
-        if set(required_names) - set(df.columns):
-            raise ValueError(
-                f"Missing required destination fields in crosswalked data: {set(required_names) - set(df.columns)}"
-            )
-        self.data = df
+        self.data = None
+        self.data = self.conform(source=self.model.dataSource)
         self.model.ended = self.utc.now()
+
+    def conform(self, *, source: DataSourceModel):
+        """The table the crosswalk builds from `source`, conforming to the destination schema, or a halt that leaves its
+        reasons in `report`.
+
+        Raises:
+          ValueError: If the table cannot conform, or a required destination field is never built.
+        """
+        from whyqd.parsers.conformance import ConformanceParser
+
+        conformance = ConformanceParser()
+        origin, destination = self.crosswalk.schema_source, self.crosswalk.schema_destination
+        destination_fields = destination.fields.get_all()
+        policies, inputs, read_fields = self.reads(conformance=conformance, destination_fields=destination_fields)
+        table, types = self.reader.typed_table(source=source)
+        df = conformance.source(
+            table=table, types=types, fields=origin.fields.get_all(), missing=origin.get.missingValues, inputs=inputs
+        )
+        df = self.crosswalk.crud.transform_all(df=df)
+        conformance.settle_source(df=df, read_fields=read_fields)
+        row_key = [c for c in df.columns if conformance.row_key.is_part(c)]
+        names = [f.name for f in destination_fields if f.name in df.columns]
+        required = {f.name for f in destination.fields.get_required()} - set(df.columns)
+        if required:
+            raise ValueError(f"Missing required destination fields in crosswalked data: {required}")
+        df = conformance.destination(
+            df=df[[*row_key, *names]],
+            fields=destination_fields,
+            missing=destination.get.missingValues,
+            policies=policies,
+        )
+        self.report = conformance.report(path=source.path, mime=source.mime)
+        if conformance.faults:
+            raise ValueError(
+                f"`{source.name}` cannot conform to `{destination.get.name}`: {len(conformance.faults)} problems in "
+                f"{len({f.field for f in conformance.faults})} fields. Read `report`, resolve them, and run again. "
+                "[whyqd:transform-halted]"
+            )
+        if conformance.warnings:
+            self.core.show_warning(
+                f"`{source.name}` read with {len(conformance.warnings)} things to check. Read `report`. "
+                "[whyqd:transform-warned]"
+            )
+        return df[names]
+
+    def reads(self, *, conformance, destination_fields: list) -> tuple[dict, dict, set]:
+        """What the crosswalk's actions read: the policy each destination field's text is built under, the undeclared
+        source fields an action reads as a type, and every source field read. Each policy is checked against its field,
+        and a source field against the destination it maps to."""
+        by_name = {field.name: field for field in destination_fields}
+        for field in destination_fields:
+            if field.policy and (field.policy.format is not None or field.policy.rules is not None):
+                raise ValueError(
+                    f"Destination field `{field.name}` declares how a publisher wrote it, which a shared schema cannot "
+                    "know. Move its `format` and `rules` to the source field or the action. [whyqd:policy-on-destination]"
+                )
+        policies, inputs, read_fields = {}, {}, set()
+        as_type = {"CALCULATE": "number", "SELECT_NEWEST": "date", "SELECT_OLDEST": "date"}
+        for script in self.crosswalk.crud.get_all():
+            parsed = self.crosswalk.crud.parse(script=script)
+            name = parsed["action"].name
+            destinations = parsed.get("destination") or []
+            destinations = destinations if isinstance(destinations, list) else [destinations]
+            sources = [term for term in self.flatten(parsed.get("source")) if isinstance(term, FieldModel)]
+            read_fields |= {field.name for field in sources}
+            # `SELECT_NEWEST` and `SELECT_OLDEST` take each value with the date beside it
+            dated = name in ("SELECT_NEWEST", "SELECT_OLDEST")
+            if name in as_type:
+                inputs |= {field.name: as_type[name] for field in (sources[1::2] if dated else sources)}
+            if name in conformance.MAPS_DIRECTLY:
+                for target in destinations:
+                    for field in sources[::2] if dated else sources:
+                        if target.name in by_name:
+                            conformance.conflict(source=field, destination=by_name[target.name])
+            policy = script.policy if isinstance(script, ActionScriptModel) else None
+            if policy is not None:
+                outputs = policy if isinstance(policy, dict) else {target.name: policy for target in destinations}
+                for target, held in outputs.items():
+                    if target in by_name:
+                        held.check(name=target, dtype=by_name[target].dtype)
+                policies |= outputs
+        return policies, inputs, read_fields
+
+    def flatten(self, terms) -> list:
+        """A parsed script's source terms, however deep an action nested them."""
+        if not terms:
+            return []
+        if isinstance(terms, dict):
+            return self.flatten(terms.get("source"))
+        if isinstance(terms, (list, tuple)):
+            return [found for term in terms for found in self.flatten(term)]
+        return [terms]
 
     #########################################################################################
     # VALIDATION UTILITIES
@@ -206,19 +288,10 @@ class TransformDefinition(BaseDefinition):
         # Validate crosswalk, coercing to source schema prior to crosswalk
         self.crosswalk.validate()
         self.bound(source=model)
-        source_df = self.reader.coerce_to_schema(df=source_df, schema=self.crosswalk.schema_source)
-        crosswalk_df = self.crosswalk.crud.transform_all(df=source_df)
-        destination_names = [
-            f.name for f in self.crosswalk.schema_destination.fields.get_all() if f.name in crosswalk_df.columns
-        ]
-        crosswalk_df = self.reader.coerce_to_schema(
-            df=crosswalk_df[destination_names], schema=self.crosswalk.schema_destination
-        )
-        required_names = [f.name for f in self.crosswalk.schema_destination.fields.get_required()]
-        if set(required_names) - set(crosswalk_df.columns):
-            raise ValueError(
-                f"Validation failed. Missing required destination fields in crosswalked data: {set(required_names) - set(crosswalk_df.columns)}"
-            )
+        try:
+            crosswalk_df = self.conform(source=model)
+        except ValueError as e:
+            raise ValueError(f"Validation failed. {e}") from e
         crosscheck(crosswalk_df, destination_checksum)
         return True
 

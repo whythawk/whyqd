@@ -1,6 +1,7 @@
 # SPDX-License-Identifier: BSD-3-Clause
 from __future__ import annotations
 import unicodedata
+from datetime import datetime, timedelta
 from decimal import Decimal
 from functools import partial
 from typing import ClassVar
@@ -9,7 +10,7 @@ import polars as pl
 
 from whyqd.config.names import NameTables
 from whyqd.config.patterns import PolarsPatterns
-from whyqd.dtypes import CellType, FieldType, FindingKind, ReadingKind, ReadingWarning, RefusalReason
+from whyqd.dtypes import CellType, FieldType, FindingKind, ReadingKind, ReadingWarning, RefusalReason, SerialDate
 from whyqd.models import CellReadingModel, FindingModel, NumberFormatModel, PolicyModel, RulesModel
 
 
@@ -64,6 +65,13 @@ class ReadingParser:
     QUARTER_MONTHS: ClassVar[int] = 3
     HALF_DAY: ClassVar[int] = 12
     NO_HOUR: ClassVar[str] = "99"
+    EPOCH_1900: ClassVar[datetime] = datetime(1899, 12, 30)
+    EPOCH_1900_EARLY: ClassVar[datetime] = datetime(1899, 12, 31)
+    EPOCH_1904: ClassVar[datetime] = datetime(1904, 1, 1)
+    PHANTOM_LEAP_DAY: ClassVar[int] = 60
+    LAST_SERIAL_1900: ClassVar[int] = 2_958_465
+    LAST_SERIAL_1904: ClassVar[int] = 2_957_003
+    MILLISECONDS_A_DAY: ClassVar[int] = 86_400_000
     EARLY_YEAR: ClassVar[int] = 1000
     UTC: ClassVar[str] = "UTC"
     STORED_DATETIME_MIDNIGHT: ClassVar[str] = "yyyy-MM-dd"
@@ -83,14 +91,23 @@ class ReadingParser:
         "two-numbers": ("holds two numbers", "split it with a crosswalk action"),
         "number-form-character": ("holds a character such as `¹` or `½`", "correct the file, or delete the row"),
         "mixed-digits": ("mixes digits of different scripts", "correct the file, or delete the row"),
-        "undeclared-character": ("holds something undeclared", "declare it in `rules.currency` or `rules.marks`"),
+        "undeclared-character": (
+            "holds something undeclared",
+            "declare it in `rules.currency` or `rules.marks`, or if it means nothing in `missingValues`",
+        ),
         "undeclared-sign": ("has an undeclared negative form", "declare it in `rules.negative`"),
         "undeclared-exponent": ("has an undeclared exponent", "set `rules.exponent`, if it is a number"),
         "undeclared-non-finite": ("is `NaN` or `INF`", "set `rules.nonFinite`, or use `missingValues`"),
-        "grouping-mismatch": ("does not fit the declared marks", "correct `format`'s `decimalChar` and `groupChar`"),
+        "grouping-mismatch": (
+            "does not fit the declared marks",
+            "correct `format`'s `decimalChar` and `groupChar`, or if it means nothing use `missingValues`",
+        ),
         "too-many-digits": ("has more digits than its type holds", "declare `base` as `decimal`"),
         "not-an-integer": ("holds a fraction", "change the field's type to `number`"),
-        "not-in-format": ("does not fit the format", "correct `format`, or add to `rules.alternateFormats`"),
+        "not-in-format": (
+            "does not fit the format",
+            "correct `format`, add to `rules.alternateFormats`, or if it means nothing use `missingValues`",
+        ),
         "two-readings": ("fits two declared patterns differently", "keep the pattern the file uses"),
         "no-zone": ("states no offset, beside cells that do", "declare `rules.zone`"),
         "impossible-date": ("names no such date or time", "correct `format`, or delete the row"),
@@ -140,6 +157,8 @@ class ReadingParser:
         Raises:
           AttributeError: For a type with no reader.
         """
+        if dtype == FieldType.USDATE.value:
+            dtype, policy = FieldType.DATE.value, policy or PolicyModel(**PolicyModel.USDATE)
         if dtype not in self.readers:
             raise AttributeError(f"`{dtype}` has no reader.")
         # A Series method runs as `col(series.name)`, so a source's column name must not reach it
@@ -559,6 +578,11 @@ class ReadingParser:
             rendered = self.patterns_read(text=text, patterns=patterns, rules=rules, dtype=parsed)
             read = tuple(one.zip_with(is_stored, other) for one, other in zip(rendered, read))
         fits, twice, value = read
+        serial_time = pl.repeat(False, cells.len(), eager=True)
+        if rules.serial:
+            fits, value, serial_time, types = self.serials(
+                text=text, types=types, fits=fits, value=value, system=SerialDate(rules.serial)
+            )
         none = pl.repeat(None, cells.len(), eager=True, dtype=pl.String).alias(self.CELL)
         warning, no_zone = none, pl.repeat(False, cells.len(), eager=True)
         if dtype in (FieldType.DATE.value, FieldType.DATETIME.value) or period:
@@ -566,7 +590,7 @@ class ReadingParser:
             warning = pl.repeat(ReadingWarning.YEAR_BELOW_1000.value, cells.len(), eager=True).zip_with(early, warning)
         if dtype == FieldType.DATE.value:
             at_end = text.str.extract(self.patterns.TIME_AT_END, 1)
-            dropped = at_end.str.contains(self.patterns.NOT_ZERO).fill_null(False)
+            dropped = at_end.str.contains(self.patterns.NOT_ZERO).fill_null(False) | serial_time
             warning = pl.repeat(ReadingWarning.TIME_DROPPED.value, cells.len(), eager=True).zip_with(dropped, warning)
         if period:
             value = self.period_end(value, dtype).alias(self.CELL)
@@ -578,6 +602,38 @@ class ReadingParser:
             no_zone=no_zone, warning=warning,
         )
         return self.outcome(frame, value)
+
+    def serial_date(self, serial: str, system: SerialDate) -> datetime | None:
+        """A date serial as a moment, or `None` for a serial its system has no date for. Excel's 1900 system counts a
+        29 February 1900 that never happened, so serials after it are a day ahead of the calendar."""
+        days = float(serial)
+        whole = int(days)
+        if system == SerialDate.EXCEL_1904:
+            epoch, last = self.EPOCH_1904, self.LAST_SERIAL_1904
+        elif whole in (0, self.PHANTOM_LEAP_DAY):
+            return None
+        else:
+            epoch, last = (self.EPOCH_1900 if whole > self.PHANTOM_LEAP_DAY else self.EPOCH_1900_EARLY), self.LAST_SERIAL_1900
+        if whole > last:
+            return None
+        return epoch + timedelta(days=whole, milliseconds=round((days - whole) * self.MILLISECONDS_A_DAY))
+
+    def serials(
+        self, *, text: pl.Series, types: pl.Series, fits: pl.Series, value: pl.Series, system: SerialDate
+    ) -> tuple[pl.Series, pl.Series, pl.Series, pl.Series]:
+        """Read each cell no pattern fitted that is a bare number as a serial, whether text or a stored number. Returns
+        what fits, the values, whether a serial held a time, and the cell types, a serial then being read."""
+        readable = types.is_in([CellType.STRING.value, CellType.NUMBER.value])
+        serial = (text.str.contains(self.patterns.SERIAL).fill_null(False) & ~fits & readable).alias(self.CELL)
+        if not serial.any():
+            return fits, value, pl.repeat(False, text.len(), eager=True), types
+        moments = {cell: self.serial_date(cell, system) for cell in text.filter(serial).unique().to_list()}
+        read = [moments.get(cell) for cell in text.to_list()]
+        held_time = [moment is not None and (moment.hour or moment.minute or moment.second) for moment in read]
+        written = pl.Series(self.CELL, read, dtype=pl.Datetime("us")).cast(value.dtype)
+        tags = pl.repeat(CellType.STRING.value, text.len(), eager=True).zip_with(serial, types)
+        held = pl.Series(self.CELL, [bool(held) for held in held_time], dtype=pl.Boolean) & serial
+        return fits | serial, written.zip_with(serial, value), held, tags
 
     def zoned(self, *, value: pl.Series, offsets: pl.Series, zone: str | None) -> tuple[pl.Series, pl.Series, pl.Series]:
         """A datetime in its zone or, with none declared, UTC, from each cell's own offset or its declared clock. Returns
@@ -777,6 +833,8 @@ class ReadingParser:
 
     def finding(self, *, field: str, reason: str, shape: str, count: int, first: int, detail: str | None) -> FindingModel:
         says, does = self.ADVICE[reason]
+        if reason == RefusalReason.NOT_IN_FORMAT.value and not shape.strip("9."):
+            does = f"{does}, or if these are Excel date serials set `rules.serial`"
         cells = "1 cell" if count == 1 else f"{count} cells"
         named = f" (`{detail}`)" if detail else ""
         return FindingModel(

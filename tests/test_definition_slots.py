@@ -74,6 +74,8 @@ MISFITS = [
     ("datetime", {"format": "yyyy-MM-dd HH:mm", "rules": {"zone": "Mars/Olympus"}}, "policy-zone"),
     ("date", {"format": "yyyy-MM-dd", "rules": {"zone": "UTC"}}, "policy-conflict"),
     ("time", {"rules": {"zone": "UTC"}}, "policy-conflict"),
+    ("time", {"rules": {"serial": "excel-1900"}}, "policy-conflict"),
+    ("number", {"rules": {"serial": "excel-1900"}}, "policy-conflict"),
     ("month", {"format": "yyyy"}, "policy-pattern"),
     ("year", {"format": "MM/yyyy"}, "policy-pattern"),
     ("quarter", {"format": "'Q'Q"}, "policy-pattern"),

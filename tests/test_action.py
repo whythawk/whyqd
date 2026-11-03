@@ -1,6 +1,8 @@
 # SPDX-License-Identifier: BSD-3-Clause
 from pathlib import Path
 
+import json
+
 import pandas as pd
 
 import whyqd as qd
@@ -30,6 +32,14 @@ DESTINATION_SCHEMA_PORTSMOUTH = SOURCE_DIRECTORY / "test_portsmouth_destination.
 SOURCE_DATA_BASILDON = SOURCE_DIRECTORY / "test_basildon_source.data"
 SOURCE_SCHEMA_BASILDON = SOURCE_DIRECTORY / "test_basildon_source.schema"
 DESTINATION_SCHEMA_BASILDON = SOURCE_DIRECTORY / "test_basildon_destination.schema"
+
+
+def _declared(schema, **fields):
+    """A stored schema with `fields` declared as a wrangler would, to test an action rather than a reading."""
+    written = json.loads(qd.SchemaDefinition(source=schema).get_json())
+    for field in written["fields"]:
+        field |= fields.get(field["name"], {})
+    return qd.SchemaDefinition(source=written)
 
 
 def _test_script_action(script, schema_source, schema_destination, data_source):
@@ -113,7 +123,9 @@ class TestAction:
 
     def test_collate(self):
         script = "COLLATE > 'prop_ba_rates' < ['MandRlf', 'DiscRlf', 'AdditionalRlf', ~]"
-        assert _test_script_action(script, SOURCE_SCHEMA_BASILDON, DESTINATION_SCHEMA_BASILDON, SOURCE_DATA_BASILDON)
+        pounds = {"policy": {"format": {"groupChar": ","}, "rules": {"currency": ["£"]}}}
+        schema_source = _declared(SOURCE_SCHEMA_BASILDON, MandRlf=pounds, DiscRlf=pounds, AdditionalRlf=pounds)
+        assert _test_script_action(script, schema_source, DESTINATION_SCHEMA_BASILDON, SOURCE_DATA_BASILDON)
 
     def test_deblank(self):
         script = "DEBLANK"
@@ -138,8 +150,10 @@ class TestAction:
         assert _test_script_action(script, SOURCE_SCHEMA_CTHULHU, INTERIM_SCHEMA_CTHULHU, SOURCE_DATA_CTHULHU)
 
     def test_pivot_longer(self):
-        script = "PIVOT_LONGER > ['indicator_name', 'values'] < ['HDI rank', 'HDI Category', 'Human poverty index (HPI-1) - Rank;;2008', 'Human poverty index (HPI-1) - Value (%);;2008', 'Probability at birth of not surviving to age 40 (% of cohort);;2000-05', 'Adult illiteracy rate (% aged 15 and older);;1995-2005', 'Population not using an improved water source (%);;2004', 'Children under weight for age (% under age 5);;1996-2005', 'Population below income poverty line (%) - $1 a day;;1990-2005', 'Population below income poverty line (%) - $2 a day;;1990-2005', 'Population below income poverty line (%) - National poverty line;;1990-2004', 'HPI-1 rank minus income poverty rank;;2008']"
-        assert _test_script_action(script, INTERIM_SCHEMA_CTHULHU, DESTINATION_SCHEMA_CTHULHU, INTERIM_DATA_CTHULHU)
+        # A pivot's values hold labels beside numbers until later actions, so they are kept as text
+        destination = _declared(DESTINATION_SCHEMA_CTHULHU, values={"type": "string"})
+        script ="PIVOT_LONGER > ['indicator_name', 'values'] < ['HDI rank', 'HDI Category', 'Human poverty index (HPI-1) - Rank;;2008', 'Human poverty index (HPI-1) - Value (%);;2008', 'Probability at birth of not surviving to age 40 (% of cohort);;2000-05', 'Adult illiteracy rate (% aged 15 and older);;1995-2005', 'Population not using an improved water source (%);;2004', 'Children under weight for age (% under age 5);;1996-2005', 'Population below income poverty line (%) - $1 a day;;1990-2005', 'Population below income poverty line (%) - $2 a day;;1990-2005', 'Population below income poverty line (%) - National poverty line;;1990-2004', 'HPI-1 rank minus income poverty rank;;2008']"
+        assert _test_script_action(script, INTERIM_SCHEMA_CTHULHU, destination, INTERIM_DATA_CTHULHU)
 
     def test_pivot_longer_follows_source_column_order(self):
         df = pd.DataFrame({"id": ["x", "y"], "b": ["b1", "b2"], "a": ["a1", "a2"]})
@@ -180,7 +194,7 @@ class TestAction:
             "PIVOT_LONGER > ['indicator_name', 'values'] < ['HDI rank', 'HDI Category', 'Human poverty index (HPI-1) - Rank;;2008', 'Human poverty index (HPI-1) - Value (%);;2008', 'Probability at birth of not surviving to age 40 (% of cohort);;2000-05', 'Adult illiteracy rate (% aged 15 and older);;1995-2005', 'Population not using an improved water source (%);;2004', 'Children under weight for age (% under age 5);;1996-2005', 'Population below income poverty line (%) - $1 a day;;1990-2005', 'Population below income poverty line (%) - $2 a day;;1990-2005', 'Population below income poverty line (%) - National poverty line;;1990-2004', 'HPI-1 rank minus income poverty rank;;2008']",
             "SEPARATE > ['indicator_name', 'year'] < ';;'::['indicator_name']",
         ]
-        assert _test_script_action(script, INTERIM_SCHEMA_CTHULHU, DESTINATION_SCHEMA_CTHULHU, INTERIM_DATA_CTHULHU)
+        assert _test_script_action(script, INTERIM_SCHEMA_CTHULHU, _declared(DESTINATION_SCHEMA_CTHULHU, values={"type": "string"}), INTERIM_DATA_CTHULHU)
 
     def test_unite(self):
         script = "UNITE > 'reference' < ['Reference 1', 'Reference 2', 'Reference 3', 'Reference 4', 'Reference 5', 'Reference 6', 'Reference 7', 'Reference 8']"

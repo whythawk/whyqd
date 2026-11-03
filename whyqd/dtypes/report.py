@@ -5,12 +5,14 @@ from enum import Enum
 class FindingKind(str, Enum):
     FAULT = "fault"
     FACT = "fact"
+    WARNING = "warning"
 
     @property
     def describe(self):
         description = {
             "fault": "The file could not be read as written, or was read with a loss. Its owner may correct it, or a "
             "setting may read past it.",
+            "warning": "A value was read, with something worth checking. It stops nothing.",
             "fact": "Something the file holds, with no claim of what it means. What to do about it, if anything, is "
             "for the crosswalk.",
         }
