@@ -1,17 +1,218 @@
 {
-  "generated": "2026-10-21T14:30:50",
-  "design": "proposed typing",
+  "generated": "2026-11-03T15:36:17",
   "number": {
+    "canonical": {
+      "type": "number",
+      "policy": null,
+      "cases": [
+        {
+          "text": "1234.50",
+          "outcome": "value",
+          "value": "1234.50",
+          "note": ""
+        },
+        {
+          "text": "-5",
+          "outcome": "value",
+          "value": "-5",
+          "note": ""
+        },
+        {
+          "text": "0000130842",
+          "outcome": "value",
+          "value": "130842",
+          "note": ""
+        },
+        {
+          "text": " 7",
+          "outcome": "value",
+          "value": "7",
+          "note": ""
+        },
+        {
+          "text": "−45",
+          "outcome": "value",
+          "value": "-45",
+          "note": "Unicode minus"
+        },
+        {
+          "text": "１２",
+          "outcome": "value",
+          "value": "12",
+          "note": "full-width digits, NFKC"
+        },
+        {
+          "text": "٣٤",
+          "outcome": "value",
+          "value": "34",
+          "note": "Arabic-Indic digits, by Unicode's value"
+        },
+        {
+          "text": "१२३",
+          "outcome": "value",
+          "value": "123",
+          "note": "Devanagari digits"
+        },
+        {
+          "text": "12‏",
+          "outcome": "value",
+          "value": "12",
+          "note": "a right-to-left mark"
+        },
+        {
+          "text": "٣4",
+          "outcome": "refuse",
+          "reason": "mixed-digits"
+        },
+        {
+          "text": "1,234",
+          "outcome": "refuse",
+          "reason": "undeclared-character"
+        },
+        {
+          "text": "£5",
+          "outcome": "refuse",
+          "reason": "undeclared-character"
+        },
+        {
+          "text": "<5",
+          "outcome": "refuse",
+          "reason": "undeclared-character"
+        },
+        {
+          "text": "~5",
+          "outcome": "refuse",
+          "reason": "undeclared-character"
+        },
+        {
+          "text": "±5",
+          "outcome": "refuse",
+          "reason": "undeclared-character"
+        },
+        {
+          "text": "5%",
+          "outcome": "refuse",
+          "reason": "undeclared-character"
+        },
+        {
+          "text": "12​",
+          "outcome": "refuse",
+          "reason": "undeclared-character"
+        },
+        {
+          "text": "(5)",
+          "outcome": "refuse",
+          "reason": "undeclared-sign"
+        },
+        {
+          "text": "5-",
+          "outcome": "refuse",
+          "reason": "undeclared-sign"
+        },
+        {
+          "text": "1e3",
+          "outcome": "refuse",
+          "reason": "undeclared-exponent"
+        },
+        {
+          "text": "12E4",
+          "outcome": "refuse",
+          "reason": "undeclared-exponent"
+        },
+        {
+          "text": "2310009E13",
+          "outcome": "refuse",
+          "reason": "undeclared-exponent"
+        },
+        {
+          "text": "NaN",
+          "outcome": "refuse",
+          "reason": "undeclared-non-finite"
+        },
+        {
+          "text": "INF",
+          "outcome": "refuse",
+          "reason": "undeclared-non-finite"
+        },
+        {
+          "text": "-INF",
+          "outcome": "refuse",
+          "reason": "undeclared-non-finite"
+        },
+        {
+          "text": "43.40¹",
+          "outcome": "refuse",
+          "reason": "number-form-character"
+        },
+        {
+          "text": "10²",
+          "outcome": "refuse",
+          "reason": "number-form-character"
+        },
+        {
+          "text": "①2",
+          "outcome": "refuse",
+          "reason": "number-form-character"
+        },
+        {
+          "text": "½",
+          "outcome": "refuse",
+          "reason": "number-form-character"
+        },
+        {
+          "text": "1½",
+          "outcome": "refuse",
+          "reason": "number-form-character"
+        },
+        {
+          "text": "12345678901234567890",
+          "outcome": "refuse",
+          "reason": "too-many-digits"
+        },
+        {
+          "text": "N/A",
+          "outcome": "refuse",
+          "reason": "undeclared-character"
+        },
+        {
+          "text": "",
+          "outcome": "blank"
+        },
+        {
+          "text": "   ",
+          "outcome": "blank"
+        },
+        {
+          "text": " ",
+          "outcome": "blank"
+        },
+        {
+          "text": "\t",
+          "outcome": "blank"
+        },
+        {
+          "text": " ",
+          "outcome": "blank"
+        }
+      ]
+    },
     "UK": {
+      "type": "number",
       "policy": {
-        "decimal": ".",
-        "grouping": ",",
-        "negatives": [
-          "-x",
-          "(x)",
-          "x-"
-        ],
-        "percent": "number"
+        "format": {
+          "decimalChar": ".",
+          "groupChar": ","
+        },
+        "rules": {
+          "currency": [
+            "£",
+            "¬£"
+          ],
+          "negative": [
+            "(x)",
+            "x-"
+          ]
+        }
       },
       "cases": [
         {
@@ -24,7 +225,7 @@
           "text": "¬£43.40",
           "outcome": "value",
           "value": "43.40",
-          "note": "mojibake: ¬ is Sm, £ is Sc, both drop"
+          "note": "mojibake, declared as a currency"
         },
         {
           "text": "£-826.80",
@@ -63,12 +264,6 @@
           "note": ""
         },
         {
-          "text": "1e3",
-          "outcome": "value",
-          "value": "1000",
-          "note": ""
-        },
-        {
           "text": "(826.80)",
           "outcome": "value",
           "value": "-826.80",
@@ -93,12 +288,6 @@
           "note": ""
         },
         {
-          "text": "5%",
-          "outcome": "value",
-          "value": "5",
-          "note": "percent policy: number"
-        },
-        {
           "text": "−45",
           "outcome": "value",
           "value": "-45",
@@ -111,44 +300,64 @@
           "note": "full-width digits, NFKC"
         },
         {
+          "text": "1e3",
+          "outcome": "refuse",
+          "reason": "undeclared-exponent"
+        },
+        {
+          "text": "5%",
+          "outcome": "refuse",
+          "reason": "undeclared-character"
+        },
+        {
+          "text": "$5",
+          "outcome": "refuse",
+          "reason": "undeclared-character"
+        },
+        {
           "text": "1.234,50",
           "outcome": "refuse",
-          "reason": "separators out of order for this policy"
+          "reason": "grouping-mismatch"
         },
         {
           "text": "1,5",
           "outcome": "refuse",
-          "reason": "grouping of fewer than three digits"
-        },
-        {
-          "text": "826.80 CR",
-          "outcome": "refuse",
-          "reason": "letters"
-        },
-        {
-          "text": "N/A",
-          "outcome": "refuse",
-          "reason": "letters"
-        },
-        {
-          "text": "12k",
-          "outcome": "refuse",
-          "reason": "letters"
-        },
-        {
-          "text": "£10 - £20",
-          "outcome": "refuse",
-          "reason": "two numbers"
-        },
-        {
-          "text": "Trans Prem: £0.01",
-          "outcome": "refuse",
-          "reason": "letters"
+          "reason": "grouping-mismatch"
         },
         {
           "text": "1.2.3",
           "outcome": "refuse",
-          "reason": "two decimal points"
+          "reason": "grouping-mismatch"
+        },
+        {
+          "text": "12,34,567",
+          "outcome": "refuse",
+          "reason": "grouping-mismatch"
+        },
+        {
+          "text": "826.80 CR",
+          "outcome": "refuse",
+          "reason": "undeclared-character"
+        },
+        {
+          "text": "N/A",
+          "outcome": "refuse",
+          "reason": "undeclared-character"
+        },
+        {
+          "text": "12k",
+          "outcome": "refuse",
+          "reason": "undeclared-character"
+        },
+        {
+          "text": "£10 - £20",
+          "outcome": "refuse",
+          "reason": "two-numbers"
+        },
+        {
+          "text": "Trans Prem: £0.01",
+          "outcome": "refuse",
+          "reason": "undeclared-character"
         },
         {
           "text": "",
@@ -159,25 +368,31 @@
           "outcome": "blank"
         },
         {
-          "text": " ",
+          "text": " ",
           "outcome": "blank"
         },
         {
           "text": "\t",
           "outcome": "blank"
+        },
+        {
+          "text": " ",
+          "outcome": "blank"
         }
       ]
     },
     "EU": {
+      "type": "number",
       "policy": {
-        "decimal": ",",
-        "grouping": ".",
-        "negatives": [
-          "-x",
-          "(x)",
-          "x-"
-        ],
-        "percent": "number"
+        "format": {
+          "decimalChar": ",",
+          "groupChar": "."
+        },
+        "rules": {
+          "currency": [
+            "€"
+          ]
+        }
       },
       "cases": [
         {
@@ -205,9 +420,20 @@
           "note": ""
         },
         {
+          "text": "12,30 €",
+          "outcome": "value",
+          "value": "12.30",
+          "note": ""
+        },
+        {
           "text": "1,234.50",
           "outcome": "refuse",
-          "reason": "separators out of order for this policy"
+          "reason": "grouping-mismatch"
+        },
+        {
+          "text": "(5)",
+          "outcome": "refuse",
+          "reason": "undeclared-sign"
         },
         {
           "text": "",
@@ -216,21 +442,300 @@
         {
           "text": "   ",
           "outcome": "blank"
+        },
+        {
+          "text": " ",
+          "outcome": "blank"
+        },
+        {
+          "text": "\t",
+          "outcome": "blank"
+        },
+        {
+          "text": " ",
+          "outcome": "blank"
+        }
+      ]
+    },
+    "lakh": {
+      "type": "number",
+      "policy": {
+        "format": {
+          "decimalChar": ".",
+          "groupChar": ",",
+          "pattern": "#,##,##0.##"
+        },
+        "rules": {
+          "currency": [
+            "₹"
+          ]
+        }
+      },
+      "cases": [
+        {
+          "text": "₹12,34,567.50",
+          "outcome": "value",
+          "value": "1234567.50",
+          "note": ""
+        },
+        {
+          "text": "1,234",
+          "outcome": "value",
+          "value": "1234",
+          "note": ""
+        },
+        {
+          "text": "99,99,99,999",
+          "outcome": "value",
+          "value": "999999999",
+          "note": ""
+        },
+        {
+          "text": "1,234,567",
+          "outcome": "refuse",
+          "reason": "grouping-mismatch"
+        }
+      ]
+    },
+    "spaces and marks": {
+      "type": "number",
+      "policy": {
+        "format": {
+          "decimalChar": ",",
+          "groupChar": " "
+        },
+        "rules": {
+          "negative": [
+            "x CR"
+          ],
+          "marks": [
+            "#"
+          ]
+        }
+      },
+      "cases": [
+        {
+          "text": "1 234,50",
+          "outcome": "value",
+          "value": "1234.50",
+          "note": "a thin space, as declared"
+        },
+        {
+          "text": "1 234,50",
+          "outcome": "value",
+          "value": "1234.50",
+          "note": "NFKC makes a hard space and a thin one the same"
+        },
+        {
+          "text": "#-4963,45",
+          "outcome": "value",
+          "value": "-4963.45",
+          "note": "a publisher's mark"
+        },
+        {
+          "text": "826,80 CR",
+          "outcome": "value",
+          "value": "-826.80",
+          "note": ""
+        },
+        {
+          "text": "826,80 DR",
+          "outcome": "refuse",
+          "reason": "undeclared-character"
+        }
+      ]
+    },
+    "Swiss": {
+      "type": "number",
+      "policy": {
+        "format": {
+          "decimalChar": ".",
+          "groupChar": "’"
+        },
+        "rules": {
+          "currency": [
+            "CHF"
+          ]
+        }
+      },
+      "cases": [
+        {
+          "text": "CHF 1’234.50",
+          "outcome": "value",
+          "value": "1234.50",
+          "note": ""
+        },
+        {
+          "text": "CHF-5.00",
+          "outcome": "value",
+          "value": "-5.00",
+          "note": ""
+        },
+        {
+          "text": "EUR 5.00",
+          "outcome": "refuse",
+          "reason": "undeclared-character"
+        }
+      ]
+    },
+    "Arabic": {
+      "type": "number",
+      "policy": {
+        "format": {
+          "decimalChar": "٫",
+          "groupChar": "٬"
+        },
+        "rules": {
+          "currency": [
+            "ج.م."
+          ],
+          "percent": "٪"
+        }
+      },
+      "cases": [
+        {
+          "text": "١٬٢٣٤٫٥٠",
+          "outcome": "value",
+          "value": "1234.50",
+          "note": ""
+        },
+        {
+          "text": "‏-١٬٢٣٤٫٥٠ ج.م.‏",
+          "outcome": "value",
+          "value": "-1234.50",
+          "note": "bidirectional marks removed"
+        },
+        {
+          "text": "؜-٥",
+          "outcome": "value",
+          "value": "-5",
+          "note": "ar-EG's minus, a letter mark then a hyphen"
+        },
+        {
+          "text": "٥٪؜",
+          "outcome": "value",
+          "value": "0.05",
+          "note": "a percent"
+        }
+      ]
+    },
+    "percent": {
+      "type": "number",
+      "policy": {
+        "rules": {
+          "percent": "%",
+          "perMille": "‰"
+        }
+      },
+      "cases": [
+        {
+          "text": "5%",
+          "outcome": "value",
+          "value": "0.05",
+          "note": ""
+        },
+        {
+          "text": "5.5%",
+          "outcome": "value",
+          "value": "0.055",
+          "note": ""
+        },
+        {
+          "text": "5‰",
+          "outcome": "value",
+          "value": "0.005",
+          "note": ""
+        },
+        {
+          "text": "-5%",
+          "outcome": "value",
+          "value": "-0.05",
+          "note": ""
+        },
+        {
+          "text": "5",
+          "outcome": "value",
+          "value": "5",
+          "note": ""
+        }
+      ]
+    },
+    "exponent": {
+      "type": "number",
+      "policy": {
+        "rules": {
+          "exponent": true,
+          "nonFinite": true
+        }
+      },
+      "cases": [
+        {
+          "text": "1e3",
+          "outcome": "value",
+          "value": "1000",
+          "note": ""
+        },
+        {
+          "text": "12E4",
+          "outcome": "value",
+          "value": "120000",
+          "note": ""
+        },
+        {
+          "text": "NaN",
+          "outcome": "value",
+          "value": "NaN",
+          "note": ""
+        },
+        {
+          "text": "INF",
+          "outcome": "value",
+          "value": "INF",
+          "note": ""
+        },
+        {
+          "text": "-INF",
+          "outcome": "value",
+          "value": "-INF",
+          "note": ""
+        }
+      ]
+    },
+    "decimal": {
+      "type": "number",
+      "policy": {
+        "base": "decimal"
+      },
+      "cases": [
+        {
+          "text": "12345678901234567890",
+          "outcome": "value",
+          "value": "12345678901234567890",
+          "note": ""
+        },
+        {
+          "text": "0.10",
+          "outcome": "value",
+          "value": "0.10",
+          "note": ""
+        },
+        {
+          "text": "1234.5",
+          "outcome": "value",
+          "value": "1234.5",
+          "note": ""
         }
       ]
     }
   },
   "integer": {
     "UK": {
+      "type": "integer",
       "policy": {
-        "decimal": ".",
-        "grouping": ",",
-        "negatives": [
-          "-x",
-          "(x)",
-          "x-"
-        ],
-        "percent": "number"
+        "format": {
+          "decimalChar": ".",
+          "groupChar": ","
+        }
       },
       "cases": [
         {
@@ -260,17 +765,17 @@
         {
           "text": "12.50",
           "outcome": "refuse",
-          "reason": "a fraction is not an integer"
+          "reason": "not-an-integer"
         },
         {
           "text": "1.234,50",
           "outcome": "refuse",
-          "reason": "separators out of order for this policy"
+          "reason": "grouping-mismatch"
         },
         {
           "text": "826.80-",
           "outcome": "refuse",
-          "reason": "a fraction is not an integer"
+          "reason": "undeclared-sign"
         },
         {
           "text": "",
@@ -279,27 +784,26 @@
         {
           "text": "   ",
           "outcome": "blank"
+        },
+        {
+          "text": " ",
+          "outcome": "blank"
+        },
+        {
+          "text": "\t",
+          "outcome": "blank"
+        },
+        {
+          "text": " ",
+          "outcome": "blank"
         }
       ]
     }
   },
   "boolean": {
-    "declared": {
-      "policy": {
-        "true": [
-          "true",
-          "yes",
-          "y",
-          "1"
-        ],
-        "false": [
-          "false",
-          "no",
-          "n",
-          "0"
-        ],
-        "case": "insensitive"
-      },
+    "canonical": {
+      "type": "boolean",
+      "policy": null,
       "cases": [
         {
           "text": "TRUE",
@@ -314,7 +818,7 @@
           "note": ""
         },
         {
-          "text": "Y",
+          "text": "True",
           "outcome": "value",
           "value": true,
           "note": ""
@@ -326,19 +830,13 @@
           "note": ""
         },
         {
-          "text": "yes",
-          "outcome": "value",
-          "value": true,
-          "note": ""
-        },
-        {
           "text": "FALSE",
           "outcome": "value",
           "value": false,
           "note": ""
         },
         {
-          "text": "N",
+          "text": "false",
           "outcome": "value",
           "value": false,
           "note": ""
@@ -350,9 +848,14 @@
           "note": ""
         },
         {
-          "text": "maybe",
+          "text": "Y",
           "outcome": "refuse",
-          "reason": "not in the declared terms"
+          "reason": "not-in-format"
+        },
+        {
+          "text": "N",
+          "outcome": "refuse",
+          "reason": "not-in-format"
         },
         {
           "text": "",
@@ -363,20 +866,162 @@
           "outcome": "blank"
         },
         {
-          "text": " ",
+          "text": " ",
           "outcome": "blank"
         },
         {
           "text": "\t",
+          "outcome": "blank"
+        },
+        {
+          "text": " ",
+          "outcome": "blank"
+        }
+      ]
+    },
+    "declared": {
+      "type": "boolean",
+      "policy": {
+        "format": "Y|N",
+        "rules": {
+          "alternateFormats": [
+            "Yes|No",
+            "1|0"
+          ]
+        }
+      },
+      "cases": [
+        {
+          "text": "Y",
+          "outcome": "value",
+          "value": true,
+          "note": ""
+        },
+        {
+          "text": "Yes",
+          "outcome": "value",
+          "value": true,
+          "note": ""
+        },
+        {
+          "text": "1",
+          "outcome": "value",
+          "value": true,
+          "note": ""
+        },
+        {
+          "text": "N",
+          "outcome": "value",
+          "value": false,
+          "note": ""
+        },
+        {
+          "text": "No",
+          "outcome": "value",
+          "value": false,
+          "note": ""
+        },
+        {
+          "text": "0",
+          "outcome": "value",
+          "value": false,
+          "note": ""
+        },
+        {
+          "text": "TRUE",
+          "outcome": "refuse",
+          "reason": "not-in-format"
+        },
+        {
+          "text": "y",
+          "outcome": "refuse",
+          "reason": "not-in-format"
+        },
+        {
+          "text": "maybe",
+          "outcome": "refuse",
+          "reason": "not-in-format"
+        },
+        {
+          "text": "",
+          "outcome": "blank"
+        },
+        {
+          "text": "   ",
+          "outcome": "blank"
+        },
+        {
+          "text": " ",
+          "outcome": "blank"
+        },
+        {
+          "text": "\t",
+          "outcome": "blank"
+        },
+        {
+          "text": " ",
           "outcome": "blank"
         }
       ]
     }
   },
   "date": {
+    "canonical": {
+      "type": "date",
+      "policy": null,
+      "cases": [
+        {
+          "text": "2024-04-13",
+          "outcome": "value",
+          "value": "2024-04-13",
+          "note": ""
+        },
+        {
+          "text": "13/04/2024",
+          "outcome": "refuse",
+          "reason": "not-in-format"
+        },
+        {
+          "text": "2024/04/13",
+          "outcome": "refuse",
+          "reason": "not-in-format"
+        },
+        {
+          "text": "2024-02-30",
+          "outcome": "refuse",
+          "reason": "impossible-date"
+        },
+        {
+          "text": "",
+          "outcome": "blank"
+        },
+        {
+          "text": "   ",
+          "outcome": "blank"
+        },
+        {
+          "text": " ",
+          "outcome": "blank"
+        },
+        {
+          "text": "\t",
+          "outcome": "blank"
+        },
+        {
+          "text": " ",
+          "outcome": "blank"
+        }
+      ]
+    },
     "day_first": {
+      "type": "date",
       "policy": {
-        "order": "day_first"
+        "format": "dd/MM/yyyy",
+        "rules": {
+          "alternateFormats": [
+            "yyyy-MM-dd"
+          ]
+        }
       },
       "cases": [
         {
@@ -392,12 +1037,6 @@
           "note": ""
         },
         {
-          "text": "2010-04-01 00:00:00",
-          "outcome": "value",
-          "value": "2010-04-01",
-          "note": ""
-        },
-        {
           "text": "2024-04-01",
           "outcome": "value",
           "value": "2024-04-01",
@@ -405,25 +1044,28 @@
         },
         {
           "text": "2024/04/01",
-          "outcome": "value",
-          "value": "2024-04-01",
-          "note": "year-first in any separator is year, month, day"
+          "outcome": "refuse",
+          "reason": "not-in-format"
         },
         {
           "text": "01.04.2010",
-          "outcome": "value",
-          "value": "2010-04-01",
-          "note": ""
+          "outcome": "refuse",
+          "reason": "not-in-format"
+        },
+        {
+          "text": "2010-04-01 00:00:00",
+          "outcome": "refuse",
+          "reason": "not-in-format"
         },
         {
           "text": "31/02/2024",
           "outcome": "refuse",
-          "reason": "no such date"
+          "reason": "impossible-date"
         },
         {
           "text": "45295",
           "outcome": "refuse",
-          "reason": "an Excel serial as text"
+          "reason": "not-in-format"
         },
         {
           "text": "",
@@ -432,12 +1074,25 @@
         {
           "text": "   ",
           "outcome": "blank"
+        },
+        {
+          "text": " ",
+          "outcome": "blank"
+        },
+        {
+          "text": "\t",
+          "outcome": "blank"
+        },
+        {
+          "text": " ",
+          "outcome": "blank"
         }
       ]
     },
     "month_first": {
+      "type": "date",
       "policy": {
-        "order": "month_first"
+        "format": "MM/dd/yyyy"
       },
       "cases": [
         {
@@ -447,43 +1102,444 @@
           "note": ""
         },
         {
+          "text": "13/04/2024",
+          "outcome": "refuse",
+          "reason": "impossible-date"
+        },
+        {
+          "text": "2024/04/01",
+          "outcome": "refuse",
+          "reason": "not-in-format"
+        }
+      ]
+    },
+    "dotted": {
+      "type": "date",
+      "policy": {
+        "format": "dd.MM.yyyy"
+      },
+      "cases": [
+        {
+          "text": "01.04.2010",
+          "outcome": "value",
+          "value": "2010-04-01",
+          "note": ""
+        }
+      ]
+    },
+    "year_first": {
+      "type": "date",
+      "policy": {
+        "format": "yyyy/MM/dd"
+      },
+      "cases": [
+        {
           "text": "2024/04/01",
           "outcome": "value",
           "value": "2024-04-01",
           "note": ""
         },
         {
-          "text": "13/04/2024",
+          "text": "2024/13/01",
           "outcome": "refuse",
-          "reason": "no month 13; never read day-first"
+          "reason": "impossible-date"
+        }
+      ]
+    },
+    "two_digit_year": {
+      "type": "date",
+      "policy": {
+        "format": "dd.MM.yy",
+        "rules": {
+          "yearStart": 1950
+        }
+      },
+      "cases": [
+        {
+          "text": "01.04.24",
+          "outcome": "value",
+          "value": "2024-04-01",
+          "note": ""
+        },
+        {
+          "text": "01.04.49",
+          "outcome": "value",
+          "value": "2049-04-01",
+          "note": ""
+        },
+        {
+          "text": "01.04.50",
+          "outcome": "value",
+          "value": "1950-04-01",
+          "note": ""
+        },
+        {
+          "text": "01.04.97",
+          "outcome": "value",
+          "value": "1997-04-01",
+          "note": ""
+        },
+        {
+          "text": "01.04.2024",
+          "outcome": "refuse",
+          "reason": "not-in-format"
+        }
+      ]
+    },
+    "month_names": {
+      "type": "date",
+      "policy": {
+        "format": "d MMMM yyyy",
+        "rules": {
+          "alternateFormats": [
+            "d MMM yyyy"
+          ],
+          "monthNames": [
+            "January",
+            "February",
+            "March",
+            "April",
+            "May",
+            "June",
+            "July",
+            "August",
+            "September",
+            "October",
+            "November",
+            "December"
+          ],
+          "monthAbbreviations": [
+            "Jan",
+            "Feb",
+            "Mar",
+            "Apr",
+            "May",
+            "Jun",
+            "Jul",
+            "Aug",
+            "Sep",
+            "Oct",
+            "Nov",
+            "Dec"
+          ]
+        }
+      },
+      "cases": [
+        {
+          "text": "1 April 2024",
+          "outcome": "value",
+          "value": "2024-04-01",
+          "note": ""
+        },
+        {
+          "text": "1 Apr 2024",
+          "outcome": "value",
+          "value": "2024-04-01",
+          "note": ""
+        },
+        {
+          "text": "1 Avril 2024",
+          "outcome": "refuse",
+          "reason": "not-in-format"
+        },
+        {
+          "text": "1 APRIL 2024",
+          "outcome": "refuse",
+          "reason": "not-in-format"
+        }
+      ]
+    },
+    "quoted": {
+      "type": "date",
+      "policy": {
+        "format": "d 'de' MMM 'de' y",
+        "rules": {
+          "monthAbbreviations": [
+            "jan.",
+            "fev.",
+            "mar.",
+            "abr.",
+            "mai",
+            "jun.",
+            "jul.",
+            "ago.",
+            "set.",
+            "out.",
+            "nov.",
+            "dez."
+          ]
+        }
+      },
+      "cases": [
+        {
+          "text": "1 de abr. de 2024",
+          "outcome": "value",
+          "value": "2024-04-01",
+          "note": ""
+        },
+        {
+          "text": "1 abr. 2024",
+          "outcome": "refuse",
+          "reason": "not-in-format"
+        }
+      ]
+    },
+    "Arabic": {
+      "type": "date",
+      "policy": {
+        "format": "d‏/M‏/y"
+      },
+      "cases": [
+        {
+          "text": "١‏/٤‏/٢٠٢٤",
+          "outcome": "value",
+          "value": "2024-04-01",
+          "note": "by Unicode's digits, with marks removed"
+        },
+        {
+          "text": "1/4/2024",
+          "outcome": "value",
+          "value": "2024-04-01",
+          "note": ""
         }
       ]
     },
     "month_first_cells": {
+      "type": "date",
       "policy": {
-        "order": "day_first",
-        "date_cells": "swap_day_month"
+        "format": "dd/MM/yyyy",
+        "rules": {
+          "cellFormats": {
+            "d": "yyyy-dd-MM"
+          }
+        }
       },
-      "note": "the Stockport case: date cells were swapped by Excel, text cells are day-first as published",
       "cases": [
         {
-          "cell_type": "date",
-          "stored": "2024-01-04",
+          "cell_type": "d",
+          "text": "2024-01-04",
           "outcome": "value",
           "value": "2024-04-01"
         },
         {
-          "cell_type": "text",
+          "cell_type": "s",
           "text": "13/04/2024",
           "outcome": "value",
           "value": "2024-04-13"
         }
+      ],
+      "note": "A column Excel partly converted: its date cells have day and month swapped, its text is as published."
+    },
+    "stored_cells": {
+      "type": "date",
+      "policy": {
+        "format": "dd/MM/yyyy"
+      },
+      "cases": [
+        {
+          "cell_type": "d",
+          "text": "2024-01-04",
+          "outcome": "value",
+          "value": "2024-01-04"
+        },
+        {
+          "cell_type": "e",
+          "text": "#N/A",
+          "outcome": "refuse",
+          "reason": "error-cell"
+        }
+      ],
+      "note": "A policy's text rules read only text cells: a stored date is already a value."
+    }
+  },
+  "time": {
+    "canonical": {
+      "type": "time",
+      "policy": null,
+      "cases": [
+        {
+          "text": "12:45:00",
+          "outcome": "value",
+          "value": "12:45:00",
+          "note": ""
+        },
+        {
+          "text": "12:45",
+          "outcome": "refuse",
+          "reason": "not-in-format"
+        },
+        {
+          "text": "25:00:00",
+          "outcome": "refuse",
+          "reason": "impossible-date"
+        },
+        {
+          "text": "",
+          "outcome": "blank"
+        },
+        {
+          "text": "   ",
+          "outcome": "blank"
+        },
+        {
+          "text": " ",
+          "outcome": "blank"
+        },
+        {
+          "text": "\t",
+          "outcome": "blank"
+        },
+        {
+          "text": " ",
+          "outcome": "blank"
+        }
       ]
+    },
+    "declared": {
+      "type": "time",
+      "policy": {
+        "format": "HH:mm"
+      },
+      "cases": [
+        {
+          "text": "12:45",
+          "outcome": "value",
+          "value": "12:45:00",
+          "note": ""
+        },
+        {
+          "text": "12:45:00",
+          "outcome": "refuse",
+          "reason": "not-in-format"
+        }
+      ]
+    }
+  },
+  "datetime": {
+    "canonical": {
+      "type": "datetime",
+      "policy": null,
+      "cases": [
+        {
+          "text": "2024-04-13T12:45:00",
+          "outcome": "value",
+          "value": "2024-04-13T12:45:00",
+          "note": ""
+        },
+        {
+          "text": "13/04/2024 12:45",
+          "outcome": "refuse",
+          "reason": "not-in-format"
+        },
+        {
+          "text": "",
+          "outcome": "blank"
+        },
+        {
+          "text": "   ",
+          "outcome": "blank"
+        },
+        {
+          "text": " ",
+          "outcome": "blank"
+        },
+        {
+          "text": "\t",
+          "outcome": "blank"
+        },
+        {
+          "text": " ",
+          "outcome": "blank"
+        }
+      ]
+    },
+    "declared": {
+      "type": "datetime",
+      "policy": {
+        "format": "dd/MM/yyyy HH:mm"
+      },
+      "cases": [
+        {
+          "text": "13/04/2024 12:45",
+          "outcome": "value",
+          "value": "2024-04-13T12:45:00",
+          "note": ""
+        }
+      ]
+    }
+  },
+  "duration": {
+    "canonical": {
+      "type": "duration",
+      "policy": null,
+      "cases": [
+        {
+          "text": "PT25M",
+          "outcome": "value",
+          "value": "PT25M",
+          "note": ""
+        },
+        {
+          "text": "PT1H30M",
+          "outcome": "value",
+          "value": "PT1H30M",
+          "note": ""
+        },
+        {
+          "text": "P1DT2H",
+          "outcome": "value",
+          "value": "P1DT2H",
+          "note": ""
+        },
+        {
+          "text": "P1Y",
+          "outcome": "refuse",
+          "reason": "not-in-format"
+        },
+        {
+          "text": "P1M",
+          "outcome": "refuse",
+          "reason": "not-in-format"
+        },
+        {
+          "text": "25 min",
+          "outcome": "refuse",
+          "reason": "not-in-format"
+        },
+        {
+          "cell_type": "d",
+          "text": "PT25H30M",
+          "outcome": "value",
+          "value": "PT25H30M"
+        },
+        {
+          "text": "",
+          "outcome": "blank"
+        },
+        {
+          "text": "   ",
+          "outcome": "blank"
+        },
+        {
+          "text": " ",
+          "outcome": "blank"
+        },
+        {
+          "text": "\t",
+          "outcome": "blank"
+        },
+        {
+          "text": " ",
+          "outcome": "blank"
+        }
+      ],
+      "note": "Years and months have no fixed length. How a publisher's `1:30` or `25 min` is declared is not settled."
     }
   },
   "string": {
     "default": {
-      "policy": {},
+      "type": "string",
+      "policy": null,
       "cases": [
         {
           "text": "  a  b ",
@@ -530,14 +1586,52 @@
           "outcome": "blank"
         },
         {
-          "text": " ",
+          "text": " ",
           "outcome": "blank"
         },
         {
           "text": "\t",
           "outcome": "blank"
+        },
+        {
+          "text": " ",
+          "outcome": "blank"
         }
       ]
+    },
+    "excel_damage": {
+      "type": "string",
+      "policy": null,
+      "cases": [
+        {
+          "cell_type": "d",
+          "text": "2024-09-02",
+          "outcome": "value",
+          "value": "2024-09-02",
+          "warns": "SEPT2"
+        },
+        {
+          "cell_type": "n",
+          "text": "23100090000000000000",
+          "outcome": "value",
+          "value": "23100090000000000000",
+          "warns": "2310009E13"
+        },
+        {
+          "cell_type": "d",
+          "text": "2024-09-01",
+          "outcome": "value",
+          "value": "2024-09-01",
+          "warns": "1-Sep"
+        },
+        {
+          "cell_type": "s",
+          "text": "SEPT2",
+          "outcome": "value",
+          "value": "SEPT2"
+        }
+      ],
+      "note": "What Excel did before whyqd saw the file: `warns` holds the original, which is gone. whyqd warns of the stored type and never reverses it."
     }
   },
   "categorise": {
@@ -552,11 +1646,15 @@
         "is_value": false
       },
       {
-        "text": " ",
+        "text": " ",
         "is_value": false
       },
       {
         "text": "\t",
+        "is_value": false
+      },
+      {
+        "text": " ",
         "is_value": false
       },
       {
@@ -572,7 +1670,7 @@
         "is_value": true
       },
       {
-        "text": "a b",
+        "text": "a b",
         "is_value": true
       }
     ]

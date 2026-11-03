@@ -17,6 +17,59 @@ class FindingKind(str, Enum):
         return description[self.value]
 
 
+class ReadingKind(str, Enum):
+    VALUE = "value"
+    BLANK = "blank"
+    REFUSED = "refused"
+
+    @property
+    def describe(self):
+        description = {
+            "value": "The cell fits its field's declaration, and holds this value.",
+            "blank": "The cell is empty or only whitespace, by load's one definition, so it is never a value.",
+            "refused": "The cell does not fit its field's declaration, and is never read another way.",
+        }
+        return description[self.value]
+
+
+class RefusalReason(str, Enum):
+    NO_NUMBER = "no-number"
+    TWO_NUMBERS = "two-numbers"
+    NUMBER_FORM = "number-form-character"
+    MIXED_DIGITS = "mixed-digits"
+    UNDECLARED_CHARACTER = "undeclared-character"
+    UNDECLARED_SIGN = "undeclared-sign"
+    UNDECLARED_EXPONENT = "undeclared-exponent"
+    UNDECLARED_NON_FINITE = "undeclared-non-finite"
+    GROUPING = "grouping-mismatch"
+    TOO_MANY_DIGITS = "too-many-digits"
+    NOT_AN_INTEGER = "not-an-integer"
+    NOT_IN_FORMAT = "not-in-format"
+    IMPOSSIBLE_DATE = "impossible-date"
+    ERROR_CELL = "error-cell"
+
+    @property
+    def describe(self):
+        description = {
+            "no-number": "A number field's cell holds no number.",
+            "two-numbers": "A number field's cell holds two numbers, a fault for a crosswalk action.",
+            "number-form-character": "The cell holds a character such as `¹`, `①`, or `½`, which normalising would "
+            "turn into a digit of its number: `43.40¹` would read 43.401.",
+            "mixed-digits": "The cell's digits come from more than one script, such as `٣4`.",
+            "undeclared-character": "Something beside the number that the field does not declare, such as `£` or `<`.",
+            "undeclared-sign": "A negative form the field does not declare, which never reads as positive.",
+            "undeclared-exponent": "An exponent the field does not declare, so a reference such as `12E4` stays one.",
+            "undeclared-non-finite": "`NaN` or `INF`, which the field does not declare.",
+            "grouping-mismatch": "Group marks that do not fit the declared group sizes, such as `1,23`.",
+            "too-many-digits": "More digits than a `Float64` holds; declaring `base` as `decimal` keeps them.",
+            "not-an-integer": "An integer field's cell holds a fraction.",
+            "not-in-format": "The cell fits neither the declared format nor the type's canonical form, if none.",
+            "impossible-date": "The cell fits the pattern and names no such date, such as 31 April.",
+            "error-cell": "A workbook's error cell, such as `#N/A`, which is no value of any type.",
+        }
+        return description[self.value]
+
+
 class SettingSource(str, Enum):
     DECLARED = "declared"
     DEFAULT = "default"

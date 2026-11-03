@@ -33,6 +33,12 @@ class PolarsPatterns:
 class PythonPatterns:
     """Patterns Python's `re` runs, compiled once."""
 
+    # A quoted literal in a date pattern, Unicode's UAX 35: the `de` of `d 'de' MMM`
+    PATTERN_LITERAL: ClassVar[re.Pattern] = re.compile(r"'[^']*'")
+    # A date pattern's field, each exactly its length: `yy` is two digits of a year, as `yyyy` is not
+    PATTERN_TWO_DIGIT_YEAR: ClassVar[re.Pattern] = re.compile(r"(?<!y)yy(?!y)")
+    PATTERN_MONTH_NAME: ClassVar[re.Pattern] = re.compile(r"(?<!M)MMMM(?!M)")
+    PATTERN_MONTH_ABBREVIATION: ClassVar[re.Pattern] = re.compile(r"(?<!M)MMM(?!M)")
     # An error cell as fastexcel reports it, naming calamine's `CellErrorType`: `Error(Div0)`
     EXCEL_ERROR: ClassVar[re.Pattern] = re.compile(r"Error\((\w+)\)")
     # A cell's reference in a sheet, its column's letters and its row's number: `AB12`

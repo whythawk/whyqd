@@ -1,0 +1,6 @@
+id,name,amount,balance,rate,count,start,end,active
+R001,Alpha,"1 234,50 kr","−826,80 kr",5 %,12,2024-04-13,31 dec. 2024,Y
+R002,Beta,"1 234 567,89 kr","15,00 kr","12,5 %",1 234 567,1997-01-04,29 feb. 2004,N
+R003,Gamma,"−43,40 kr","−1,50 kr",0 %,0,2004-02-29,2 jan. 2024,Y
+R004,Delta,"0,00 kr","1 000 000,00 kr",150 %,999,2049-06-30,1 mars 1950,N
+R005,Epsilon,,,20 %,,,6 maj 2024,

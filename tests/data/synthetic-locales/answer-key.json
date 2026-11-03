@@ -1,0 +1,2190 @@
+{
+  "generated": "2026-11-03T15:37:55",
+  "conventions": {
+    "source": "Unicode CLDR",
+    "babel": "2.18.0"
+  },
+  "destination": {
+    "fields": [
+      {
+        "name": "id",
+        "type": "string"
+      },
+      {
+        "name": "name",
+        "type": "string"
+      },
+      {
+        "name": "amount",
+        "type": "number",
+        "policy": {
+          "base": "decimal"
+        }
+      },
+      {
+        "name": "balance",
+        "type": "number",
+        "policy": {
+          "base": "decimal"
+        }
+      },
+      {
+        "name": "rate",
+        "type": "number"
+      },
+      {
+        "name": "count",
+        "type": "integer"
+      },
+      {
+        "name": "start",
+        "type": "date"
+      },
+      {
+        "name": "end",
+        "type": "date"
+      },
+      {
+        "name": "active",
+        "type": "boolean"
+      }
+    ]
+  },
+  "files": {
+    "en_GB.csv": {
+      "mime": "CSV",
+      "locale": "en_GB",
+      "rounds": [
+        {
+          "declare": {},
+          "halts": {
+            "amount": 4,
+            "balance": 4,
+            "rate": 5,
+            "count": 1,
+            "start": 4,
+            "end": 5,
+            "active": 4
+          }
+        },
+        {
+          "declare": {
+            "fields": {
+              "amount": {
+                "format": {
+                  "decimalChar": ".",
+                  "groupChar": ","
+                },
+                "rules": {
+                  "currency": [
+                    "£"
+                  ]
+                }
+              },
+              "balance": {
+                "format": {
+                  "decimalChar": ".",
+                  "groupChar": ","
+                },
+                "rules": {
+                  "currency": [
+                    "£"
+                  ],
+                  "negative": [
+                    "(x)"
+                  ]
+                }
+              },
+              "rate": {
+                "format": {
+                  "decimalChar": ".",
+                  "groupChar": ","
+                },
+                "rules": {
+                  "percent": "%"
+                }
+              },
+              "count": {
+                "format": {
+                  "decimalChar": ".",
+                  "groupChar": ","
+                }
+              },
+              "start": {
+                "format": "dd/MM/y"
+              },
+              "end": {
+                "format": "d MMM y",
+                "rules": {
+                  "monthAbbreviations": [
+                    "Jan",
+                    "Feb",
+                    "Mar",
+                    "Apr",
+                    "May",
+                    "Jun",
+                    "Jul",
+                    "Aug",
+                    "Sept",
+                    "Oct",
+                    "Nov",
+                    "Dec"
+                  ]
+                }
+              },
+              "active": {
+                "format": "Y|N"
+              }
+            }
+          },
+          "halts": {}
+        }
+      ],
+      "values": [
+        {
+          "id": "R001",
+          "name": "Alpha",
+          "amount": "1234.50",
+          "balance": "-826.80",
+          "rate": "0.05",
+          "count": "12",
+          "start": "2024-04-13",
+          "end": "2024-12-31",
+          "active": true
+        },
+        {
+          "id": "R002",
+          "name": "Beta",
+          "amount": "1234567.89",
+          "balance": "15.00",
+          "rate": "0.125",
+          "count": "1234567",
+          "start": "1997-01-04",
+          "end": "2004-02-29",
+          "active": false
+        },
+        {
+          "id": "R003",
+          "name": "Gamma",
+          "amount": "-43.40",
+          "balance": "-1.50",
+          "rate": "0",
+          "count": "0",
+          "start": "2004-02-29",
+          "end": "2024-01-02",
+          "active": true
+        },
+        {
+          "id": "R004",
+          "name": "Delta",
+          "amount": "0.00",
+          "balance": "1000000.00",
+          "rate": "1.5",
+          "count": "999",
+          "start": "2049-06-30",
+          "end": "1950-03-01",
+          "active": false
+        },
+        {
+          "id": "R005",
+          "name": "Epsilon",
+          "amount": null,
+          "balance": null,
+          "rate": "0.2",
+          "count": null,
+          "start": null,
+          "end": "2024-05-06",
+          "active": null
+        }
+      ]
+    },
+    "en_US.csv": {
+      "mime": "CSV",
+      "locale": "en_US",
+      "rounds": [
+        {
+          "declare": {},
+          "halts": {
+            "amount": 4,
+            "balance": 4,
+            "rate": 5,
+            "count": 1,
+            "start": 4,
+            "end": 5,
+            "active": 4
+          }
+        },
+        {
+          "declare": {
+            "fields": {
+              "amount": {
+                "format": {
+                  "decimalChar": ".",
+                  "groupChar": ","
+                },
+                "rules": {
+                  "currency": [
+                    "$"
+                  ]
+                }
+              },
+              "balance": {
+                "format": {
+                  "decimalChar": ".",
+                  "groupChar": ","
+                },
+                "rules": {
+                  "currency": [
+                    "$"
+                  ],
+                  "negative": [
+                    "(x)"
+                  ]
+                }
+              },
+              "rate": {
+                "format": {
+                  "decimalChar": ".",
+                  "groupChar": ","
+                },
+                "rules": {
+                  "percent": "%"
+                }
+              },
+              "count": {
+                "format": {
+                  "decimalChar": ".",
+                  "groupChar": ","
+                }
+              },
+              "start": {
+                "format": "M/d/yy",
+                "rules": {
+                  "yearStart": 1950
+                }
+              },
+              "end": {
+                "format": "MMM d, y",
+                "rules": {
+                  "monthAbbreviations": [
+                    "Jan",
+                    "Feb",
+                    "Mar",
+                    "Apr",
+                    "May",
+                    "Jun",
+                    "Jul",
+                    "Aug",
+                    "Sep",
+                    "Oct",
+                    "Nov",
+                    "Dec"
+                  ]
+                }
+              },
+              "active": {
+                "format": "Y|N"
+              }
+            }
+          },
+          "halts": {}
+        }
+      ],
+      "values": [
+        {
+          "id": "R001",
+          "name": "Alpha",
+          "amount": "1234.50",
+          "balance": "-826.80",
+          "rate": "0.05",
+          "count": "12",
+          "start": "2024-04-13",
+          "end": "2024-12-31",
+          "active": true
+        },
+        {
+          "id": "R002",
+          "name": "Beta",
+          "amount": "1234567.89",
+          "balance": "15.00",
+          "rate": "0.125",
+          "count": "1234567",
+          "start": "1997-01-04",
+          "end": "2004-02-29",
+          "active": false
+        },
+        {
+          "id": "R003",
+          "name": "Gamma",
+          "amount": "-43.40",
+          "balance": "-1.50",
+          "rate": "0",
+          "count": "0",
+          "start": "2004-02-29",
+          "end": "2024-01-02",
+          "active": true
+        },
+        {
+          "id": "R004",
+          "name": "Delta",
+          "amount": "0.00",
+          "balance": "1000000.00",
+          "rate": "1.5",
+          "count": "999",
+          "start": "2049-06-30",
+          "end": "1950-03-01",
+          "active": false
+        },
+        {
+          "id": "R005",
+          "name": "Epsilon",
+          "amount": null,
+          "balance": null,
+          "rate": "0.2",
+          "count": null,
+          "start": null,
+          "end": "2024-05-06",
+          "active": null
+        }
+      ]
+    },
+    "de_DE.csv": {
+      "mime": "CSV",
+      "locale": "de_DE",
+      "rounds": [
+        {
+          "declare": {},
+          "halts": {
+            "amount": 4,
+            "balance": 4,
+            "rate": 5,
+            "count": 1,
+            "start": 4,
+            "end": 5,
+            "active": 4
+          }
+        },
+        {
+          "declare": {
+            "fields": {
+              "amount": {
+                "format": {
+                  "decimalChar": ",",
+                  "groupChar": "."
+                },
+                "rules": {
+                  "currency": [
+                    "€"
+                  ]
+                }
+              },
+              "balance": {
+                "format": {
+                  "decimalChar": ",",
+                  "groupChar": "."
+                },
+                "rules": {
+                  "currency": [
+                    "€"
+                  ]
+                }
+              },
+              "rate": {
+                "format": {
+                  "decimalChar": ",",
+                  "groupChar": "."
+                },
+                "rules": {
+                  "percent": "%"
+                }
+              },
+              "count": {
+                "format": {
+                  "decimalChar": ",",
+                  "groupChar": "."
+                }
+              },
+              "start": {
+                "format": "dd.MM.yy",
+                "rules": {
+                  "yearStart": 1950
+                }
+              },
+              "end": {
+                "format": "dd.MM.y"
+              },
+              "active": {
+                "format": "Y|N"
+              }
+            }
+          },
+          "halts": {}
+        }
+      ],
+      "values": [
+        {
+          "id": "R001",
+          "name": "Alpha",
+          "amount": "1234.50",
+          "balance": "-826.80",
+          "rate": "0.05",
+          "count": "12",
+          "start": "2024-04-13",
+          "end": "2024-12-31",
+          "active": true
+        },
+        {
+          "id": "R002",
+          "name": "Beta",
+          "amount": "1234567.89",
+          "balance": "15.00",
+          "rate": "0.125",
+          "count": "1234567",
+          "start": "1997-01-04",
+          "end": "2004-02-29",
+          "active": false
+        },
+        {
+          "id": "R003",
+          "name": "Gamma",
+          "amount": "-43.40",
+          "balance": "-1.50",
+          "rate": "0",
+          "count": "0",
+          "start": "2004-02-29",
+          "end": "2024-01-02",
+          "active": true
+        },
+        {
+          "id": "R004",
+          "name": "Delta",
+          "amount": "0.00",
+          "balance": "1000000.00",
+          "rate": "1.5",
+          "count": "999",
+          "start": "2049-06-30",
+          "end": "1950-03-01",
+          "active": false
+        },
+        {
+          "id": "R005",
+          "name": "Epsilon",
+          "amount": null,
+          "balance": null,
+          "rate": "0.2",
+          "count": null,
+          "start": null,
+          "end": "2024-05-06",
+          "active": null
+        }
+      ]
+    },
+    "fr_FR.csv": {
+      "mime": "CSV",
+      "locale": "fr_FR",
+      "rounds": [
+        {
+          "declare": {},
+          "halts": {
+            "amount": 4,
+            "balance": 4,
+            "rate": 5,
+            "count": 1,
+            "start": 4,
+            "end": 5,
+            "active": 4
+          }
+        },
+        {
+          "declare": {
+            "fields": {
+              "amount": {
+                "format": {
+                  "decimalChar": ",",
+                  "groupChar": " "
+                },
+                "rules": {
+                  "currency": [
+                    "€"
+                  ]
+                }
+              },
+              "balance": {
+                "format": {
+                  "decimalChar": ",",
+                  "groupChar": " "
+                },
+                "rules": {
+                  "currency": [
+                    "€"
+                  ],
+                  "negative": [
+                    "(x)"
+                  ]
+                }
+              },
+              "rate": {
+                "format": {
+                  "decimalChar": ",",
+                  "groupChar": " "
+                },
+                "rules": {
+                  "percent": "%"
+                }
+              },
+              "count": {
+                "format": {
+                  "decimalChar": ",",
+                  "groupChar": " "
+                }
+              },
+              "start": {
+                "format": "dd/MM/y"
+              },
+              "end": {
+                "format": "d MMM y",
+                "rules": {
+                  "monthAbbreviations": [
+                    "janv.",
+                    "févr.",
+                    "mars",
+                    "avr.",
+                    "mai",
+                    "juin",
+                    "juil.",
+                    "août",
+                    "sept.",
+                    "oct.",
+                    "nov.",
+                    "déc."
+                  ]
+                }
+              },
+              "active": {
+                "format": "Y|N"
+              }
+            }
+          },
+          "halts": {}
+        }
+      ],
+      "values": [
+        {
+          "id": "R001",
+          "name": "Alpha",
+          "amount": "1234.50",
+          "balance": "-826.80",
+          "rate": "0.05",
+          "count": "12",
+          "start": "2024-04-13",
+          "end": "2024-12-31",
+          "active": true
+        },
+        {
+          "id": "R002",
+          "name": "Beta",
+          "amount": "1234567.89",
+          "balance": "15.00",
+          "rate": "0.125",
+          "count": "1234567",
+          "start": "1997-01-04",
+          "end": "2004-02-29",
+          "active": false
+        },
+        {
+          "id": "R003",
+          "name": "Gamma",
+          "amount": "-43.40",
+          "balance": "-1.50",
+          "rate": "0",
+          "count": "0",
+          "start": "2004-02-29",
+          "end": "2024-01-02",
+          "active": true
+        },
+        {
+          "id": "R004",
+          "name": "Delta",
+          "amount": "0.00",
+          "balance": "1000000.00",
+          "rate": "1.5",
+          "count": "999",
+          "start": "2049-06-30",
+          "end": "1950-03-01",
+          "active": false
+        },
+        {
+          "id": "R005",
+          "name": "Epsilon",
+          "amount": null,
+          "balance": null,
+          "rate": "0.2",
+          "count": null,
+          "start": null,
+          "end": "2024-05-06",
+          "active": null
+        }
+      ]
+    },
+    "de_CH.csv": {
+      "mime": "CSV",
+      "locale": "de_CH",
+      "rounds": [
+        {
+          "declare": {},
+          "halts": {
+            "amount": 4,
+            "balance": 4,
+            "rate": 5,
+            "count": 1,
+            "start": 4,
+            "end": 5,
+            "active": 4
+          }
+        },
+        {
+          "declare": {
+            "fields": {
+              "amount": {
+                "format": {
+                  "decimalChar": ".",
+                  "groupChar": "’"
+                },
+                "rules": {
+                  "currency": [
+                    "CHF"
+                  ]
+                }
+              },
+              "balance": {
+                "format": {
+                  "decimalChar": ".",
+                  "groupChar": "’"
+                },
+                "rules": {
+                  "currency": [
+                    "CHF"
+                  ]
+                }
+              },
+              "rate": {
+                "format": {
+                  "decimalChar": ".",
+                  "groupChar": "’"
+                },
+                "rules": {
+                  "percent": "%"
+                }
+              },
+              "count": {
+                "format": {
+                  "decimalChar": ".",
+                  "groupChar": "’"
+                }
+              },
+              "start": {
+                "format": "dd.MM.yy",
+                "rules": {
+                  "yearStart": 1950
+                }
+              },
+              "end": {
+                "format": "dd.MM.y"
+              },
+              "active": {
+                "format": "Y|N"
+              }
+            }
+          },
+          "halts": {}
+        }
+      ],
+      "values": [
+        {
+          "id": "R001",
+          "name": "Alpha",
+          "amount": "1234.50",
+          "balance": "-826.80",
+          "rate": "0.05",
+          "count": "12",
+          "start": "2024-04-13",
+          "end": "2024-12-31",
+          "active": true
+        },
+        {
+          "id": "R002",
+          "name": "Beta",
+          "amount": "1234567.89",
+          "balance": "15.00",
+          "rate": "0.125",
+          "count": "1234567",
+          "start": "1997-01-04",
+          "end": "2004-02-29",
+          "active": false
+        },
+        {
+          "id": "R003",
+          "name": "Gamma",
+          "amount": "-43.40",
+          "balance": "-1.50",
+          "rate": "0",
+          "count": "0",
+          "start": "2004-02-29",
+          "end": "2024-01-02",
+          "active": true
+        },
+        {
+          "id": "R004",
+          "name": "Delta",
+          "amount": "0.00",
+          "balance": "1000000.00",
+          "rate": "1.5",
+          "count": "999",
+          "start": "2049-06-30",
+          "end": "1950-03-01",
+          "active": false
+        },
+        {
+          "id": "R005",
+          "name": "Epsilon",
+          "amount": null,
+          "balance": null,
+          "rate": "0.2",
+          "count": null,
+          "start": null,
+          "end": "2024-05-06",
+          "active": null
+        }
+      ]
+    },
+    "en_IN.csv": {
+      "mime": "CSV",
+      "locale": "en_IN",
+      "rounds": [
+        {
+          "declare": {},
+          "halts": {
+            "amount": 4,
+            "balance": 4,
+            "rate": 5,
+            "count": 1,
+            "start": 4,
+            "end": 5,
+            "active": 4
+          }
+        },
+        {
+          "declare": {
+            "fields": {
+              "amount": {
+                "format": {
+                  "decimalChar": ".",
+                  "groupChar": ",",
+                  "pattern": "#,##,##0"
+                },
+                "rules": {
+                  "currency": [
+                    "₹"
+                  ]
+                }
+              },
+              "balance": {
+                "format": {
+                  "decimalChar": ".",
+                  "groupChar": ","
+                },
+                "rules": {
+                  "currency": [
+                    "₹"
+                  ],
+                  "negative": [
+                    "(x)"
+                  ]
+                }
+              },
+              "rate": {
+                "format": {
+                  "decimalChar": ".",
+                  "groupChar": ",",
+                  "pattern": "#,##,##0"
+                },
+                "rules": {
+                  "percent": "%"
+                }
+              },
+              "count": {
+                "format": {
+                  "decimalChar": ".",
+                  "groupChar": ",",
+                  "pattern": "#,##,##0"
+                }
+              },
+              "start": {
+                "format": "dd/MM/yy",
+                "rules": {
+                  "yearStart": 1950
+                }
+              },
+              "end": {
+                "format": "d MMM y",
+                "rules": {
+                  "monthAbbreviations": [
+                    "Jan",
+                    "Feb",
+                    "Mar",
+                    "Apr",
+                    "May",
+                    "Jun",
+                    "Jul",
+                    "Aug",
+                    "Sept",
+                    "Oct",
+                    "Nov",
+                    "Dec"
+                  ]
+                }
+              },
+              "active": {
+                "format": "Y|N"
+              }
+            }
+          },
+          "halts": {}
+        }
+      ],
+      "values": [
+        {
+          "id": "R001",
+          "name": "Alpha",
+          "amount": "1234.50",
+          "balance": "-826.80",
+          "rate": "0.05",
+          "count": "12",
+          "start": "2024-04-13",
+          "end": "2024-12-31",
+          "active": true
+        },
+        {
+          "id": "R002",
+          "name": "Beta",
+          "amount": "1234567.89",
+          "balance": "15.00",
+          "rate": "0.125",
+          "count": "1234567",
+          "start": "1997-01-04",
+          "end": "2004-02-29",
+          "active": false
+        },
+        {
+          "id": "R003",
+          "name": "Gamma",
+          "amount": "-43.40",
+          "balance": "-1.50",
+          "rate": "0",
+          "count": "0",
+          "start": "2004-02-29",
+          "end": "2024-01-02",
+          "active": true
+        },
+        {
+          "id": "R004",
+          "name": "Delta",
+          "amount": "0.00",
+          "balance": "1000000.00",
+          "rate": "1.5",
+          "count": "999",
+          "start": "2049-06-30",
+          "end": "1950-03-01",
+          "active": false
+        },
+        {
+          "id": "R005",
+          "name": "Epsilon",
+          "amount": null,
+          "balance": null,
+          "rate": "0.2",
+          "count": null,
+          "start": null,
+          "end": "2024-05-06",
+          "active": null
+        }
+      ]
+    },
+    "sv_SE.csv": {
+      "mime": "CSV",
+      "locale": "sv_SE",
+      "rounds": [
+        {
+          "declare": {},
+          "halts": {
+            "amount": 4,
+            "balance": 4,
+            "rate": 5,
+            "count": 1,
+            "end": 5,
+            "active": 4
+          }
+        },
+        {
+          "declare": {
+            "fields": {
+              "amount": {
+                "format": {
+                  "decimalChar": ",",
+                  "groupChar": " "
+                },
+                "rules": {
+                  "currency": [
+                    "kr"
+                  ]
+                }
+              },
+              "balance": {
+                "format": {
+                  "decimalChar": ",",
+                  "groupChar": " "
+                },
+                "rules": {
+                  "currency": [
+                    "kr"
+                  ]
+                }
+              },
+              "rate": {
+                "format": {
+                  "decimalChar": ",",
+                  "groupChar": " "
+                },
+                "rules": {
+                  "percent": "%"
+                }
+              },
+              "count": {
+                "format": {
+                  "decimalChar": ",",
+                  "groupChar": " "
+                }
+              },
+              "start": {
+                "format": "y-MM-dd"
+              },
+              "end": {
+                "format": "d MMM y",
+                "rules": {
+                  "monthAbbreviations": [
+                    "jan.",
+                    "feb.",
+                    "mars",
+                    "apr.",
+                    "maj",
+                    "juni",
+                    "juli",
+                    "aug.",
+                    "sep.",
+                    "okt.",
+                    "nov.",
+                    "dec."
+                  ]
+                }
+              },
+              "active": {
+                "format": "Y|N"
+              }
+            }
+          },
+          "halts": {}
+        }
+      ],
+      "values": [
+        {
+          "id": "R001",
+          "name": "Alpha",
+          "amount": "1234.50",
+          "balance": "-826.80",
+          "rate": "0.05",
+          "count": "12",
+          "start": "2024-04-13",
+          "end": "2024-12-31",
+          "active": true
+        },
+        {
+          "id": "R002",
+          "name": "Beta",
+          "amount": "1234567.89",
+          "balance": "15.00",
+          "rate": "0.125",
+          "count": "1234567",
+          "start": "1997-01-04",
+          "end": "2004-02-29",
+          "active": false
+        },
+        {
+          "id": "R003",
+          "name": "Gamma",
+          "amount": "-43.40",
+          "balance": "-1.50",
+          "rate": "0",
+          "count": "0",
+          "start": "2004-02-29",
+          "end": "2024-01-02",
+          "active": true
+        },
+        {
+          "id": "R004",
+          "name": "Delta",
+          "amount": "0.00",
+          "balance": "1000000.00",
+          "rate": "1.5",
+          "count": "999",
+          "start": "2049-06-30",
+          "end": "1950-03-01",
+          "active": false
+        },
+        {
+          "id": "R005",
+          "name": "Epsilon",
+          "amount": null,
+          "balance": null,
+          "rate": "0.2",
+          "count": null,
+          "start": null,
+          "end": "2024-05-06",
+          "active": null
+        }
+      ]
+    },
+    "ja_JP.csv": {
+      "mime": "CSV",
+      "locale": "ja_JP",
+      "rounds": [
+        {
+          "declare": {},
+          "halts": {
+            "amount": 4,
+            "balance": 4,
+            "rate": 5,
+            "count": 1,
+            "start": 4,
+            "end": 5,
+            "active": 4
+          }
+        },
+        {
+          "declare": {
+            "fields": {
+              "amount": {
+                "format": {
+                  "decimalChar": ".",
+                  "groupChar": ","
+                },
+                "rules": {
+                  "currency": [
+                    "￥"
+                  ]
+                }
+              },
+              "balance": {
+                "format": {
+                  "decimalChar": ".",
+                  "groupChar": ","
+                },
+                "rules": {
+                  "currency": [
+                    "￥"
+                  ],
+                  "negative": [
+                    "(x)"
+                  ]
+                }
+              },
+              "rate": {
+                "format": {
+                  "decimalChar": ".",
+                  "groupChar": ","
+                },
+                "rules": {
+                  "percent": "%"
+                }
+              },
+              "count": {
+                "format": {
+                  "decimalChar": ".",
+                  "groupChar": ","
+                }
+              },
+              "start": {
+                "format": "y/MM/dd"
+              },
+              "end": {
+                "format": "y/MM/dd"
+              },
+              "active": {
+                "format": "Y|N"
+              }
+            }
+          },
+          "halts": {}
+        }
+      ],
+      "values": [
+        {
+          "id": "R001",
+          "name": "Alpha",
+          "amount": "1234.50",
+          "balance": "-826.80",
+          "rate": "0.05",
+          "count": "12",
+          "start": "2024-04-13",
+          "end": "2024-12-31",
+          "active": true
+        },
+        {
+          "id": "R002",
+          "name": "Beta",
+          "amount": "1234567.89",
+          "balance": "15.00",
+          "rate": "0.125",
+          "count": "1234567",
+          "start": "1997-01-04",
+          "end": "2004-02-29",
+          "active": false
+        },
+        {
+          "id": "R003",
+          "name": "Gamma",
+          "amount": "-43.40",
+          "balance": "-1.50",
+          "rate": "0",
+          "count": "0",
+          "start": "2004-02-29",
+          "end": "2024-01-02",
+          "active": true
+        },
+        {
+          "id": "R004",
+          "name": "Delta",
+          "amount": "0.00",
+          "balance": "1000000.00",
+          "rate": "1.5",
+          "count": "999",
+          "start": "2049-06-30",
+          "end": "1950-03-01",
+          "active": false
+        },
+        {
+          "id": "R005",
+          "name": "Epsilon",
+          "amount": null,
+          "balance": null,
+          "rate": "0.2",
+          "count": null,
+          "start": null,
+          "end": "2024-05-06",
+          "active": null
+        }
+      ]
+    },
+    "pt_BR.csv": {
+      "mime": "CSV",
+      "locale": "pt_BR",
+      "rounds": [
+        {
+          "declare": {},
+          "halts": {
+            "amount": 4,
+            "balance": 4,
+            "rate": 5,
+            "count": 1,
+            "start": 4,
+            "end": 5,
+            "active": 4
+          }
+        },
+        {
+          "declare": {
+            "fields": {
+              "amount": {
+                "format": {
+                  "decimalChar": ",",
+                  "groupChar": "."
+                },
+                "rules": {
+                  "currency": [
+                    "R$"
+                  ]
+                }
+              },
+              "balance": {
+                "format": {
+                  "decimalChar": ",",
+                  "groupChar": "."
+                },
+                "rules": {
+                  "currency": [
+                    "R$"
+                  ]
+                }
+              },
+              "rate": {
+                "format": {
+                  "decimalChar": ",",
+                  "groupChar": "."
+                },
+                "rules": {
+                  "percent": "%"
+                }
+              },
+              "count": {
+                "format": {
+                  "decimalChar": ",",
+                  "groupChar": "."
+                }
+              },
+              "start": {
+                "format": "dd/MM/y"
+              },
+              "end": {
+                "format": "d 'de' MMM 'de' y",
+                "rules": {
+                  "monthAbbreviations": [
+                    "jan.",
+                    "fev.",
+                    "mar.",
+                    "abr.",
+                    "mai.",
+                    "jun.",
+                    "jul.",
+                    "ago.",
+                    "set.",
+                    "out.",
+                    "nov.",
+                    "dez."
+                  ]
+                }
+              },
+              "active": {
+                "format": "Y|N"
+              }
+            }
+          },
+          "halts": {}
+        }
+      ],
+      "values": [
+        {
+          "id": "R001",
+          "name": "Alpha",
+          "amount": "1234.50",
+          "balance": "-826.80",
+          "rate": "0.05",
+          "count": "12",
+          "start": "2024-04-13",
+          "end": "2024-12-31",
+          "active": true
+        },
+        {
+          "id": "R002",
+          "name": "Beta",
+          "amount": "1234567.89",
+          "balance": "15.00",
+          "rate": "0.125",
+          "count": "1234567",
+          "start": "1997-01-04",
+          "end": "2004-02-29",
+          "active": false
+        },
+        {
+          "id": "R003",
+          "name": "Gamma",
+          "amount": "-43.40",
+          "balance": "-1.50",
+          "rate": "0",
+          "count": "0",
+          "start": "2004-02-29",
+          "end": "2024-01-02",
+          "active": true
+        },
+        {
+          "id": "R004",
+          "name": "Delta",
+          "amount": "0.00",
+          "balance": "1000000.00",
+          "rate": "1.5",
+          "count": "999",
+          "start": "2049-06-30",
+          "end": "1950-03-01",
+          "active": false
+        },
+        {
+          "id": "R005",
+          "name": "Epsilon",
+          "amount": null,
+          "balance": null,
+          "rate": "0.2",
+          "count": null,
+          "start": null,
+          "end": "2024-05-06",
+          "active": null
+        }
+      ]
+    },
+    "ar_EG.csv": {
+      "mime": "CSV",
+      "locale": "ar_EG",
+      "rounds": [
+        {
+          "declare": {},
+          "halts": {
+            "amount": 4,
+            "balance": 4,
+            "rate": 5,
+            "count": 1,
+            "start": 4,
+            "end": 5,
+            "active": 4
+          }
+        },
+        {
+          "declare": {
+            "fields": {
+              "amount": {
+                "format": {
+                  "decimalChar": "٫",
+                  "groupChar": "٬"
+                },
+                "rules": {
+                  "currency": [
+                    "ج.م.‏"
+                  ]
+                }
+              },
+              "balance": {
+                "format": {
+                  "decimalChar": "٫",
+                  "groupChar": "٬"
+                },
+                "rules": {
+                  "currency": [
+                    "ج.م.‏"
+                  ],
+                  "negative": [
+                    "(x)"
+                  ]
+                }
+              },
+              "rate": {
+                "format": {
+                  "decimalChar": "٫",
+                  "groupChar": "٬"
+                },
+                "rules": {
+                  "percent": "٪؜"
+                }
+              },
+              "count": {
+                "format": {
+                  "decimalChar": "٫",
+                  "groupChar": "٬"
+                }
+              },
+              "start": {
+                "format": "d‏/M‏/y"
+              },
+              "end": {
+                "format": "dd‏/MM‏/y"
+              },
+              "active": {
+                "format": "Y|N"
+              }
+            }
+          },
+          "halts": {}
+        }
+      ],
+      "values": [
+        {
+          "id": "R001",
+          "name": "Alpha",
+          "amount": "1234.50",
+          "balance": "-826.80",
+          "rate": "0.05",
+          "count": "12",
+          "start": "2024-04-13",
+          "end": "2024-12-31",
+          "active": true
+        },
+        {
+          "id": "R002",
+          "name": "Beta",
+          "amount": "1234567.89",
+          "balance": "15.00",
+          "rate": "0.125",
+          "count": "1234567",
+          "start": "1997-01-04",
+          "end": "2004-02-29",
+          "active": false
+        },
+        {
+          "id": "R003",
+          "name": "Gamma",
+          "amount": "-43.40",
+          "balance": "-1.50",
+          "rate": "0",
+          "count": "0",
+          "start": "2004-02-29",
+          "end": "2024-01-02",
+          "active": true
+        },
+        {
+          "id": "R004",
+          "name": "Delta",
+          "amount": "0.00",
+          "balance": "1000000.00",
+          "rate": "1.5",
+          "count": "999",
+          "start": "2049-06-30",
+          "end": "1950-03-01",
+          "active": false
+        },
+        {
+          "id": "R005",
+          "name": "Epsilon",
+          "amount": null,
+          "balance": null,
+          "rate": "0.2",
+          "count": null,
+          "start": null,
+          "end": "2024-05-06",
+          "active": null
+        }
+      ]
+    },
+    "mixed-en_GB.csv": {
+      "mime": "CSV",
+      "locale": "en_GB",
+      "rounds": [
+        {
+          "declare": {},
+          "halts": {
+            "amount": 4,
+            "balance": 4,
+            "rate": 5,
+            "count": 2,
+            "start": 4,
+            "end": 5,
+            "active": 4
+          }
+        },
+        {
+          "declare": {
+            "fields": {
+              "amount": {
+                "format": {
+                  "decimalChar": ".",
+                  "groupChar": ","
+                },
+                "rules": {
+                  "currency": [
+                    "£"
+                  ]
+                }
+              },
+              "balance": {
+                "format": {
+                  "decimalChar": ".",
+                  "groupChar": ","
+                },
+                "rules": {
+                  "currency": [
+                    "£"
+                  ],
+                  "negative": [
+                    "(x)"
+                  ]
+                }
+              },
+              "rate": {
+                "format": {
+                  "decimalChar": ".",
+                  "groupChar": ","
+                },
+                "rules": {
+                  "percent": "%"
+                }
+              },
+              "count": {
+                "format": {
+                  "decimalChar": ".",
+                  "groupChar": ","
+                }
+              },
+              "start": {
+                "format": "dd/MM/y"
+              },
+              "end": {
+                "format": "d MMM y",
+                "rules": {
+                  "monthAbbreviations": [
+                    "Jan",
+                    "Feb",
+                    "Mar",
+                    "Apr",
+                    "May",
+                    "Jun",
+                    "Jul",
+                    "Aug",
+                    "Sept",
+                    "Oct",
+                    "Nov",
+                    "Dec"
+                  ]
+                }
+              },
+              "active": {
+                "format": "Y|N"
+              }
+            }
+          },
+          "halts": {
+            "amount": 2,
+            "count": 1
+          }
+        },
+        {
+          "declare": {
+            "fields": {
+              "amount": {
+                "format": {
+                  "decimalChar": ".",
+                  "groupChar": ","
+                },
+                "rules": {
+                  "currency": [
+                    "£"
+                  ]
+                }
+              },
+              "balance": {
+                "format": {
+                  "decimalChar": ".",
+                  "groupChar": ","
+                },
+                "rules": {
+                  "currency": [
+                    "£"
+                  ],
+                  "negative": [
+                    "(x)"
+                  ]
+                }
+              },
+              "rate": {
+                "format": {
+                  "decimalChar": ".",
+                  "groupChar": ","
+                },
+                "rules": {
+                  "percent": "%"
+                }
+              },
+              "count": {
+                "format": {
+                  "decimalChar": ".",
+                  "groupChar": ","
+                }
+              },
+              "start": {
+                "format": "dd/MM/y"
+              },
+              "end": {
+                "format": "d MMM y",
+                "rules": {
+                  "monthAbbreviations": [
+                    "Jan",
+                    "Feb",
+                    "Mar",
+                    "Apr",
+                    "May",
+                    "Jun",
+                    "Jul",
+                    "Aug",
+                    "Sept",
+                    "Oct",
+                    "Nov",
+                    "Dec"
+                  ]
+                }
+              },
+              "active": {
+                "format": "Y|N"
+              }
+            },
+            "missingValues": [
+              "N/A",
+              ".."
+            ]
+          },
+          "halts": {
+            "amount": 1
+          }
+        },
+        {
+          "declare": {
+            "fields": {
+              "amount": {
+                "format": {
+                  "decimalChar": ".",
+                  "groupChar": ","
+                },
+                "rules": {
+                  "currency": [
+                    "£"
+                  ],
+                  "marks": [
+                    "#"
+                  ]
+                }
+              },
+              "balance": {
+                "format": {
+                  "decimalChar": ".",
+                  "groupChar": ","
+                },
+                "rules": {
+                  "currency": [
+                    "£"
+                  ],
+                  "negative": [
+                    "(x)"
+                  ]
+                }
+              },
+              "rate": {
+                "format": {
+                  "decimalChar": ".",
+                  "groupChar": ","
+                },
+                "rules": {
+                  "percent": "%"
+                }
+              },
+              "count": {
+                "format": {
+                  "decimalChar": ".",
+                  "groupChar": ","
+                }
+              },
+              "start": {
+                "format": "dd/MM/y"
+              },
+              "end": {
+                "format": "d MMM y",
+                "rules": {
+                  "monthAbbreviations": [
+                    "Jan",
+                    "Feb",
+                    "Mar",
+                    "Apr",
+                    "May",
+                    "Jun",
+                    "Jul",
+                    "Aug",
+                    "Sept",
+                    "Oct",
+                    "Nov",
+                    "Dec"
+                  ]
+                }
+              },
+              "active": {
+                "format": "Y|N"
+              }
+            },
+            "missingValues": [
+              "N/A",
+              ".."
+            ]
+          },
+          "halts": {}
+        }
+      ],
+      "values": [
+        {
+          "id": "R001",
+          "name": "Alpha",
+          "amount": null,
+          "balance": "-826.80",
+          "rate": "0.05",
+          "count": "12",
+          "start": "2024-04-13",
+          "end": "2024-12-31",
+          "active": true
+        },
+        {
+          "id": "R002",
+          "name": "Beta",
+          "amount": "1234567.89",
+          "balance": "15.00",
+          "rate": "0.125",
+          "count": "1234567",
+          "start": "1997-01-04",
+          "end": "2004-02-29",
+          "active": false
+        },
+        {
+          "id": "R003",
+          "name": "Gamma",
+          "amount": "-43.40",
+          "balance": "-1.50",
+          "rate": "0",
+          "count": "0",
+          "start": "2004-02-29",
+          "end": "2024-01-02",
+          "active": true
+        },
+        {
+          "id": "R004",
+          "name": "Delta",
+          "amount": "0.00",
+          "balance": "1000000.00",
+          "rate": "1.5",
+          "count": null,
+          "start": "2049-06-30",
+          "end": "1950-03-01",
+          "active": false
+        },
+        {
+          "id": "R005",
+          "name": "Epsilon",
+          "amount": null,
+          "balance": null,
+          "rate": "0.2",
+          "count": null,
+          "start": null,
+          "end": "2024-05-06",
+          "active": null
+        }
+      ]
+    },
+    "footer-de_DE.csv": {
+      "mime": "CSV",
+      "locale": "de_DE",
+      "rounds": [
+        {
+          "declare": {},
+          "halts": {
+            "amount": 5,
+            "balance": 4,
+            "rate": 5,
+            "count": 1,
+            "start": 5,
+            "end": 5,
+            "active": 4
+          }
+        },
+        {
+          "declare": {
+            "fields": {
+              "amount": {
+                "format": {
+                  "decimalChar": ",",
+                  "groupChar": "."
+                },
+                "rules": {
+                  "currency": [
+                    "€"
+                  ]
+                }
+              },
+              "balance": {
+                "format": {
+                  "decimalChar": ",",
+                  "groupChar": "."
+                },
+                "rules": {
+                  "currency": [
+                    "€"
+                  ]
+                }
+              },
+              "rate": {
+                "format": {
+                  "decimalChar": ",",
+                  "groupChar": "."
+                },
+                "rules": {
+                  "percent": "%"
+                }
+              },
+              "count": {
+                "format": {
+                  "decimalChar": ",",
+                  "groupChar": "."
+                }
+              },
+              "start": {
+                "format": "dd.MM.yy",
+                "rules": {
+                  "yearStart": 1950
+                }
+              },
+              "end": {
+                "format": "dd.MM.y"
+              },
+              "active": {
+                "format": "Y|N"
+              }
+            }
+          },
+          "halts": {
+            "start": 1
+          }
+        },
+        {
+          "declare": {
+            "fields": {
+              "amount": {
+                "format": {
+                  "decimalChar": ",",
+                  "groupChar": "."
+                },
+                "rules": {
+                  "currency": [
+                    "€"
+                  ]
+                }
+              },
+              "balance": {
+                "format": {
+                  "decimalChar": ",",
+                  "groupChar": "."
+                },
+                "rules": {
+                  "currency": [
+                    "€"
+                  ]
+                }
+              },
+              "rate": {
+                "format": {
+                  "decimalChar": ",",
+                  "groupChar": "."
+                },
+                "rules": {
+                  "percent": "%"
+                }
+              },
+              "count": {
+                "format": {
+                  "decimalChar": ",",
+                  "groupChar": "."
+                }
+              },
+              "start": {
+                "format": "dd.MM.yy",
+                "rules": {
+                  "yearStart": 1950
+                }
+              },
+              "end": {
+                "format": "dd.MM.y"
+              },
+              "active": {
+                "format": "Y|N"
+              }
+            },
+            "actions": [
+              "DELETE_ROWS < [5]"
+            ]
+          },
+          "halts": {}
+        }
+      ],
+      "values": [
+        {
+          "id": "R001",
+          "name": "Alpha",
+          "amount": "1234.50",
+          "balance": "-826.80",
+          "rate": "0.05",
+          "count": "12",
+          "start": "2024-04-13",
+          "end": "2024-12-31",
+          "active": true
+        },
+        {
+          "id": "R002",
+          "name": "Beta",
+          "amount": "1234567.89",
+          "balance": "15.00",
+          "rate": "0.125",
+          "count": "1234567",
+          "start": "1997-01-04",
+          "end": "2004-02-29",
+          "active": false
+        },
+        {
+          "id": "R003",
+          "name": "Gamma",
+          "amount": "-43.40",
+          "balance": "-1.50",
+          "rate": "0",
+          "count": "0",
+          "start": "2004-02-29",
+          "end": "2024-01-02",
+          "active": true
+        },
+        {
+          "id": "R004",
+          "name": "Delta",
+          "amount": "0.00",
+          "balance": "1000000.00",
+          "rate": "1.5",
+          "count": "999",
+          "start": "2049-06-30",
+          "end": "1950-03-01",
+          "active": false
+        },
+        {
+          "id": "R005",
+          "name": "Epsilon",
+          "amount": null,
+          "balance": null,
+          "rate": "0.2",
+          "count": null,
+          "start": null,
+          "end": "2024-05-06",
+          "active": null
+        }
+      ]
+    },
+    "excel-en_GB.xlsx": {
+      "mime": "XLSX",
+      "locale": "en_GB",
+      "warns": {
+        "id": 2
+      },
+      "rounds": [
+        {
+          "declare": {},
+          "halts": {
+            "balance": 4,
+            "rate": 5,
+            "start": 3,
+            "end": 5,
+            "active": 4
+          }
+        },
+        {
+          "declare": {
+            "fields": {
+              "amount": {
+                "format": {
+                  "decimalChar": ".",
+                  "groupChar": ","
+                },
+                "rules": {
+                  "currency": [
+                    "£"
+                  ]
+                }
+              },
+              "balance": {
+                "format": {
+                  "decimalChar": ".",
+                  "groupChar": ","
+                },
+                "rules": {
+                  "currency": [
+                    "£"
+                  ],
+                  "negative": [
+                    "(x)"
+                  ]
+                }
+              },
+              "rate": {
+                "format": {
+                  "decimalChar": ".",
+                  "groupChar": ","
+                },
+                "rules": {
+                  "percent": "%"
+                }
+              },
+              "count": {
+                "format": {
+                  "decimalChar": ".",
+                  "groupChar": ","
+                }
+              },
+              "start": {
+                "format": "dd/MM/y"
+              },
+              "end": {
+                "format": "d MMM y",
+                "rules": {
+                  "monthAbbreviations": [
+                    "Jan",
+                    "Feb",
+                    "Mar",
+                    "Apr",
+                    "May",
+                    "Jun",
+                    "Jul",
+                    "Aug",
+                    "Sept",
+                    "Oct",
+                    "Nov",
+                    "Dec"
+                  ]
+                }
+              },
+              "active": {
+                "format": "Y|N"
+              }
+            }
+          },
+          "halts": {},
+          "differs": [
+            "start"
+          ]
+        },
+        {
+          "declare": {
+            "fields": {
+              "amount": {
+                "format": {
+                  "decimalChar": ".",
+                  "groupChar": ","
+                },
+                "rules": {
+                  "currency": [
+                    "£"
+                  ]
+                }
+              },
+              "balance": {
+                "format": {
+                  "decimalChar": ".",
+                  "groupChar": ","
+                },
+                "rules": {
+                  "currency": [
+                    "£"
+                  ],
+                  "negative": [
+                    "(x)"
+                  ]
+                }
+              },
+              "rate": {
+                "format": {
+                  "decimalChar": ".",
+                  "groupChar": ","
+                },
+                "rules": {
+                  "percent": "%"
+                }
+              },
+              "count": {
+                "format": {
+                  "decimalChar": ".",
+                  "groupChar": ","
+                }
+              },
+              "start": {
+                "format": "dd/MM/y",
+                "rules": {
+                  "cellFormats": {
+                    "d": "yyyy-dd-MM"
+                  }
+                }
+              },
+              "end": {
+                "format": "d MMM y",
+                "rules": {
+                  "monthAbbreviations": [
+                    "Jan",
+                    "Feb",
+                    "Mar",
+                    "Apr",
+                    "May",
+                    "Jun",
+                    "Jul",
+                    "Aug",
+                    "Sept",
+                    "Oct",
+                    "Nov",
+                    "Dec"
+                  ]
+                }
+              },
+              "active": {
+                "format": "Y|N"
+              }
+            }
+          },
+          "halts": {}
+        }
+      ],
+      "values": [
+        {
+          "id": "R001",
+          "name": "Alpha",
+          "amount": "1234.50",
+          "balance": "-826.80",
+          "rate": "0.05",
+          "count": "12",
+          "start": "2024-04-13",
+          "end": "2024-12-31",
+          "active": true
+        },
+        {
+          "id": "2024-09-02",
+          "name": "Beta",
+          "amount": "1234567.89",
+          "balance": "15.00",
+          "rate": "0.125",
+          "count": "1234567",
+          "start": "1997-01-04",
+          "end": "2004-02-29",
+          "active": false
+        },
+        {
+          "id": "R003",
+          "name": "Gamma",
+          "amount": "-43.40",
+          "balance": "-1.50",
+          "rate": "0",
+          "count": "0",
+          "start": "2004-02-29",
+          "end": "2024-01-02",
+          "active": true
+        },
+        {
+          "id": "23100090000000000000",
+          "name": "Delta",
+          "amount": "0.00",
+          "balance": "1000000.00",
+          "rate": "1.5",
+          "count": "999",
+          "start": "2049-06-30",
+          "end": "1950-03-01",
+          "active": false
+        },
+        {
+          "id": "R005",
+          "name": "Epsilon",
+          "amount": null,
+          "balance": null,
+          "rate": "0.2",
+          "count": null,
+          "start": null,
+          "end": "2024-05-06",
+          "active": null
+        }
+      ]
+    }
+  }
+}

@@ -89,7 +89,7 @@ class TestStoredDefinitions:
         assert errors("datasource", json.loads(qd.DataSourceDefinition(source=source).get_json())) == []
         steps = {slots.RENAME: {"reason": slots.REASON}, slots.CATEGORISE: {"correspondence": slots.REFERENCE}}
         crosswalk = slots.crosswalk(steps=steps, termList=slots.REFERENCE, code="EPR")
-        crosswalk["schemaSource"]["fields"][0]["policy"] = slots.POLICIES[0]
+        crosswalk["schemaSource"]["fields"][0] |= {"type": "number", "policy": slots.POLICIES[0]}
         assert errors("crosswalk", json.loads(qd.CrosswalkDefinition(crosswalk=crosswalk).get_json())) == []
 
     def test_wrong_format_version_fails(self):

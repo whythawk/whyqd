@@ -6,6 +6,7 @@ from pathlib import Path
 import pytest
 
 import whyqd as qd
+from whyqd.models import ActionScriptModel, CellReadingModel
 from whyqd.parsers import FormatParser
 
 DIRECTORY = Path(__file__).resolve().parent / "data"
@@ -37,8 +38,44 @@ PROFILE = {
 }
 POLICIES = [
     {"base": "decimal", "format": {"decimalChar": ",", "groupChar": ".", "pattern": "#.##0,00"}},
-    {"base": "date", "format": "dd.MM.yyyy", "rules": {"negative": "#-"}},
-    {"base": "boolean", "format": "Y|N"},
+    {"base": "date", "format": "dd.MM.yy", "rules": {"yearStart": 1950, "cellFormats": {"d": "yyyy-dd-MM"}}},
+    {"base": "boolean", "format": "Y|N", "rules": {"alternateFormats": ["Yes|No"]}},
+]
+MONTHS = "Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec".split()
+GERMAN = {"decimalChar": ",", "groupChar": "."}
+# Each policy a field of that type refuses, by the code that says so
+MISFITS = [
+    ("number", {"format": "dd.MM.yyyy"}, "policy-conflict"),
+    ("number", {"base": "date"}, "policy-conflict"),
+    ("number", {"rules": {"yearStart": 1950}}, "policy-conflict"),
+    ("number", {"rules": {"alternateFormats": ["#.##0"]}}, "policy-conflict"),
+    ("integer", {"base": "decimal"}, "policy-conflict"),
+    ("date", {"format": GERMAN}, "policy-conflict"),
+    ("date", {"base": "decimal"}, "policy-conflict"),
+    ("date", {"format": "yyyy-MM-dd", "rules": {"currency": ["£"]}}, "policy-conflict"),
+    ("string", {"format": "dd.MM.yyyy"}, "policy-conflict"),
+    ("string", {"rules": {"marks": ["#"]}}, "policy-conflict"),
+    ("boolean", {"format": "Y"}, "policy-conflict"),
+    ("boolean", {"format": "Y|N", "rules": {"alternateFormats": ["A|B|C"]}}, "policy-conflict"),
+    ("date", {"format": "dd.MM.yy"}, "policy-year-start"),
+    ("date", {"format": "dd.MM.yyyy", "rules": {"yearStart": 1950}}, "policy-year-start"),
+    ("date", {"format": "d MMMM yyyy"}, "policy-month-names"),
+    ("date", {"format": "d MMM yyyy"}, "policy-month-names"),
+    ("date", {"format": "d MMM yyyy", "rules": {"monthNames": MONTHS}}, "policy-month-names"),
+    ("date", {"format": "dd/MM/yyyy", "rules": {"monthAbbreviations": MONTHS}}, "policy-month-names"),
+    ("number", {"rules": {"negative": ["CR"]}}, "policy-negative-form"),
+    ("date", {"format": "d MMM yyyy", "rules": {"monthAbbreviations": MONTHS[:11]}}, "policy-month-names"),
+]
+FITS = [
+    ("number", {"base": "decimal", "format": {"decimalChar": ",", "groupChar": ".", "pattern": "#,##,##0"}}),
+    ("number", {"rules": {"currency": ["£", "¬£"], "marks": ["#"], "negative": ["(x)", "x CR"], "percent": "%"}}),
+    ("number", {"rules": {"exponent": True, "nonFinite": True}}),
+    ("integer", {"format": {"groupChar": ","}}),
+    ("date", {"format": "dd/MM/yyyy", "rules": {"alternateFormats": ["yyyy-MM-dd"]}}),
+    ("date", {"format": "d 'de' MMM 'de' y", "rules": {"monthAbbreviations": MONTHS}}),
+    ("date", {"format": "'yy' dd.MM.yyyy"}),
+    ("month", {"format": "yyyy-MM"}),
+    ("number", {"base": "number"}),
 ]
 
 
@@ -50,8 +87,10 @@ def data_source(**parts) -> dict:
     return model | parts
 
 
-def schema(policy: dict) -> dict:
+def schema(policy: dict, dtype: str | None = None) -> dict:
     model = json.loads(qd.SchemaDefinition(source=SCHEMA).get_json())
+    bases = {"decimal": "number"}
+    model["fields"][0]["type"] = dtype or bases.get(policy.get("base"), policy.get("base"))
     model["fields"][0]["policy"] = policy
     return model
 
@@ -101,6 +140,73 @@ class TestFieldPolicy:
         definition = qd.SchemaDefinition(source=schema(POLICIES[0]))
         with pytest.raises(ValueError, match=r"`policy`.*1\.x cannot hold it"):
             definition.get_json(format="1.x")
+
+    @pytest.mark.parametrize("dtype, policy", FITS, ids=lambda p: p if isinstance(p, str) else "")
+    def test_fits_its_field(self, dtype, policy):
+        assert round_trip(qd.SchemaDefinition, schema(policy, dtype))["fields"][0]["policy"] == policy
+
+    @pytest.mark.parametrize("dtype, policy, code", MISFITS, ids=lambda p: p if isinstance(p, str) else "")
+    def test_refused_when_declared(self, dtype, policy, code):
+        with pytest.raises(ValueError, match=rf"\[whyqd:{code}\]"):
+            qd.SchemaDefinition(source=schema(policy, dtype))
+
+    @pytest.mark.parametrize(
+        "policy",
+        [{"rule": 1}, {"format": {"decimal": ","}}, {"rules": {"yearstart": 1950}}, {"rules": {"yearStart": 50}}],
+        ids=str,
+    )
+    def test_unknown_or_impossible_refused(self, policy):
+        with pytest.raises(ValueError):
+            qd.SchemaDefinition(source=schema(policy, "date"))
+
+
+class TestActionPolicy:
+    DATE = {"format": "dd/MM/yyyy"}
+
+    @pytest.mark.parametrize(
+        "script, policy",
+        [
+            ("UNITE > 'date' < '/'::['day', 'month', 'year']", DATE),
+            ("NEW > 'date' < ['01/04/2024']", DATE),
+            ("SEPARATE > ['a', 'b'] < ';'::['c']", {"a": DATE, "b": {"format": "Y|N"}}),
+        ],
+        ids=lambda p: p.split()[0] if isinstance(p, str) else "",
+    )
+    def test_on_an_action_building_text(self, script, policy):
+        assert ActionScriptModel(script=script, policy=policy).policy is not None
+
+    @pytest.mark.parametrize(
+        "script, policy",
+        [
+            ("RENAME > 'a' < ['b']", DATE),
+            ("CALCULATE > 'a' < [+ 'b', + 'c']", DATE),
+            ("SEPARATE > ['a', 'b'] < ';'::['c']", DATE),
+            ("UNITE > 'date' < '/'::['a', 'b']", {"date": DATE}),
+        ],
+        ids=["rename", "calculate", "separate-one", "unite-many"],
+    )
+    def test_refused_elsewhere(self, script, policy):
+        with pytest.raises(ValueError, match=r"\[whyqd:policy-on-action\]"):
+            ActionScriptModel(script=script, policy=policy)
+
+
+class TestCellReading:
+    @pytest.mark.parametrize(
+        "reading",
+        [{"kind": "value", "value": 43.4}, {"kind": "blank"}, {"kind": "refused", "reason": "two-numbers"}],
+        ids=lambda r: r["kind"],
+    )
+    def test_three_kinds(self, reading):
+        assert CellReadingModel(**reading).kind == reading["kind"]
+
+    @pytest.mark.parametrize(
+        "reading",
+        [{"kind": "refused"}, {"kind": "value", "reason": "two-numbers"}, {"kind": "blank", "value": 1}],
+        ids=str,
+    )
+    def test_inconsistent_refused(self, reading):
+        with pytest.raises(ValueError):
+            CellReadingModel(**reading)
 
 
 CROSSWALK = DIRECTORY / "test_crosswalk.crosswalk"

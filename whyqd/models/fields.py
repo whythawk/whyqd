@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: BSD-3-Clause
 from __future__ import annotations
-from pydantic import ConfigDict, BaseModel, Field
+from pydantic import ConfigDict, BaseModel, Field, model_validator
 from typing import Optional
 
 from whyqd.models.constraints import ConstraintsModel
@@ -28,3 +28,9 @@ class FieldModel(BaseModel):
         None, description="The versioned term list the field's categories come from, taking precedence over `enum`."
     )
     model_config = ConfigDict(use_enum_values=True, validate_assignment=True, populate_by_name=True)
+
+    @model_validator(mode="after")
+    def policy_fits(self) -> FieldModel:
+        if self.policy:
+            self.policy.check(name=self.name, dtype=self.dtype)
+        return self

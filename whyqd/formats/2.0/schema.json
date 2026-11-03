@@ -56,6 +56,17 @@
       "title": "CategoryModel",
       "type": "object"
     },
+    "CellType": {
+      "enum": [
+        "s",
+        "n",
+        "d",
+        "b",
+        "e"
+      ],
+      "title": "CellType",
+      "type": "string"
+    },
     "CitationModel": {
       "description": "BibTeX model for citations.\n\nhttps://www.bibtex.com/format/\n\nIncludes some non-standard fields.",
       "properties": {
@@ -477,6 +488,7 @@
       "type": "string"
     },
     "NumberFormatModel": {
+      "additionalProperties": false,
       "description": "How a number is written: the number format of a CSV on the Web derived datatype\n([Metadata Vocabulary for Tabular Data, section 5.11.2](https://www.w3.org/TR/tabular-metadata/#derived-datatypes)).",
       "properties": {
         "decimalChar": {
@@ -515,7 +527,7 @@
             }
           ],
           "default": null,
-          "description": "A number pattern, such as `#,##0.00`.",
+          "description": "A number pattern in the declared marks, such as `#,##0.00`. Its commas give the group sizes, so `#,##,##0` reads lakh grouping.",
           "title": "Pattern"
         }
       },
@@ -523,7 +535,8 @@
       "type": "object"
     },
     "PolicyModel": {
-      "description": "How to read a field's text as its type: a CSV on the Web derived datatype\n([Metadata Vocabulary for Tabular Data, section 5.11.2](https://www.w3.org/TR/tabular-metadata/#derived-datatypes)),\n`base` and `format`, with whyqd's own `rules` beside it.\n\nA field without a policy is read as text.",
+      "additionalProperties": false,
+      "description": "How to read a field's text as its type: a CSV on the Web derived datatype\n([Metadata Vocabulary for Tabular Data, section 5.11.2](https://www.w3.org/TR/tabular-metadata/#derived-datatypes)),\n`base` and `format`, with whyqd's own `rules` beside it.\n\nA field without a policy is read as text.\n\nExample:\n  ```python\n  {\"format\": {\"decimalChar\": \",\", \"groupChar\": \".\"}, \"rules\": {\"currency\": [\"€\"], \"negative\": [\"x-\"]}}\n  {\"format\": \"dd.MM.yy\", \"rules\": {\"yearStart\": 1950}}\n  {\"format\": \"Y|N\", \"rules\": {\"alternateFormats\": [\"Yes|No\"]}}\n  ```",
       "properties": {
         "base": {
           "anyOf": [
@@ -535,7 +548,7 @@
             }
           ],
           "default": null,
-          "description": "The datatype the text is read as, such as `decimal` or `date`.",
+          "description": "The datatype the text is read as: the field's type, or `decimal` for an exact number.",
           "title": "Base"
         },
         "format": {
@@ -555,11 +568,16 @@
           "title": "Format"
         },
         "rules": {
-          "additionalProperties": true,
-          "default": {},
-          "description": "whyqd's own reading rules, beyond what `base` and `format` say.",
-          "title": "Rules",
-          "type": "object"
+          "anyOf": [
+            {
+              "$ref": "#/$defs/RulesModel"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "whyqd's own reading rules, beyond `base` and `format`."
         }
       },
       "title": "PolicyModel",
@@ -584,6 +602,133 @@
         "version"
       ],
       "title": "ReferenceModel",
+      "type": "object"
+    },
+    "RulesModel": {
+      "additionalProperties": false,
+      "description": "What a reading needs that a CSV on the Web derived datatype cannot say. Each is for the wrangler to declare, so\nnothing here is assumed of a file, and a rule whyqd does not know is refused rather than ignored.",
+      "properties": {
+        "currency": {
+          "default": [],
+          "description": "Currency marks a number may carry, such as `£`, `CHF`, or `¬£`.",
+          "items": {
+            "type": "string"
+          },
+          "title": "Currency",
+          "type": "array"
+        },
+        "marks": {
+          "default": [],
+          "description": "Other marks a number may carry, such as `#`, each with no meaning.",
+          "items": {
+            "type": "string"
+          },
+          "title": "Marks",
+          "type": "array"
+        },
+        "negative": {
+          "default": [],
+          "description": "Forms of a negative beyond a leading `-`, with `x` for the number: `(x)`, `x-`, or `x CR`. A form not declared refuses, and never reads as positive.",
+          "items": {
+            "type": "string"
+          },
+          "title": "Negative",
+          "type": "array"
+        },
+        "percent": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "The mark of a percent, such as `%`. `5%` reads as 0.05.",
+          "title": "Percent"
+        },
+        "perMille": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "The mark of a per mille, such as `‰`. `5‰` reads as 0.005.",
+          "title": "Permille"
+        },
+        "exponent": {
+          "default": false,
+          "description": "Whether a number may have an exponent, such as `1E3`.",
+          "title": "Exponent",
+          "type": "boolean"
+        },
+        "nonFinite": {
+          "default": false,
+          "description": "Whether `NaN`, `INF`, and `-INF` read as numbers.",
+          "title": "Nonfinite",
+          "type": "boolean"
+        },
+        "alternateFormats": {
+          "default": [],
+          "description": "Further date patterns or boolean pairs, where no cell could match two: `yyyy-MM-dd` beside `dd/MM/yyyy`, or `Yes|No` beside `Y|N`.",
+          "items": {
+            "type": "string"
+          },
+          "title": "Alternateformats",
+          "type": "array"
+        },
+        "yearStart": {
+          "anyOf": [
+            {
+              "maximum": 9999,
+              "minimum": 1000,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "The first year of the 100 years a `yy` pattern reads: `1950` reads `49` as 2049 and `50` as 1950.",
+          "title": "Yearstart"
+        },
+        "monthNames": {
+          "default": [],
+          "description": "The twelve names `MMMM` reads, from January.",
+          "items": {
+            "type": "string"
+          },
+          "title": "Monthnames",
+          "type": "array"
+        },
+        "monthAbbreviations": {
+          "default": [],
+          "description": "The twelve names `MMM` reads, from January.",
+          "items": {
+            "type": "string"
+          },
+          "title": "Monthabbreviations",
+          "type": "array"
+        },
+        "cellFormats": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "default": {},
+          "description": "By a workbook's stored cell type, a pattern reading that cell's rendering, where it differs from its text: `{'d': 'yyyy-dd-MM'}` for a column of date cells whose day and month Excel swapped.",
+          "propertyNames": {
+            "$ref": "#/$defs/CellType"
+          },
+          "title": "Cellformats",
+          "type": "object"
+        }
+      },
+      "title": "RulesModel",
       "type": "object"
     },
     "VersionModel": {

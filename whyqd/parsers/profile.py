@@ -14,6 +14,7 @@ class ProfileParser:
     """
 
     FORMATTED = [CellType.NUMBER.value, CellType.DATE.value]
+    CELL = "cell"
 
     def __init__(self) -> None:
         self.patterns = PolarsPatterns()
@@ -31,11 +32,14 @@ class ProfileParser:
             Each cell's number format code; none for a file that stores none.
         """
         p = self.patterns
+        # A Series method runs as `col(series.name)`, so a source's column name would be read as a pattern (`^a$`, `*`)
+        # or clash with an output's name (`count`)
+        text, types = text.alias(self.CELL), types.alias(self.CELL)
         found = dict(types.drop_nulls().value_counts().iter_rows())
         is_text = types == CellType.STRING.value
         counts = {}
         if formats is not None:
-            coded = dict(formats.filter(types.is_in(self.FORMATTED)).drop_nulls().value_counts().iter_rows())
+            coded = dict(formats.alias(self.CELL).filter(types.is_in(self.FORMATTED)).drop_nulls().value_counts().iter_rows())
             counts = dict(sorted(coded.items(), key=lambda c: (-c[1], c[0])))
         return ProfileModel(
             cellTypes={t.value: found[t.value] for t in CellType if t.value in found},

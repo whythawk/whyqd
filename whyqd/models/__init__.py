@@ -8,7 +8,7 @@ from .category import CategoryModel
 from .dialect import DialectModel
 from .profile import ProfileModel
 from .report import FindingModel, ProposalModel, ReportModel, SettingModel
-from .policy import NumberFormatModel, PolicyModel
+from .policy import CellReadingModel, NumberFormatModel, PolicyModel, RulesModel
 from .column import ColumnModel
 from .actionscript import ActionScriptModel
 from .modifier import ModifierModel
