@@ -8,6 +8,10 @@ come from `locale-conventions.json`, an extract of Unicode's CLDR (https://cldr.
 convention is recalled; nothing here calls whyqd, so a misreading cannot agree with itself. CLDR says nothing of how a
 locale writes a boolean or delimits a CSV, so every file writes `Y` and `N`, and uses commas with CSV's quoting.
 
+A cold transform reads each cell with one sensible reading as its destination type, and halts on the rest. `Cold` says
+which, by its own rules: the marks `.` and `,` where only one reading fits, a currency mark of category `Sc`, a sign form
+or percent, and the three undeclared date shapes, judging a month name by `whyqd/config/names.json`, read as data.
+
 Beside a clean file per locale are three damaged ones: `mixed` holds markers and a stray mark among its amounts, `footer`
 a totals row, and `excel` the conversions Excel makes on opening a file. `answer-key.json` gives, per file, each round of
 declarations with the fields it should still halt on, and the values a conforming transform holds.
@@ -103,12 +107,91 @@ TRUE_VALUES = [
 ZEROS = {"arab": "٠"}
 BIDI = "‎‏؜"
 DATE_FIELD = re.compile(r"'[^']*'|y+|M+|d+")
-CANONICAL = {
-    "number": re.compile(r"-?[0-9]+(\.[0-9]+)?"),
-    "integer": re.compile(r"-?[0-9]+"),
-    "date": re.compile(r"[0-9]{4}-[0-9]{2}-[0-9]{2}"),
-    "boolean": re.compile(r"(?i)true|false|1|0"),
-}
+NAMES = json.loads((HERE.parents[2] / "whyqd" / "config" / "names.json").read_text(encoding="utf-8"))["languages"]
+
+
+class Cold:
+    """Whether a cell reads, undeclared, as its type: a blank always does, being no value to halt on."""
+
+    NUMBER = re.compile(r"[0-9]*(?:[.,][0-9]+)*")
+    EXPONENT = re.compile(r"[eE][+-]?[0-9]+$")
+    ISO = re.compile(r"([0-9]{4})-([0-9]{1,2})-([0-9]{1,2})(?:[T ][0-9]{1,2}:[0-9]{2}(?::[0-9]{2})?)?")
+    ORDER = re.compile(r"([0-9]{1,2})([/.-])([0-9]{1,2})\2([0-9]{4})")
+    RUN = re.compile(r"([0-9]{4})([0-9]{2})([0-9]{2})")
+    SERIAL = re.compile(r"[0-9]+(?:\.[0-9]+)?")
+    BOOLEAN = re.compile(r"(?i)true|false|1|0")
+    LAST_SERIAL = 2958465
+    PHANTOM = 60
+
+    def __init__(self) -> None:
+        self.months = {}
+        for entry in NAMES.values():
+            for month, names in enumerate(entry["months"], 1):
+                for name in names:
+                    self.months.setdefault(name.lower().rstrip("."), set()).add(month)
+
+    def reads(self, dtype: str, text: str) -> bool:
+        cell = canonical(text)
+        if not cell:
+            return True
+        scripts = {ord(c) - unicodedata.decimal(c) for c in text if unicodedata.category(c) == "Nd"}
+        if len(scripts) > 1 or any(unicodedata.category(c) == "No" for c in text):
+            return False
+        if dtype == "boolean":
+            return bool(self.BOOLEAN.fullmatch(cell))
+        return self.number(cell) if dtype in ("number", "integer") else self.date(cell)
+
+    def number(self, cell: str) -> bool:
+        cell = cell.replace("¬£", "£")
+        cell = cell.strip(" -%()" + "".join(c for c in cell if unicodedata.category(c) == "Sc"))
+        cell = self.EXPONENT.sub("", cell)
+        if not self.NUMBER.fullmatch(cell) or not re.search("[0-9]", cell):
+            return False
+        marks = re.findall("[.,]", cell)
+        if not marks:
+            return True
+        if len(set(marks)) == 2:
+            decimal = marks[-1]
+            return marks.count(decimal) == 1 and self.grouped(cell.rpartition(decimal)[0], ({".", ","} - {decimal}).pop())
+        if len(marks) > 1:
+            return self.grouped(cell, marks[0])
+        before, _, after = cell.partition(marks[0])
+        return not (len(after) == 3 and 1 <= len(before) <= 3 and not before.startswith("0"))
+
+    @staticmethod
+    def grouped(whole: str, mark: str) -> bool:
+        """CLDR's two shapes: groups of three, or Indian, a three after twos."""
+        first, *rest = whole.split(mark)
+        if all(len(part) == 3 for part in rest):
+            return 1 <= len(first) <= 3
+        return len(rest[-1]) == 3 and all(len(part) == 2 for part in rest[:-1]) and 1 <= len(first) <= 2
+
+    def date(self, cell: str) -> bool:
+        if match := self.ISO.fullmatch(cell) or self.RUN.fullmatch(cell):
+            year, month, day = (int(part) for part in match.groups())
+            return bool(valid(year, month, day))
+        if match := self.ORDER.fullmatch(cell):
+            first, _, second, year = match.groups()
+            readings = {d for d in (valid(int(year), int(second), int(first)), valid(int(year), int(first), int(second))) if d}
+            return len(readings) == 1
+        if self.SERIAL.fullmatch(cell):
+            return 1 <= float(cell) <= self.LAST_SERIAL and int(float(cell)) != self.PHANTOM
+        words = cell.replace(",", " ").split()
+        if len(words) != 3 or not re.fullmatch("[0-9]{4}", words[2]):
+            return False
+        day, name = (words[0], words[1]) if words[0].isdigit() else (words[1], words[0])
+        months = self.months.get(name.lower().rstrip("."), set())
+        return day.isdigit() and len(months) == 1 and bool(valid(int(words[2]), next(iter(months)), int(day)))
+
+
+def valid(year: int, month: int, day: int) -> date | None:
+    try:
+        return date(year, month, day)
+    except ValueError:
+        return None
+
+
+COLD = Cold()
 
 
 class Publisher:
@@ -227,14 +310,13 @@ def canonical(text: str) -> str:
     return "".join(str(unicodedata.decimal(c)) if unicodedata.category(c) == "Nd" else c for c in text).replace("−", "-")
 
 
-def halts(rows: list[dict], *, skip: set[str] = frozenset()) -> dict:
-    """How many cells each undeclared field refuses, read as its destination type in the canonical form."""
+def halts(rows: list[dict]) -> dict:
+    """How many cells each undeclared field refuses, read cold as its destination type."""
     found = {}
     for name, dtype in DESTINATION.items():
-        if dtype == "string" or name in skip:
+        if dtype == "string":
             continue
-        cells = [canonical(row[name]) for row in rows]
-        count = sum(1 for cell in cells if cell and not CANONICAL[dtype].fullmatch(cell))
+        count = sum(1 for row in rows if not COLD.reads(dtype, row[name]))
         if count:
             found[name] = count
     return found
@@ -337,7 +419,7 @@ def excel() -> dict:
         sheet.append([None if cells[name] == "" else cells[name] for name in DESTINATION])
         for name in refused:
             cell = cells[name]
-            if isinstance(cell, str) and cell and not CANONICAL[DESTINATION[name]].fullmatch(canonical(cell)):
+            if isinstance(cell, str) and not COLD.reads(DESTINATION[name], cell):
                 refused[name] += 1
     save(workbook, TARGET / f"excel-{tag}.xlsx")
     fields = publisher.declarations()

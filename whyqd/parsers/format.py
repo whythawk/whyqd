@@ -51,6 +51,7 @@ class FormatParser:
         "references",
         "extensions",
         "release",
+        "zeroAsTrue",
     )
     LENGTHS = {"minimum": "minLength", "maximum": "maxLength"}
     VALUES = {v: k for k, v in LENGTHS.items()}
@@ -173,7 +174,8 @@ class FormatParser:
         for key in self.NEW:
             if key in value:
                 raise ValueError(
-                    f"`{key}` on `{value.get('name') or value.get('path')}` is new in 2.0, so 1.x cannot hold it."
+                    f"`{key}` on `{value.get('name') or value.get('path') or 'a field’s constraints'}` is new in 2.0, so "
+                    "1.x cannot hold it."
                 )
         if isinstance(value.get("updated"), str):
             value["updated"] = value["updated"].removesuffix("Z")

@@ -60,6 +60,19 @@ class ConformanceParser:
         "check them against the file's owner",
         "several-currencies": "the amounts are in several currencies, and read as one number; split them with a crosswalk "
         "action before summing",
+        "currency-read": "a currency mark was read past; declare it in `rules.currency` to confirm",
+        "sign-read": "a negative form such as `(x)` was read as negative; declare it in `rules.negative` to confirm",
+        "percent-read": "a percent read as a fraction, `5%` as 0.05; declare `rules.percent` to confirm",
+        "marks-read": "which mark is the decimal was settled by the cell itself; declare `format` to confirm",
+        "exponent-read": "an exponent was read, `1e3` as 1000; set `rules.exponent`, or a `string` field if it is a "
+        "reference",
+        "exact-decimal": "more digits than a `Float64` holds, so read as exact decimals; declare `base` as `decimal` to "
+        "confirm",
+        "integer-rounded": "a fraction rounded half away from zero, `5.5` to 6; use a `number` field to keep it",
+        "serial-read": "a bare number read as a date serial, text by Excel's 1900 system; declare `rules.serial` to "
+        "confirm",
+        "month-name-read": "a month's name read with no language declared; declare `rules.language` to confirm",
+        "date-order-read": "a date's order was settled by the cell itself, as `13/04/2024`; declare `format` to confirm",
         "year-below-1000": "these read as a year before 1000; declare `yy` and `rules.yearStart` if the year is shortened",
         "time-dropped": "a date does not keep a time; use a `datetime` field if it matters",
         "repeated-hour": "the clocks went back, so these read as the earlier time; check them if the hour matters",
@@ -104,7 +117,8 @@ class ConformanceParser:
             tags = types[field.name] if field.name in types.columns else None
             if self.is_declared(field) and field.dtype not in self.NOT_READ:
                 read = self.reading.column(cells=cells, dtype=field.dtype, policy=field.policy, types=tags)
-                self.keep(field=field.name, cells=cells, readings=read, rows=rows, policy=field.policy, types=tags)
+                self.keep(field=field.name, cells=cells, readings=read, rows=rows)
+                self.warn_currencies(field=field.name, cells=cells, dtype=field.dtype, policy=field.policy)
                 df[field.name] = self.pandas(read["value"], field.dtype, df.index)
                 continue
             df[field.name] = cells.to_pandas().astype(self.PANDAS[self.TEXT]).set_axis(df.index).astype(object).where(
@@ -123,24 +137,19 @@ class ConformanceParser:
             return pd.Series(value.to_list(), dtype=nullable if value.dtype != pl.Decimal else object, index=index)
         return pd.Series(value.to_pandas().to_numpy(), index=index)
 
-    def keep(
-        self,
-        *,
-        field: str,
-        cells: pl.Series,
-        readings: pl.DataFrame,
-        rows: pl.Series,
-        policy: PolicyModel | None = None,
-        types: pl.Series | None = None,
-    ) -> None:
+    def keep(self, *, field: str, cells: pl.Series, readings: pl.DataFrame, rows: pl.Series) -> None:
         """Hold a field's refusals until the rows that survive are known, and report what warns."""
         self.refused.append(Refused(field=field, cells=cells, readings=readings, rows=rows))
         self.warn_cells(field=field, readings=readings, cells=cells, rows=rows)
-        if policy is not None:
-            counts = self.reading.currencies(cells=cells, policy=policy)
-            if sum(1 for count in counts.values() if count) > 1:
-                detail = ", ".join(f"`{mark}`: {count}" for mark, count in counts.items() if count)
-                self.warn(code="several-currencies", field=field, says=detail, count=sum(counts.values()), first=None)
+
+    def warn_currencies(self, *, field: str, cells: pl.Series, dtype: str, policy: PolicyModel | None) -> None:
+        """Warn where a number field reads more than one currency, with each one's count, so nobody sums them."""
+        if dtype not in self.NUMBERS:
+            return
+        counts = self.reading.currencies(cells=cells, policy=policy or PolicyModel())
+        if sum(1 for count in counts.values() if count) > 1:
+            detail = ", ".join(f"`{mark}`: {count}" for mark, count in counts.items() if count)
+            self.warn(code="several-currencies", field=field, says=detail, count=sum(counts.values()), first=None)
 
     def warn(self, *, code: str, field: str, says: str, count: int, first: int | None) -> None:
         where = "" if first is None else f", first at row {first}"
@@ -163,9 +172,9 @@ class ConformanceParser:
             self.warn(code="stored-as-other-type", field=field, says=says, count=sum(stored.values()), first=first)
 
     def warn_cells(self, *, field: str, readings: pl.DataFrame, cells: pl.Series, rows: pl.Series) -> None:
-        warned = readings["warning"]
-        for code in warned.drop_nulls().unique().sort().to_list():
-            mask = (warned == code).fill_null(False)
+        warned = readings["warnings"]
+        for code in warned.explode().drop_nulls().unique().sort().to_list():
+            mask = warned.list.contains(code).fill_null(False)
             self.warn(code=code, field=field, says=f"{mask.sum()} cells", count=mask.sum(), first=rows.filter(mask).min())
 
     def settle_source(self, *, df: pd.DataFrame, read_fields: set[str]) -> None:
@@ -267,6 +276,7 @@ class ConformanceParser:
             policy = policies.get(field.name) or field.policy
             read = self.reading.column(cells=cells, dtype=field.dtype, policy=policy, types=tags)
             self.warn_cells(field=field.name, readings=read, cells=cells, rows=rows)
+            self.warn_currencies(field=field.name, cells=cells, dtype=field.dtype, policy=policy)
             self.faults += self.reading.findings(field=field.name, cells=cells, readings=read, rows=rows)
             # A text field keeps a whitespace-only cell as written, though it counts as blank when a value is required
             value = cells if field.dtype == self.TEXT else read["value"]

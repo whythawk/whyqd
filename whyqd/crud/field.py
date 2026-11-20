@@ -128,6 +128,7 @@ class CRUDField(CRUDBase[FieldModel]):
         terms: pd.DataFrame | pd.Series | list[str] | None = None,
         as_bool: bool = False,
         has_array: bool = False,
+        zero_as_true: bool = False,
     ) -> None:
         """Derive unique category constraints from a data column for a specific field, called by a unique `name`
         already in the schema.
@@ -135,8 +136,10 @@ class CRUDField(CRUDBase[FieldModel]):
         Parameters:
           name:  Specific name for a field already in the Schema
           terms:  Data provided as a table or column containing string terms, as arrays or individual terms
-          as_bool:  Set the category terms as booleans, `True` and `False`
+          as_bool:  Set the category terms as booleans, `True` and `False`, so `CATEGORISE` can assign `True` to any
+            value of the field's type, a blank never being one
           has_array:  Set `True` if data terms are arrays, or the Field is of type `FieldType.ARRAY`
+          zero_as_true:  With `as_bool`, count a zero as present, on a number or integer field only
         """
         import pandas as pd
 
@@ -145,6 +148,9 @@ class CRUDField(CRUDBase[FieldModel]):
             field.constraints = ConstraintsModel()
         if as_bool:
             field.constraints.category = [CategoryModel(**{"name": term}) for term in [True, False]]
+            if zero_as_true:
+                # Assigned whole, so the field checks that its type holds a zero
+                field.constraints = field.constraints.model_copy(update={"zeroAsTrue": True})
         else:
             if not isinstance(terms, list):
                 terms = terms[name].unique()

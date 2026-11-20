@@ -1,5 +1,5 @@
 {
-  "generated": "2026-11-03T19:25:59",
+  "generated": "2026-11-20T11:23:04",
   "conventions": {
     "source": "Unicode CLDR",
     "babel": "2.18.0"
@@ -58,12 +58,8 @@
         {
           "declare": {},
           "halts": {
-            "amount": 4,
-            "balance": 4,
-            "rate": 5,
-            "count": 1,
-            "start": 4,
-            "end": 5,
+            "start": 1,
+            "end": 1,
             "active": 4
           }
         },
@@ -192,12 +188,8 @@
         {
           "declare": {},
           "halts": {
-            "amount": 4,
-            "balance": 4,
-            "rate": 5,
-            "count": 1,
             "start": 4,
-            "end": 5,
+            "end": 1,
             "active": 4
           }
         },
@@ -329,12 +321,8 @@
         {
           "declare": {},
           "halts": {
-            "amount": 4,
-            "balance": 4,
-            "rate": 5,
-            "count": 1,
             "start": 4,
-            "end": 5,
+            "end": 3,
             "active": 4
           }
         },
@@ -460,12 +448,11 @@
         {
           "declare": {},
           "halts": {
-            "amount": 4,
-            "balance": 4,
-            "rate": 5,
+            "amount": 2,
+            "balance": 1,
             "count": 1,
-            "start": 4,
-            "end": 5,
+            "start": 1,
+            "end": 1,
             "active": 4
           }
         },
@@ -596,10 +583,9 @@
           "halts": {
             "amount": 4,
             "balance": 4,
-            "rate": 5,
             "count": 1,
             "start": 4,
-            "end": 5,
+            "end": 3,
             "active": 4
           }
         },
@@ -725,12 +711,8 @@
         {
           "declare": {},
           "halts": {
-            "amount": 4,
-            "balance": 4,
-            "rate": 5,
-            "count": 1,
             "start": 4,
-            "end": 5,
+            "end": 1,
             "active": 4
           }
         },
@@ -867,9 +849,8 @@
           "halts": {
             "amount": 4,
             "balance": 4,
-            "rate": 5,
             "count": 1,
-            "end": 5,
+            "end": 1,
             "active": 4
           }
         },
@@ -995,10 +976,6 @@
         {
           "declare": {},
           "halts": {
-            "amount": 4,
-            "balance": 4,
-            "rate": 5,
-            "count": 1,
             "start": 4,
             "end": 5,
             "active": 4
@@ -1128,9 +1105,7 @@
           "halts": {
             "amount": 4,
             "balance": 4,
-            "rate": 5,
-            "count": 1,
-            "start": 4,
+            "start": 1,
             "end": 5,
             "active": 4
           }
@@ -1261,8 +1236,8 @@
             "balance": 4,
             "rate": 5,
             "count": 1,
-            "start": 4,
-            "end": 5,
+            "start": 1,
+            "end": 3,
             "active": 4
           }
         },
@@ -1388,12 +1363,10 @@
         {
           "declare": {},
           "halts": {
-            "amount": 4,
-            "balance": 4,
-            "rate": 5,
-            "count": 2,
-            "start": 4,
-            "end": 5,
+            "amount": 2,
+            "count": 1,
+            "start": 1,
+            "end": 1,
             "active": 4
           }
         },
@@ -1656,12 +1629,8 @@
         {
           "declare": {},
           "halts": {
-            "amount": 5,
-            "balance": 4,
-            "rate": 5,
-            "count": 1,
             "start": 5,
-            "end": 5,
+            "end": 3,
             "active": 4
           }
         },
@@ -1851,10 +1820,7 @@
         {
           "declare": {},
           "halts": {
-            "balance": 4,
-            "rate": 5,
-            "start": 3,
-            "end": 5,
+            "end": 1,
             "active": 4
           }
         },

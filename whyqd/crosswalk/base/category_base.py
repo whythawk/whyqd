@@ -170,18 +170,15 @@ class BaseCategoryAction:
         conditions = df[source.name]
         if len(assigned) == 1 and isinstance(assigned[0].name, bool):
             # Conditions are contingent on values in a column
-            # If assigned is `True`, then values are `True`, else values are `False` and nulls are `True`
+            # A zero is absent unless the field's `zeroAsTrue` counts it, and a blank always is
+            zero_counts = bool(source.constraints and source.constraints.zeroAsTrue)
             if source.dtype and source.dtype not in ["string", "object"]:
                 if pd.api.types.is_numeric_dtype(conditions) and not pd.api.types.is_bool_dtype(conditions):
-                    conditions = conditions.replace({0: np.nan})
+                    conditions = conditions if zero_counts else conditions.replace({0: np.nan})
             else:
                 conditions = self.reader.without_blanks(column=conditions)
-            if assigned[0].name:
-                # i.e. values are assigned True
-                conditions = pd.Series([not (pd.isnull(x) or not x) for x in conditions.tolist()])
-            else:
-                # i.e. values are assigned False
-                conditions = pd.Series([(pd.isnull(x) or not x) for x in conditions.tolist()])
+            present = [not (pd.isnull(x) or (not x and not zero_counts)) for x in conditions.tolist()]
+            conditions = pd.Series(present if assigned[0].name else [not p for p in present])
         else:
             # The conditional column values are categorised directly
             conditions = conditions.isin([c.name for c in assigned])

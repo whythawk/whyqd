@@ -5,7 +5,8 @@
 
 Target defaults to tests/data/synthetic-typing and is never overwritten. Each group states a field's type and the policy
 it declares, as a `PolicyModel` holds it, or none for the type's canonical form. A cell is a value, a blank, or a refusal
-with its `RefusalReason`; an ambiguity is settled by the declaration, never per cell, and nothing is assumed of a file.
+with its `RefusalReason`. A declared type reads any cell with one sensible reading, and a value read past what was
+declared carries `warnings`; a cell that truly cannot say refuses, and its neighbours never settle it.
 """
 
 import json
@@ -29,6 +30,11 @@ EU = {"format": {"decimalChar": ",", "groupChar": "."}, "rules": {"currency": ["
 
 def v(text, value, note=""):
     return {"text": text, "outcome": "value", "value": value, "note": note}
+
+
+def w(text, value, *warnings, note=""):
+    """A value read with something to check: each warning says what was read past the declaration."""
+    return {**v(text, value, note), "warnings": list(warnings)}
 
 
 def b(text):
@@ -59,18 +65,49 @@ NUMBER = {
             v("१२३", "123", "Devanagari digits"),
             v("12‏", "12", "a right-to-left mark"),
             r("٣4", "mixed-digits"),
+            w("£5", "5", "currency-read"),
+            w("$5", "5", "currency-read"),
+            w("€ 5", "5", "currency-read"),
+            w("¬£43.40", "43.40", "currency-read", note="the mojibake of `£`"),
+            w("(5)", "-5", "sign-read"),
+            w("5-", "-5", "sign-read"),
+            w("5%", "0.05", "percent-read"),
+            w("5 %", "0.05", "percent-read", note="a hard space before the mark, NFKC"),
+            w("1,234.50", "1234.50", "marks-read"),
+            w("1.234,50", "1234.50", "marks-read"),
+            w("1,234,567", "1234567", "marks-read", note="a repeated mark is grouping"),
+            w("1.234.567", "1234567", "marks-read"),
+            w("12,34,567", "1234567", "marks-read", note="CLDR's Indian grouping"),
+            w("12,34,567.89", "1234567.89", "marks-read"),
+            w("43,40", "43.40", "marks-read", note="no locale's last group has two digits"),
+            w("1,2345", "1.2345", "marks-read"),
+            v("0.125", "0.125", "a lone mark after a zero, or four digits, cannot group"),
+            v("1234.567", "1234.567"),
+            w("1234,567", "1234.567", "marks-read"),
+            w("1e3", "1000", "exponent-read"),
+            w("12E4", "120000", "exponent-read"),
+            w("2310009E13", "23100090000000000000", "exponent-read"),
+            w("12345678901234567890", "12345678901234567890", "exact-decimal"),
+            w("£1,234.50", "1234.50", "currency-read", "marks-read"),
+            w("(£826.80)", "-826.80", "currency-read", "sign-read"),
+            w("-12,5 %", "-0.125", "percent-read", "marks-read"),
             r("1,234", "undeclared-character"),
-            r("£5", "undeclared-character"),
+            r("1.234", "undeclared-character"),
+            r("1,23,4567", "grouping-mismatch"),
+            r("1,234.567.8", "grouping-mismatch"),
+            r("1 234,50", "undeclared-character"),
+            r("1’234.50", "undeclared-character"),
+            r("CHF 5", "undeclared-character"),
+            r("5 kr", "undeclared-character"),
             r("<5", "undeclared-character"),
             r("~5", "undeclared-character"),
             r("±5", "undeclared-character"),
-            r("5%", "undeclared-character"),
             r("12​", "undeclared-character"),
-            r("(5)", "undeclared-sign"),
-            r("5-", "undeclared-sign"),
-            r("1e3", "undeclared-exponent"),
-            r("12E4", "undeclared-exponent"),
-            r("2310009E13", "undeclared-exponent"),
+            r("#5", "undeclared-character"),
+            r("TBC", "undeclared-character"),
+            r("5 CR", "undeclared-character"),
+            r("10 - 20", "two-numbers"),
+            r("5‰", "undeclared-character"),
             r("NaN", "undeclared-non-finite"),
             r("INF", "undeclared-non-finite"),
             r("-INF", "undeclared-non-finite"),
@@ -79,10 +116,11 @@ NUMBER = {
             r("①2", "number-form-character"),
             r("½", "number-form-character"),
             r("1½", "number-form-character"),
-            r("12345678901234567890", "too-many-digits"),
             r("N/A", "undeclared-character"),
             *BLANK_CASES,
         ],
+        note="A declared type reads any cell with one sensible reading, and warns. The marks `.` and `,` read wherever "
+        "only one reading fits; a lone mark with three digits after it is either in every locale.",
     ),
     "UK": group(
         "number",
@@ -102,8 +140,8 @@ NUMBER = {
             v("0000130842", "130842"),
             v("−45", "-45", "Unicode minus"),
             v("１２", "12", "full-width digits, NFKC"),
-            r("1e3", "undeclared-exponent"),
-            r("5%", "undeclared-character"),
+            w("1e3", "1000", "exponent-read"),
+            w("5%", "0.05", "percent-read"),
             r("$5", "undeclared-character"),
             r("1.234,50", "grouping-mismatch"),
             r("1,5", "grouping-mismatch"),
@@ -127,7 +165,8 @@ NUMBER = {
             v("€-12,30", "-12.30"),
             v("12,30 €", "12.30"),
             r("1,234.50", "grouping-mismatch"),
-            r("(5)", "undeclared-sign"),
+            w("(5)", "-5", "sign-read"),
+            r("£5", "undeclared-character"),
             *BLANK_CASES,
         ],
     ),
@@ -150,12 +189,19 @@ NUMBER = {
             v("#-4963,45", "-4963.45", "a publisher's mark"),
             v("826,80 CR", "-826.80"),
             r("826,80 DR", "undeclared-character"),
+            r("(826,80)", "undeclared-sign"),
         ],
+        note="A declared negative form tightens: `(x)`, read undeclared, refuses once `x CR` is declared.",
     ),
     "Swiss": group(
         "number",
         {"format": {"decimalChar": ".", "groupChar": "’"}, "rules": {"currency": ["CHF"]}},
-        [v("CHF 1’234.50", "1234.50"), v("CHF-5.00", "-5.00"), r("EUR 5.00", "undeclared-character")],
+        [
+            v("CHF 1’234.50", "1234.50"),
+            v("CHF-5.00", "-5.00"),
+            r("EUR 5.00", "undeclared-character"),
+            r("€5.00", "undeclared-character"),
+        ],
     ),
     "Arabic": group(
         "number",
@@ -170,12 +216,18 @@ NUMBER = {
     "percent": group(
         "number",
         {"rules": {"percent": "%", "perMille": "‰"}},
-        [v("5%", "0.05"), v("5.5%", "0.055"), v("5‰", "0.005"), v("-5%", "-0.05"), v("5", "5")],
+        [v("5%", "0.05"), v("5.5%", "0.055"), v("5‰", "0.005"), v("-5%", "-0.05"), v("5", "5"), r("5٪", "undeclared-character")],
     ),
     "exponent": group(
         "number",
         {"rules": {"exponent": True, "nonFinite": True}},
         [v("1e3", "1000"), v("12E4", "120000"), v("NaN", "NaN"), v("INF", "INF"), v("-INF", "-INF")],
+    ),
+    "no_exponent": group(
+        "number",
+        {"rules": {"exponent": False}},
+        [v("1000", "1000"), r("1e3", "undeclared-exponent"), r("12E4", "undeclared-exponent")],
+        note="`exponent: false` tightens, so a reference such as `12E4` refuses rather than reading as a number.",
     ),
     "decimal": group(
         "number",
@@ -184,6 +236,21 @@ NUMBER = {
     ),
 }
 INTEGER = {
+    "canonical": group(
+        "integer",
+        None,
+        [
+            v("12", "12"),
+            v("12.00", "12"),
+            w("5.5", "6", "integer-rounded"),
+            w("-5.5", "-6", "integer-rounded"),
+            w("2.5", "3", "integer-rounded", note="half away from zero, as Excel's `ROUND`; half to even would give 2"),
+            w("5.4", "5", "integer-rounded"),
+            w("1,234,567", "1234567", "marks-read"),
+            r("1,234", "undeclared-character"),
+            *BLANK_CASES,
+        ],
+    ),
     "UK": group(
         "integer",
         {"format": {"decimalChar": ".", "groupChar": ","}},
@@ -192,9 +259,9 @@ INTEGER = {
             v("0000130842", "130842"),
             v("1,234", "1234"),
             v("-7", "-7"),
-            r("12.50", "not-an-integer"),
+            w("12.50", "13", "integer-rounded"),
             r("1.234,50", "grouping-mismatch"),
-            r("826.80-", "undeclared-sign"),
+            w("826.80-", "-827", "sign-read", "integer-rounded"),
             *BLANK_CASES,
         ],
     ),
@@ -213,8 +280,12 @@ BOOLEAN = {
             v("0", False),
             r("Y", "not-in-format"),
             r("N", "not-in-format"),
+            r("yes", "not-in-format"),
+            r("no", "not-in-format"),
             *BLANK_CASES,
         ],
+        note="A word is never guessed: `yes` and `Y` read only by a declared pair, or by `CATEGORISE`. A blank is "
+        "never false.",
     ),
     "declared": group(
         "boolean",
@@ -242,12 +313,33 @@ DATE = {
             v("2024-4-3", "2024-04-03", "a number's width says nothing of its meaning"),
             v("2024-04-13T00:00:00", "2024-04-13"),
             v("2024-04-13 00:00:00", "2024-04-13"),
-            {**v("2024-04-13 12:45", "2024-04-13"), "warning": "time-dropped"},
-            r("13/04/2024", "not-in-format"),
+            v("2024-04-13      ", "2024-04-13", "padded, as a fixed-width export leaves it"),
+            w("19.08.2020      ", "2020-08-19", "date-order-read"),
+            w("2024-04-13 12:45", "2024-04-13", "time-dropped"),
+            w("13/04/2024", "2024-04-13", "date-order-read"),
+            w("13.04.2024", "2024-04-13", "date-order-read"),
+            w("13-04-2024", "2024-04-13", "date-order-read"),
+            w("4/13/2024", "2024-04-13", "date-order-read"),
+            w("04/04/2024", "2024-04-04", "date-order-read"),
+            w("20240413", "2024-04-13", "date-order-read"),
+            w("1 April 2024", "2024-04-01", "month-name-read"),
+            w("31 Dec 2024", "2024-12-31", "month-name-read"),
+            w("31 déc. 2024", "2024-12-31", "month-name-read"),
+            w("Dec 31, 2024", "2024-12-31", "month-name-read"),
+            w("45295", "2024-01-04", "serial-read"),
+            r("01/02/2024", "two-readings"),
+            r("1 listopad 2024", "two-readings"),
+            r("13/04/24", "not-in-format"),
+            r("13/04-2024", "not-in-format"),
             r("2024/04/13", "not-in-format"),
+            r("1 de abril de 2024", "not-in-format"),
+            r("31/02/2024", "impossible-date"),
             r("2024-02-30", "impossible-date"),
+            r("60", "impossible-date"),
             *BLANK_CASES,
         ],
+        note="With no pattern declared, a cell with one reading reads and warns; one two orders or languages could read "
+        "halts, and so does any other shape.",
     ),
     "day_first": group(
         "date",
@@ -261,7 +353,7 @@ DATE = {
             v("2010-04-01 00:00:00", "2010-04-01"),
             v("1/4/2024", "2024-04-01"),
             r("31/02/2024", "impossible-date"),
-            r("45295", "not-in-format"),
+            w("45295", "2024-01-04", "serial-read"),
             *BLANK_CASES,
         ],
     ),
@@ -276,15 +368,15 @@ DATE = {
         {"format": "dd/MM/y"},
         [
             v("01/04/2024", "2024-04-01"),
-            {**v("01/04/800", "0800-04-01"), "warning": "year-below-1000"},
-            {**v("01/04/24", "0024-04-01"), "warning": "year-below-1000"},
+            w("01/04/800", "0800-04-01", "year-below-1000"),
+            w("01/04/24", "0024-04-01", "year-below-1000"),
         ],
         note="`y` is any length, as UAX 35 has it, and a year below 1000 reads with a warning.",
     ),
     "four_digit_year": group(
         "date",
         {"format": "dd/MM/yyyy"},
-        [v("01/04/2024", "2024-04-01"), {**v("01/04/0800", "0800-04-01"), "warning": "year-below-1000"}, r("01/04/24", "not-in-format")],
+        [v("01/04/2024", "2024-04-01"), w("01/04/0800", "0800-04-01", "year-below-1000"), r("01/04/24", "not-in-format")],
     ),
     "serial": group(
         "date",
@@ -294,7 +386,7 @@ DATE = {
             v("43630", "2019-06-14"),
             v("13/04/2024", "2024-04-13", "a pattern still reads beside a serial"),
             {"cell_type": "n", "text": "45295", "outcome": "value", "value": "2024-01-04"},
-            {**v("45295.5", "2024-01-04"), "warning": "time-dropped"},
+            w("45295.5", "2024-01-04", "time-dropped"),
             v("1", "1900-01-01"),
             v("59", "1900-02-28"),
             v("61", "1900-03-01"),
@@ -310,10 +402,19 @@ DATE = {
         {"rules": {"serial": "excel-1904"}},
         [v("0", "1904-01-01"), v("43630", "2023-06-15"), v("2024-04-13", "2024-04-13")],
     ),
+    "serial_unix": group(
+        "date",
+        {"rules": {"serial": "unix"}},
+        [v("1712966400", "2024-04-13"), w("1713009600", "2024-04-13", "time-dropped"), v("0", "1970-01-01")],
+        note="Seconds since 1970-01-01 UTC, of any length.",
+    ),
     "typed_as_excel": group("date", {"format": "dd/mm/yyyy"}, [v("13/04/2024", "2024-04-13")]),
     "typed_for_strptime": group("date", {"format": "%d/%m/%Y"}, [v("13/04/2024", "2024-04-13")]),
     "digits_run_together": group(
-        "date", {"format": "yyyyMMdd"}, [v("20240413", "2024-04-13"), r("2024413", "not-in-format")]
+        "date",
+        {"format": "yyyyMMdd"},
+        [v("20240413", "2024-04-13"), r("2024413", "not-in-format")],
+        note="A pattern of digits alone says what a bare number is, so one it cannot read is never a serial.",
     ),
     "weekday": group(
         "date",
@@ -345,6 +446,7 @@ DATE = {
             v("1 apr. 2024", "2024-04-01"),
             v("1 Sep 2024", "2024-09-01"),
             v("1 Sept 2024", "2024-09-01"),
+            v("1 Jan 2024", "2024-01-01", "undeclared, two-readings: June in Southern Sotho"),
             r("1 Avril 2024", "not-in-format"),
         ],
     ),
@@ -463,6 +565,7 @@ DATETIME = {
             v("2024-04-13T12:45:00", "2024-04-13T12:45:00"),
             v("2024-04-13 12:45:00", "2024-04-13T12:45:00"),
             v("2024-04-13 12:45", "2024-04-13T12:45:00"),
+            w("45295.5", "2024-01-04T12:00:00", "serial-read"),
             r("13/04/2024 12:45", "not-in-format"),
             *BLANK_CASES,
         ],
@@ -506,7 +609,7 @@ DATETIME = {
             v("13/06/2024 12:45", "2024-06-13T12:45:00+01:00"),
             v("13/01/2024 12:45", "2024-01-13T12:45:00+00:00"),
             r("31/03/2024 01:30", "impossible-date"),
-            {**v("27/10/2024 01:30", "2024-10-27T01:30:00+01:00"), "warning": "repeated-hour"},
+            w("27/10/2024 01:30", "2024-10-27T01:30:00+01:00", "repeated-hour"),
         ],
         note="A clock time the clocks skipped never happened; one they repeated reads as the earlier, with a warning.",
     ),
@@ -574,10 +677,32 @@ STRING = {
         "stored type and never reverses it.",
     ),
 }
+def p(text, outcome):
+    return {"text": text, "outcome": outcome}
+
+
+def presence(dtype, cases, zero_as_true=False):
+    return {"type": dtype, "zeroAsTrue": zero_as_true, "cases": cases + [p(text, "absent") for text in BLANKS]}
+
+
 CATEGORISE = {
-    "note": "CATEGORISE with a boolean source term: does a cell count as a value?",
-    "cases": [{"text": t, "is_value": False} for t in BLANKS]
-    + [{"text": t, "is_value": True} for t in ["0", "N/A", "x", "a b"]],
+    "note": "Presence as a boolean: a field derives its categories as booleans, and `CATEGORISE` assigns `True` to a "
+    "cell holding a value of the field's type. The cell is read as its type first, so one that cannot be halts. A blank "
+    "is never present, nor a zero unless the field's `zeroAsTrue` counts it.",
+    "groups": {
+        "string": presence("string", [p(t, "present") for t in ["0", "N/A", "x", "a b"]]),
+        "date": presence(
+            "date",
+            [p("2024-04-13", "present"), p("13/04/2024", "present"), p("TBC", "halts"), p("01/02/2024", "halts")],
+        ),
+        "number": presence(
+            "number",
+            [p("5", "present"), p("£5", "present"), p("-1.50", "present"), p("0", "absent"), p("0.00", "absent"), p("N/A", "halts")],
+        ),
+        "number_zero_as_true": presence(
+            "number", [p("5", "present"), p("0", "present"), p("0.00", "present")], zero_as_true=True
+        ),
+    },
 }
 TYPES = {
     "number": NUMBER,
@@ -600,7 +725,8 @@ def main():
     key = {"generated": datetime.now().isoformat(timespec="seconds"), **TYPES, "categorise": CATEGORISE}
     (TARGET / "typing-key.json").write_text(json.dumps(key, indent=2, ensure_ascii=False), encoding="utf-8")
     count = sum(len(g["cases"]) for groups in TYPES.values() for g in groups.values())
-    print(count, "typing cases and", len(CATEGORISE["cases"]), "CATEGORISE cases written")
+    presences = sum(len(g["cases"]) for g in CATEGORISE["groups"].values())
+    print(count, "typing cases and", presences, "CATEGORISE cases written")
 
 
 if __name__ == "__main__":

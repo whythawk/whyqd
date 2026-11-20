@@ -38,16 +38,28 @@ class RulesModel(BaseModel):
     DAY_PERIODS: ClassVar[int] = 2
     NUMBER_PLACE: ClassVar[str] = "x"
 
-    currency: list[str] = Field([], description="Currency marks a number may carry, such as `£`, `CHF`, or `¬£`.")
+    currency: list[str] = Field(
+        [],
+        description="Currency marks a number may carry, such as `£`, `CHF`, or `¬£`. With none declared, a mark of "
+        "Unicode's currency category, or `¬£`, reads with a warning; with any declared, another refuses.",
+    )
     marks: list[str] = Field([], description="Other marks a number may carry, such as `#`, each with no meaning.")
     negative: list[str] = Field(
         [],
-        description="Forms of a negative beyond a leading `-`, with `x` for the number: `(x)`, `x-`, or `x CR`. A form "
-        "not declared refuses, and never reads as positive.",
+        description="Forms of a negative beyond a leading `-`, with `x` for the number: `(x)`, `x-`, or `x CR`. With "
+        "none declared, `(x)` and `x-` read with a warning; with any declared, another refuses, never reading as "
+        "positive.",
     )
-    percent: Optional[str] = Field(None, description="The mark of a percent, such as `%`. `5%` reads as 0.05.")
+    percent: Optional[str] = Field(
+        None,
+        description="The mark of a percent, such as `٪`. `5%` reads as 0.05, with a warning where none is declared.",
+    )
     perMille: Optional[str] = Field(None, description="The mark of a per mille, such as `‰`. `5‰` reads as 0.005.")
-    exponent: bool = Field(False, description="Whether a number may have an exponent, such as `1E3`.")
+    exponent: Optional[bool] = Field(
+        None,
+        description="Whether a number may have an exponent, such as `1E3`: unset, it reads with a warning; `false` "
+        "refuses it, so a reference such as `12E4` stays one.",
+    )
     nonFinite: bool = Field(False, description="Whether `NaN`, `INF`, and `-INF` read as numbers.")
     alternateFormats: list[str] = Field(
         [],
@@ -76,8 +88,9 @@ class RulesModel(BaseModel):
     )
     serial: Optional[SerialDate] = Field(
         None,
-        description="Read a bare number as a date serial, in Excel's `excel-1900` or `excel-1904` system, beside any "
-        "patterns: `45295` reads as 2024-01-04 under `excel-1900`.",
+        description="Read a bare number as a date serial, in Excel's `excel-1900` or `excel-1904` system, or as `unix` "
+        "seconds, beside any patterns: `45295` reads as 2024-01-04 under `excel-1900`. Unset, a bare number reads by "
+        "`excel-1900` with a warning.",
     )
     cellFormats: dict[CellType, str] = Field(
         {},
@@ -401,13 +414,15 @@ class PolicyModel(BaseModel):
 
 class CellReadingModel(BaseModel):
     """What one cell read as under its field's declaration: a value, a blank, or a refusal with its reason, and a warning
-    where a value was read with something worth checking."""
+    for each thing read past what was declared."""
 
     kind: ReadingKind = Field(..., description="A value, a blank, or a refusal.")
     value: Any = Field(None, description="The value read, for a cell that held one.")
     reason: Optional[RefusalReason] = Field(None, description="Why the cell was refused.")
     detail: Optional[str] = Field(None, description="What in the cell was refused, such as the character it holds.")
-    warning: Optional[ReadingWarning] = Field(None, description="What to check about a value that was read.")
+    warnings: list[ReadingWarning] = Field(
+        [], description="What to check about a value that was read: `£1,234.50` carries two."
+    )
     model_config = ConfigDict(use_enum_values=True, validate_assignment=True)
 
     @model_validator(mode="after")

@@ -74,7 +74,7 @@ def check_reading(dtype: str, name: str, index: int) -> None:
         assert reading.reason == case["reason"], (case, reading)
     if case["outcome"] == "value":
         assert same(group["type"], reading.value, case["value"]), (case, reading)
-    assert reading.warning == case.get("warning"), (case, reading)
+    assert sorted(reading.warnings) == sorted(case.get("warnings", [])), (case, reading)
 
 
 class TestReader:

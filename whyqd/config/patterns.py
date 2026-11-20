@@ -36,8 +36,24 @@ class PolarsPatterns:
     BRACKETED: ClassVar[str] = r"^\(.*\)$"
     TRAILING_MINUS: ClassVar[str] = r"[0-9]\s*-$"
     FRACTION: ClassVar[str] = r"\.[0-9]*$"
-    NON_ZERO_FRACTION: ClassVar[str] = r"\.[0-9]*[1-9]"
+    WHOLE: ClassVar[str] = r"^-?[0-9]+(?:\.0*)?$"
     SIGN_OR_POINT: ClassVar[str] = r"[-.]"
+    # What a number field reads undeclared: a currency mark of Unicode's category `Sc`, or the mojibake of `£`; the
+    # last of its marks, `.` or `,`, with the digits after it; a lone mark that could be either, a group of three after
+    # one to three digits; and two runs of digits split only by a space, which may be a group mark or two numbers
+    CURRENCY: ClassVar[str] = r"¬£|\p{Sc}"
+    LAST_MARK: ClassVar[str] = r"([.,])[0-9]*$"
+    EITHER_MARK: ClassVar[str] = r"^[1-9][0-9]{0,2}[.,][0-9]{3}$"
+    SPACED: ClassVar[str] = r"[0-9]\s+[0-9]"
+    SPACE: ClassVar[str] = r"\s"
+    # A date's shapes that read undeclared: day and month as numbers in either order, each separator captured, since
+    # Rust's `regex` has no backreference to require the same one twice; digits run together as `yyyyMMdd`; and a
+    # day, a month's name, and a year, either of the first two first, once commas are spaces
+    DATE_ORDER: ClassVar[str] = r"^([0-9]{1,2})([/.-])([0-9]{1,2})([/.-])([0-9]{4})$"
+    DATE_RUN: ClassVar[str] = r"^([0-9]{4})([0-9]{2})([0-9]{2})$"
+    DAY_NAME: ClassVar[str] = r"^([0-9]+)\s+(\S+)\s+([0-9]{4})$"
+    NAME_DAY: ClassVar[str] = r"^(\S+)\s+([0-9]+)\s+([0-9]{4})$"
+    COMMA: ClassVar[str] = ","
     MONTH: ClassVar[str] = (
         r"(?i)^[0-9\s/.,-]*\b(jan(uary)?|feb(ruary)?|mar(ch)?|apr(il)?|may|june?|july?|aug(ust)?|sep(t|tember)?"
         r"|oct(ober)?|nov(ember)?|dec(ember)?)\b\.?[0-9\s/.,-]*$"
@@ -53,6 +69,8 @@ class PolarsPatterns:
     NOT_ZERO: ClassVar[str] = "[1-9]"
     OFFSET: ClassVar[str] = r"^(.*[0-9]:[0-9]{2}(?::[0-9]{2}(?:\.[0-9]+)?)?(?: ?[^0-9 ]+)?)\s*(Z|[+-][0-9]{2}(?::?[0-9]{2})?)$"
     SERIAL: ClassVar[str] = r"^[0-9]{1,7}(?:\.[0-9]+)?$"
+    # Seconds since 1970, of any length
+    UNIX_SERIAL: ClassVar[str] = r"^[0-9]+(?:\.[0-9]+)?$"
     TRAILING_DOT: ClassVar[str] = r"\.$"
     DOT_OR_SPACE: ClassVar[str] = r"[.\s]"
 
@@ -99,13 +117,16 @@ class PolarsPatterns:
         return rf"^([{cls.marks(decimal, group)}]*[0-9])[eE]([+-]?[0-9]+)$"
 
     @staticmethod
-    def number(decimal: str, group: str | None, sizes: tuple[int, int]) -> str:
-        """A whole number in its declared marks, ungrouped or in groups of `sizes`, the last group and those before it."""
+    def number(decimal: str, group: str | None, shapes: list[tuple[int, int]]) -> str:
+        """A whole number in its marks, ungrouped or in groups of any of `shapes`, each the last group's size and the
+        size of those before it."""
         point = re.escape(decimal)
         whole = "[0-9]+"
         if group:
-            mark, last, rest = re.escape(group), sizes[0], sizes[1]
-            whole = rf"[0-9]+|[0-9]{{1,{rest}}}(?:{mark}[0-9]{{{rest}}})*{mark}[0-9]{{{last}}}"
+            mark = re.escape(group)
+            whole += "".join(
+                rf"|[0-9]{{1,{rest}}}(?:{mark}[0-9]{{{rest}}})*{mark}[0-9]{{{last}}}" for last, rest in shapes
+            )
         return rf"^(?:(?:{whole})(?:{point}[0-9]+)?|{point}[0-9]+)$"
 
 

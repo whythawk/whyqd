@@ -24,7 +24,7 @@ TYPING = json.loads((DATA / "synthetic-typing" / "typing-key.json").read_text(en
 
 class TestKnownFaults:
     def test_categorise_ignores_blank_cells(self):
-        cases = TYPING["categorise"]["cases"]
+        cases = TYPING["categorise"]["groups"]["string"]["cases"]
         df = pd.DataFrame({"code": [c["text"] for c in cases]})
         df = Categorise().transform(
             df=df,
@@ -33,7 +33,7 @@ class TestKnownFaults:
             category=CategoryModel(name="yes"),
             assigned=[CategoryModel(name=True)],
         )
-        assert [v == "yes" for v in df["flag"]] == [c["is_value"] for c in cases]
+        assert [v == "yes" for v in df["flag"]] == [c["outcome"] == "present" for c in cases]
 
     @pytest.mark.xfail(strict=True, raises=AssertionError, reason="kept columns are ordered by a set")
     def test_pivot_longer_keeps_columns_in_source_order(self):

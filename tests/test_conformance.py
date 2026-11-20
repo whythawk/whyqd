@@ -12,9 +12,11 @@ import openpyxl
 import pytest
 
 import whyqd as qd
-from whyqd.models import ActionScriptModel, PolicyModel
+from whyqd import ConformanceError
+from whyqd.models import ActionScriptModel, FieldModel, PolicyModel
 
 DATA = Path(__file__).resolve().parent / "data"
+PRESENCE = json.loads((DATA / "synthetic-typing" / "typing-key.json").read_text(encoding="utf-8"))["categorise"]
 
 
 def _derived(datasource):
@@ -64,14 +66,27 @@ class TestHalting:
         assert run.report.findings == []
 
     def test_a_refusal_at_the_destination_halts_and_builds_nothing(self, tmp_path):
-        run = build(tmp_path, [["a"], ["£5"], ["7"]], destination={"a": {"type": "number"}})
+        run = build(tmp_path, [["a"], ["<5"], ["7"]], destination={"a": {"type": "number"}})
         with pytest.raises(ValueError, match=r"\[whyqd:transform-halted\]"):
             run.process()
         assert run.data is None
         assert faults(run) == [("a", "undeclared-character", 1)]
 
-    def test_a_halt_leaves_nothing_to_save(self, tmp_path):
+    def test_a_halt_is_a_conformance_error(self, tmp_path):
+        assert issubclass(ConformanceError, ValueError)
+        run = build(tmp_path, [["a"], ["<5"]], destination={"a": {"type": "number"}})
+        with pytest.raises(ConformanceError):
+            run.process()
+
+    def test_strict_halts_on_a_warning(self, tmp_path):
         run = build(tmp_path, [["a"], ["£5"]], destination={"a": {"type": "number"}})
+        with pytest.raises(ConformanceError, match=r"\[whyqd:transform-halted\]"):
+            run.process(strict=True)
+        assert run.data is None
+        assert [f[:2] for f in faults(run)] == [("a", "currency-read")]
+
+    def test_a_halt_leaves_nothing_to_save(self, tmp_path):
+        run = build(tmp_path, [["a"], ["<5"]], destination={"a": {"type": "number"}})
         with pytest.raises(ValueError):
             run.process()
         with pytest.raises(ValueError, match="No destination data"):
@@ -80,7 +95,7 @@ class TestHalting:
     def test_each_run_reports_everything_it_can(self, tmp_path):
         run = build(
             tmp_path,
-            [["a", "b"], ["£5", "13/04/2024"], ["x", "2024-04-13"]],
+            [["a", "b"], ["<5", "01/02/2024"], ["x", "2024-04-13"]],
             destination={"a": {"type": "number"}, "b": {"type": "date"}},
         )
         with pytest.raises(ValueError):
@@ -113,7 +128,7 @@ class TestHalting:
     def test_a_declared_field_is_named_at_its_source(self, tmp_path):
         run = build(
             tmp_path,
-            [["a"], ["£5"]],
+            [["a"], ["<5"]],
             source={"a": {"type": "number"}},
             destination={"a": {"type": "number"}},
         )
@@ -159,7 +174,7 @@ class TestTypes:
         run.process()
         assert [str(v)[:10] for v in run.data["a"].tolist()] == ["2024-04-13", "2024-04-14", "2024-04-15"]
 
-    def test_a_workbooks_bare_serial_reads_once_declared(self, tmp_path):
+    def test_a_workbooks_bare_serial_reads_and_warns_until_declared(self, tmp_path):
         path = tmp_path / "source.xlsx"
         book = openpyxl.Workbook()
         for row in (["a"], [45295], ["13/04/2024"]):
@@ -179,19 +194,28 @@ class TestTypes:
             crosswalk.actions.add(term="RENAME > 'a' < ['a']")
             return qd.TransformDefinition(crosswalk=crosswalk, data_source=datasource.get)
 
-        halted = run({"format": "dd/mm/yyyy"})
-        with pytest.raises(ValueError):
-            halted.process()
-        named = [str(found) for found in halted.report.findings if found.shape == "99999"]
+        warned_run = run({"format": "dd/mm/yyyy"})
+        with pytest.warns(UserWarning, match=r"\[whyqd:transform-warned\]"):
+            warned_run.process()
+        assert [str(v)[:10] for v in warned_run.data["a"].tolist()] == ["2024-01-04", "2024-04-13"]
+        named = [str(found) for found in warned_run.report.findings if found.code == "serial-read"]
         assert len(named) == 1 and "`rules.serial`" in named[0]
-        built = run({"format": "dd/mm/yyyy", "rules": {"serial": "excel-1900"}})
-        built.process()
-        assert [str(v)[:10] for v in built.data["a"].tolist()] == ["2024-01-04", "2024-04-13"]
+        confirmed = run({"format": "dd/mm/yyyy", "rules": {"serial": "excel-1900"}})
+        confirmed.process()
+        assert [str(v)[:10] for v in confirmed.data["a"].tolist()] == ["2024-01-04", "2024-04-13"]
+        assert warned(confirmed) == []
 
-    def test_a_whole_float_becomes_an_integer_and_a_fraction_never_rounds(self, tmp_path):
-        run = build(tmp_path, [["a"], ["5.0"], ["6"]], source={"a": {"type": "number"}}, destination={"a": {"type": "integer"}})
-        run.process()
-        assert run.data["a"].tolist() == [5, 6]
+    def test_a_number_becomes_an_integer_rounding_half_away_from_zero(self, tmp_path):
+        run = build(
+            tmp_path,
+            [["a"], ["5.0"], ["6"], ["5.5"], ["-5.5"], ["2.5"]],
+            source={"a": {"type": "number"}},
+            destination={"a": {"type": "integer"}},
+        )
+        with pytest.warns(UserWarning, match=r"\[whyqd:transform-warned\]"):
+            run.process()
+        assert run.data["a"].tolist() == [5, 6, 6, -6, 3]
+        assert warned(run) == [("a", "integer-rounded")]
 
     def test_a_declared_number_writes_as_text(self, tmp_path):
         run = build(tmp_path, [["a"], ["5"]], source={"a": {"type": "number"}}, destination={"a": {"type": "string"}})
@@ -215,12 +239,6 @@ class TestTypes:
         with pytest.raises(ValueError):
             run.process()
         assert faults(run) == [("a", "constraint-required", 1)]
-
-    def test_a_number_field_becomes_a_whole_number_where_it_is_one(self, tmp_path):
-        run = build(tmp_path, [["a"], ["5"], ["5.5"]], source={"a": {"type": "number"}}, destination={"a": {"type": "integer"}})
-        with pytest.raises(ValueError):
-            run.process()
-        assert faults(run) == [("a", "not-an-integer", 1)]
 
     def test_a_date_reads_as_its_period(self, tmp_path):
         run = build(tmp_path, [["a"], ["2024-04-13"]], source={"a": {"type": "date"}}, destination={"a": {"type": "month"}})
@@ -275,6 +293,23 @@ class TestConstraints:
 
 
 class TestWarnings:
+    @pytest.mark.parametrize(
+        "cell, code",
+        [("£5", "currency-read"), ("(5)", "sign-read"), ("5%", "percent-read"), ("1.234.567", "marks-read"), ("1e3", "exponent-read")],
+    )
+    def test_a_declared_type_reads_what_has_one_reading_and_warns(self, tmp_path, cell, code):
+        run = build(tmp_path, [["a"], [cell]], destination={"a": {"type": "number"}})
+        with pytest.warns(UserWarning, match=r"\[whyqd:transform-warned\]"):
+            run.process()
+        assert warned(run) == [("a", code)]
+
+    def test_declaring_a_reading_confirms_it(self, tmp_path):
+        declared = {"a": {"type": "number", "policy": {"rules": {"currency": ["£"]}}}}
+        run = build(tmp_path, [["a"], ["£5"]], source=declared, destination={"a": {"type": "number"}})
+        run.process()
+        assert run.data["a"].tolist() == [5.0]
+        assert warned(run) == []
+
     def test_a_read_with_something_to_check_warns_and_builds(self, tmp_path):
         run = build(
             tmp_path,
@@ -294,6 +329,12 @@ class TestWarnings:
             run.process()
         assert warned(run) == [("a", "several-currencies")]
 
+    def test_several_undeclared_currencies_warn(self, tmp_path):
+        run = build(tmp_path, [["a"], ["£5"], ["$6"]], destination={"a": {"type": "number"}})
+        with pytest.warns(UserWarning):
+            run.process()
+        assert warned(run) == [("a", "currency-read"), ("a", "several-currencies")]
+
     def test_one_currency_seen_does_not_warn(self, tmp_path):
         declared = {"a": {"type": "number", "policy": {"rules": {"currency": ["£", "€"]}}}}
         run = build(tmp_path, [["a"], ["£5"]], source=declared, destination={"a": {"type": "number"}})
@@ -305,18 +346,18 @@ class TestActions:
     def test_a_built_date_reads_by_the_actions_policy(self, tmp_path):
         run = build(
             tmp_path,
-            [["d", "m", "y"], ["13", "04", "2024"]],
+            [["d", "m", "y"], ["01", "02", "2024"]],
             destination={"when": {"type": "date"}},
             scripts=["UNITE > 'when' < '/'::['d','m','y']"],
         )
         with pytest.raises(ValueError):
             run.process()
-        assert faults(run) == [("when", "not-in-format", 1)]
+        assert faults(run) == [("when", "two-readings", 1)]
         script = run.crosswalk.crud.get_all()[0]
         script.policy = PolicyModel(format="dd/mm/yyyy")
         run.crosswalk.crud.get_all()[0].policy = script.policy
         run.process()
-        assert str(run.data["when"].tolist()[0]).startswith("2024-04-13")
+        assert str(run.data["when"].tolist()[0]).startswith("2024-02-01")
 
     def test_an_actions_policy_is_checked_against_its_destination(self, tmp_path):
         run = build(
@@ -349,7 +390,7 @@ class TestActions:
     def test_calculate_halts_on_an_input_it_cannot_read(self, tmp_path):
         run = build(
             tmp_path,
-            [["a", "b"], ["£5", "2"]],
+            [["a", "b"], ["<5", "2"]],
             destination={"total": {"type": "number"}},
             scripts=["CALCULATE > 'total' < [+ 'a', - 'b']"],
         )
@@ -372,7 +413,7 @@ class TestActions:
 class TestDiagnose:
     def test_a_schema_is_checked_before_any_crosswalk_exists(self, tmp_path):
         path = tmp_path / "source.csv"
-        path.write_text("a,b\n£5,x\n7,y\n", encoding="utf-8")
+        path.write_text("a,b\n<5,x\n7,y\n", encoding="utf-8")
         datasource = qd.DataSourceDefinition()
         datasource.derive_model(source=path, mimetype="CSV")
         schema = qd.SchemaDefinition()
@@ -388,6 +429,100 @@ class TestDiagnose:
         path.write_text("a\n£5\n", encoding="utf-8")
         report = qd.DataSourceDefinition().diagnose(source=path, mimetype="CSV")[0]
         assert [f for f in report.findings if f.field] == []
+
+
+class TestPresence:
+    """A field's categories derived as booleans, and `CATEGORISE` assigning `True` to a cell holding a value of its type."""
+
+    RELIEF = {"k": {"type": "string"}, "relief": {"type": "string", "constraints": {"category": [{"name": "present"}]}}}
+    SCRIPTS = ["RENAME > 'k' < ['k']", "CATEGORISE > 'relief'::'present' < 'a'::[True]"]
+    HALTS = [(name, c["text"]) for name, g in PRESENCE["groups"].items() for c in g["cases"] if c["outcome"] == "halts"]
+
+    @staticmethod
+    def field(group: dict) -> dict:
+        constraints = {"category": [{"name": True}, {"name": False}]}
+        return {"type": group["type"], "constraints": constraints | ({"zeroAsTrue": True} if group["zeroAsTrue"] else {})}
+
+    @pytest.mark.parametrize("name", list(PRESENCE["groups"]))
+    def test_a_cell_is_present_as_the_key_says(self, tmp_path, name):
+        group = PRESENCE["groups"][name]
+        cases = [c for c in group["cases"] if c["outcome"] != "halts"]
+        rows = [["k", "a"], *[[str(i), c["text"]] for i, c in enumerate(cases)]]
+        run = build(tmp_path, rows, source={"a": self.field(group)}, destination=self.RELIEF, scripts=self.SCRIPTS)
+        run.process()
+        assert run.data["relief"].eq("present").fillna(False).tolist() == [c["outcome"] == "present" for c in cases]
+
+    @pytest.mark.parametrize("name, text", HALTS)
+    def test_a_cell_that_cannot_be_its_type_halts(self, tmp_path, name, text):
+        group = PRESENCE["groups"][name]
+        run = build(tmp_path, [["k", "a"], ["0", text]], source={"a": self.field(group)}, destination=self.RELIEF, scripts=self.SCRIPTS)
+        with pytest.raises(ValueError):
+            run.process()
+
+    def test_zero_as_true_is_written_by_set_categories(self):
+        schema = qd.SchemaDefinition()
+        schema.set(schema={"name": "source"})
+        schema.fields.add(term={"name": "a", "type": "number"})
+        schema.fields.set_categories(name="a", as_bool=True, zero_as_true=True)
+        assert schema.fields.get(name="a").constraints.zeroAsTrue is True
+
+    @pytest.mark.parametrize("dtype", ["date", "string", "boolean"])
+    def test_zero_as_true_is_refused_on_a_field_with_no_zero(self, dtype):
+        with pytest.raises(ValueError):
+            FieldModel(name="a", type=dtype, constraints={"zeroAsTrue": True})
+
+
+class TestBarkingAndDagenham:
+    """A fixed-width export split into a workbook: each relief is present where its start date is, and a spacer of
+    padding is blank, never present."""
+
+    HERE = DATA / "sample" / "barking-dagenham"
+    RELIEFS = {
+        "empty_from": "empty",
+        "mand_from": "mandatory",
+        "disc_from": "discretionary",
+        "sbrr_from": "small_business",
+        "rtl_from": "retail",
+    }
+
+    def transform(self, declared: bool) -> qd.TransformDefinition:
+        stored = qd.TransformDefinition(transform=self.HERE / "barking-dagenham.TRANSFORM")
+        source = stored.get.dataSource.model_copy(update={"path": str(self.HERE / "source-data.XLSX")})
+        crosswalk = stored.get.crosswalk
+        for field in crosswalk.schemaSource.fields:
+            if field.name.strip() in [*self.RELIEFS, "liable_from"]:
+                field.dtype = "date"
+                field.policy = PolicyModel(format="dd.MM.yyyy") if declared else None
+        return qd.TransformDefinition(crosswalk=crosswalk, data_source=source)
+
+    def cells(self, name: str) -> list[str]:
+        """A column's cells as the workbook holds them, read apart from whyqd."""
+        rows = list(openpyxl.load_workbook(self.HERE / "source-data.XLSX", read_only=True).active.iter_rows(values_only=True))
+        column = [str(h).strip() for h in rows[0]].index(name)
+        return ["" if row[column] is None else str(row[column]).strip() for row in rows[1:]]
+
+    def test_a_day_that_could_be_a_month_halts_until_the_order_is_declared(self):
+        run = self.transform(declared=False)
+        with pytest.raises(ValueError):
+            run.process()
+        want = {}
+        for name in self.RELIEFS:
+            for cell in self.cells(name):
+                day, month, _ = (cell.split(".") + ["", "", ""])[:3]
+                if cell and int(day) <= 12 and day != month:
+                    want[name] = want.get(name, 0) + 1
+        got = {}
+        for found in run.report.findings:
+            if found.kind == "fault" and found.code == "two-readings" and found.field.strip() in self.RELIEFS:
+                got[found.field.strip()] = got.get(found.field.strip(), 0) + found.count
+        assert got == want
+
+    def test_a_relief_is_present_where_its_start_date_is(self):
+        run = self.transform(declared=True)
+        run.process()
+        types = [value or [] for value in run.data["occupierReliefType"].tolist()]
+        for name, term in self.RELIEFS.items():
+            assert [term in held for held in types] == [bool(cell) for cell in self.cells(name)], name
 
 
 class TestUsdate:

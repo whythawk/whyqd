@@ -448,6 +448,19 @@
           "default": null,
           "description": "The most characters a string may have.",
           "title": "Maxlength"
+        },
+        "zeroAsTrue": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Whether a zero counts as present where `CATEGORISE` assigns `True` to any value of a number or integer field. A zero is absent by default, and a blank always is.",
+          "title": "Zeroastrue"
         }
       },
       "title": "ConstraintsModel",
@@ -1416,7 +1429,7 @@
       "properties": {
         "currency": {
           "default": [],
-          "description": "Currency marks a number may carry, such as `£`, `CHF`, or `¬£`.",
+          "description": "Currency marks a number may carry, such as `£`, `CHF`, or `¬£`. With none declared, a mark of Unicode's currency category, or `¬£`, reads with a warning; with any declared, another refuses.",
           "items": {
             "type": "string"
           },
@@ -1434,7 +1447,7 @@
         },
         "negative": {
           "default": [],
-          "description": "Forms of a negative beyond a leading `-`, with `x` for the number: `(x)`, `x-`, or `x CR`. A form not declared refuses, and never reads as positive.",
+          "description": "Forms of a negative beyond a leading `-`, with `x` for the number: `(x)`, `x-`, or `x CR`. With none declared, `(x)` and `x-` read with a warning; with any declared, another refuses, never reading as positive.",
           "items": {
             "type": "string"
           },
@@ -1451,7 +1464,7 @@
             }
           ],
           "default": null,
-          "description": "The mark of a percent, such as `%`. `5%` reads as 0.05.",
+          "description": "The mark of a percent, such as `٪`. `5%` reads as 0.05, with a warning where none is declared.",
           "title": "Percent"
         },
         "perMille": {
@@ -1468,10 +1481,17 @@
           "title": "Permille"
         },
         "exponent": {
-          "default": false,
-          "description": "Whether a number may have an exponent, such as `1E3`.",
-          "title": "Exponent",
-          "type": "boolean"
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Whether a number may have an exponent, such as `1E3`: unset, it reads with a warning; `false` refuses it, so a reference such as `12E4` stays one.",
+          "title": "Exponent"
         },
         "nonFinite": {
           "default": false,
@@ -1577,7 +1597,7 @@
             }
           ],
           "default": null,
-          "description": "Read a bare number as a date serial, in Excel's `excel-1900` or `excel-1904` system, beside any patterns: `45295` reads as 2024-01-04 under `excel-1900`."
+          "description": "Read a bare number as a date serial, in Excel's `excel-1900` or `excel-1904` system, or as `unix` seconds, beside any patterns: `45295` reads as 2024-01-04 under `excel-1900`. Unset, a bare number reads by `excel-1900` with a warning."
         },
         "cellFormats": {
           "additionalProperties": {
@@ -1737,7 +1757,8 @@
     "SerialDate": {
       "enum": [
         "excel-1900",
-        "excel-1904"
+        "excel-1904",
+        "unix"
       ],
       "title": "SerialDate",
       "type": "string"

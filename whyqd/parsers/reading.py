@@ -2,7 +2,7 @@
 from __future__ import annotations
 import unicodedata
 from datetime import datetime, timedelta
-from decimal import Decimal
+from decimal import ROUND_HALF_UP, Decimal
 from functools import partial
 from typing import ClassVar
 
@@ -34,7 +34,14 @@ class ReadingParser:
     NORMAL: ClassVar[str] = "NFKC"
     BIDI: ClassVar[str] = "‎‏؜"
     DECIMAL_MARK: ClassVar[str] = "."
+    GROUP_MARK: ClassVar[str] = ","
     GROUP_SIZE: ClassVar[int] = 3
+    # CLDR's two grouping shapes, each the last group's size and the size of those before it: `1,234,567`, `12,34,567`
+    GROUP_SHAPES: ClassVar[list[tuple[int, int]]] = [(3, 3), (3, 2)]
+    # What a number reads past with a warning where its field declares none of the kind
+    UNDECLARED_NEGATIVE: ClassVar[list[str]] = ["(x)", "x-"]
+    UNDECLARED_PERCENT: ClassVar[str] = "%"
+    WARNINGS: ClassVar[list[str]] = [warning.value for warning in ReadingWarning]
     # A Float64 holds any 15 significant digits, so only a longer number can lose any
     FLOAT_DIGITS: ClassVar[int] = 15
     DECIMAL_PRECISION: ClassVar[int] = 38
@@ -68,6 +75,9 @@ class ReadingParser:
     EPOCH_1900: ClassVar[datetime] = datetime(1899, 12, 30)
     EPOCH_1900_EARLY: ClassVar[datetime] = datetime(1899, 12, 31)
     EPOCH_1904: ClassVar[datetime] = datetime(1904, 1, 1)
+    EPOCH_UNIX: ClassVar[datetime] = datetime(1970, 1, 1)
+    # A time of day is no date, and a year's own number is a year, so neither reads a bare number as a serial undeclared
+    NO_SERIAL: ClassVar[frozenset[str]] = frozenset({FieldType.TIME.value, FieldType.YEAR.value})
     PHANTOM_LEAP_DAY: ClassVar[int] = 60
     LAST_SERIAL_1900: ClassVar[int] = 2_958_465
     LAST_SERIAL_1904: ClassVar[int] = 2_957_003
@@ -93,7 +103,7 @@ class ReadingParser:
         "mixed-digits": ("mixes digits of different scripts", "correct the file, or delete the row"),
         "undeclared-character": (
             "holds something undeclared",
-            "declare it in `rules.currency` or `rules.marks`, or if it means nothing in `missingValues`",
+            "declare it in `format`, `rules.currency`, or `rules.marks`, or if it means nothing in `missingValues`",
         ),
         "undeclared-sign": ("has an undeclared negative form", "declare it in `rules.negative`"),
         "undeclared-exponent": ("has an undeclared exponent", "set `rules.exponent`, if it is a number"),
@@ -102,13 +112,15 @@ class ReadingParser:
             "does not fit the declared marks",
             "correct `format`'s `decimalChar` and `groupChar`, or if it means nothing use `missingValues`",
         ),
-        "too-many-digits": ("has more digits than its type holds", "declare `base` as `decimal`"),
-        "not-an-integer": ("holds a fraction", "change the field's type to `number`"),
+        "too-many-digits": ("has more digits than its type holds", "use a `string` field"),
         "not-in-format": (
             "does not fit the format",
             "correct `format`, add to `rules.alternateFormats`, or if it means nothing use `missingValues`",
         ),
-        "two-readings": ("fits two declared patterns differently", "keep the pattern the file uses"),
+        "two-readings": (
+            "could be read two ways",
+            "declare `format`, or `rules.language` for a month's name, or keep the pattern the file uses",
+        ),
         "no-zone": ("states no offset, beside cells that do", "declare `rules.zone`"),
         "impossible-date": ("names no such date or time", "correct `format`, or delete the row"),
         "error-cell": ("is a workbook's error cell", "use `missingValues`, or delete the row"),
@@ -201,80 +213,117 @@ class ReadingParser:
         written = pl.Series(self.CELL, [latin.get(cell, cell) for cell in text.to_list()], dtype=pl.String)
         return written.fill_null(""), written.is_null() & text.is_not_null()
 
-    def number_format(self, policy: PolicyModel) -> tuple[str, str | None, tuple[int, int]]:
-        """The decimal mark, group mark, and group sizes declared, each normalised as a cell is."""
-        declared = policy.format if isinstance(policy.format, NumberFormatModel) else NumberFormatModel()
+    def number_format(self, policy: PolicyModel) -> tuple[str, str | None, list[tuple[int, int]]] | None:
+        """The decimal mark, group mark, and group sizes declared, each normalised as a cell is, or `None` where the
+        field declares no format, each cell's marks then settling its own reading."""
+        declared = policy.format if isinstance(policy.format, NumberFormatModel) else None
+        if declared is None or not declared.model_fields_set:
+            return None
         decimal = self.normalised(declared.decimalChar or self.DECIMAL_MARK)
         group = self.normalised(declared.groupChar) if declared.groupChar else None
         sizes = (self.GROUP_SIZE, self.GROUP_SIZE)
         if declared.pattern and group:
             written = self.normalised(declared.pattern).split(decimal)[0].split(group)
             sizes = (len(written[-1]), len(written[-2]) if len(written) > 2 else len(written[-1]))
-        return decimal, group, sizes
+        return decimal, group, [sizes]
 
     def read_number(self, *, cells: pl.Series, types: pl.Series, policy: PolicyModel) -> pl.DataFrame:
+        """A number as `Float64`, or as exact decimals where `base` is `decimal` or a cell holds more digits than a
+        `Float64` keeps, the column then reading as decimals with that cell warning."""
         read = self.parts(cells=cells, types=types, policy=policy)
         finite = read["text"].str.contains(self.patterns.NON_FINITE).fill_null(False)
         if policy.base == PolicyModel.EXACT:
             return self.outcome(*self.as_decimal(read, finite=finite))
+        lost = self.float_losses(read)
+        if lost.any():
+            return self.outcome(*self.as_decimal(read.with_columns(lost), finite=finite))
         digits = read["text"].str.replace("INF", "inf").str.to_lowercase().zip_with(finite, read["digits"])
         read = read.with_columns(digits.alias("digits"))
         scale = (10.0 ** read["shift"].cast(pl.Float64)).alias(self.CELL)
-        return self.outcome(self.float_losses(read), read["digits"].cast(pl.Float64, strict=False) / scale)
+        return self.outcome(read, read["digits"].cast(pl.Float64, strict=False) / scale)
 
     def read_integer(self, *, cells: pl.Series, types: pl.Series, policy: PolicyModel) -> pl.DataFrame:
+        """A whole number, a fraction rounded half away from zero, as Excel's `ROUND` does, with a warning."""
         read = self.parts(cells=cells, types=types, policy=policy)
-        written = read["digits"].to_list()
-        if read["exponent"].is_not_null().any():
-            written = [format(Decimal(t), "f") if t and "e" in t else t for t in written]
-        digits = pl.Series(self.CELL, written, dtype=pl.String)
-        fraction = digits.str.contains(self.patterns.NON_ZERO_FRACTION).fill_null(False)
-        value = digits.str.replace(self.patterns.FRACTION, "").cast(pl.Int64, strict=False)
+        whole = read["digits"].str.contains(self.patterns.WHOLE).fill_null(False) & (read["shift"] == 0)
+        value = read["digits"].str.replace(self.patterns.FRACTION, "").cast(pl.Int64, strict=False)
+        rounded = pl.repeat(False, cells.len(), eager=True)
+        others = read.filter(~whole & pl.col("reason").is_null() & ~pl.col("blank")).select("digits", "shift").unique()
+        if others.height:
+            exact = {(text, shift): Decimal(text).scaleb(-shift) for text, shift in others.rows()}
+            near = {key: number.to_integral_value(rounding=ROUND_HALF_UP) for key, number in exact.items()}
+            keys = read.select("digits", "shift").rows()
+            changed = pl.Series(self.CELL, [key in near and near[key] != exact[key] for key in keys], dtype=pl.Boolean)
+            written = pl.Series(self.CELL, [str(near[key]) if key in near else None for key in keys], dtype=pl.String)
+            value = value.zip_with(whole, written.cast(pl.Int64, strict=False))
+            rounded = changed
+        lost = value.is_null() & read["digits"].is_not_null() & read["reason"].is_null() & ~read["blank"]
         read = read.with_columns(
-            fraction.alias("fraction"),
-            (value.is_null() & digits.is_not_null()).alias("lost"),
-        ).with_columns(
-            pl.when(pl.col("reason").is_not_null() | pl.col("blank"))
-            .then(pl.col("reason"))
-            .when("fraction")
-            .then(pl.lit(RefusalReason.NOT_AN_INTEGER.value))
-            .when("lost")
-            .then(pl.lit(RefusalReason.TOO_MANY_DIGITS.value))
-            .otherwise(pl.col("reason"))
-            .alias("reason")
+            rounded.alias(ReadingWarning.ROUNDED.value),
+            pl.when(lost).then(pl.lit(RefusalReason.TOO_MANY_DIGITS.value)).otherwise("reason").alias("reason"),
         )
         return self.outcome(read, value)
 
     def parts(self, *, cells: pl.Series, types: pl.Series, policy: PolicyModel) -> pl.DataFrame:
-        """Find the number in each cell, leaving its reason, or its canonical digits and how many places a percent or
-        per mille moves its point."""
+        """Find the number in each cell, leaving its reason, or its canonical digits, how many places a percent or per
+        mille moves its point, and what it read past with a warning, each warning a column of its own.
+
+        What has one sensible reading reads, with a warning, where the field declares nothing of its kind: a currency
+        mark of Unicode's category `Sc`, `(x)` and `x-`, `%`, an exponent, and the marks `.` and `,`. Declaring one
+        confirms it, and tightens it, so another of its kind refuses."""
         p, rules = self.patterns, policy.rules or RulesModel()
-        decimal, group, sizes = self.number_format(policy)
+        length = cells.len()
+        declared = self.number_format(policy)
         text, mixed = self.digits(self.steps(cells))
+        warned = {}
         marks = [self.normalised(mark) for mark in [*rules.currency, *rules.marks]]
         if marks:
             text = text.str.replace_all(p.any_of(marks), "").str.strip_chars()
-        shift = pl.repeat(0, cells.len(), eager=True, dtype=pl.Int64)
-        for mark, places in ((rules.percent, self.PERCENT), (rules.perMille, self.PER_MILLE)):
+        if not rules.currency:
+            warned[ReadingWarning.CURRENCY] = text.str.contains(p.CURRENCY)
+            text = text.str.replace_all(p.CURRENCY, "").str.strip_chars()
+        shift = pl.repeat(0, length, eager=True, dtype=pl.Int64)
+        percent = (rules.percent or self.UNDECLARED_PERCENT, self.PERCENT, rules.percent is None)
+        for mark, places, warns in (percent, (rules.perMille, self.PER_MILLE, False)):
             if mark:
                 found = text.str.contains(self.normalised(mark), literal=True).fill_null(False)
                 text = text.str.replace_all(self.normalised(mark), "", literal=True).str.strip_chars()
-                shift = pl.repeat(places, cells.len(), eager=True, dtype=pl.Int64).zip_with(found, shift)
-        negative = pl.repeat(False, cells.len(), eager=True)
-        for form in rules.negative:
+                shift = pl.repeat(places, length, eager=True, dtype=pl.Int64).zip_with(found, shift)
+                if warns:
+                    warned[ReadingWarning.PERCENT] = found
+        negative = pl.repeat(False, length, eager=True)
+        for form in rules.negative or self.UNDECLARED_NEGATIVE:
             prefix, suffix = (self.normalised(part).strip() for part in form.split(RulesModel.NUMBER_PLACE))
             around = p.around(prefix, suffix)
             found = text.str.contains(around).fill_null(False)
             negative = negative | found
             text = text.str.extract(around).zip_with(found, text)
+        if not rules.negative:
+            warned[ReadingWarning.SIGN] = negative
         minus = text.str.contains(p.LEADING_MINUS).fill_null(False)
         core = text.str.replace(p.LEADING_MINUS, "")
+        decimal, group, shapes = declared or (self.DECIMAL_MARK, self.GROUP_MARK, self.GROUP_SHAPES)
         exponent = core.str.extract(p.exponent(decimal, group), 2)
         mantissa = core
-        if rules.exponent:
+        if rules.exponent is not False:
             found = core.str.extract(p.exponent(decimal, group), 1)
             mantissa = found.zip_with(found.is_not_null(), core)
-        digits = mantissa.str.replace_all(group, "", literal=True) if group else mantissa
+            if rules.exponent is None:
+                warned[ReadingWarning.EXPONENT] = exponent.is_not_null()
+        if declared:
+            fits = mantissa.str.contains(p.number(decimal, group, shapes))
+            digits = mantissa.str.replace_all(group, "", literal=True) if group else mantissa
+            digits = digits.str.replace(decimal, ".", literal=True)
+            either = pl.repeat(False, length, eager=True)
+        else:
+            fits, digits, either, warned[ReadingWarning.MARKS] = self.undeclared_marks(mantissa)
+        # A space between digits may group them or part two numbers, so it is undeclared unless it is the group mark
+        spaced = mantissa.str.contains(p.SPACED).fill_null(False)
+        if group and group.isspace():
+            spaced = pl.repeat(False, length, eager=True)
+        left = core.str.replace_all(p.beside_number(decimal, group), "")
+        space = pl.repeat(" ", length, eager=True, dtype=pl.String)
+        detail = mantissa.str.extract(p.LAST_MARK, 1).zip_with(either, space.zip_with(spaced & (left == ""), left))
         read = pl.DataFrame(
             {
                 "cell": cells,
@@ -284,17 +333,41 @@ class ReadingParser:
                 "mixed": mixed,
                 "text": text,
                 "core": core,
-                "left": core.str.replace_all(p.beside_number(decimal, group), ""),
+                "left": left,
+                "either": either.fill_null(False),
+                "spaced": spaced.fill_null(False),
                 "runs": mantissa.str.extract_all(p.number_run(decimal, group)).list.len(),
                 "exponent": exponent,
-                "fits": mantissa.str.contains(p.number(decimal, group, sizes)).fill_null(False),
-                "digits": digits.str.replace(decimal, ".", literal=True),
+                "fits": fits.fill_null(False),
+                "digits": digits,
                 "shift": shift,
                 "twice": negative & minus,
                 "negative": negative | minus,
+                **{code.value: flag.fill_null(False) for code, flag in warned.items()},
             }
         )
-        return read.with_columns(self.number_reason(rules), self.canonical())
+        return read.with_columns(self.number_reason(rules), self.canonical()).with_columns(left=detail)
+
+    def undeclared_marks(self, mantissa: pl.Series) -> tuple[pl.Series, pl.Series, pl.Series, pl.Series]:
+        """Read `.` and `,` wherever only one reading fits: of two marks the last is the decimal; a repeated mark
+        groups; and a lone mark is a decimal unless it could be either, a group of three after one to three digits, as
+        `1,234`, since every CLDR locale's last group has three digits. Groups take either of CLDR's two shapes.
+        Returns whether each cell fits, its canonical digits, whether it could be either, and whether its marks warn."""
+        p = self.patterns
+        point, comma = self.DECIMAL_MARK, self.GROUP_MARK
+        dots = mantissa.str.count_matches(point, literal=True).fill_null(0)
+        commas = mantissa.str.count_matches(comma, literal=True).fill_null(0)
+        last = mantissa.str.extract(p.LAST_MARK, 1)
+        decimal_comma = (
+            ((dots > 0) & (commas > 0) & (last == comma)) | ((dots > 1) & (commas == 0)) | ((commas == 1) & (dots == 0))
+        ).fill_null(False)
+        fits = mantissa.str.contains(p.number(comma, point, self.GROUP_SHAPES)).zip_with(
+            decimal_comma, mantissa.str.contains(p.number(point, comma, self.GROUP_SHAPES))
+        )
+        as_comma = mantissa.str.replace_all(point, "", literal=True).str.replace(comma, point, literal=True)
+        digits = as_comma.zip_with(decimal_comma, mantissa.str.replace_all(comma, "", literal=True))
+        either = mantissa.str.contains(p.EITHER_MARK).fill_null(False)
+        return fits, digits, either, (commas > 0) | (dots > 1)
 
     def number_reason(self, rules: RulesModel) -> pl.Expr:
         """Why a cell is refused, the first of these that holds. A stored cell is decided by its type alone."""
@@ -312,8 +385,9 @@ class ReadingParser:
             (finite, None),
             (pl.col("core") == "", RefusalReason.NO_NUMBER),
             (signed.fill_null(False) | pl.col("twice"), RefusalReason.UNDECLARED_SIGN),
-            (pl.col("exponent").is_not_null() & (not rules.exponent), RefusalReason.UNDECLARED_EXPONENT),
+            (pl.col("exponent").is_not_null() & (rules.exponent is False), RefusalReason.UNDECLARED_EXPONENT),
             (pl.col("exponent").is_null() & (pl.col("left") != ""), RefusalReason.UNDECLARED_CHARACTER),
+            (pl.col("either") | pl.col("spaced"), RefusalReason.UNDECLARED_CHARACTER),
             (pl.col("runs") > 1, RefusalReason.TWO_NUMBERS),
             (~pl.col("fits"), RefusalReason.GROUPING),
         )
@@ -337,23 +411,16 @@ class ReadingParser:
             .alias("digits")
         )
 
-    def float_losses(self, read: pl.DataFrame) -> pl.DataFrame:
-        """Refuse a number with more digits than a `Float64` keeps, compared exactly, and only where it might."""
+    def float_losses(self, read: pl.DataFrame) -> pl.Series:
+        """Whether each number has more digits than a `Float64` keeps, compared exactly, and only where it might."""
         significant = read["digits"].str.replace_all(self.patterns.SIGN_OR_POINT, "").str.strip_chars_start("0")
         possible = (read["reason"].is_null() & (significant.str.len_chars() > self.FLOAT_DIGITS)).fill_null(False)
-        if not possible.any():
-            return read
         lost = [
             text
             for text in read["digits"].filter(possible).unique().to_list()
             if Decimal(text) != Decimal(repr(float(text)))
         ]
-        return read.with_columns(
-            pl.when(pl.col("digits").is_in(lost) & pl.col("reason").is_null())
-            .then(pl.lit(RefusalReason.TOO_MANY_DIGITS.value))
-            .otherwise(pl.col("reason"))
-            .alias("reason")
-        )
+        return (read["digits"].is_in(lost) & possible).alias(ReadingWarning.EXACT_DECIMAL.value)
 
     def as_decimal(self, read: pl.DataFrame, *, finite: pl.Series) -> tuple[pl.DataFrame, pl.Series]:
         """Exact values, in the scale the column's own cells need, so none rounds. A decimal has no `NaN` or `INF`, and
@@ -381,12 +448,15 @@ class ReadingParser:
         return read, value
 
     def outcome(self, read: pl.DataFrame, value: pl.Series) -> pl.DataFrame:
-        """The four columns of a reading, from each cell's reason and value."""
+        """The five columns of a reading, from each cell's reason and value, and a column of its own for each warning a
+        reader found, so a value's warnings are a list and a refusal or a blank has none."""
         refused = pl.col("reason").is_not_null()
         blank = pl.col("blank") & (pl.col("type") == CellType.STRING.value)
         undeclared = pl.col("reason") == RefusalReason.UNDECLARED_CHARACTER.value
         detail = pl.when(undeclared).then("left") if "left" in read.columns else pl.lit(None, dtype=pl.String)
-        warning = pl.when(refused | blank).then(None).otherwise("warning") if "warning" in read.columns else pl.lit(None, dtype=pl.String)
+        found = [pl.when(pl.col(code)).then(pl.lit(code)) for code in self.WARNINGS if code in read.columns]
+        warnings = pl.concat_list([pl.lit(None, dtype=pl.String), *found]).list.drop_nulls()
+        warnings = pl.when(refused | blank).then(pl.lit([], dtype=pl.List(pl.String))).otherwise(warnings)
         return read.with_columns(value.alias("value")).select(
             pl.when(refused)
             .then(pl.lit(ReadingKind.REFUSED.value))
@@ -397,7 +467,7 @@ class ReadingParser:
             pl.when(refused | blank).then(None).otherwise("value").alias("value"),
             pl.col("reason"),
             detail.alias("detail"),
-            warning.alias("warning"),
+            warnings.alias("warnings"),
         )
 
     def read_boolean(self, *, cells: pl.Series, types: pl.Series, policy: PolicyModel) -> pl.DataFrame:
@@ -570,44 +640,111 @@ class ReadingParser:
             offsets = stated if stated.is_not_null().any() or rules.zone else None
         period = dtype in self.PERIODS
         parsed = FieldType.DATE.value if period else dtype
-        read =self.patterns_read(text=text, patterns=declared or self.CANONICAL[dtype], rules=rules, dtype=parsed)
+        read = self.patterns_read(text=text, patterns=declared or self.CANONICAL[dtype], rules=rules, dtype=parsed)
+        warned = {}
+        if dtype == FieldType.DATE.value and not declared:
+            read, warned = self.undeclared_dates(text=text, read=read, rules=rules)
         is_stored = types == CellType.DATE.value
         if is_stored.any():
             stored = rules.cellFormats.get(CellType.DATE)
             patterns = [PolicyModel.standard_pattern(stored, dtype)] if stored else self.stored_patterns(dtype)
             rendered = self.patterns_read(text=text, patterns=patterns, rules=rules, dtype=parsed)
             read = tuple(one.zip_with(is_stored, other) for one, other in zip(rendered, read))
+            warned = {code: flag & ~is_stored for code, flag in warned.items()}
         fits, twice, value = read
         serial_time = pl.repeat(False, cells.len(), eager=True)
-        if rules.serial:
-            fits, value, serial_time, types = self.serials(
-                text=text, types=types, fits=fits, value=value, system=SerialDate(rules.serial)
+        # A pattern of digits alone, as `yyyyMMdd`, already says what a bare number is
+        digits_only = any(all(is_field for is_field, _ in PolicyModel.parts(pattern)) for pattern in declared)
+        if rules.serial or not (dtype in self.NO_SERIAL or digits_only):
+            system = SerialDate(rules.serial or SerialDate.EXCEL_1900)
+            fits, value, serial_time, types, serial = self.serials(
+                text=text, types=types, fits=fits, value=value, system=system
             )
-        none = pl.repeat(None, cells.len(), eager=True, dtype=pl.String).alias(self.CELL)
-        warning, no_zone = none, pl.repeat(False, cells.len(), eager=True)
+            if not rules.serial:
+                warned[ReadingWarning.SERIAL] = serial
+        no_zone = pl.repeat(False, cells.len(), eager=True)
         if dtype in (FieldType.DATE.value, FieldType.DATETIME.value) or period:
-            early = (value.dt.year() < self.EARLY_YEAR).fill_null(False)
-            warning = pl.repeat(ReadingWarning.YEAR_BELOW_1000.value, cells.len(), eager=True).zip_with(early, warning)
+            warned[ReadingWarning.YEAR_BELOW_1000] = (value.dt.year() < self.EARLY_YEAR).fill_null(False)
         if dtype == FieldType.DATE.value:
             at_end = text.str.extract(self.patterns.TIME_AT_END, 1)
-            dropped = at_end.str.contains(self.patterns.NOT_ZERO).fill_null(False) | serial_time
-            warning = pl.repeat(ReadingWarning.TIME_DROPPED.value, cells.len(), eager=True).zip_with(dropped, warning)
+            warned[ReadingWarning.TIME_DROPPED] = at_end.str.contains(self.patterns.NOT_ZERO).fill_null(False) | serial_time
         if period:
             value = self.period_end(value, dtype).alias(self.CELL)
         if offsets is not None:
-            value, repeated, no_zone = self.zoned(value=value, offsets=offsets, zone=rules.zone)
-            warning = pl.repeat(ReadingWarning.REPEATED_HOUR.value, cells.len(), eager=True).zip_with(repeated, warning)
+            value, warned[ReadingWarning.REPEATED_HOUR], no_zone = self.zoned(value=value, offsets=offsets, zone=rules.zone)
         frame = self.temporal_frame(
             cells=cells, types=types, mixed=mixed, fits=fits, twice=twice, named=value.is_not_null() | no_zone,
-            no_zone=no_zone, warning=warning,
+            no_zone=no_zone, warned=warned,
         )
         return self.outcome(frame, value)
+
+    def undeclared_dates(
+        self, *, text: pl.Series, read: tuple[pl.Series, pl.Series, pl.Series], rules: RulesModel
+    ) -> tuple[tuple[pl.Series, pl.Series, pl.Series], dict[ReadingWarning, pl.Series]]:
+        """Read, where a date field declares no pattern, each cell with one reading the canonical form did not: day and
+        month as numbers in either order with one separator used twice, `yyyyMMdd`, or a day, a month's name, and a
+        year. Two orders reading different days, or a name meaning different months, fit twice. A name reads by
+        `rules.language` or `rules.monthNames` where declared, and otherwise wherever it means one month in every
+        language whyqd holds."""
+        p = self.patterns
+        fits, twice, value = read
+        order = text.str.extract_groups(p.DATE_ORDER).struct.unnest()
+        same = (order["2"] == order["4"]).fill_null(False)
+        day_first = self.iso_date(year=order["5"], month=order["3"], day=order["1"])
+        month_first = self.iso_date(year=order["5"], month=order["1"], day=order["3"])
+        two_days = (day_first != month_first).fill_null(False)
+        ordered = day_first.fill_null(month_first)
+        run = text.str.extract_groups(p.DATE_RUN).struct.unnest()
+        joined = self.iso_date(year=run["1"], month=run["2"], day=run["3"])
+        spaced = text.str.replace_all(p.COMMA, " ", literal=True)
+        day_name = spaced.str.extract_groups(p.DAY_NAME).struct.unnest()
+        name_day = spaced.str.extract_groups(p.NAME_DAY).struct.unnest()
+        first = day_name["1"].is_not_null()
+        name = day_name["2"].zip_with(first, name_day["1"]).str.to_lowercase().str.replace(p.TRAILING_DOT, "")
+        day = day_name["1"].zip_with(first, name_day["2"])
+        year = day_name["3"].zip_with(first, name_day["3"])
+        declared = rules.language or rules.monthNames
+        meanings = (
+            {key: {int(month)} for key, month in self.month_names(rules).items()} if declared else NameTables.months()
+        )
+        present = name.drop_nulls().unique().to_list()
+        months = {key: len(meanings.get(self.name_key(key), ())) for key in present}
+        month = {key: str(next(iter(meanings[self.name_key(key)]))) for key, count in months.items() if count == 1}
+        count = name.replace_strict(months, default=0, return_dtype=pl.Int64).fill_null(0)
+        dated = self.iso_date(year=year, month=name.replace_strict(month, default=None, return_dtype=pl.String), day=day)
+        shapes = (
+            (order["1"].is_not_null() & same, two_days, ordered, ReadingWarning.DATE_ORDER),
+            (run["1"].is_not_null(), None, joined, ReadingWarning.DATE_ORDER),
+            (count > 0, count > 1, dated, ReadingWarning.MONTH_NAME),
+        )
+        nothing = pl.repeat(False, text.len(), eager=True)
+        warned = {ReadingWarning.DATE_ORDER: nothing, ReadingWarning.MONTH_NAME: nothing}
+        for matched, ambiguous, read_as, code in shapes:
+            new = matched.fill_null(False) & ~fits
+            if ambiguous is not None:
+                twice = twice | (new & ambiguous)
+            value = read_as.alias(self.CELL).zip_with(new, value)
+            warned[code] = warned[code] | new
+            fits = fits | new
+        if declared:
+            warned.pop(ReadingWarning.MONTH_NAME)
+        return (fits, twice, value), warned
+
+    def iso_date(self, *, year: pl.Series, month: pl.Series, day: pl.Series) -> pl.Series:
+        """A date from its year, month, and day as text, null where no such day exists."""
+        frame = pl.DataFrame({"y": year, "M": month, "d": day})
+        written = frame.select(
+            pl.format("{}-{}-{}", pl.col("y"), pl.col("M").str.zfill(2), pl.col("d").str.zfill(2)).alias(self.CELL)
+        )[self.CELL]
+        return written.str.to_date("%Y-%m-%d", strict=False)
 
     def serial_date(self, serial: str, system: SerialDate) -> datetime | None:
         """A date serial as a moment, or `None` for a serial its system has no date for. Excel's 1900 system counts a
         29 February 1900 that never happened, so serials after it are a day ahead of the calendar."""
         days = float(serial)
         whole = int(days)
+        if system == SerialDate.UNIX:
+            return self.EPOCH_UNIX + timedelta(seconds=days)
         if system == SerialDate.EXCEL_1904:
             epoch, last = self.EPOCH_1904, self.LAST_SERIAL_1904
         elif whole in (0, self.PHANTOM_LEAP_DAY):
@@ -622,18 +759,20 @@ class ReadingParser:
         self, *, text: pl.Series, types: pl.Series, fits: pl.Series, value: pl.Series, system: SerialDate
     ) -> tuple[pl.Series, pl.Series, pl.Series, pl.Series]:
         """Read each cell no pattern fitted that is a bare number as a serial, whether text or a stored number. Returns
-        what fits, the values, whether a serial held a time, and the cell types, a serial then being read."""
+        what fits, the values, whether a serial held a time, the cell types, a serial then being read, and which cells
+        were serials."""
         readable = types.is_in([CellType.STRING.value, CellType.NUMBER.value])
-        serial = (text.str.contains(self.patterns.SERIAL).fill_null(False) & ~fits & readable).alias(self.CELL)
+        shape = self.patterns.UNIX_SERIAL if system == SerialDate.UNIX else self.patterns.SERIAL
+        serial = (text.str.contains(shape).fill_null(False) & ~fits & readable).alias(self.CELL)
         if not serial.any():
-            return fits, value, pl.repeat(False, text.len(), eager=True), types
+            return fits, value, pl.repeat(False, text.len(), eager=True), types, serial
         moments = {cell: self.serial_date(cell, system) for cell in text.filter(serial).unique().to_list()}
         read = [moments.get(cell) for cell in text.to_list()]
         held_time = [moment is not None and (moment.hour or moment.minute or moment.second) for moment in read]
         written = pl.Series(self.CELL, read, dtype=pl.Datetime("us")).cast(value.dtype)
         tags = pl.repeat(CellType.STRING.value, text.len(), eager=True).zip_with(serial, types)
         held = pl.Series(self.CELL, [bool(held) for held in held_time], dtype=pl.Boolean) & serial
-        return fits | serial, written.zip_with(serial, value), held, tags
+        return fits | serial, written.zip_with(serial, value), held, tags, serial
 
     def zoned(self, *, value: pl.Series, offsets: pl.Series, zone: str | None) -> tuple[pl.Series, pl.Series, pl.Series]:
         """A datetime in its zone or, with none declared, UTC, from each cell's own offset or its declared clock. Returns
@@ -671,7 +810,7 @@ class ReadingParser:
         twice: pl.Series,
         named: pl.Series,
         no_zone: pl.Series | None = None,
-        warning: pl.Series | None = None,
+        warned: dict[ReadingWarning, pl.Series] | None = None,
     ) -> pl.DataFrame:
         length = cells.len()
         frame = pl.DataFrame(
@@ -684,7 +823,7 @@ class ReadingParser:
                 "twice": twice,
                 "named": named,
                 "no_zone": pl.repeat(False, length, eager=True) if no_zone is None else no_zone,
-                "warning": pl.repeat(None, length, eager=True, dtype=pl.String) if warning is None else warning,
+                **{code.value: flag.fill_null(False) for code, flag in (warned or {}).items()},
             }
         )
         return frame.with_columns(self.temporal_reason())
@@ -801,14 +940,17 @@ class ReadingParser:
         return {tag: count for tag, count in found if tag not in (CellType.STRING.value, CellType.ERROR.value)}
 
     def currencies(self, *, cells: pl.Series, policy: PolicyModel) -> dict[str, int]:
-        """Each declared currency mark's count, where a field declares more than one, since a number read loses which
-        currency it was in. `¬£` is counted apart from the `£` inside it."""
+        """Each currency mark's count, since a number read loses which currency it was in: each declared mark, where a
+        field declares more than one, or with none declared each mark read. `¬£` is counted apart from the `£` inside
+        it."""
         declared = (policy.rules or RulesModel()).currency
-        if len(declared) < 2:
+        if len(declared) == 1:
             return {}
-        text = self.steps(cells.alias(self.CELL))
-        found = text.str.extract_all(self.patterns.any_of([self.normalised(mark) for mark in declared])).explode()
+        marks = self.patterns.any_of([self.normalised(mark) for mark in declared]) if declared else self.patterns.CURRENCY
+        found = self.steps(cells.alias(self.CELL)).str.extract_all(marks).explode()
         counts = dict(found.alias(self.CELL).drop_nulls().value_counts().iter_rows())
+        if not declared:
+            return counts
         return {mark: counts.get(self.normalised(mark), 0) for mark in declared}
 
     def findings(

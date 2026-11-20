@@ -34,3 +34,12 @@ class FieldModel(BaseModel):
         if self.policy:
             self.policy.check(name=self.name, dtype=self.dtype)
         return self
+
+    @model_validator(mode="after")
+    def zero_fits(self) -> FieldModel:
+        if self.constraints and self.constraints.zeroAsTrue and self.dtype not in PolicyModel.NUMBERS:
+            raise ValueError(
+                f"Field `{self.name}` is `{self.dtype}`, which holds no zero, so `zeroAsTrue` cannot apply. Remove it, "
+                "or change the field's type. [whyqd:constraint-zero-as-true]"
+            )
+        return self

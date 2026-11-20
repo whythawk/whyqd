@@ -2,12 +2,21 @@
 from __future__ import annotations
 from pathlib import Path
 
-from whyqd.dtypes import ChecksumContent, MimeType
-from whyqd.models import ActionScriptModel, DataSourceModel, CrosswalkModel, FieldModel, TransformModel
+from whyqd.dtypes import ChecksumContent, FindingKind, MimeType
+from whyqd.models import ActionScriptModel, DataSourceModel, CrosswalkModel, FieldModel, ReportModel, TransformModel
 from whyqd.models.utc import UtcParser
 from whyqd.core import CrosswalkDefinition
 from whyqd.core.base import BaseDefinition
 from whyqd.config.settings import settings
+
+
+class ConformanceError(ValueError):
+    """A transform that cannot conform to its destination schema, and so is not built. `report` says why: every refused
+    cell and failed constraint the run found. A `ValueError`, so code catching that still catches it."""
+
+    def __init__(self, message: str, *, report: ReportModel) -> None:
+        super().__init__(message)
+        self.report = report
 
 
 class TransformDefinition(BaseDefinition):
@@ -95,10 +104,17 @@ class TransformDefinition(BaseDefinition):
     # PERFORM TRANSFORMATION PROCESS
     #########################################################################################
 
-    def process(self) -> None:
-        """Perform a crosswalk. You can access the dataframe after completion at `.data`, if it exists.
+    def process(self, *, strict: bool = False) -> None:
+        """Perform a crosswalk. You can access the dataframe after completion at `.data`, if it exists, and what the run
+        found at `.report`.
+
+        Parameters:
+          strict: Treat every warning as a fault, so a run either builds exactly what a plain run builds, with nothing
+            to check, or halts. Never stored on a definition.
 
         Raises:
+          ConformanceError: If the table cannot conform to the destination schema, or under `strict` a value was read
+            with something to check.
           ValueError: If there are missing required destination fields in the crosswalk.
         """
         if not self.model.dataSource or not self.model.crosswalk:
@@ -113,15 +129,16 @@ class TransformDefinition(BaseDefinition):
         self.crosswalk.validate()
         self.bound(source=self.model.dataSource)
         self.data = None
-        self.data = self.conform(source=self.model.dataSource)
+        self.data = self.conform(source=self.model.dataSource, strict=strict)
         self.model.ended = self.utc.now()
 
-    def conform(self, *, source: DataSourceModel):
+    def conform(self, *, source: DataSourceModel, strict: bool = False):
         """The table the crosswalk builds from `source`, conforming to the destination schema, or a halt that leaves its
-        reasons in `report`.
+        reasons in `report`. Under `strict`, every warning is a fault.
 
         Raises:
-          ValueError: If the table cannot conform, or a required destination field is never built.
+          ConformanceError: If the table cannot conform.
+          ValueError: If a required destination field is never built.
         """
         from whyqd.parsers.conformance import ConformanceParser
 
@@ -146,12 +163,18 @@ class TransformDefinition(BaseDefinition):
             missing=destination.get.missingValues,
             policies=policies,
         )
+        if strict:
+            conformance.faults += [
+                found.model_copy(update={"kind": FindingKind.FAULT}) for found in conformance.warnings
+            ]
+            conformance.warnings = []
         self.report = conformance.report(path=source.path, mime=source.mime)
         if conformance.faults:
-            raise ValueError(
+            raise ConformanceError(
                 f"`{source.name}` cannot conform to `{destination.get.name}`: {len(conformance.faults)} problems in "
                 f"{len({f.field for f in conformance.faults})} fields. Read `report`, resolve them, and run again. "
-                "[whyqd:transform-halted]"
+                "[whyqd:transform-halted]",
+                report=self.report,
             )
         if conformance.warnings:
             self.core.show_warning(
