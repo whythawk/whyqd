@@ -61,13 +61,13 @@ class Action(BaseSchemaAction):
                 if data.name == date.name:
                     # Just comparing date columns
                     base_date = destination.name
-                df[base_date] = df[base_date].apply(self.reader.parse_dates_coerced)
+                df[base_date] = self.reader.values(column=df[base_date], dtype="date", policy=date.policy)
                 continue
             # np.where date is <> base_date and don't replace value with null
             # logic: if test_date not null & base_date <> test_date
             # False if (test_date == nan) | (base_date == nan) | base_date >< test_date
             # Therefore we need to test again for the alternatives
-            df[date.name] = df[date.name].apply(self.reader.parse_dates_coerced)
+            df[date.name] = self.reader.values(column=df[date.name], dtype="date", policy=date.policy)
             df[destination.name] = np.where(
                 df[date.name].isnull() | (df[base_date] < df[date.name]),
                 np.where(df[destination.name].notnull(), df[destination.name], df[data.name]),

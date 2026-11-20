@@ -26,6 +26,11 @@ class ConstraintsModel(BaseModel):
     maximum: Optional[Union[int, float]] = Field(None, description="The largest value allowed, inclusive.")
     minLength: Optional[int] = Field(None, ge=0, description="The fewest characters a string may have.")
     maxLength: Optional[int] = Field(None, ge=0, description="The most characters a string may have.")
+    zeroAsTrue: Optional[bool] = Field(
+        None,
+        description="Whether a zero counts as present where `CATEGORISE` assigns `True` to any value of a number or "
+        "integer field. A zero is absent by default, and a blank always is.",
+    )
     model_config = ConfigDict(validate_assignment=True, populate_by_name=True)
 
     @field_validator("maximum", "maxLength")

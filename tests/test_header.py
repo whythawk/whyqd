@@ -179,10 +179,16 @@ class TestHeader1x:
         source = qd.DataSourceDefinition(source=DATA / "test_world_bank_header_source.data")
         source.get.path = str(WORLD_BANK)
         crosswalk = qd.CrosswalkDefinition(crosswalk=DATA / "test_world_bank_header.crosswalk")
+        # A value it requires is empty where a country reported none, which 1.x never checked
+        crosswalk.schema_destination.fields.get(name="values").constraints.required = False
         transform = qd.TransformDefinition(crosswalk=crosswalk, data_source=source.get)
         transform.process()
         expected = pd.read_parquet(DATA / "test_world_bank_header_output.parquet")
-        pd.testing.assert_frame_equal(transform.data.reset_index(drop=True), expected)
+        # 1.x held a year as a pandas period, and a year now reads as the date it ends on
+        got = transform.data.reset_index(drop=True)
+        assert got["year"].dt.year.tolist() == expected["year"].dt.year.tolist()
+        assert (got["year"].dt.month == 12).all() and (got["year"].dt.day == 31).all()
+        pd.testing.assert_frame_equal(got.drop(columns="year"), expected.drop(columns="year"))
 
     def test_no_header_row_with_names_keeps_them(self):
         model = qd.DataSourceDefinition(source=DATA / "test_cthulu_source.data").get

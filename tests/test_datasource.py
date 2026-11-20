@@ -5,7 +5,7 @@ import pytest
 from pydantic import AnyUrl
 
 import whyqd as qd
-from whyqd.parsers import CoreParser, DataSourceParser
+from whyqd.parsers import ConformanceParser, CoreParser, DataSourceParser
 
 DIRECTORY = Path(__file__).resolve().parent / "data"
 DATA = {
@@ -100,16 +100,17 @@ class TestDataSource:
         datasource.derive_model(source=other, mimetype=CSVTYPE)
         assert datasource.get_data()["Code"].tolist() == ["1"]
 
-    def test_coerce_keeps_rows_on_any_index(self):
-        # Actions can leave a frame indexed by labels rather than 0..n; coercion must keep every value in its row
+    def test_conforming_keeps_rows_on_any_index(self):
+        # Actions can leave a frame indexed by labels rather than 0..n; reading must keep every valueue in its row
         schema = qd.SchemaDefinition()
         schema.set(schema={"name": "coercion"})
         schema.fields.add_multi(terms=[{"name": "amount", "type": "number"}, {"name": "reliefs", "type": "array"}])
         df = pd.DataFrame(
-            {"amount": ["80.0", "88.5"], "reliefs": [["80.0", None], ["88.5", "12.0"]]},
+            {"__row__": [0, 1], "amount": ["80.0", "88.5"], "reliefs": [["80.0", None], ["88.5", "12.0"]]},
             index=["7", "3"],
         )
-        df = DataSourceParser().coerce_to_schema(df=df, schema=schema)
+        df = ConformanceParser().destination(df=df, fields=schema.fields.get_all(), missing=[], policies={})
+        assert df.index.tolist() == ["7", "3"]
         assert df["amount"].tolist() == [80.0, 88.5]
         assert df["reliefs"].tolist() == [["80.0", None], ["88.5", "12.0"]]
 

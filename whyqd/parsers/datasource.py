@@ -1,12 +1,8 @@
 # SPDX-License-Identifier: BSD-3-Clause
 from __future__ import annotations
-from typing import List, Union, Type, TYPE_CHECKING
+from typing import List
 from pathlib import Path
-from datetime import date, datetime
 import pandas as pd
-import numpy as np
-import re
-import ast
 
 import polars as pl
 
@@ -18,14 +14,20 @@ from whyqd.parsers.excel_reader import ExcelParser
 from whyqd.parsers.fingerprint import FingerprintParser
 from whyqd.parsers.pdf_reader import PdfParser
 from whyqd.parsers.profile import ProfileParser
+from whyqd.parsers.reading import ReadingParser
 from whyqd.parsers.row_key import RowKeyParser
 from whyqd.parsers.table import TableParser
 from whyqd.parsers.v1 import V1ChecksumParser
-from whyqd.models import ColumnModel, DataSourceModel, DataSourceAttributeModel, DialectModel, ReportModel
+from whyqd.models import (
+    ColumnModel,
+    DataSourceModel,
+    DataSourceAttributeModel,
+    DialectModel,
+    FindingModel,
+    PolicyModel,
+    ReportModel,
+)
 from whyqd.dtypes import ChecksumContent, MimeType, FieldType
-
-if TYPE_CHECKING:
-    from whyqd.core import SchemaDefinition
 
 
 class DataSourceParser:
@@ -42,6 +44,7 @@ class DataSourceParser:
         self.v1 = V1ChecksumParser()
         self.tables = TableParser()
         self.row_key = RowKeyParser()
+        self.reading = ReadingParser()
         arrow, excel = ArrowParser(), ExcelParser()
         self.readers = {
             MimeType.CSV: CsvParser(),
@@ -138,60 +141,6 @@ class DataSourceParser:
             df.to_csv(source, index=False)
 
     ###################################################################################################
-    ### TABULAR DATA SCHEMA COERSION UTILITIES
-    ###################################################################################################
-
-    def coerce_to_schema(self, *, df: pd.DataFrame, schema: Type[SchemaDefinition]) -> pd.DataFrame:
-        validate = {"matched": [], "unmatched": [], "coerced": []}
-        columns = [c for c in self.get_header_columns(df=df) if not self.row_key.is_part(c.name)]
-        for c in columns:
-            prospect = schema.fields.get(name=c.name)
-            if prospect:
-                try:
-                    if c.dtype == prospect.dtype:
-                        validate["matched"].append(c.name)
-                    else:
-                        # Try coerce the column to the type
-                        df[c.name] = self.coerce_column_to_dtype(
-                            column=pd.Series(df[c.name].to_numpy(), index=df.index), coerce=prospect.dtype
-                        )
-                        validate["coerced"].append(c.name)
-                    df[c.name] = pd.Series(df[c.name].to_numpy(), index=df.index).astype(
-                        FieldType(prospect.dtype).astype
-                    )
-                except (TypeError, SyntaxError, ValueError) as error:
-                    from_type = c.dtype
-                    if isinstance(df[c.name][0], list):
-                        from_type = "array"
-                    e = f"Column '{c.name}' in Data cannot be converted from type '{from_type}' to '{prospect.dtype}'."
-                    raise TypeError(e) from error
-            else:
-                validate["unmatched"].append(c.name)
-        if validate["unmatched"]:
-            self.core.show_warning(
-                f"{len(validate['unmatched'])} columns in Data not found in Schema. {validate['unmatched']}"
-            )
-        if validate["coerced"]:
-            self.core.show_warning(
-                f"{len(validate['coerced'])} columns in Data were coerced to appropriate dtypes in Schema. {validate['coerced']}"
-            )
-        return df
-
-    def coerce_column_to_dtype(self, *, column: pd.Series, coerce: str) -> pd.Series:
-        parser = {
-            "date": self.parse_dates,
-            "usdate": self.parse_usdates,
-            "datetime": self.parse_dates,
-            "year": self.parse_dates,
-            "number": self.parse_float,
-            "integer": self.parse_int,
-            "boolean": self.parse_bool,
-            "array": self.parse_string_list,
-            "string": self.parse_string,
-        }
-        return column.apply(lambda x: parser[coerce](x))
-
-    ###################################################################################################
     ### DATA MODEL SCHEMA DERIVATION AND WRITER UTILITIES
     ###################################################################################################
 
@@ -249,6 +198,60 @@ class DataSourceParser:
         grid, _, lines, dialect = reader.grid(source=source, mime=mime, dialect=dialect)
         table, _ = self.tables.table(grid=grid, lines=lines, dialect=dialect, names=names, place=reader.PLACE)
         return table, dialect
+
+    def typed_table(self, *, source: DataSourceModel) -> tuple[pl.DataFrame, pl.DataFrame]:
+        """A data source's table, keyed by `__row__`, and each cell's stored type, for reading by its schema."""
+        mime = self.get_mimetype(mimetype=source.mime)
+        path = self.locate(source=source.path)
+        reader = self.reader(mime=mime)
+        grid, types, lines, dialect = reader.grid(source=path, mime=mime, dialect=self.dialect(source=source))
+        table, (types,) = self.tables.table(
+            grid=grid, lines=lines, dialect=dialect, names=source.names or None, place=reader.PLACE, beside=[types]
+        )
+        return table, types
+
+    def schema_findings(
+        self, *, source: Path | str, mimetype: str | MimeType, dialect: DialectModel | dict | None, sheet: str | None, schema
+    ) -> list[FindingModel]:
+        """What a source schema's declared fields find in a file, every field counting as read. A file that cannot be
+        read has already said so in its report, so it finds nothing here."""
+        from whyqd.parsers.conformance import ConformanceParser
+
+        mime = self.get_mimetype(mimetype=mimetype)
+        given = self.declare(dialect=dialect)
+        given = given.model_copy(update={"sheet": sheet}) if sheet else given
+        path, reader = self.locate(source=source), self.reader(mime=mime)
+        try:
+            grid, types, lines, read = reader.grid(source=path, mime=mime, dialect=given)
+            table, (types,) = self.tables.table(grid=grid, lines=lines, dialect=read, place=reader.PLACE, beside=[types])
+        except ValueError:
+            return []
+        conformance = ConformanceParser()
+        fields = schema.fields.get_all()
+        df = conformance.source(table=table, types=types, fields=fields, missing=schema.get.missingValues, inputs={})
+        conformance.settle_source(df=df, read_fields={field.name for field in fields})
+        return [*conformance.faults, *conformance.warnings]
+
+    def without_blanks(self, *, column: pd.Series) -> pd.Series:
+        """A text column with each blank cell, by load's one definition, as an empty one: a blank is never a value."""
+        texts = pl.Series("cell", [None if pd.isna(v) else str(v) for v in column.astype(object).tolist()], dtype=pl.String)
+        return column.where(~self.reading.is_blank(texts).to_numpy(), None)
+
+    def values(self, *, column: pd.Series, dtype: str, policy: PolicyModel | None = None) -> pd.Series:
+        """A column an action reads as `dtype`: as it is if already typed, or read by its field's declaration, with a
+        cell that cannot be read left empty, since the transform has already recorded its refusal."""
+        kind = str(column.dtype).lower()
+        if dtype == FieldType.NUMBER.value and kind in ("float64", "int64"):
+            return pd.Series(column.to_numpy(dtype="float64", na_value=float("nan")), index=column.index)
+        if dtype == FieldType.DATE.value and "datetime64" in kind:
+            return column
+        texts = pl.Series(
+            "cell", [None if pd.isna(v) else str(v) for v in column.astype(object).tolist()], dtype=pl.String
+        )
+        read = self.reading.column(cells=texts, dtype=dtype, policy=policy)
+        if dtype == FieldType.NUMBER.value:
+            return pd.Series(read["value"].to_list(), index=column.index, dtype="Float64").astype("float64")
+        return pd.Series(pd.to_datetime(read["value"].to_list(), errors="coerce"), index=column.index)
 
     def derive(
         self,
@@ -570,212 +573,3 @@ class DataSourceParser:
                 return MimeType(mimetype)
         raise ValueError(f"MimeType not found for '{mimetype}'")
 
-    ###################################################################################################
-    ### PANDAS TYPE PARSERS
-    ###################################################################################################
-
-    def _date_is_isoformat(self, x: str) -> bool:
-        """
-        Checks a string to see whether it can be coerced as an ISO-formatted date `YYYY-MM-DD`
-        https://stackoverflow.com/a/61569783
-        """
-        try:
-            # `int` formatted dates will fail with `AttributeError`
-            datetime.fromisoformat(x.replace("Z", "+00:00"))
-        except (ValueError, TypeError, AttributeError):
-            return False
-        return True
-
-    def _parse_dates(self, x: Union[None, str], dayfirst: bool = True) -> Union[pd.NaT, date.isoformat]:
-        """
-        This is the hard-won 'trust nobody', certainly not Americans, date parser. This requires that the user
-        specify whether the day is first (ISO-style) or not (USA-style).
-
-        NOTE: This is for dates, not datetimes, or times. If it is a properly formatted datetime, it might work
-        but don't count on it.
-
-        TODO: Replace with https://github.com/scrapinghub/dateparser
-            The only concern is that dateparser.parse(x).date().isoformat() will coerce *any* string to a date,
-            no matter *what* it is.
-
-        Parameters
-        ----------
-        x: str | None
-        dayfirst: bool
-            Indicates whether this should be considered as an American-format date. Default is `True`, not American.
-
-        Returns
-        -------
-        pd.NaT | date.isoformat
-        """
-        if pd.isnull(x):
-            return pd.NaT
-        if isinstance(x, str) and len(x) <= 10 and ":" in x:
-            # This specific variation of a date is interpreted as a time, so ...
-            x = re.sub(r"[\\/,\.:;]", "-", x)
-        # Check if already in ISO Format
-        if self._date_is_isoformat(x):
-            return str(x).strip()[:10]
-        # Check if to_datetime can handle things
-        if not pd.isnull(pd.to_datetime(x, errors="coerce", dayfirst=dayfirst)):
-            return date.isoformat(pd.to_datetime(x, errors="coerce", dayfirst=dayfirst))
-        # Manually see if coersion will work
-        x = str(x).strip()[:10]
-        # Handles separators in ["\\", "/", ".", "-", ":", ";", ","]
-        x = re.sub(r"[\\/,\.:;]", "-", x)
-        try:
-            if dayfirst:
-                # Some attempt at ISO
-                y, m, d = x.split("-")
-            else:
-                # American
-                m, d, y = x.split("-")
-        except ValueError:
-            return pd.NaT
-        if dayfirst:
-            # Order checks, ignoring US dates ... need to figure whether day or year is first
-            if len(d) == 4 or (len(y) <= 2 and len(d) <= 2):
-                # Swap the day and year positions
-                d, m, y = x.split("-")
-        # Fat finger on 1999 ... not going to check for other date errors as no way to figure out
-        if len(y) == 4 and y[0] == "9":
-            y = "1" + y[1:]
-        x = f"{'0' + d if len(d) == 1 else d}-{'0' + m if len(m) == 1 else m}-{'0' + y if len(y) == 1 else y}"
-        # Check if to_datetime can handle things
-        try:
-            if len(y) <= 2:
-                # NOTE: if `len(y)` is two digits, then the "earliest" date is 1969 from `69`.
-                # Other years will be the future ¯\_(ツ)_/¯
-                x = datetime.strptime(x, "%d-%m-%y")
-            else:
-                x = datetime.strptime(x, "%d-%m-%Y")
-        except ValueError:
-            return pd.NaT
-        x = date.isoformat(x)
-        try:
-            pd.Timestamp(x)
-            return x
-        except pd.errors.OutOfBoundsDatetime:
-            return pd.NaT
-
-    def parse_dates(self, x: Union[None, str]) -> Union[pd.NaT, date.isoformat]:
-        return self._parse_dates(x, dayfirst=True)
-
-    def parse_usdates(self, x: Union[None, str]) -> Union[pd.NaT, date.isoformat]:
-        return self._parse_dates(x, dayfirst=False)
-
-    def parse_dates_coerced(self, x: Union[None, str]) -> Union[pd.NaT, pd.Timestamp]:
-        return pd.to_datetime(self._parse_dates(x, dayfirst=True), errors="coerce")
-
-    def parse_usdates_coerced(self, x: Union[None, str]) -> Union[pd.NaT, pd.Timestamp]:
-        return pd.to_datetime(self._parse_dates(x, dayfirst=False), errors="coerce")
-
-    def _postprocess_parse_float(self, x: str) -> np.nan | float:
-        """
-        Regex to extract wrecked floats: https://stackoverflow.com/a/71206446
-        Checked against: https://regex101.com/
-        """
-        # https://stackoverflow.com/a/71206446
-        if x.group(3):
-            return f"{x.group(1).replace(',', '').replace('.', '')}.{x.group(3)}"
-        elif x.group(2):
-            return f"{x.group(1).replace(',', '').replace('.', '')}"
-        else:
-            return np.nan
-
-    def _preprocess_parse_float(self, x: str | int | float) -> np.nan | float:
-        """
-        Regex to extract wrecked floats: https://stackoverflow.com/a/385597
-        Checked against: https://regex101.com/
-        """
-        try:
-            return float(x)
-        except ValueError:
-            re_float = re.compile(
-                r"""(?x)
-            ^
-                \D*     		# first, match an optional sign *and space*
-                (             # then match integers or f.p. mantissas:
-                    \d+       # start out with a ...
-                    (
-                        \.\d* # mantissa of the form a.b or a.
-                    )?        # ? takes care of integers of the form a
-                    |\.\d+     # mantissa of the form .b
-                )
-                ([eE][+-]?\d+)?  # finally, optionally match an exponent
-            $"""
-            )
-            try:
-                return float(re_float.match(x).group(1))
-            except (ValueError, AttributeError):
-                return np.nan
-        except TypeError:
-            return np.nan
-
-    def parse_float(self, x: str | int | float) -> np.nan | float:
-        """
-        Regex to extract wrecked floats
-        Checked against: https://regex101.com/
-        References:
-            https://stackoverflow.com/a/73083844
-            https://stackoverflow.com/a/385597
-            https://stackoverflow.com/a/71206446
-        """
-        # 1. Try preprocess
-        parsed = self._preprocess_parse_float(x)
-        if np.isnan(parsed):
-            # 2. Try postprocess and re-preprocess
-            sign = ""
-            try:
-                # 2.1 Check for a leading negative sign
-                re_float = r"[^\d+-/÷%\*]*"
-                parsed = re.sub(re_float, "", x)
-                if len(parsed) > 1 and parsed[0] in ["-"]:
-                    sign = parsed[0]
-            except (ValueError, AttributeError, TypeError):
-                return np.nan
-            # 2.2 Postprocess as comma/point-separated groups
-            re_float = r"\b\d{1,2}\.\d{1,2}\.\d{2}(?:\d{2})?\b|\b(?<!\d[.,])(\d{1,3}(?=([.,])?)(?:\2\d{3})*|\d+)(?:(?(2)(?!\2))[.,](\d+))?\b(?![,.]\d)"
-            parsed = list(filter(None, [self._postprocess_parse_float(x) for x in re.finditer(re_float, x)]))
-            if len(parsed) == 1 and isinstance(parsed[0], str):
-                parsed = sign + parsed[0]
-                parsed = self._preprocess_parse_float(parsed)
-            else:
-                return np.nan
-        return parsed
-
-    def parse_int(self, x: str | int | float) -> np.nan | int:
-        try:
-            return int(str(x).split(".")[0])
-        except ValueError:
-            return None
-
-    def parse_string(self, x: str | None) -> str | None:
-        if pd.isna(x):
-            return None
-        x = str(x).replace("\n", " ").replace("\r", "").replace("\t", "").replace("\\", "").strip()
-        x = " ".join(str(x).split())
-        if x and x[0] == "'":
-            x = x[1:]
-        if not x:
-            return None
-        return x
-
-    def parse_bool(self, x: str) -> bool:
-        if str(x).strip().lower() == "true":
-            return True
-        if str(x).strip().lower() == "false":
-            return False
-        return np.nan
-
-    def parse_string_list(self, x: str) -> List[str]:
-        """Coerce a column, which should contain a list of strings, from literal to actual."""
-        if not isinstance(x, (str, list)):
-            # If it's not already a list, then it needs to be a list stored as a string
-            raise TypeError
-        if isinstance(x, str):
-            x = ast.literal_eval(x)
-        x = [str(t).strip() if not pd.isna(t) else None for t in x]
-        if not x:
-            return None
-        return x

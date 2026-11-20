@@ -133,6 +133,14 @@ class TestTutorialCthulhu:
         schema_destination = qd.SchemaDefinition()
         schema_destination.set(schema=schema)
         schema_destination.fields.add_multi(terms=fields)
+        # What the source holds beside its numbers, which mean nothing as a value here
+        schema_destination.get.missingValues = [
+            "..",
+            "<2",
+            "HIGH HUMAN DEVELOPMENT",
+            "MEDIUM HUMAN DEVELOPMENT",
+            "LOW HUMAN DEVELOPMENT",
+        ]
         # 7. Define a Crosswalk
         # Ensure that the data indices line up
         schema_interim.get.index = transform.get.dataDestination.index

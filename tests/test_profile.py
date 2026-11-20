@@ -105,6 +105,21 @@ class TestWorkbook:
         assert profile.numberFormats == {"0000000000": 2, "General": 1}
         assert profile.zeroPadded == 1
 
+    @pytest.mark.parametrize("name", ["count", "cell", "len", "*", "^a$", "^other$", "^.*$", "a|b"])
+    def test_a_columns_name_never_changes_its_profile(self, tmp_path, name):
+        csv = tmp_path / "names.csv"
+        csv.write_text(f'"{name}",other\n1,2\n007,x\n', encoding="utf-8")
+        wb = openpyxl.Workbook()
+        for row in ([name, "other"], [1, 2], ["007", "x"]):
+            wb.active.append(row)
+        xlsx = tmp_path / "names.xlsx"
+        wb.save(xlsx)
+        for source, mimetype, types in ((csv, "CSV", {"s": 2}), (xlsx, "XLSX", {"n": 1, "s": 1})):
+            profile = profiles(source, mimetype)
+            assert list(profile) == [name, "other"]
+            assert profile[name].cellTypes == types
+            assert profile[name].zeroPadded == 1
+
     def test_an_xls_has_no_number_formats(self):
         profile = profiles(DATA / "synthetic-layouts" / "layouts.xls", "XLS", {"sheet": "Titled", "skipRows": 3})
         assert any({"n", "d"} & set(p.cellTypes) for p in profile.values())

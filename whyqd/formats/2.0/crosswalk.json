@@ -40,6 +40,25 @@
           ],
           "default": null,
           "description": "The versioned correspondence a `CATEGORISE` step cites for its mappings."
+        },
+        "policy": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/PolicyModel"
+            },
+            {
+              "additionalProperties": {
+                "$ref": "#/$defs/PolicyModel"
+              },
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "How to read the text the step builds: one policy for `UNITE` and `NEW`, and for `SEPARATE` one per destination field it writes.",
+          "title": "Policy"
         }
       },
       "required": [
@@ -100,6 +119,17 @@
       ],
       "title": "CategoryModel",
       "type": "object"
+    },
+    "CellType": {
+      "enum": [
+        "s",
+        "n",
+        "d",
+        "b",
+        "e"
+      ],
+      "title": "CellType",
+      "type": "string"
     },
     "CitationModel": {
       "description": "BibTeX model for citations.\n\nhttps://www.bibtex.com/format/\n\nIncludes some non-standard fields.",
@@ -343,6 +373,19 @@
           "default": null,
           "description": "The most characters a string may have.",
           "title": "Maxlength"
+        },
+        "zeroAsTrue": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Whether a zero counts as present where `CATEGORISE` assigns `True` to any value of a number or integer field. A zero is absent by default, and a blank always is.",
+          "title": "Zeroastrue"
         }
       },
       "title": "ConstraintsModel",
@@ -522,6 +565,7 @@
       "type": "string"
     },
     "NumberFormatModel": {
+      "additionalProperties": false,
       "description": "How a number is written: the number format of a CSV on the Web derived datatype\n([Metadata Vocabulary for Tabular Data, section 5.11.2](https://www.w3.org/TR/tabular-metadata/#derived-datatypes)).",
       "properties": {
         "decimalChar": {
@@ -560,7 +604,7 @@
             }
           ],
           "default": null,
-          "description": "A number pattern, such as `#,##0.00`.",
+          "description": "A number pattern in the declared marks, such as `#,##0.00`. Its commas give the group sizes, so `#,##,##0` reads lakh grouping.",
           "title": "Pattern"
         }
       },
@@ -568,7 +612,8 @@
       "type": "object"
     },
     "PolicyModel": {
-      "description": "How to read a field's text as its type: a CSV on the Web derived datatype\n([Metadata Vocabulary for Tabular Data, section 5.11.2](https://www.w3.org/TR/tabular-metadata/#derived-datatypes)),\n`base` and `format`, with whyqd's own `rules` beside it.\n\nA field without a policy is read as text.",
+      "additionalProperties": false,
+      "description": "How to read a field's text as its type: a CSV on the Web derived datatype\n([Metadata Vocabulary for Tabular Data, section 5.11.2](https://www.w3.org/TR/tabular-metadata/#derived-datatypes)),\n`base` and `format`, with whyqd's own `rules` beside it.\n\nA date pattern may be written as Excel, Python's `strptime`, or [UAX 35](\nhttps://www.unicode.org/reports/tr35/tr35-dates.html#Date_Field_Symbol_Table) writes it. It is saved as UAX 35's,\nwhich is what CSV on the Web reads, so `dd/mm/yyyy` is saved as `dd/MM/yyyy`.\n\nA field without a policy is read as text.\n\nExample:\n  ```python\n  {\"format\": {\"decimalChar\": \",\", \"groupChar\": \".\"}, \"rules\": {\"currency\": [\"€\"], \"negative\": [\"x-\"]}}\n  {\"format\": \"dd/mm/yy\", \"rules\": {\"yearStart\": 1950}}\n  {\"format\": \"d MMMM yyyy\", \"rules\": {\"language\": \"de\"}}\n  {\"format\": \"Y|N\", \"rules\": {\"alternateFormats\": [\"Yes|No\"]}}\n  ```",
       "properties": {
         "base": {
           "anyOf": [
@@ -580,7 +625,7 @@
             }
           ],
           "default": null,
-          "description": "The datatype the text is read as, such as `decimal` or `date`.",
+          "description": "The datatype the text is read as: the field's type, or `decimal` for an exact number.",
           "title": "Base"
         },
         "format": {
@@ -600,11 +645,16 @@
           "title": "Format"
         },
         "rules": {
-          "additionalProperties": true,
-          "default": {},
-          "description": "whyqd's own reading rules, beyond what `base` and `format` say.",
-          "title": "Rules",
-          "type": "object"
+          "anyOf": [
+            {
+              "$ref": "#/$defs/RulesModel"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "whyqd's own reading rules, beyond `base` and `format`."
         }
       },
       "title": "PolicyModel",
@@ -714,6 +764,198 @@
         "version"
       ],
       "title": "ReferenceModel",
+      "type": "object"
+    },
+    "RulesModel": {
+      "additionalProperties": false,
+      "description": "What a reading needs that a CSV on the Web derived datatype cannot say. Each is for the wrangler to declare, so\nnothing here is assumed of a file, and a rule whyqd does not know is refused rather than ignored.",
+      "properties": {
+        "currency": {
+          "default": [],
+          "description": "Currency marks a number may carry, such as `£`, `CHF`, or `¬£`. With none declared, a mark of Unicode's currency category, or `¬£`, reads with a warning; with any declared, another refuses.",
+          "items": {
+            "type": "string"
+          },
+          "title": "Currency",
+          "type": "array"
+        },
+        "marks": {
+          "default": [],
+          "description": "Other marks a number may carry, such as `#`, each with no meaning.",
+          "items": {
+            "type": "string"
+          },
+          "title": "Marks",
+          "type": "array"
+        },
+        "negative": {
+          "default": [],
+          "description": "Forms of a negative beyond a leading `-`, with `x` for the number: `(x)`, `x-`, or `x CR`. With none declared, `(x)` and `x-` read with a warning; with any declared, another refuses, never reading as positive.",
+          "items": {
+            "type": "string"
+          },
+          "title": "Negative",
+          "type": "array"
+        },
+        "percent": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "The mark of a percent, such as `٪`. `5%` reads as 0.05, with a warning where none is declared.",
+          "title": "Percent"
+        },
+        "perMille": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "The mark of a per mille, such as `‰`. `5‰` reads as 0.005.",
+          "title": "Permille"
+        },
+        "exponent": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Whether a number may have an exponent, such as `1E3`: unset, it reads with a warning; `false` refuses it, so a reference such as `12E4` stays one.",
+          "title": "Exponent"
+        },
+        "nonFinite": {
+          "default": false,
+          "description": "Whether `NaN`, `INF`, and `-INF` read as numbers.",
+          "title": "Nonfinite",
+          "type": "boolean"
+        },
+        "alternateFormats": {
+          "default": [],
+          "description": "Further date patterns or boolean pairs, where no cell could match two: `yyyy-MM-dd` beside `dd/MM/yyyy`, or `Yes|No` beside `Y|N`.",
+          "items": {
+            "type": "string"
+          },
+          "title": "Alternateformats",
+          "type": "array"
+        },
+        "yearStart": {
+          "anyOf": [
+            {
+              "maximum": 9999,
+              "minimum": 1000,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "The first year of the 100 years a `yy` pattern reads: `1950` reads `49` as 2049 and `50` as 1950.",
+          "title": "Yearstart"
+        },
+        "language": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "The language of month and weekday names, by its tag, such as `de`: any spelling and any case.",
+          "title": "Language"
+        },
+        "monthNames": {
+          "default": [],
+          "description": "Twelve entries from January, each a name or a list of names, read beside any of `language`'s.",
+          "items": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              }
+            ]
+          },
+          "title": "Monthnames",
+          "type": "array"
+        },
+        "dayPeriods": {
+          "default": [],
+          "description": "Two entries, morning first, each a name or a list, read beside `AM`, `PM`, and `language`'s.",
+          "items": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              }
+            ]
+          },
+          "title": "Dayperiods",
+          "type": "array"
+        },
+        "zone": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "The IANA time zone of a datetime's clock where a cell states no offset, such as `Europe/London`.",
+          "title": "Zone"
+        },
+        "serial": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SerialDate"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Read a bare number as a date serial, in Excel's `excel-1900` or `excel-1904` system, or as `unix` seconds, beside any patterns: `45295` reads as 2024-01-04 under `excel-1900`. Unset, a bare number reads by `excel-1900` with a warning."
+        },
+        "cellFormats": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "default": {},
+          "description": "By a workbook's stored cell type, a pattern reading that cell's rendering, where it differs from its text: `{'d': 'yyyy-dd-MM'}` for a column of date cells whose day and month Excel swapped.",
+          "propertyNames": {
+            "$ref": "#/$defs/CellType"
+          },
+          "title": "Cellformats",
+          "type": "object"
+        }
+      },
+      "title": "RulesModel",
       "type": "object"
     },
     "SchemaModel": {
@@ -854,6 +1096,15 @@
       ],
       "title": "SchemaModel",
       "type": "object"
+    },
+    "SerialDate": {
+      "enum": [
+        "excel-1900",
+        "excel-1904",
+        "unix"
+      ],
+      "title": "SerialDate",
+      "type": "string"
     },
     "VersionModel": {
       "properties": {

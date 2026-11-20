@@ -40,9 +40,11 @@ class TestTutorialVariations:
         schema_source.derive_model(data=datasource.get)
         for field in schema_source.fields.get_all():
             if field.name in ["LiabStart"]:
-                field.dtype = "usdate"
+                field.dtype = "date"
+                field.policy = {"format": "M/d/yy", "rules": {"yearStart": 1950}}
             if field.name in ["MandRlf", "DiscRlf", "AdditionalRlf"]:
                 field.dtype = "number"
+                field.policy = {"format": {"groupChar": ","}, "rules": {"currency": ["£"]}}
         for cat_field in CATEGORY_FIELDS:
             if cat_field in datasource.get_data().columns:
                 schema_source.fields.set_categories(name=cat_field, terms=datasource.get_data())

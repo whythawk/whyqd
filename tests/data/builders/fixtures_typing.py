@@ -1,11 +1,12 @@
 # SPDX-License-Identifier: BSD-3-Clause
-"""Write the typing fixture: cell text, the field's declared policy, and what the proposed typing must return.
+"""Write the typing fixture: cell text, the field's declared policy, and what reading it must return.
 
     python tests/data/builders/fixtures_typing.py [target]
 
-Target defaults to tests/data/synthetic-typing and is never overwritten. The expectations follow whyqd's proposed
-typing: one grammar per type, ambiguity settled by the field's declared policy, never per cell; a blank-like cell is
-blank; anything the policy cannot read is refused with a reason.
+Target defaults to tests/data/synthetic-typing and is never overwritten. Each group states a field's type and the policy
+it declares, as a `PolicyModel` holds it, or none for the type's canonical form. A cell is a value, a blank, or a refusal
+with its `RefusalReason`. A declared type reads any cell with one sensible reading, and a value read past what was
+declared carries `warnings`; a cell that truly cannot say refuses, and its neighbours never settle it.
 """
 
 import json
@@ -17,13 +18,23 @@ TARGET = (
     Path(sys.argv[1]).resolve() if len(sys.argv) > 1 else Path(__file__).resolve().parent.parent / "synthetic-typing"
 )
 
-UK = {"decimal": ".", "grouping": ",", "negatives": ["-x", "(x)", "x-"], "percent": "number"}
-EU = {"decimal": ",", "grouping": ".", "negatives": ["-x", "(x)", "x-"], "percent": "number"}
-BLANKS = ["", "   ", " ", "\t"]
+BLANKS = ["", "   ", " ", "\t", "\xa0"]
+MONTHS = "January February March April May June July August September October November December".split()
+SHORT = [month[:3] for month in MONTHS]
+UK = {
+    "format": {"decimalChar": ".", "groupChar": ","},
+    "rules": {"currency": ["£", "¬£"], "negative": ["(x)", "x-"]},
+}
+EU = {"format": {"decimalChar": ",", "groupChar": "."}, "rules": {"currency": ["€"]}}
 
 
 def v(text, value, note=""):
     return {"text": text, "outcome": "value", "value": value, "note": note}
+
+
+def w(text, value, *warnings, note=""):
+    """A value read with something to check: each warning says what was read past the declaration."""
+    return {**v(text, value, note), "warnings": list(warnings)}
 
 
 def b(text):
@@ -34,150 +45,688 @@ def r(text, reason):
     return {"text": text, "outcome": "refuse", "reason": reason}
 
 
+def group(dtype, policy, cases, **parts):
+    return {"type": dtype, "policy": policy, "cases": cases, **parts}
+
+
+BLANK_CASES = [b(text) for text in BLANKS]
 NUMBER = {
-    "UK": {
-        "policy": UK,
-        "cases": [
+    "canonical": group(
+        "number",
+        None,
+        [
+            v("1234.50", "1234.50"),
+            v("-5", "-5"),
+            v("0000130842", "130842"),
+            v(" 7", "7"),
+            v("−45", "-45", "Unicode minus"),
+            v("１２", "12", "full-width digits, NFKC"),
+            v("٣٤", "34", "Arabic-Indic digits, by Unicode's value"),
+            v("१२३", "123", "Devanagari digits"),
+            v("12‏", "12", "a right-to-left mark"),
+            r("٣4", "mixed-digits"),
+            w("£5", "5", "currency-read"),
+            w("$5", "5", "currency-read"),
+            w("€ 5", "5", "currency-read"),
+            w("¬£43.40", "43.40", "currency-read", note="the mojibake of `£`"),
+            w("(5)", "-5", "sign-read"),
+            w("5-", "-5", "sign-read"),
+            w("5%", "0.05", "percent-read"),
+            w("5 %", "0.05", "percent-read", note="a hard space before the mark, NFKC"),
+            w("1,234.50", "1234.50", "marks-read"),
+            w("1.234,50", "1234.50", "marks-read"),
+            w("1,234,567", "1234567", "marks-read", note="a repeated mark is grouping"),
+            w("1.234.567", "1234567", "marks-read"),
+            w("12,34,567", "1234567", "marks-read", note="CLDR's Indian grouping"),
+            w("12,34,567.89", "1234567.89", "marks-read"),
+            w("43,40", "43.40", "marks-read", note="no locale's last group has two digits"),
+            w("1,2345", "1.2345", "marks-read"),
+            v("0.125", "0.125", "a lone mark after a zero, or four digits, cannot group"),
+            v("1234.567", "1234.567"),
+            w("1234,567", "1234.567", "marks-read"),
+            w("1e3", "1000", "exponent-read"),
+            w("12E4", "120000", "exponent-read"),
+            w("2310009E13", "23100090000000000000", "exponent-read"),
+            w("12345678901234567890", "12345678901234567890", "exact-decimal"),
+            w("£1,234.50", "1234.50", "currency-read", "marks-read"),
+            w("(£826.80)", "-826.80", "currency-read", "sign-read"),
+            w("-12,5 %", "-0.125", "percent-read", "marks-read"),
+            r("1,234", "undeclared-character"),
+            r("1.234", "undeclared-character"),
+            r("1,23,4567", "grouping-mismatch"),
+            r("1,234.567.8", "grouping-mismatch"),
+            r("1 234,50", "undeclared-character"),
+            r("1’234.50", "undeclared-character"),
+            r("CHF 5", "undeclared-character"),
+            r("5 kr", "undeclared-character"),
+            r("<5", "undeclared-character"),
+            r("~5", "undeclared-character"),
+            r("±5", "undeclared-character"),
+            r("12​", "undeclared-character"),
+            r("#5", "undeclared-character"),
+            r("TBC", "undeclared-character"),
+            r("5 CR", "undeclared-character"),
+            r("10 - 20", "two-numbers"),
+            r("5‰", "undeclared-character"),
+            r("NaN", "undeclared-non-finite"),
+            r("INF", "undeclared-non-finite"),
+            r("-INF", "undeclared-non-finite"),
+            r("43.40¹", "number-form-character"),
+            r("10²", "number-form-character"),
+            r("①2", "number-form-character"),
+            r("½", "number-form-character"),
+            r("1½", "number-form-character"),
+            r("N/A", "undeclared-character"),
+            *BLANK_CASES,
+        ],
+        note="A declared type reads any cell with one sensible reading, and warns. The marks `.` and `,` read wherever "
+        "only one reading fits; a lone mark with three digits after it is either in every locale.",
+    ),
+    "UK": group(
+        "number",
+        UK,
+        [
             v("£43.40", "43.40"),
-            v("¬£43.40", "43.40", "mojibake: ¬ is Sm, £ is Sc, both drop"),
+            v("¬£43.40", "43.40", "mojibake, declared as a currency"),
             v("£-826.80", "-826.80"),
             v("-£826.80", "-826.80"),
             v("£1,234.50", "1234.50"),
             v("£.00", "0.00"),
             v("12.50", "12.50"),
             v(" 7", "7"),
-            v("1e3", "1000"),
             v("(826.80)", "-826.80"),
             v("826.80-", "-826.80"),
             v("1,234", "1234"),
             v("0000130842", "130842"),
-            v("5%", "5", "percent policy: number"),
             v("−45", "-45", "Unicode minus"),
             v("１２", "12", "full-width digits, NFKC"),
-            r("1.234,50", "separators out of order for this policy"),
-            r("1,5", "grouping of fewer than three digits"),
-            r("826.80 CR", "letters"),
-            r("N/A", "letters"),
-            r("12k", "letters"),
-            r("£10 - £20", "two numbers"),
-            r("Trans Prem: £0.01", "letters"),
-            r("1.2.3", "two decimal points"),
-            *[b(t) for t in BLANKS],
+            w("1e3", "1000", "exponent-read"),
+            w("5%", "0.05", "percent-read"),
+            r("$5", "undeclared-character"),
+            r("1.234,50", "grouping-mismatch"),
+            r("1,5", "grouping-mismatch"),
+            r("1.2.3", "grouping-mismatch"),
+            r("12,34,567", "grouping-mismatch"),
+            r("826.80 CR", "undeclared-character"),
+            r("N/A", "undeclared-character"),
+            r("12k", "undeclared-character"),
+            r("£10 - £20", "two-numbers"),
+            r("Trans Prem: £0.01", "undeclared-character"),
+            *BLANK_CASES,
         ],
-    },
-    "EU": {
-        "policy": EU,
-        "cases": [
+    ),
+    "EU": group(
+        "number",
+        EU,
+        [
             v("1.234,50", "1234.50"),
             v("1,5", "1.5"),
             v("1.234", "1234"),
             v("€-12,30", "-12.30"),
-            r("1,234.50", "separators out of order for this policy"),
-            *[b(t) for t in BLANKS[:2]],
+            v("12,30 €", "12.30"),
+            r("1,234.50", "grouping-mismatch"),
+            w("(5)", "-5", "sign-read"),
+            r("£5", "undeclared-character"),
+            *BLANK_CASES,
         ],
-    },
+    ),
+    "lakh": group(
+        "number",
+        {"format": {"decimalChar": ".", "groupChar": ",", "pattern": "#,##,##0.##"}, "rules": {"currency": ["₹"]}},
+        [
+            v("₹12,34,567.50", "1234567.50"),
+            v("1,234", "1234"),
+            v("99,99,99,999", "999999999"),
+            r("1,234,567", "grouping-mismatch"),
+        ],
+    ),
+    "spaces and marks": group(
+        "number",
+        {"format": {"decimalChar": ",", "groupChar": " "}, "rules": {"negative": ["x CR"], "marks": ["#"]}},
+        [
+            v("1 234,50", "1234.50", "a thin space, as declared"),
+            v("1 234,50", "1234.50", "NFKC makes a hard space and a thin one the same"),
+            v("#-4963,45", "-4963.45", "a publisher's mark"),
+            v("826,80 CR", "-826.80"),
+            r("826,80 DR", "undeclared-character"),
+            r("(826,80)", "undeclared-sign"),
+        ],
+        note="A declared negative form tightens: `(x)`, read undeclared, refuses once `x CR` is declared.",
+    ),
+    "Swiss": group(
+        "number",
+        {"format": {"decimalChar": ".", "groupChar": "’"}, "rules": {"currency": ["CHF"]}},
+        [
+            v("CHF 1’234.50", "1234.50"),
+            v("CHF-5.00", "-5.00"),
+            r("EUR 5.00", "undeclared-character"),
+            r("€5.00", "undeclared-character"),
+        ],
+    ),
+    "Arabic": group(
+        "number",
+        {"format": {"decimalChar": "٫", "groupChar": "٬"}, "rules": {"currency": ["ج.م."], "percent": "٪"}},
+        [
+            v("١٬٢٣٤٫٥٠", "1234.50"),
+            v("‏-١٬٢٣٤٫٥٠\xa0ج.م.‏", "-1234.50", "bidirectional marks removed"),
+            v("؜-٥", "-5", "ar-EG's minus, a letter mark then a hyphen"),
+            v("٥٪؜", "0.05", "a percent"),
+        ],
+    ),
+    "percent": group(
+        "number",
+        {"rules": {"percent": "%", "perMille": "‰"}},
+        [v("5%", "0.05"), v("5.5%", "0.055"), v("5‰", "0.005"), v("-5%", "-0.05"), v("5", "5"), r("5٪", "undeclared-character")],
+    ),
+    "exponent": group(
+        "number",
+        {"rules": {"exponent": True, "nonFinite": True}},
+        [v("1e3", "1000"), v("12E4", "120000"), v("NaN", "NaN"), v("INF", "INF"), v("-INF", "-INF")],
+    ),
+    "no_exponent": group(
+        "number",
+        {"rules": {"exponent": False}},
+        [v("1000", "1000"), r("1e3", "undeclared-exponent"), r("12E4", "undeclared-exponent")],
+        note="`exponent: false` tightens, so a reference such as `12E4` refuses rather than reading as a number.",
+    ),
+    "decimal": group(
+        "number",
+        {"base": "decimal"},
+        [v("12345678901234567890", "12345678901234567890"), v("0.10", "0.10"), v("1234.5", "1234.5")],
+    ),
 }
 INTEGER = {
-    "UK": {
-        "policy": UK,
-        "cases": [
+    "canonical": group(
+        "integer",
+        None,
+        [
+            v("12", "12"),
+            v("12.00", "12"),
+            w("5.5", "6", "integer-rounded"),
+            w("-5.5", "-6", "integer-rounded"),
+            w("2.5", "3", "integer-rounded", note="half away from zero, as Excel's `ROUND`; half to even would give 2"),
+            w("5.4", "5", "integer-rounded"),
+            w("1,234,567", "1234567", "marks-read"),
+            r("1,234", "undeclared-character"),
+            *BLANK_CASES,
+        ],
+    ),
+    "UK": group(
+        "integer",
+        {"format": {"decimalChar": ".", "groupChar": ","}},
+        [
             v("12", "12"),
             v("0000130842", "130842"),
             v("1,234", "1234"),
             v("-7", "-7"),
-            r("12.50", "a fraction is not an integer"),
-            r("1.234,50", "separators out of order for this policy"),
-            r("826.80-", "a fraction is not an integer"),
-            *[b(t) for t in BLANKS[:2]],
+            w("12.50", "13", "integer-rounded"),
+            r("1.234,50", "grouping-mismatch"),
+            w("826.80-", "-827", "sign-read", "integer-rounded"),
+            *BLANK_CASES,
         ],
-    }
+    ),
 }
 BOOLEAN = {
-    "declared": {
-        "policy": {"true": ["true", "yes", "y", "1"], "false": ["false", "no", "n", "0"], "case": "insensitive"},
-        "cases": [
+    "canonical": group(
+        "boolean",
+        None,
+        [
             v("TRUE", True),
             v("true", True),
-            v("Y", True),
+            v("True", True),
             v("1", True),
-            v("yes", True),
             v("FALSE", False),
-            v("N", False),
+            v("false", False),
             v("0", False),
-            r("maybe", "not in the declared terms"),
-            *[b(t) for t in BLANKS],
+            r("Y", "not-in-format"),
+            r("N", "not-in-format"),
+            r("yes", "not-in-format"),
+            r("no", "not-in-format"),
+            *BLANK_CASES,
         ],
-    }
+        note="A word is never guessed: `yes` and `Y` read only by a declared pair, or by `CATEGORISE`. A blank is "
+        "never false.",
+    ),
+    "declared": group(
+        "boolean",
+        {"format": "Y|N", "rules": {"alternateFormats": ["Yes|No", "1|0"]}},
+        [
+            v("Y", True),
+            v("Yes", True),
+            v("1", True),
+            v("N", False),
+            v("No", False),
+            v("0", False),
+            r("TRUE", "not-in-format"),
+            r("y", "not-in-format"),
+            r("maybe", "not-in-format"),
+            *BLANK_CASES,
+        ],
+    ),
 }
 DATE = {
-    "day_first": {
-        "policy": {"order": "day_first"},
-        "cases": [
+    "canonical": group(
+        "date",
+        None,
+        [
+            v("2024-04-13", "2024-04-13"),
+            v("2024-4-3", "2024-04-03", "a number's width says nothing of its meaning"),
+            v("2024-04-13T00:00:00", "2024-04-13"),
+            v("2024-04-13 00:00:00", "2024-04-13"),
+            v("2024-04-13      ", "2024-04-13", "padded, as a fixed-width export leaves it"),
+            w("19.08.2020      ", "2020-08-19", "date-order-read"),
+            w("2024-04-13 12:45", "2024-04-13", "time-dropped"),
+            w("13/04/2024", "2024-04-13", "date-order-read"),
+            w("13.04.2024", "2024-04-13", "date-order-read"),
+            w("13-04-2024", "2024-04-13", "date-order-read"),
+            w("4/13/2024", "2024-04-13", "date-order-read"),
+            w("04/04/2024", "2024-04-04", "date-order-read"),
+            w("20240413", "2024-04-13", "date-order-read"),
+            w("1 April 2024", "2024-04-01", "month-name-read"),
+            w("31 Dec 2024", "2024-12-31", "month-name-read"),
+            w("31 déc. 2024", "2024-12-31", "month-name-read"),
+            w("Dec 31, 2024", "2024-12-31", "month-name-read"),
+            w("45295", "2024-01-04", "serial-read"),
+            r("01/02/2024", "two-readings"),
+            r("1 listopad 2024", "two-readings"),
+            r("13/04/24", "not-in-format"),
+            r("13/04-2024", "not-in-format"),
+            r("2024/04/13", "not-in-format"),
+            r("1 de abril de 2024", "not-in-format"),
+            r("31/02/2024", "impossible-date"),
+            r("2024-02-30", "impossible-date"),
+            r("60", "impossible-date"),
+            *BLANK_CASES,
+        ],
+        note="With no pattern declared, a cell with one reading reads and warns; one two orders or languages could read "
+        "halts, and so does any other shape.",
+    ),
+    "day_first": group(
+        "date",
+        {"format": "dd/MM/yyyy", "rules": {"alternateFormats": ["yyyy-MM-dd"]}},
+        [
             v("13/04/2024", "2024-04-13"),
             v("04/01/2024", "2024-01-04"),
-            v("2010-04-01 00:00:00", "2010-04-01"),
             v("2024-04-01", "2024-04-01"),
-            v("2024/04/01", "2024-04-01", "year-first in any separator is year, month, day"),
-            v("01.04.2010", "2010-04-01"),
-            r("31/02/2024", "no such date"),
-            r("45295", "an Excel serial as text"),
-            *[b(t) for t in BLANKS[:2]],
+            r("2024/04/01", "not-in-format"),
+            r("01.04.2010", "not-in-format"),
+            v("2010-04-01 00:00:00", "2010-04-01"),
+            v("1/4/2024", "2024-04-01"),
+            r("31/02/2024", "impossible-date"),
+            w("45295", "2024-01-04", "serial-read"),
+            *BLANK_CASES,
         ],
-    },
-    "month_first": {
-        "policy": {"order": "month_first"},
-        "cases": [
-            v("04/01/2024", "2024-04-01"),
-            v("2024/04/01", "2024-04-01"),
-            r("13/04/2024", "no month 13; never read day-first"),
+    ),
+    "month_first": group(
+        "date",
+        {"format": "MM/dd/yyyy"},
+        [v("04/01/2024", "2024-04-01"), r("13/04/2024", "impossible-date"), r("2024/04/01", "not-in-format")],
+    ),
+    "dotted": group("date", {"format": "dd.MM.yyyy"}, [v("01.04.2010", "2010-04-01")]),
+    "any_length_year": group(
+        "date",
+        {"format": "dd/MM/y"},
+        [
+            v("01/04/2024", "2024-04-01"),
+            w("01/04/800", "0800-04-01", "year-below-1000"),
+            w("01/04/24", "0024-04-01", "year-below-1000"),
         ],
-    },
-    "month_first_cells": {
-        "policy": {"order": "day_first", "date_cells": "swap_day_month"},
-        "note": "the Stockport case: date cells were swapped by Excel, text cells are day-first as published",
-        "cases": [
-            {"cell_type": "date", "stored": "2024-01-04", "outcome": "value", "value": "2024-04-01"},
-            {"cell_type": "text", "text": "13/04/2024", "outcome": "value", "value": "2024-04-13"},
+        note="`y` is any length, as UAX 35 has it, and a year below 1000 reads with a warning.",
+    ),
+    "four_digit_year": group(
+        "date",
+        {"format": "dd/MM/yyyy"},
+        [v("01/04/2024", "2024-04-01"), w("01/04/0800", "0800-04-01", "year-below-1000"), r("01/04/24", "not-in-format")],
+    ),
+    "serial": group(
+        "date",
+        {"format": "dd/mm/yyyy", "rules": {"serial": "excel-1900"}},
+        [
+            v("45295", "2024-01-04"),
+            v("43630", "2019-06-14"),
+            v("13/04/2024", "2024-04-13", "a pattern still reads beside a serial"),
+            {"cell_type": "n", "text": "45295", "outcome": "value", "value": "2024-01-04"},
+            w("45295.5", "2024-01-04", "time-dropped"),
+            v("1", "1900-01-01"),
+            v("59", "1900-02-28"),
+            v("61", "1900-03-01"),
+            r("60", "impossible-date"),
+            r("0", "impossible-date"),
+            r("2958466", "impossible-date"),
+            r("12345678", "not-in-format"),
         ],
-    },
+        note="Serial 60 is Excel's 29 February 1900, which never happened. Values checked against openpyxl's reading.",
+    ),
+    "serial_1904": group(
+        "date",
+        {"rules": {"serial": "excel-1904"}},
+        [v("0", "1904-01-01"), v("43630", "2023-06-15"), v("2024-04-13", "2024-04-13")],
+    ),
+    "serial_unix": group(
+        "date",
+        {"rules": {"serial": "unix"}},
+        [v("1712966400", "2024-04-13"), w("1713009600", "2024-04-13", "time-dropped"), v("0", "1970-01-01")],
+        note="Seconds since 1970-01-01 UTC, of any length.",
+    ),
+    "typed_as_excel": group("date", {"format": "dd/mm/yyyy"}, [v("13/04/2024", "2024-04-13")]),
+    "typed_for_strptime": group("date", {"format": "%d/%m/%Y"}, [v("13/04/2024", "2024-04-13")]),
+    "digits_run_together": group(
+        "date",
+        {"format": "yyyyMMdd"},
+        [v("20240413", "2024-04-13"), r("2024413", "not-in-format")],
+        note="A pattern of digits alone says what a bare number is, so one it cannot read is never a serial.",
+    ),
+    "weekday": group(
+        "date",
+        {"format": "EEE d MMM yyyy", "rules": {"language": "en"}},
+        [v("Mon 1 Apr 2024", "2024-04-01"), v("MONDAY 1 april 2024", "2024-04-01")],
+        note="A weekday is read past, and not checked against its date.",
+    ),
+    "year_first": group(
+        "date", {"format": "yyyy/MM/dd"}, [v("2024/04/01", "2024-04-01"), r("2024/13/01", "impossible-date")]
+    ),
+    "two_digit_year": group(
+        "date",
+        {"format": "dd.MM.yy", "rules": {"yearStart": 1950}},
+        [
+            v("01.04.24", "2024-04-01"),
+            v("01.04.49", "2049-04-01"),
+            v("01.04.50", "1950-04-01"),
+            v("01.04.97", "1997-04-01"),
+            r("01.04.2024", "not-in-format"),
+        ],
+    ),
+    "month_names": group(
+        "date",
+        {"format": "d MMMM yyyy", "rules": {"language": "en"}},
+        [
+            v("1 April 2024", "2024-04-01"),
+            v("1 Apr 2024", "2024-04-01"),
+            v("1 APRIL 2024", "2024-04-01"),
+            v("1 apr. 2024", "2024-04-01"),
+            v("1 Sep 2024", "2024-09-01"),
+            v("1 Sept 2024", "2024-09-01"),
+            v("1 Jan 2024", "2024-01-01", "undeclared, two-readings: June in Southern Sotho"),
+            r("1 Avril 2024", "not-in-format"),
+        ],
+    ),
+    "month_names_added": group(
+        "date",
+        {"format": "d MMM yyyy", "rules": {"monthNames": [*SHORT[:8], ["Sep", "Spt"], *SHORT[9:]]}},
+        [v("1 Spt 2024", "2024-09-01"), v("1 sep 2024", "2024-09-01"), r("1 April 2024", "not-in-format")],
+    ),
+    "quoted": group(
+        "date",
+        {"format": "d 'de' MMM 'de' y", "rules": {"language": "pt"}},
+        [v("1 de abr. de 2024", "2024-04-01"), v("1 de abril de 2024", "2024-04-01"), r("1 abr. 2024", "not-in-format")],
+    ),
+    "Arabic": group(
+        "date",
+        {"format": "d‏/M‏/y"},
+        [v("١‏/٤‏/٢٠٢٤", "2024-04-01", "by Unicode's digits, with marks removed"), v("1/4/2024", "2024-04-01")],
+    ),
+    "month_first_cells": group(
+        "date",
+        {"format": "dd/MM/yyyy", "rules": {"cellFormats": {"d": "yyyy-dd-MM"}}},
+        [
+            {"cell_type": "d", "text": "2024-01-04", "outcome": "value", "value": "2024-04-01"},
+            {"cell_type": "s", "text": "13/04/2024", "outcome": "value", "value": "2024-04-13"},
+        ],
+        note="A column Excel partly converted: its date cells have day and month swapped, its text is as published.",
+    ),
+    "stored_cells": group(
+        "date",
+        {"format": "dd/MM/yyyy"},
+        [
+            {"cell_type": "d", "text": "2024-01-04", "outcome": "value", "value": "2024-01-04"},
+            {"cell_type": "e", "text": "#N/A", "outcome": "refuse", "reason": "error-cell"},
+        ],
+        note="A policy's text rules read only text cells: a stored date is already a value.",
+    ),
+}
+MONTH = {
+    "canonical": group(
+        "month",
+        None,
+        [
+            v("2024-04", "2024-04-30"),
+            v("2024-02", "2024-02-29"),
+            r("04/2024", "not-in-format"),
+            r("2024-13", "impossible-date"),
+            {"cell_type": "d", "text": "2024-04-15", "outcome": "value", "value": "2024-04-30"},
+            *BLANK_CASES,
+        ],
+    ),
+    "named": group(
+        "month",
+        {"format": "MMM yyyy", "rules": {"language": "en"}},
+        [v("Apr 2024", "2024-04-30"), v("Dec 1997", "1997-12-31"), r("Avr 2024", "not-in-format")],
+    ),
+}
+QUARTER = {
+    "canonical": group(
+        "quarter",
+        None,
+        [v("2024-06", "2024-06-30"), v("2024-04", "2024-06-30"), r("2024Q2", "not-in-format"), *BLANK_CASES],
+    ),
+    "declared": group(
+        "quarter",
+        {"format": "yyyy'Q'Q", "rules": {"alternateFormats": ["'Q'Q yyyy"]}},
+        [
+            v("2024Q1", "2024-03-31"),
+            v("2024Q2", "2024-06-30"),
+            v("2024Q4", "2024-12-31"),
+            v("Q3 2024", "2024-09-30"),
+            r("2024Q5", "impossible-date"),
+            r("2024Q0", "impossible-date"),
+        ],
+    ),
+}
+YEAR = {
+    "canonical": group("year", None, [v("2024", "2024-12-31"), r("24", "not-in-format"), *BLANK_CASES]),
+    "two_digit": group(
+        "year", {"format": "yy", "rules": {"yearStart": 1950}}, [v("24", "2024-12-31"), v("97", "1997-12-31")]
+    ),
+}
+TIME = {
+    "twelve_hour": group(
+        "time",
+        {"format": "h:mm AM/PM"},
+        [
+            v("9:30 AM", "09:30:00"),
+            v("9:30 PM", "21:30:00"),
+            v("9:30 pm", "21:30:00"),
+            v("9:30 P.M.", "21:30:00"),
+            v("12:00 AM", "00:00:00"),
+            v("12:00 PM", "12:00:00"),
+            r("13:00 PM", "impossible-date"),
+            r("0:30 AM", "impossible-date"),
+            r("9:30", "not-in-format"),
+        ],
+    ),
+    "canonical": group(
+        "time",
+        None,
+        [
+            v("12:45:00", "12:45:00"),
+            v("12:45", "12:45:00"),
+            v("9:30", "09:30:00"),
+            r("25:00:00", "impossible-date"),
+            *BLANK_CASES,
+        ],
+    ),
+    "declared": group("time", {"format": "HH:mm"}, [v("12:45", "12:45:00"), r("12:45:00", "not-in-format")]),
+}
+DATETIME = {
+    "canonical": group(
+        "datetime",
+        None,
+        [
+            v("2024-04-13T12:45:00", "2024-04-13T12:45:00"),
+            v("2024-04-13 12:45:00", "2024-04-13T12:45:00"),
+            v("2024-04-13 12:45", "2024-04-13T12:45:00"),
+            w("45295.5", "2024-01-04T12:00:00", "serial-read"),
+            r("13/04/2024 12:45", "not-in-format"),
+            *BLANK_CASES,
+        ],
+    ),
+    "stated_offset": group(
+        "datetime",
+        None,
+        [
+            v("2024-04-13T12:45:00Z", "2024-04-13T12:45:00+00:00"),
+            v("2024-04-13 12:45:00+01:00", "2024-04-13T11:45:00+00:00"),
+            v("2024-04-13T12:45:00-05:30", "2024-04-13T18:15:00+00:00"),
+        ],
+        note="An offset is unambiguous, so a cell reads its own, and a column of them reads as UTC.",
+    ),
+    "declared": group(
+        "datetime", {"format": "dd/MM/yyyy HH:mm"}, [v("13/04/2024 12:45", "2024-04-13T12:45:00")]
+    ),
+    "serial": group(
+        "datetime",
+        {"rules": {"serial": "excel-1900"}},
+        [v("45295.5", "2024-01-04T12:00:00"), v("45295", "2024-01-04T00:00:00")],
+    ),
+    "twelve_hour": group(
+        "datetime",
+        {"format": "dd/MM/yyyy h:mm a", "rules": {"language": "es"}},
+        [v("13/04/2024 9:30 p. m.", "2024-04-13T21:30:00")],
+    ),
+    "utc": group(
+        "datetime",
+        {"format": "yyyy-MM-dd'T'HH:mm:ss'Z'", "rules": {"zone": "UTC"}},
+        [
+            v("2024-04-13T12:45:00Z", "2024-04-13T12:45:00+00:00"),
+            v("2024-04-13T12:45:00", "2024-04-13T12:45:00+00:00"),
+            v("2024-04-13T12:45:00+01:00", "2024-04-13T11:45:00+00:00"),
+        ],
+    ),
+    "london": group(
+        "datetime",
+        {"format": "dd/MM/yyyy HH:mm", "rules": {"zone": "Europe/London"}},
+        [
+            v("13/06/2024 12:45", "2024-06-13T12:45:00+01:00"),
+            v("13/01/2024 12:45", "2024-01-13T12:45:00+00:00"),
+            r("31/03/2024 01:30", "impossible-date"),
+            w("27/10/2024 01:30", "2024-10-27T01:30:00+01:00", "repeated-hour"),
+        ],
+        note="A clock time the clocks skipped never happened; one they repeated reads as the earlier, with a warning.",
+    ),
+}
+DURATION = {
+    "canonical": group(
+        "duration",
+        None,
+        [
+            v("PT25M", 1500),
+            v("PT1H30M", 5400),
+            v("P1DT2H", 93600),
+            v("-PT1M", -60),
+            v("PT0.5S", 0.5),
+            r("P1Y", "not-in-format"),
+            r("P1M", "not-in-format"),
+            r("P", "not-in-format"),
+            r("25 min", "not-in-format"),
+            {"cell_type": "d", "text": "PT25H30M", "outcome": "value", "value": 91800},
+            *BLANK_CASES,
+        ],
+        note="A value is in seconds. Years and months have no fixed length.",
+    ),
+    "hours_and_minutes": group(
+        "duration",
+        {"format": "H:mm"},
+        [
+            v("1:30", 5400),
+            v("100:30", 361800, "a quantity, not a clock"),
+            r("1:75", "impossible-date"),
+            r("25 min", "not-in-format"),
+            {"cell_type": "d", "text": "PT25H30M", "outcome": "value", "value": 91800},
+        ],
+    ),
+    "with_words": group(
+        "duration",
+        {"format": "m' min'", "rules": {"alternateFormats": ["H'h'mm"]}},
+        [v("25 min", 1500), v("90 min", 5400), v("12h45", 45900), r("12:45", "not-in-format")],
+    ),
 }
 STRING = {
-    "default": {
-        "policy": {},
-        "cases": [
+    "default": group(
+        "string",
+        None,
+        [
             v("  a  b ", "  a  b "),
             v("a\tb", "a\tb"),
             v("\\path", "\\path"),
             v("'0012", "'0012"),
             v("line\nbreak", "line\nbreak"),
-            v("a b", "a b"),
-            *[b(t) for t in BLANKS],
+            v("a\xa0b", "a\xa0b"),
+            *BLANK_CASES,
         ],
-    }
+    ),
+    "excel_damage": group(
+        "string",
+        None,
+        [
+            {"cell_type": "d", "text": "2024-09-02", "outcome": "value", "value": "2024-09-02", "warns": "SEPT2"},
+            {"cell_type": "n", "text": "23100090000000000000", "outcome": "value", "value": "23100090000000000000", "warns": "2310009E13"},
+            {"cell_type": "d", "text": "2024-09-01", "outcome": "value", "value": "2024-09-01", "warns": "1-Sep"},
+            {"cell_type": "s", "text": "SEPT2", "outcome": "value", "value": "SEPT2"},
+        ],
+        note="What Excel did before whyqd saw the file: `warns` holds the original, which is gone. whyqd warns of the "
+        "stored type and never reverses it.",
+    ),
 }
+def p(text, outcome):
+    return {"text": text, "outcome": outcome}
+
+
+def presence(dtype, cases, zero_as_true=False):
+    return {"type": dtype, "zeroAsTrue": zero_as_true, "cases": cases + [p(text, "absent") for text in BLANKS]}
+
+
 CATEGORISE = {
-    "note": "CATEGORISE with a boolean source term: does a cell count as a value?",
-    "cases": [{"text": t, "is_value": False} for t in BLANKS]
-    + [{"text": t, "is_value": True} for t in ["0", "N/A", "x", "a b"]],
+    "note": "Presence as a boolean: a field derives its categories as booleans, and `CATEGORISE` assigns `True` to a "
+    "cell holding a value of the field's type. The cell is read as its type first, so one that cannot be halts. A blank "
+    "is never present, nor a zero unless the field's `zeroAsTrue` counts it.",
+    "groups": {
+        "string": presence("string", [p(t, "present") for t in ["0", "N/A", "x", "a b"]]),
+        "date": presence(
+            "date",
+            [p("2024-04-13", "present"), p("13/04/2024", "present"), p("TBC", "halts"), p("01/02/2024", "halts")],
+        ),
+        "number": presence(
+            "number",
+            [p("5", "present"), p("£5", "present"), p("-1.50", "present"), p("0", "absent"), p("0.00", "absent"), p("N/A", "halts")],
+        ),
+        "number_zero_as_true": presence(
+            "number", [p("5", "present"), p("0", "present"), p("0.00", "present")], zero_as_true=True
+        ),
+    },
+}
+TYPES = {
+    "number": NUMBER,
+    "integer": INTEGER,
+    "boolean": BOOLEAN,
+    "date": DATE,
+    "month": MONTH,
+    "quarter": QUARTER,
+    "year": YEAR,
+    "time": TIME,
+    "datetime": DATETIME,
+    "duration": DURATION,
+    "string": STRING,
 }
 
 
 def main():
     assert not TARGET.exists(), f"{TARGET} exists; fixtures are never overwritten"
     TARGET.mkdir(parents=True)
-    key = {
-        "generated": datetime.now().isoformat(timespec="seconds"),
-        "design": "proposed typing",
-        "number": NUMBER,
-        "integer": INTEGER,
-        "boolean": BOOLEAN,
-        "date": DATE,
-        "string": STRING,
-        "categorise": CATEGORISE,
-    }
+    key = {"generated": datetime.now().isoformat(timespec="seconds"), **TYPES, "categorise": CATEGORISE}
     (TARGET / "typing-key.json").write_text(json.dumps(key, indent=2, ensure_ascii=False), encoding="utf-8")
-    count = sum(len(p["cases"]) for t in (NUMBER, INTEGER, BOOLEAN, DATE, STRING) for p in t.values())
-    print(count, "typing cases and", len(CATEGORISE["cases"]), "CATEGORISE cases written")
+    count = sum(len(g["cases"]) for groups in TYPES.values() for g in groups.values())
+    presences = sum(len(g["cases"]) for g in CATEGORISE["groups"].values())
+    print(count, "typing cases and", presences, "CATEGORISE cases written")
 
 
 if __name__ == "__main__":

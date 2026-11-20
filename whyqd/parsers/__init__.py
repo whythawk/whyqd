@@ -17,4 +17,12 @@ def __getattr__(name: str):
         from .datasource import DataSourceParser
 
         return DataSourceParser
+    if name == "ReadingParser":
+        from .reading import ReadingParser
+
+        return ReadingParser
+    if name == "ConformanceParser":
+        from .conformance import ConformanceParser
+
+        return ConformanceParser
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")

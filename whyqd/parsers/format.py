@@ -9,7 +9,7 @@ from pydantic import BaseModel
 
 from whyqd.config.settings import settings
 from whyqd.dtypes import ChecksumContent, FieldType
-from whyqd.models import CrosswalkModel, DataSourceModel, SchemaModel, TransformModel
+from whyqd.models import CrosswalkModel, DataSourceModel, PolicyModel, SchemaModel, TransformModel
 
 
 class FormatParser:
@@ -51,6 +51,7 @@ class FormatParser:
         "references",
         "extensions",
         "release",
+        "zeroAsTrue",
     )
     LENGTHS = {"minimum": "minLength", "maximum": "maxLength"}
     VALUES = {v: k for k, v in LENGTHS.items()}
@@ -147,6 +148,8 @@ class FormatParser:
         for field in value.get("fields") or []:
             if field.get("type") == FieldType.TIME.value:
                 field["type"] = FieldType.DURATION.value
+            if field.get("type") == FieldType.USDATE.value:
+                field |= {"type": FieldType.DATE.value, "policy": PolicyModel.USDATE}
             if field.get("type") == FieldType.STRING.value and field.get("constraints"):
                 field["constraints"] = {self.LENGTHS.get(k, k): v for k, v in field["constraints"].items()}
         return value
@@ -165,10 +168,14 @@ class FormatParser:
         value = {k: self.downgrade(v) for k, v in value.items()}
         if "mime" in value and "dialect" in value and value["dialect"] == self.dialect_1x(value):
             value.pop("dialect")
+        if value.get("type") == FieldType.DATE.value and value.get("policy") == PolicyModel.USDATE:
+            value.pop("policy")
+            value["type"] = FieldType.USDATE.value
         for key in self.NEW:
             if key in value:
                 raise ValueError(
-                    f"`{key}` on `{value.get('name') or value.get('path')}` is new in 2.0, so 1.x cannot hold it."
+                    f"`{key}` on `{value.get('name') or value.get('path') or 'a field’s constraints'}` is new in 2.0, so "
+                    "1.x cannot hold it."
                 )
         if isinstance(value.get("updated"), str):
             value["updated"] = value["updated"].removesuffix("Z")
