@@ -12,6 +12,8 @@ from whyqd.config.settings import settings
 if TYPE_CHECKING:
     import pandas as pd
 
+    from whyqd.core.schema import SchemaDefinition
+
 
 class DataSourceDefinition(BaseDefinition):
     """Create and manage a data source schema.
