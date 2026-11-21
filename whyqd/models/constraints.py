@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import List, Optional, Union
 from pydantic import field_validator, ConfigDict, BaseModel, Field, ValidationInfo
 
-from whyqd.models import CategoryModel
+from whyqd.models.category import CategoryModel
 
 
 class ConstraintsModel(BaseModel):
@@ -44,11 +44,7 @@ class ConstraintsModel(BaseModel):
     @field_validator("category")
     @classmethod
     def check_categories_unique(cls, v: Optional[List[CategoryModel]]):
-        category_names = []
-        for c in v:
-            category_names.append(c.name)
-        if len(category_names) != len(set(category_names)):
-            raise ValueError(
-                f"Categories must be unique. There are {len(category_names) - len(set(category_names))} duplications."
-            )
+        repeated = len(v) - len({c.name for c in v})
+        if repeated:
+            raise ValueError(f"Categories must be unique. There are {repeated} duplications.")
         return v

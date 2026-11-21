@@ -1,10 +1,10 @@
 # SPDX-License-Identifier: BSD-3-Clause
 import os
 import time
-from typing import Annotated
+from typing import Annotated, ClassVar
 from uuid import UUID
 
-from pydantic import Field
+from pydantic import AfterValidator, Field, StringConstraints
 
 
 class IdentifierParser:
@@ -30,8 +30,8 @@ class IdentifierParser:
     kept as written, so a 1.x definition keeps its UUIDv4s.
     """
 
-    _VERSION = 7 << 76
-    _VARIANT = 0b10 << 62
+    _VERSION: ClassVar[int] = 7 << 76
+    _VARIANT: ClassVar[int] = 0b10 << 62
 
     def new(self) -> UUID:
         """A new UUIDv7."""
@@ -42,3 +42,7 @@ class IdentifierParser:
 
 
 Identifier = Annotated[UUID, Field(default_factory=IdentifierParser().new)]
+# A definition's machine-readable name: trimmed, lower case, and its spaces underscores
+DefinitionName = Annotated[
+    str, StringConstraints(strip_whitespace=True, to_lower=True), AfterValidator(lambda name: name.replace(" ", "_"))
+]

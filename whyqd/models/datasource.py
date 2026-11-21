@@ -5,7 +5,9 @@ from pydantic import StringConstraints, field_validator, ConfigDict, BaseModel, 
 import string
 
 from whyqd.dtypes import MimeType
-from whyqd.models import ChecksumModel, CitationModel, ColumnModel
+from whyqd.models.checksum import ChecksumModel
+from whyqd.models.citation import CitationModel
+from whyqd.models.column import ColumnModel
 from whyqd.models.dialect import DialectModel
 from whyqd.models.identifier import Identifier
 
@@ -13,15 +15,6 @@ from whyqd.models.identifier import Identifier
 class DataSourceAttributeModel(RootModel):
     # https://docs.pydantic.dev/latest/concepts/models/#rootmodel-and-custom-root-types
     root: Dict[str, Any]
-
-    def __iter__(self):
-        return iter(self.root)
-
-    def __getitem__(self, item):
-        return self.root[item]
-
-    def __setitem__(self, item, term):
-        self.root[item] = term
 
     @property
     def terms(self):
@@ -78,22 +71,14 @@ class DataSourceModel(BaseModel):
     citation: Optional[CitationModel] = Field(None, description="Optional full citation for the source data.")
     model_config = ConfigDict(use_enum_values=True, validate_assignment=True)
 
-    @field_validator("preserve")
+    @field_validator("preserve", "key")
     @classmethod
-    def preserve_check(cls, v: Optional[List[str]], info: ValidationInfo):
-        if not info.data["columns"] or set(v).difference([c.name for c in info.data["columns"]]):
-            raise ValueError(
-                f"Columns ({set(v).difference([c.name for c in info.data['columns']])}) not in source data columns."
-            )
-        return v
-
-    @field_validator("key")
-    @classmethod
-    def key_check(cls, v: Optional[List[str]], info: ValidationInfo):
-        if not info.data["columns"] or set(v).difference([c.name for c in info.data["columns"]]):
-            raise ValueError(
-                f"Key columns ({set(v).difference([c.name for c in info.data['columns']])}) not in source data columns."
-            )
+    def in_columns(cls, v: Optional[List[str]], info: ValidationInfo):
+        columns = info.data["columns"]
+        absent = set(v).difference(c.name for c in columns or [])
+        if not columns or absent:
+            noun = {"preserve": "Columns", "key": "Key columns"}[info.field_name]
+            raise ValueError(f"{noun} ({absent}) not in source data columns.")
         return v
 
     def get_checksum(self, content: str) -> str | None:
