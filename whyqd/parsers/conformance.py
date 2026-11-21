@@ -42,7 +42,12 @@ class ConformanceParser:
 
     NOT_READ: ClassVar[frozenset[str]] = frozenset({FieldType.ANY.value, FieldType.ARRAY.value})
     TEXT: ClassVar[str] = FieldType.STRING.value
-    PANDAS: ClassVar[dict[str, str]] = {"number": "Float64", "integer": "Int64", "boolean": "boolean", "string": "string"}
+    PANDAS: ClassVar[dict[str, str]] = {
+        "number": "Float64",
+        "integer": "Int64",
+        "boolean": "boolean",
+        "string": "string",
+    }
     DATES: ClassVar[frozenset[str]] = frozenset(
         {
             FieldType.DATE.value,
@@ -92,7 +97,9 @@ class ConformanceParser:
         """A cell the schema declares to mean nothing, as an empty one."""
         if not missing:
             return cells
-        return cells.zip_with(~cells.is_in(missing).fill_null(False), pl.repeat(None, cells.len(), eager=True, dtype=pl.String))
+        return cells.zip_with(
+            ~cells.is_in(missing).fill_null(False), pl.repeat(None, cells.len(), eager=True, dtype=pl.String)
+        )
 
     def is_declared(self, field: FieldModel) -> bool:
         return field.dtype not in (self.TEXT, *self.NOT_READ) or field.policy is not None
@@ -121,8 +128,12 @@ class ConformanceParser:
                 self.warn_currencies(field=field.name, cells=cells, dtype=field.dtype, policy=field.policy)
                 df[field.name] = self.pandas(read["value"], field.dtype, df.index)
                 continue
-            df[field.name] = cells.to_pandas().astype(self.PANDAS[self.TEXT]).set_axis(df.index).astype(object).where(
-                cells.is_not_null().to_numpy(), None
+            df[field.name] = (
+                cells.to_pandas()
+                .astype(self.PANDAS[self.TEXT])
+                .set_axis(df.index)
+                .astype(object)
+                .where(cells.is_not_null().to_numpy(), None)
             )
             if tags is not None:
                 self.warn_stored(field=field.name, types=tags, rows=rows)
@@ -175,7 +186,9 @@ class ConformanceParser:
         warned = readings["warnings"]
         for code in warned.explode().drop_nulls().unique().sort().to_list():
             mask = warned.list.contains(code).fill_null(False)
-            self.warn(code=code, field=field, says=f"{mask.sum()} cells", count=mask.sum(), first=rows.filter(mask).min())
+            self.warn(
+                code=code, field=field, says=f"{mask.sum()} cells", count=mask.sum(), first=rows.filter(mask).min()
+            )
 
     def settle_source(self, *, df: pd.DataFrame, read_fields: set[str]) -> None:
         """Turn the source's refusals into findings: a surviving row in a field the crosswalk reads is a fault, and an
@@ -196,7 +209,9 @@ class ConformanceParser:
                 self.faults += found
             else:
                 count = readings["reason"].drop_nulls().len()
-                self.warn(code="unread-refusal", field=refused.field, says=f"{count} cells refused", count=count, first=None)
+                self.warn(
+                    code="unread-refusal", field=refused.field, says=f"{count} cells refused", count=count, first=None
+                )
         self.refused = []
 
     def as_cells(self, column: pd.Series) -> tuple[pl.Series, pl.Series]:
@@ -248,7 +263,11 @@ class ConformanceParser:
         if dtype == FieldType.DATETIME.value:
             return "datetime64" in kind
         if dtype == FieldType.TIME.value:
-            return kind == "object" and column.dropna().map(lambda v: type(v).__name__ == "time").all() and column.notna().any()
+            return (
+                kind == "object"
+                and column.dropna().map(lambda v: type(v).__name__ == "time").all()
+                and column.notna().any()
+            )
         if dtype == FieldType.DURATION.value:
             return "timedelta" in kind
         return False
@@ -265,7 +284,9 @@ class ConformanceParser:
             column = df[field.name]
             if field.dtype in self.NOT_READ:
                 if field.dtype == FieldType.ARRAY.value:
-                    df[field.name] = pd.Series([self.as_list(value) for value in column.tolist()], index=df.index, dtype=object)
+                    df[field.name] = pd.Series(
+                        [self.as_list(value) for value in column.tolist()], index=df.index, dtype=object
+                    )
                 self.check_constraints(field=field, column=df[field.name], rows=rows)
                 continue
             if self.is_typed_as(column, field.dtype):
@@ -304,15 +325,27 @@ class ConformanceParser:
             failures["constraint-unique"] = (duplicated & kept, "repeats a value, and must be unique")
         numeric = pd.api.types.is_numeric_dtype(column) and not pd.api.types.is_bool_dtype(column)
         if numeric and limits.minimum is not None:
-            failures["constraint-minimum"] = ((column < limits.minimum).fillna(False) & kept, f"is below {limits.minimum}")
+            failures["constraint-minimum"] = (
+                (column < limits.minimum).fillna(False) & kept,
+                f"is below {limits.minimum}",
+            )
         if numeric and limits.maximum is not None:
-            failures["constraint-maximum"] = ((column > limits.maximum).fillna(False) & kept, f"is above {limits.maximum}")
+            failures["constraint-maximum"] = (
+                (column > limits.maximum).fillna(False) & kept,
+                f"is above {limits.maximum}",
+            )
         if field.dtype == self.TEXT:
             lengths = column.astype("string").str.len()
             if limits.minLength is not None:
-                failures["constraint-min-length"] = ((lengths < limits.minLength).fillna(False) & kept, f"has under {limits.minLength} characters")
+                failures["constraint-min-length"] = (
+                    (lengths < limits.minLength).fillna(False) & kept,
+                    f"has under {limits.minLength} characters",
+                )
             if limits.maxLength is not None:
-                failures["constraint-max-length"] = ((lengths > limits.maxLength).fillna(False) & kept, f"has over {limits.maxLength} characters")
+                failures["constraint-max-length"] = (
+                    (lengths > limits.maxLength).fillna(False) & kept,
+                    f"has over {limits.maxLength} characters",
+                )
         for code, (failed, says) in failures.items():
             count = int(failed.sum())
             if count:

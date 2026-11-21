@@ -426,16 +426,15 @@ class ReadingParser:
         """Exact values, in the scale the column's own cells need, so none rounds. A decimal has no `NaN` or `INF`, and
         a number too long for its precision is refused."""
         read = read.with_columns(finite.alias("finite")).with_columns(
-            pl.when("finite").then(pl.lit(RefusalReason.UNDECLARED_NON_FINITE.value)).otherwise("reason").alias("reason")
+            pl.when("finite")
+            .then(pl.lit(RefusalReason.UNDECLARED_NON_FINITE.value))
+            .otherwise("reason")
+            .alias("reason")
         )
         kept = read.filter(pl.col("reason").is_null() & ~pl.col("blank")).select("digits", "shift").unique().rows()
         exact = {(text, shift): Decimal(text).scaleb(-shift) for text, shift in kept}
         scale = max((max(0, -value.as_tuple().exponent) for value in exact.values()), default=0)
-        fits = {
-            key: value
-            for key, value in exact.items()
-            if value.adjusted() + 1 + scale <= self.DECIMAL_PRECISION
-        }
+        fits = {key: value for key, value in exact.items() if value.adjusted() + 1 + scale <= self.DECIMAL_PRECISION}
         written = [fits.get(key) for key in read.select("digits", "shift").rows()]
         value = pl.Series(self.CELL, written, dtype=pl.Decimal(self.DECIMAL_PRECISION, scale))
         too_long = [key[0] for key in exact if key not in fits]
@@ -548,7 +547,9 @@ class ReadingParser:
         for index, entries in enumerate(table["months"] if table else []):
             names |= {self.name_key(entry): f"{index + 1:02d}" for entry in entries}
         for index, entry in enumerate(rules.monthNames):
-            names |= {self.name_key(name): f"{index + 1:02d}" for name in ([entry] if isinstance(entry, str) else entry)}
+            names |= {
+                self.name_key(name): f"{index + 1:02d}" for name in ([entry] if isinstance(entry, str) else entry)
+            }
         return names
 
     def weekday_names(self, rules: RulesModel) -> list[str]:
@@ -612,7 +613,7 @@ class ReadingParser:
         hour = hours.cast(pl.Int64)
         keys = periods.str.to_lowercase().str.replace_all(self.patterns.DOT_OR_SPACE, "")
         afternoon = keys.replace_strict(self.day_period_names(rules), default=False, return_dtype=pl.Boolean)
-        written =(hour % self.HALF_DAY + afternoon.cast(pl.Int64) * self.HALF_DAY).cast(pl.String)
+        written = (hour % self.HALF_DAY + afternoon.cast(pl.Int64) * self.HALF_DAY).cast(pl.String)
         valid = ((hour >= 1) & (hour <= self.HALF_DAY)).fill_null(False)
         return written.zip_with(valid, pl.repeat(self.NO_HOUR, hours.len(), eager=True))
 
@@ -667,14 +668,24 @@ class ReadingParser:
             warned[ReadingWarning.YEAR_BELOW_1000] = (value.dt.year() < self.EARLY_YEAR).fill_null(False)
         if dtype == FieldType.DATE.value:
             at_end = text.str.extract(self.patterns.TIME_AT_END, 1)
-            warned[ReadingWarning.TIME_DROPPED] = at_end.str.contains(self.patterns.NOT_ZERO).fill_null(False) | serial_time
+            warned[ReadingWarning.TIME_DROPPED] = (
+                at_end.str.contains(self.patterns.NOT_ZERO).fill_null(False) | serial_time
+            )
         if period:
             value = self.period_end(value, dtype).alias(self.CELL)
         if offsets is not None:
-            value, warned[ReadingWarning.REPEATED_HOUR], no_zone = self.zoned(value=value, offsets=offsets, zone=rules.zone)
+            value, warned[ReadingWarning.REPEATED_HOUR], no_zone = self.zoned(
+                value=value, offsets=offsets, zone=rules.zone
+            )
         frame = self.temporal_frame(
-            cells=cells, types=types, mixed=mixed, fits=fits, twice=twice, named=value.is_not_null() | no_zone,
-            no_zone=no_zone, warned=warned,
+            cells=cells,
+            types=types,
+            mixed=mixed,
+            fits=fits,
+            twice=twice,
+            named=value.is_not_null() | no_zone,
+            no_zone=no_zone,
+            warned=warned,
         )
         return self.outcome(frame, value)
 
@@ -711,7 +722,9 @@ class ReadingParser:
         months = {key: len(meanings.get(self.name_key(key), ())) for key in present}
         month = {key: str(next(iter(meanings[self.name_key(key)]))) for key, count in months.items() if count == 1}
         count = name.replace_strict(months, default=0, return_dtype=pl.Int64).fill_null(0)
-        dated = self.iso_date(year=year, month=name.replace_strict(month, default=None, return_dtype=pl.String), day=day)
+        dated = self.iso_date(
+            year=year, month=name.replace_strict(month, default=None, return_dtype=pl.String), day=day
+        )
         shapes = (
             (order["1"].is_not_null() & same, two_days, ordered, ReadingWarning.DATE_ORDER),
             (run["1"].is_not_null(), None, joined, ReadingWarning.DATE_ORDER),
@@ -750,7 +763,10 @@ class ReadingParser:
         elif whole in (0, self.PHANTOM_LEAP_DAY):
             return None
         else:
-            epoch, last = (self.EPOCH_1900 if whole > self.PHANTOM_LEAP_DAY else self.EPOCH_1900_EARLY), self.LAST_SERIAL_1900
+            epoch, last = (
+                (self.EPOCH_1900 if whole > self.PHANTOM_LEAP_DAY else self.EPOCH_1900_EARLY),
+                self.LAST_SERIAL_1900,
+            )
         if whole > last:
             return None
         return epoch + timedelta(days=whole, milliseconds=round((days - whole) * self.MILLISECONDS_A_DAY))
@@ -774,7 +790,9 @@ class ReadingParser:
         held = pl.Series(self.CELL, [bool(held) for held in held_time], dtype=pl.Boolean) & serial
         return fits | serial, written.zip_with(serial, value), held, tags, serial
 
-    def zoned(self, *, value: pl.Series, offsets: pl.Series, zone: str | None) -> tuple[pl.Series, pl.Series, pl.Series]:
+    def zoned(
+        self, *, value: pl.Series, offsets: pl.Series, zone: str | None
+    ) -> tuple[pl.Series, pl.Series, pl.Series]:
         """A datetime in its zone or, with none declared, UTC, from each cell's own offset or its declared clock. Returns
         whether the clocks repeated each time, read as the earlier, and whether a cell has neither offset nor zone."""
         target = zone or self.UTC
@@ -856,7 +874,11 @@ class ReadingParser:
 
     def pattern_dtype(self, pattern: str, dtype: str) -> str:
         """The type a pattern alone can state: a datetime's stored midnight states only a date."""
-        return FieldType.DATE.value if pattern == self.STORED_DATETIME_MIDNIGHT and dtype != FieldType.DATE.value else dtype
+        return (
+            FieldType.DATE.value
+            if pattern == self.STORED_DATETIME_MIDNIGHT and dtype != FieldType.DATE.value
+            else dtype
+        )
 
     def temporal_reason(self) -> pl.Expr:
         """Why a date, time, or duration cell is refused, the first of these that holds."""
@@ -889,10 +911,14 @@ class ReadingParser:
             written = None
             for pattern in declared:
                 read = self.pattern_duration(text=text, pattern=pattern, rules=rules)
-                written = read if written is None else (
-                    written[0] | read[0],
-                    written[1].zip_with(written[0], read[1]),
-                    written[2].zip_with(written[0], read[2]),
+                written = (
+                    read
+                    if written is None
+                    else (
+                        written[0] | read[0],
+                        written[1].zip_with(written[0], read[1]),
+                        written[2].zip_with(written[0], read[2]),
+                    )
                 )
             is_stored = types == CellType.DATE.value
             fits, within, value = (one.zip_with(is_stored, other) for one, other in zip((fits, within, value), written))
@@ -915,7 +941,9 @@ class ReadingParser:
         signed = (total * -1.0).zip_with(negative, total).round().cast(pl.Int64).alias(self.CELL)
         return any_part, pl.repeat(True, text.len(), eager=True).alias(self.CELL), signed
 
-    def pattern_duration(self, *, text: pl.Series, pattern: str, rules: RulesModel) -> tuple[pl.Series, pl.Series, pl.Series]:
+    def pattern_duration(
+        self, *, text: pl.Series, pattern: str, rules: RulesModel
+    ) -> tuple[pl.Series, pl.Series, pl.Series]:
         """Whether each cell fits a duration's pattern, that every field after the first is in range, and its
         microseconds. A fraction `S` is of a second."""
         regex, fields = self.pattern_regex(pattern, rules, quantities=True)
@@ -946,7 +974,9 @@ class ReadingParser:
         declared = (policy.rules or RulesModel()).currency
         if len(declared) == 1:
             return {}
-        marks = self.patterns.any_of([self.normalised(mark) for mark in declared]) if declared else self.patterns.CURRENCY
+        marks = (
+            self.patterns.any_of([self.normalised(mark) for mark in declared]) if declared else self.patterns.CURRENCY
+        )
         found = self.steps(cells.alias(self.CELL)).str.extract_all(marks).explode()
         counts = dict(found.alias(self.CELL).drop_nulls().value_counts().iter_rows())
         if not declared:
@@ -973,7 +1003,9 @@ class ReadingParser:
         ordered = grouped.sort("count", "reason", "shape", descending=[True, False, False])
         return [self.finding(field=field, **row) for row in ordered.iter_rows(named=True)]
 
-    def finding(self, *, field: str, reason: str, shape: str, count: int, first: int, detail: str | None) -> FindingModel:
+    def finding(
+        self, *, field: str, reason: str, shape: str, count: int, first: int, detail: str | None
+    ) -> FindingModel:
         says, does = self.ADVICE[reason]
         if reason == RefusalReason.NOT_IN_FORMAT.value and not shape.strip("9."):
             does = f"{does}, or if these are Excel date serials set `rules.serial`"

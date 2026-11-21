@@ -211,7 +211,13 @@ class DataSourceParser:
         return table, types
 
     def schema_findings(
-        self, *, source: Path | str, mimetype: str | MimeType, dialect: DialectModel | dict | None, sheet: str | None, schema
+        self,
+        *,
+        source: Path | str,
+        mimetype: str | MimeType,
+        dialect: DialectModel | dict | None,
+        sheet: str | None,
+        schema,
     ) -> list[FindingModel]:
         """What a source schema's declared fields find in a file, every field counting as read. A file that cannot be
         read has already said so in its report, so it finds nothing here."""
@@ -223,7 +229,9 @@ class DataSourceParser:
         path, reader = self.locate(source=source), self.reader(mime=mime)
         try:
             grid, types, lines, read = reader.grid(source=path, mime=mime, dialect=given)
-            table, (types,) = self.tables.table(grid=grid, lines=lines, dialect=read, place=reader.PLACE, beside=[types])
+            table, (types,) = self.tables.table(
+                grid=grid, lines=lines, dialect=read, place=reader.PLACE, beside=[types]
+            )
         except ValueError:
             return []
         conformance = ConformanceParser()
@@ -234,7 +242,9 @@ class DataSourceParser:
 
     def without_blanks(self, *, column: pd.Series) -> pd.Series:
         """A text column with each blank cell, by load's one definition, as an empty one: a blank is never a value."""
-        texts = pl.Series("cell", [None if pd.isna(v) else str(v) for v in column.astype(object).tolist()], dtype=pl.String)
+        texts = pl.Series(
+            "cell", [None if pd.isna(v) else str(v) for v in column.astype(object).tolist()], dtype=pl.String
+        )
         return column.where(~self.reading.is_blank(texts).to_numpy(), None)
 
     def values(self, *, column: pd.Series, dtype: str, policy: PolicyModel | None = None) -> pd.Series:
@@ -572,4 +582,3 @@ class DataSourceParser:
             except ValueError:
                 return MimeType(mimetype)
         raise ValueError(f"MimeType not found for '{mimetype}'")
-

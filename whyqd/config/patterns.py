@@ -59,7 +59,6 @@ class PolarsPatterns:
         r"|oct(ober)?|nov(ember)?|dec(ember)?)\b\.?[0-9\s/.,-]*$"
     )
 
-
     # An ISO 8601 duration of days, hours, minutes, and seconds, each captured, with no years or months
     DURATION: ClassVar[str] = r"^(-)?P(?:([0-9]+)D)?(?:T(?:([0-9]+)H)?(?:([0-9]+)M)?(?:([0-9]+(?:\.[0-9]+)?)S)?)?$"
 
@@ -67,7 +66,9 @@ class PolarsPatterns:
     TIME_TAIL: ClassVar[str] = r"(?:[ T][0-9]{1,2}:[0-9]{2}(?::[0-9]{2}(?:\.[0-9]+)?)?)?"
     TIME_AT_END: ClassVar[str] = r"[ T]([0-9]{1,2}:[0-9]{2}(?::[0-9]{2}(?:\.[0-9]+)?)?)$"
     NOT_ZERO: ClassVar[str] = "[1-9]"
-    OFFSET: ClassVar[str] = r"^(.*[0-9]:[0-9]{2}(?::[0-9]{2}(?:\.[0-9]+)?)?(?: ?[^0-9 ]+)?)\s*(Z|[+-][0-9]{2}(?::?[0-9]{2})?)$"
+    OFFSET: ClassVar[str] = (
+        r"^(.*[0-9]:[0-9]{2}(?::[0-9]{2}(?:\.[0-9]+)?)?(?: ?[^0-9 ]+)?)\s*(Z|[+-][0-9]{2}(?::?[0-9]{2})?)$"
+    )
     SERIAL: ClassVar[str] = r"^[0-9]{1,7}(?:\.[0-9]+)?$"
     # Seconds since 1970, of any length
     UNIX_SERIAL: ClassVar[str] = r"^[0-9]+(?:\.[0-9]+)?$"

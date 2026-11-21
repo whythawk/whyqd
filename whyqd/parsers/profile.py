@@ -39,7 +39,9 @@ class ProfileParser:
         is_text = types == CellType.STRING.value
         counts = {}
         if formats is not None:
-            coded = dict(formats.alias(self.CELL).filter(types.is_in(self.FORMATTED)).drop_nulls().value_counts().iter_rows())
+            coded = dict(
+                formats.alias(self.CELL).filter(types.is_in(self.FORMATTED)).drop_nulls().value_counts().iter_rows()
+            )
             counts = dict(sorted(coded.items(), key=lambda c: (-c[1], c[0])))
         return ProfileModel(
             cellTypes={t.value: found[t.value] for t in CellType if t.value in found},

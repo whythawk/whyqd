@@ -73,7 +73,8 @@ class RulesModel(BaseModel):
         description="The first year of the 100 years a `yy` pattern reads: `1950` reads `49` as 2049 and `50` as 1950.",
     )
     language: Optional[str] = Field(
-        None, description="The language of month and weekday names, by its tag, such as `de`: any spelling and any case."
+        None,
+        description="The language of month and weekday names, by its tag, such as `de`: any spelling and any case.",
     )
     monthNames: list[Union[str, list[str]]] = Field(
         [],
@@ -114,7 +115,9 @@ class RulesModel(BaseModel):
     @classmethod
     def known_language(cls, v: Optional[str]) -> Optional[str]:
         if v is not None and NameTables.language(v) is None:
-            raise ValueError(f"whyqd holds no names for `{v}`. Use a tag such as `de`, or `rules.monthNames`. [whyqd:policy-names]")
+            raise ValueError(
+                f"whyqd holds no names for `{v}`. Use a tag such as `de`, or `rules.monthNames`. [whyqd:policy-names]"
+            )
         return v
 
     @field_validator("monthNames", "dayPeriods")
@@ -138,7 +141,9 @@ class RulesModel(BaseModel):
             if v is not None:
                 ZoneInfo(v)
         except (ZoneInfoNotFoundError, ValueError, OSError) as error:
-            raise ValueError(f"`{v}` is no IANA time zone. Use a name such as `Europe/London`. [whyqd:policy-zone]") from error
+            raise ValueError(
+                f"`{v}` is no IANA time zone. Use a name such as `Europe/London`. [whyqd:policy-zone]"
+            ) from error
         return v
 
 
@@ -329,7 +334,9 @@ class PolicyModel(BaseModel):
         if letter in "mM":
             if length > 2:
                 return "M" * length
-            minutes = before[:1] in tuple("hH") or after[:1] in tuple("sS") or (letter == "m" and dtype in cls.QUANTITIES)
+            minutes = (
+                before[:1] in tuple("hH") or after[:1] in tuple("sS") or (letter == "m" and dtype in cls.QUANTITIES)
+            )
             return ("m" if minutes else "M") * length
         if letter in "hH":
             return ("h" if twelve_hour else "H") * min(length, 2)
