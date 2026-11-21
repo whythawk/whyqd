@@ -4,7 +4,7 @@ from typing import Iterable
 
 from whyqd.config.patterns import PythonPatterns
 from whyqd.models.dialect import DialectModel
-from whyqd.parsers.column import ColumnParser
+from whyqd.sources.column import ColumnParser
 
 
 class RowKeyParser:

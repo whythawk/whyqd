@@ -5,8 +5,8 @@ import polars as pl
 
 from whyqd.dtypes import CellType, MimeType
 from whyqd.models import DialectModel
-from whyqd.parsers.cell import CellParser
-from whyqd.parsers.grid import GridParser
+from whyqd.sources.cell import CellParser
+from whyqd.sources.grid import GridParser
 
 
 class ArrowParser:

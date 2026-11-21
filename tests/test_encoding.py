@@ -17,7 +17,8 @@ import pytest
 
 import whyqd as qd
 from whyqd.models import DialectModel
-from whyqd.parsers import DataSourceParser, RowKeyParser
+from whyqd.parsers import DataSourceParser
+from whyqd.sources.row_key import RowKeyParser
 
 SYNTHETIC = Path(__file__).resolve().parent / "data" / "synthetic"
 KEY = json.loads((SYNTHETIC / "answer-key.json").read_text(encoding="utf-8"))["csv"]

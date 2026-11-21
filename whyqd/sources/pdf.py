@@ -5,7 +5,7 @@ import polars as pl
 
 from whyqd.dtypes import MimeType
 from whyqd.models import DialectModel
-from whyqd.parsers.grid import GridParser
+from whyqd.sources.grid import GridParser
 
 
 class PdfParser:

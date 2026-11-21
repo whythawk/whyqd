@@ -11,13 +11,13 @@ from whyqd.parsers.diagnosis import DiagnosisParser
 from whyqd.parsers.fingerprint import FingerprintParser
 from whyqd.parsers.profile import ProfileParser
 from whyqd.parsers.reading import ReadingParser
-from whyqd.parsers.row_key import RowKeyParser
-from whyqd.parsers.table import TableParser
 from whyqd.parsers.v1 import V1ChecksumParser
 from whyqd.sources.arrow import ArrowParser
 from whyqd.sources.csv import CsvParser
 from whyqd.sources.excel import ExcelParser
 from whyqd.sources.pdf import PdfParser
+from whyqd.sources.row_key import RowKeyParser
+from whyqd.sources.table import TableParser
 from whyqd.models import (
     ColumnModel,
     DataSourceModel,

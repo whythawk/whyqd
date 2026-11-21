@@ -4,7 +4,7 @@ import warnings
 import polars as pl
 
 from whyqd.models import DialectModel
-from whyqd.parsers.row_key import RowKeyParser
+from whyqd.sources.row_key import RowKeyParser
 
 
 class TableParser:

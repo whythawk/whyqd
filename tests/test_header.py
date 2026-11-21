@@ -14,7 +14,8 @@ import pandas as pd
 import pytest
 
 import whyqd as qd
-from whyqd.parsers import DataSourceParser, RowKeyParser
+from whyqd.parsers import DataSourceParser
+from whyqd.sources.row_key import RowKeyParser
 from whyqd.parsers.v1 import V1ChecksumParser
 
 DATA = Path(__file__).resolve().parent / "data"

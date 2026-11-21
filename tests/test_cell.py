@@ -4,7 +4,7 @@ from decimal import Decimal
 import pytest
 
 from whyqd.dtypes import CellType
-from whyqd.parsers import CellParser
+from whyqd.sources.cell import CellParser
 
 # One stored cell as each Excel reader hands it over: python-calamine, openpyxl, and xlrd
 SAME_CELL = [

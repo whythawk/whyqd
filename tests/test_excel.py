@@ -16,7 +16,9 @@ import pandas as pd
 import pytest
 
 import whyqd as qd
-from whyqd.parsers import CellParser, DataSourceParser, RowKeyParser
+from whyqd.parsers import DataSourceParser
+from whyqd.sources.cell import CellParser
+from whyqd.sources.row_key import RowKeyParser
 
 DATA = Path(__file__).resolve().parent / "data"
 FIXTURE = DATA / "synthetic" / "fixture.xlsx"

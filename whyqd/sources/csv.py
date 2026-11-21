@@ -10,8 +10,8 @@ from whyqd.config.patterns import PythonPatterns
 from whyqd.config.settings import settings
 from whyqd.dtypes import EncodingStep, MimeType
 from whyqd.models import DialectModel, FindingModel, ProposalModel
-from whyqd.parsers.grid import GridParser, ReadFault
 from whyqd.sources.encoding import EncodingParser
+from whyqd.sources.grid import GridParser, ReadFault
 
 
 class CsvParser:

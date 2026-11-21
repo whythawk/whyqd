@@ -8,7 +8,7 @@ from whyqd.config.patterns import PythonPatterns
 from whyqd.config.settings import settings
 from whyqd.dtypes import FindingKind, MimeType, SettingSource
 from whyqd.models import DialectModel, FindingModel, ProposalModel, ReportModel, SettingModel
-from whyqd.parsers.table import TableParser
+from whyqd.sources.table import TableParser
 
 
 class DiagnosisParser:
