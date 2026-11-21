@@ -6,18 +6,18 @@ import pandas as pd
 
 import polars as pl
 
-from whyqd.parsers.arrow_reader import ArrowParser
 from whyqd.parsers.core import CoreParser
-from whyqd.parsers.csv_reader import CsvParser
 from whyqd.parsers.diagnosis import DiagnosisParser
-from whyqd.parsers.excel_reader import ExcelParser
 from whyqd.parsers.fingerprint import FingerprintParser
-from whyqd.parsers.pdf_reader import PdfParser
 from whyqd.parsers.profile import ProfileParser
 from whyqd.parsers.reading import ReadingParser
 from whyqd.parsers.row_key import RowKeyParser
 from whyqd.parsers.table import TableParser
 from whyqd.parsers.v1 import V1ChecksumParser
+from whyqd.sources.arrow import ArrowParser
+from whyqd.sources.csv import CsvParser
+from whyqd.sources.excel import ExcelParser
+from whyqd.sources.pdf import PdfParser
 from whyqd.models import (
     ColumnModel,
     DataSourceModel,
