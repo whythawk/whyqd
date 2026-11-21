@@ -5,7 +5,7 @@ import subprocess
 import sys
 import pytest
 
-from whyqd.parsers import ReadingParser
+from whyqd.reading.reading import ReadingParser
 
 LOCALES = ["C.UTF-8", "en_US.UTF-8", "de_DE.UTF-8"]
 

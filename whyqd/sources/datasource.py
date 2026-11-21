@@ -7,7 +7,7 @@ import pandas as pd
 import polars as pl
 
 from whyqd.parsers.core import CoreParser
-from whyqd.parsers.reading import ReadingParser
+from whyqd.reading.reading import ReadingParser
 from whyqd.sources.arrow import ArrowParser
 from whyqd.sources.csv import CsvParser
 from whyqd.sources.diagnosis import DiagnosisParser
@@ -221,7 +221,7 @@ class DataSourceParser:
     ) -> list[FindingModel]:
         """What a source schema's declared fields find in a file, every field counting as read. A file that cannot be
         read has already said so in its report, so it finds nothing here."""
-        from whyqd.parsers.conformance import ConformanceParser
+        from whyqd.reading.conformance import ConformanceParser
 
         mime = self.get_mimetype(mimetype=mimetype)
         given = self.declare(dialect=dialect)

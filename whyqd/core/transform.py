@@ -140,7 +140,7 @@ class TransformDefinition(BaseDefinition):
           ConformanceError: If the table cannot conform.
           ValueError: If a required destination field is never built.
         """
-        from whyqd.parsers.conformance import ConformanceParser
+        from whyqd.reading.conformance import ConformanceParser
 
         conformance = ConformanceParser()
         origin, destination = self.crosswalk.schema_source, self.crosswalk.schema_destination

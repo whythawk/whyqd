@@ -9,7 +9,7 @@ import polars as pl
 
 from whyqd.dtypes import CellType, FieldType, FindingKind, MimeType
 from whyqd.models import FieldModel, FindingModel, PolicyModel, ReportModel
-from whyqd.parsers.reading import ReadingParser
+from whyqd.reading.reading import ReadingParser
 from whyqd.sources.row_key import RowKeyParser
 
 

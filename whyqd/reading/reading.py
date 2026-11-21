@@ -23,7 +23,7 @@ class ReadingParser:
 
     Example:
       ```python
-      from whyqd.parsers import ReadingParser
+      from whyqd.reading.reading import ReadingParser
 
       policy = PolicyModel(format={"decimalChar": ",", "groupChar": "."}, rules={"currency": ["€"]})
       ReadingParser().read(cells=["1.234,50 €", "1,234.50", ""], dtype="number", policy=policy)
