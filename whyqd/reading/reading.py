@@ -20,6 +20,7 @@ from whyqd.dtypes import (
     RefusalReason,
     SerialDate,
 )
+from whyqd.reading.pattern import PatternParser
 from whyqd.models import CellReadingModel, FindingModel, NumberFormatModel, PolicyModel, RulesModel
 
 
@@ -132,6 +133,7 @@ class ReadingParser:
 
     def __init__(self) -> None:
         self.patterns = PolarsPatterns()
+        self.pattern = PatternParser()
         self.readers = {
             FieldType.NUMBER.value: self.read_number,
             FieldType.INTEGER.value: self.read_integer,
@@ -517,7 +519,7 @@ class ReadingParser:
         says nothing of its meaning, so `dd` reads `1`, unless digits run together, as in `yyyyMMdd`. On a duration the
         first field is a quantity of any length: `H:mm` reads `100:30`. With `tail`, a date's cell may also hold a time."""
         p, regex, fields = self.patterns, [], []
-        written = PolicyModel.parts(self.normalised(pattern))
+        written = self.pattern.parts(self.normalised(pattern))
         for index, (is_field, text) in enumerate(written):
             if not is_field:
                 regex.append(p.literal(text))
@@ -534,7 +536,7 @@ class ReadingParser:
             elif any(beside):
                 captured = f"[0-9]{{{4 if text[0] == 'y' and len(text) != 2 else len(text)}}}"
             else:
-                low, high = PolicyModel.WIDTHS[text]
+                low, high = self.pattern.WIDTHS[text]
                 captured = f"[0-9]{{{low},{high}}}"
             regex.append(f"({captured})")
             fields.append(text)
@@ -635,7 +637,7 @@ class ReadingParser:
         `rules.zone` states the zone of a clock that has none. What is read with something worth checking warns."""
         rules = policy.rules or RulesModel()
         declared = [policy.format] * isinstance(policy.format, str) + rules.alternateFormats
-        declared = [PolicyModel.standard_pattern(pattern, dtype) for pattern in declared]
+        declared = [self.pattern.standard_pattern(pattern, dtype) for pattern in declared]
         text, mixed = self.digits(self.steps(cells))
         offsets = None
         if dtype == FieldType.DATETIME.value:
@@ -652,14 +654,14 @@ class ReadingParser:
         is_stored = types == CellType.DATE.value
         if is_stored.any():
             stored = rules.cellFormats.get(CellType.DATE)
-            patterns = [PolicyModel.standard_pattern(stored, dtype)] if stored else self.stored_patterns(dtype)
+            patterns = [self.pattern.standard_pattern(stored, dtype)] if stored else self.stored_patterns(dtype)
             rendered = self.patterns_read(text=text, patterns=patterns, rules=rules, dtype=parsed)
             read = tuple(one.zip_with(is_stored, other) for one, other in zip(rendered, read))
             warned = {code: flag & ~is_stored for code, flag in warned.items()}
         fits, twice, value = read
         serial_time = pl.repeat(False, cells.len(), eager=True)
         # A pattern of digits alone, as `yyyyMMdd`, already says what a bare number is
-        digits_only = any(all(is_field for is_field, _ in PolicyModel.parts(pattern)) for pattern in declared)
+        digits_only = any(all(is_field for is_field, _ in self.pattern.parts(pattern)) for pattern in declared)
         if rules.serial or not (dtype in FieldFamilies.NO_SERIAL or digits_only):
             system = SerialDate(rules.serial or SerialDate.EXCEL_1900)
             fits, value, serial_time, types, serial = self.serials(
