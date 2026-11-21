@@ -10,7 +10,8 @@ from whyqd.models.reference import ReferenceModel
 
 
 class ActionScriptModel(BaseModel):
-    """Action Script Model - only action `script` string required."""
+    """One step of a crosswalk: its action script, why it holds, the correspondence a `CATEGORISE` step cites, and how
+    to read the text it builds. Only `script` is required."""
 
     ONE_OUTPUT: ClassVar[frozenset[str]] = frozenset({"UNITE", "NEW"})
     OUTPUTS: ClassVar[frozenset[str]] = frozenset({"SEPARATE"})

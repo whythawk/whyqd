@@ -13,6 +13,8 @@ from whyqd.models.identifier import Identifier
 
 
 class DataSourceAttributeModel(RootModel):
+    """1.x's pandas reading keywords, kept so a 1.x data source loads and is refused by name: 2.0 reads by `dialect`."""
+
     # https://docs.pydantic.dev/latest/concepts/models/#rootmodel-and-custom-root-types
     root: Dict[str, Any]
 
@@ -22,6 +24,9 @@ class DataSourceAttributeModel(RootModel):
 
 
 class DataSourceModel(BaseModel):
+    """A source file as whyqd reads it: where it is, its format and how it is written, its columns as read, and the
+    checksums that prove it is the file."""
+
     uuid: Identifier = Field(description="Automatically generated unique identity for the data source.")
     title: Optional[str] = Field(None, description="A descriptive name for the data source.")
     description: Optional[str] = Field(

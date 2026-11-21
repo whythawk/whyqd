@@ -11,10 +11,13 @@ from whyqd.models.version import VersionModel
 
 
 class SchemaModel(BaseModel):
+    """A set of fields that tabular data conforms to, as a source or a destination, with the text a source writes for a
+    missing value."""
+
     uuid: Identifier = Field(description="Automatically generated unique identity for the schema.")
     name: DefinitionName = Field(
         ...,
-        description="Machine-readable term to uniquely address this schema. Cannot have spaces. CamelCase or snake_case for preference.",
+        description="Machine-readable term to address this schema: trimmed, lower case, its spaces underscores.",
     )
     title: Optional[str] = Field(None, description="A human-readable version of the schema name.")
     release: Optional[str] = Field(

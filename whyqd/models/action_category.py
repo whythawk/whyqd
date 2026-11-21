@@ -5,7 +5,7 @@ from pydantic import field_validator, ConfigDict, BaseModel, Field
 
 
 class CategoryActionModel(BaseModel):
-    """Category Model - generated from the Category module. A type of BaseCategoryAction."""
+    """A category action's definition: its name and purpose, and whether its terms are booleans or unique values."""
 
     name: str = Field(..., description="Name of the Action. Uppercase.")
     title: str = Field(..., description="Title of the Action. Regular case.")

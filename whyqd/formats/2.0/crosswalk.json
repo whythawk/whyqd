@@ -4,7 +4,7 @@
   "description": "A whyqd crosswalk as whyqd saves it in format 2.0, generated from its models.",
   "$defs": {
     "ActionScriptModel": {
-      "description": "Action Script Model - only action `script` string required.",
+      "description": "One step of a crosswalk: its action script, why it holds, the correspondence a `CATEGORISE` step cites, and how\nto read the text it builds. Only `script` is required.",
       "properties": {
         "uuid": {
           "description": "Unique identity for the Action. Automatically generated.",
@@ -68,6 +68,7 @@
       "type": "object"
     },
     "CategoryModel": {
+      "description": "One of a field's categories: a term, or `true` or `false` where the field's categories are booleans, with its\ncode where it comes from a term list.",
       "properties": {
         "uuid": {
           "description": "Unique identity for the category. Automatically generated.",
@@ -260,6 +261,7 @@
       "type": "object"
     },
     "ConstraintsModel": {
+      "description": "What a field's values must meet beyond their type: present, unique, one of its categories, within bounds on a\nvalue or a string's length; and whether a zero counts as present.",
       "properties": {
         "required": {
           "anyOf": [
@@ -447,6 +449,7 @@
       "type": "object"
     },
     "FieldModel": {
+      "description": "One field of a schema: its name and type, what its values must meet, and, for a type read from text, how to read\nit (`policy`).",
       "properties": {
         "uuid": {
           "description": "Unique identity for the field. Automatically generated.",
@@ -962,6 +965,7 @@
       "type": "object"
     },
     "SchemaModel": {
+      "description": "A set of fields that tabular data conforms to, as a source or a destination, with the text a source writes for a\nmissing value.",
       "properties": {
         "uuid": {
           "description": "Automatically generated unique identity for the schema.",
@@ -970,7 +974,7 @@
           "type": "string"
         },
         "name": {
-          "description": "Machine-readable term to uniquely address this schema. Cannot have spaces. CamelCase or snake_case for preference.",
+          "description": "Machine-readable term to address this schema: trimmed, lower case, its spaces underscores.",
           "title": "Name",
           "type": "string"
         },
@@ -1111,6 +1115,7 @@
       "type": "string"
     },
     "VersionModel": {
+      "description": "One entry in a definition's history: who changed it, what they did, and when.",
       "properties": {
         "name": {
           "anyOf": [
@@ -1167,7 +1172,7 @@
       "type": "string"
     },
     "name": {
-      "description": "Machine-readable term to uniquely address this crosswalk. Cannot have spaces. CamelCase or snake_case for preference.",
+      "description": "Machine-readable term to address this crosswalk: trimmed, lower case, its spaces underscores.",
       "title": "Name",
       "type": "string"
     },
@@ -1223,7 +1228,7 @@
     },
     "actions": {
       "default": [],
-      "description": "List of Actions in script format to be performed on these data, in this order. Will be parsed and validated seperately.",
+      "description": "List of Actions in script format to be performed on these data, in this order. Will be parsed and validated separately.",
       "items": {
         "$ref": "#/$defs/ActionScriptModel"
       },

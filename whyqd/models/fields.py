@@ -11,6 +11,9 @@ from whyqd.dtypes import FieldFamilies, FieldType
 
 
 class FieldModel(BaseModel):
+    """One field of a schema: its name and type, what its values must meet, and, for a type read from text, how to read
+    it (`policy`)."""
+
     uuid: Identifier = Field(description="Unique identity for the field. Automatically generated.")
     name: str = Field(
         ...,

@@ -219,6 +219,7 @@
     },
     "DataSourceAttributeModel": {
       "additionalProperties": true,
+      "description": "1.x's pandas reading keywords, kept so a 1.x data source loads and is refused by name: 2.0 reads by `dialect`.",
       "title": "DataSourceAttributeModel",
       "type": "object"
     },

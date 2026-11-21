@@ -12,10 +12,13 @@ from whyqd.models.version import VersionModel
 
 
 class CrosswalkModel(BaseModel):
+    """How a source schema maps onto a destination schema: action scripts, run in order, each taking source fields to
+    destination fields."""
+
     uuid: Identifier = Field(description="Automatically generated unique identity for the crosswalk.")
     name: DefinitionName = Field(
         ...,
-        description="Machine-readable term to uniquely address this crosswalk. Cannot have spaces. CamelCase or snake_case for preference.",
+        description="Machine-readable term to address this crosswalk: trimmed, lower case, its spaces underscores.",
     )
     title: Optional[str] = Field(None, description="A human-readable version of the crosswalk name.")
     description: Optional[str] = Field(
@@ -32,7 +35,7 @@ class CrosswalkModel(BaseModel):
     )
     actions: list[ActionScriptModel] = Field(
         default=[],
-        description="List of Actions in script format to be performed on these data, in this order. Will be parsed and validated seperately.",
+        description="List of Actions in script format to be performed on these data, in this order. Will be parsed and validated separately.",
     )
     citation: Optional[CitationModel] = Field(None, description="Optional full citation for the source data.")
     extensions: list[ExtensionModel] = Field([], description="The extension actions the crosswalk's steps use.")

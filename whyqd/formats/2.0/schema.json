@@ -4,6 +4,7 @@
   "description": "A whyqd schema as whyqd saves it in format 2.0, generated from its models.",
   "$defs": {
     "CategoryModel": {
+      "description": "One of a field's categories: a term, or `true` or `false` where the field's categories are booleans, with its\ncode where it comes from a term list.",
       "properties": {
         "uuid": {
           "description": "Unique identity for the category. Automatically generated.",
@@ -196,6 +197,7 @@
       "type": "object"
     },
     "ConstraintsModel": {
+      "description": "What a field's values must meet beyond their type: present, unique, one of its categories, within bounds on a\nvalue or a string's length; and whether a zero counts as present.",
       "properties": {
         "required": {
           "anyOf": [
@@ -383,6 +385,7 @@
       "type": "object"
     },
     "FieldModel": {
+      "description": "One field of a schema: its name and type, what its values must meet, and, for a type read from text, how to read\nit (`policy`).",
       "properties": {
         "uuid": {
           "description": "Unique identity for the field. Automatically generated.",
@@ -823,6 +826,7 @@
       "type": "string"
     },
     "VersionModel": {
+      "description": "One entry in a definition's history: who changed it, what they did, and when.",
       "properties": {
         "name": {
           "anyOf": [
@@ -879,7 +883,7 @@
       "type": "string"
     },
     "name": {
-      "description": "Machine-readable term to uniquely address this schema. Cannot have spaces. CamelCase or snake_case for preference.",
+      "description": "Machine-readable term to address this schema: trimmed, lower case, its spaces underscores.",
       "title": "Name",
       "type": "string"
     },

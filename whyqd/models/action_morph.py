@@ -5,7 +5,8 @@ from typing import List, Optional
 
 
 class MorphActionModel(BaseModel):
-    """Morph Model - generated from the Morph module. A type of SchemaActionModel."""
+    """A morph action's definition: its name and purpose, and the structure its script takes, of source fields, rows,
+    and a source term."""
 
     name: str = Field(..., description="Name of the Action. Uppercase.")
     title: str = Field(..., description="Title of the Action. Regular case.")

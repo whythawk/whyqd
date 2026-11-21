@@ -7,6 +7,9 @@ from whyqd.models.category import CategoryModel
 
 
 class ConstraintsModel(BaseModel):
+    """What a field's values must meet beyond their type: present, unique, one of its categories, within bounds on a
+    value or a string's length; and whether a zero counts as present."""
+
     required: Optional[bool] = Field(
         default=False, description="Indicates whether a field must have a value for each instance."
     )

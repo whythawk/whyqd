@@ -14,10 +14,13 @@ from whyqd.models.version import VersionModel
 
 
 class TransformModel(BaseModel):
+    """A crosswalk applied to a data source: the source, the crosswalk, the destination it built, and when, and with
+    which whyqd, references, and extensions, it ran."""
+
     uuid: Identifier = Field(description="Automatically generated unique identity for the method.")
     name: DefinitionName = Field(
         ...,
-        description="Machine-readable term to uniquely address this method. Cannot have spaces. CamelCase or snake_case.",
+        description="Machine-readable term to address this transform: trimmed, lower case, its spaces underscores.",
     )
     title: Optional[str] = Field(None, description="A human-readable version of the method name.")
     description: Optional[str] = Field(
