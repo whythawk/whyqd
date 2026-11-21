@@ -265,7 +265,7 @@ class TransformDefinition(BaseDefinition):
           A boolean `True` on successful validation.
         """
         # The checksums are 1.x's, so the files are read as 1.x read them
-        from whyqd.parsers.v1 import V1ChecksumParser
+        from whyqd.sources.v1 import V1ChecksumParser
 
         v1 = V1ChecksumParser()
 

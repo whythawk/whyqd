@@ -187,7 +187,7 @@ class TestVerify1x:
             qd.DataSourceDefinition(source=model).get_json(format="1.x")
 
     def test_without_extra_names_it(self, monkeypatch):
-        monkeypatch.setitem(sys.modules, "whyqd.parsers.v1", None)
+        monkeypatch.setitem(sys.modules, "whyqd.sources.v1", None)
         with pytest.raises(ImportError, match=r"whyqd\[verify-1x\]"):
             load(DIRECTORY / "test_portsmouth_source.data").validate()
 
@@ -195,7 +195,7 @@ class TestVerify1x:
         # In a process of its own, where no test has loaded the reader: the 1.x read alone must not load it
         script = (
             "import sys, whyqd as qd\n"
-            "from whyqd.parsers.v1 import V1ChecksumParser\n"
+            "from whyqd.sources.v1 import V1ChecksumParser\n"
             f"model = qd.DataSourceDefinition(source={str(DIRECTORY / 'test_portsmouth_source.data')!r}).get\n"
             "assert V1ChecksumParser().checksum(model=model) == model.get_checksum('table-1x')\n"
             "print('whyqd.parsers.datasource' in sys.modules)\n"
@@ -209,7 +209,7 @@ class TestVerify1x:
             "import sys\n"
             "sys.modules['pyarrow'] = None\n"
             "import whyqd as qd\n"
-            "from whyqd.parsers.v1 import V1ChecksumParser\n"
+            "from whyqd.sources.v1 import V1ChecksumParser\n"
             f"for path in {[str(p) for p in DATA_SOURCES]!r}:\n"
             "    try:\n"
             "        model = qd.DataSourceDefinition(source=path).get\n"

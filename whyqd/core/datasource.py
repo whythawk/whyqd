@@ -214,7 +214,7 @@ class DataSourceDefinition(BaseDefinition):
                 self.reader.verify(source=m)
                 continue
             try:
-                from whyqd.parsers.v1 import V1ChecksumParser
+                from whyqd.sources.v1 import V1ChecksumParser
             except ImportError as e:
                 raise ImportError("Verifying a 1.x checksum needs the extra: pip install whyqd[verify-1x]") from e
             if V1ChecksumParser().checksum(model=m) != table:

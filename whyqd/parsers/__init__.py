@@ -5,7 +5,6 @@ from .script import ScriptParser
 from .action import ActionParser
 from .morph import MorphParser
 from .category import CategoryParser
-from .fingerprint import FingerprintParser
 
 
 def __getattr__(name: str):

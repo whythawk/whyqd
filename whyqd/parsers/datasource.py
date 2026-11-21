@@ -7,17 +7,17 @@ import pandas as pd
 import polars as pl
 
 from whyqd.parsers.core import CoreParser
-from whyqd.parsers.diagnosis import DiagnosisParser
-from whyqd.parsers.fingerprint import FingerprintParser
-from whyqd.parsers.profile import ProfileParser
 from whyqd.parsers.reading import ReadingParser
-from whyqd.parsers.v1 import V1ChecksumParser
 from whyqd.sources.arrow import ArrowParser
 from whyqd.sources.csv import CsvParser
+from whyqd.sources.diagnosis import DiagnosisParser
 from whyqd.sources.excel import ExcelParser
+from whyqd.sources.fingerprint import FingerprintParser
 from whyqd.sources.pdf import PdfParser
+from whyqd.sources.profile import ProfileParser
 from whyqd.sources.row_key import RowKeyParser
 from whyqd.sources.table import TableParser
+from whyqd.sources.v1 import V1ChecksumParser
 from whyqd.models import (
     ColumnModel,
     DataSourceModel,

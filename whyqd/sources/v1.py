@@ -21,7 +21,7 @@ class V1ChecksumParser:
 
     Example:
       ```python
-      from whyqd.parsers.v1 import V1ChecksumParser
+      from whyqd.sources.v1 import V1ChecksumParser
 
       V1ChecksumParser().checksum(model=datasource.get) == datasource.get.get_checksum("table-1x")
       ```
