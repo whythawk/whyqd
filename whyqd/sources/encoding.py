@@ -73,10 +73,11 @@ class EncodingParser:
         if declared is not None:
             name = self.name(label=declared)
             return self.read(data=data, name=name, source=source), name, EncodingStep.DECLARED
+        default, fallback = settings.ENCODING_DEFAULT, settings.ENCODING_FALLBACK
         try:
-            return data.decode("utf-8"), "utf-8", EncodingStep.UTF8
+            return data.decode(default), default, EncodingStep.UTF8
         except UnicodeDecodeError:
-            return self.read(data=data, name="windows-1252"), "windows-1252", EncodingStep.WINDOWS_1252
+            return self.read(data=data, name=fallback), fallback, EncodingStep.WINDOWS_1252
 
     def detect(self, *, data: bytes) -> tuple[str, str] | None:
         """The encoding a file's bytes most likely are, among those whyqd shortlists, and the evidence. A guess, so only

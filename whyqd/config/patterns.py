@@ -17,8 +17,8 @@ class PolarsPatterns:
     split by `/`, `-`, or `.`, or an English month's name, whole or short, among digits and separators.
     """
 
-    HARD_SPACE: ClassVar[str] = "[   ]"
-    ZERO_WIDTH: ClassVar[str] = "[​-‍⁠﻿]"
+    HARD_SPACE: ClassVar[str] = "[\u00a0\u2007\u202f]"
+    ZERO_WIDTH: ClassVar[str] = "[\u200b-\u200d\u2060\ufeff]"
     CONTROL: ClassVar[str] = r"[\p{Cc}&&[^\t\n\r]]"
     WHITESPACE: ClassVar[str] = r"^\s+$"
     DIGIT: ClassVar[str] = "[0-9]"
@@ -26,7 +26,7 @@ class PolarsPatterns:
     DATE: ClassVar[str] = r"^[0-9]+[/.-][0-9]+[/.-][0-9]+$"
     # What reading a cell removes or changes: the bidirectional marks LRM, RLM, and ALM; minus-like characters NFKC
     # leaves; a digit of another script; a character NFKC would turn into a digit of its number
-    BIDI: ClassVar[str] = "[‎‏؜]"
+    BIDI: ClassVar[str] = "[\u200e\u200f\u061c]"
     MINUS: ClassVar[str] = "[‐‑‒–—−]"
     OTHER_DIGIT: ClassVar[str] = r"[\p{Nd}&&[^0-9]]"
     NUMBER_FORM: ClassVar[str] = r"\p{No}"
