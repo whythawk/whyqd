@@ -9,10 +9,6 @@ from .category import CategoryParser
 
 def __getattr__(name: str):
     # The reader loads the engine, which reading a definition must not
-    if name == "DataSourceParser":
-        from .datasource import DataSourceParser
-
-        return DataSourceParser
     if name == "ReadingParser":
         from .reading import ReadingParser
 

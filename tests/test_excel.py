@@ -16,7 +16,7 @@ import pandas as pd
 import pytest
 
 import whyqd as qd
-from whyqd.parsers import DataSourceParser
+from whyqd.sources.datasource import DataSourceParser
 from whyqd.sources.cell import CellParser
 from whyqd.sources.row_key import RowKeyParser
 

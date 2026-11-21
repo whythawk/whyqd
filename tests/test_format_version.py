@@ -198,7 +198,7 @@ class TestVerify1x:
             "from whyqd.sources.v1 import V1ChecksumParser\n"
             f"model = qd.DataSourceDefinition(source={str(DIRECTORY / 'test_portsmouth_source.data')!r}).get\n"
             "assert V1ChecksumParser().checksum(model=model) == model.get_checksum('table-1x')\n"
-            "print('whyqd.parsers.datasource' in sys.modules)\n"
+            "print('whyqd.sources.datasource' in sys.modules)\n"
         )
         result = subprocess.run([sys.executable, "-c", script], capture_output=True, text=True, check=True)
         assert result.stdout.strip() == "False"

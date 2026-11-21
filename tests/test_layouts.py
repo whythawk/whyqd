@@ -17,7 +17,7 @@ import pandas as pd
 import pytest
 
 import whyqd as qd
-from whyqd.parsers import DataSourceParser
+from whyqd.sources.datasource import DataSourceParser
 from whyqd.sources.row_key import RowKeyParser
 
 LAYOUTS = Path(__file__).resolve().parent / "data" / "synthetic-layouts"

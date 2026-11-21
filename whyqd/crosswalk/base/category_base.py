@@ -7,7 +7,7 @@ from whyqd.parsers import ScriptParser
 if TYPE_CHECKING:
     import pandas as pd
     from whyqd.models import CategoryActionModel, CategoryModel, FieldModel
-    from whyqd.parsers.datasource import DataSourceParser
+    from whyqd.sources.datasource import DataSourceParser
 
 
 class BaseCategoryAction:
@@ -40,7 +40,7 @@ class BaseCategoryAction:
     def reader(self) -> DataSourceParser:
         # The reader loads the engine, which reading a definition must not
         if self._reader is None:
-            from whyqd.parsers.datasource import DataSourceParser
+            from whyqd.sources.datasource import DataSourceParser
 
             self._reader = DataSourceParser()
         return self._reader

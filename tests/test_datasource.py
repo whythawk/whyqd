@@ -5,7 +5,8 @@ import pytest
 from pydantic import AnyUrl
 
 import whyqd as qd
-from whyqd.parsers import ConformanceParser, CoreParser, DataSourceParser
+from whyqd.parsers import ConformanceParser, CoreParser
+from whyqd.sources.datasource import DataSourceParser
 
 DIRECTORY = Path(__file__).resolve().parent / "data"
 DATA = {

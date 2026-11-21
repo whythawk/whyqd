@@ -2,7 +2,7 @@
 import pytest
 
 import whyqd as qd
-from whyqd.parsers import DataSourceParser
+from whyqd.sources.datasource import DataSourceParser
 from whyqd.sources.row_key import RowKeyParser
 
 

@@ -23,6 +23,7 @@ from tests.test_locale import machine_locale  # noqa: F401
 from whyqd import parsers
 from whyqd.dtypes import MimeType, RefusalReason
 from whyqd.models import FieldModel, PolicyModel
+from whyqd.sources.datasource import DataSourceParser
 
 DATA = Path(__file__).resolve().parent / "data"
 TYPING = json.loads((DATA / "synthetic-typing" / "typing-key.json").read_text(encoding="utf-8"))
@@ -204,7 +205,7 @@ class TestLocaleColumns:
     @staticmethod
     def columns(source: Path, mime: str) -> tuple[pl.DataFrame, pl.DataFrame]:
         """A file's table and each cell's stored type, by whyqd's own read."""
-        reader = parsers.DataSourceParser()
+        reader = DataSourceParser()
         kind = MimeType[mime]
         grid, types, lines, dialect = reader.reader(mime=kind).grid(source=source, mime=kind, dialect=reader.declare(dialect=None))
         table, (text, types) = reader.tables.table(

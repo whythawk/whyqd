@@ -17,7 +17,7 @@ import pytest
 
 import whyqd as qd
 from whyqd.models import DialectModel
-from whyqd.parsers import DataSourceParser
+from whyqd.sources.datasource import DataSourceParser
 from whyqd.sources.row_key import RowKeyParser
 
 SYNTHETIC = Path(__file__).resolve().parent / "data" / "synthetic"
