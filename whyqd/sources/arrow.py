@@ -3,7 +3,7 @@ from pathlib import Path
 
 import polars as pl
 
-from whyqd.dtypes import CellType, MimeType
+from whyqd.dtypes import CellType, MimeType, Place
 from whyqd.models import DialectModel
 from whyqd.sources.cell import CellParser
 from whyqd.sources.grid import GridParser
@@ -16,7 +16,7 @@ class ArrowParser:
     reads as the same table written as a CSV does. Its names are its header row, so the dialect's defaults read them.
     """
 
-    PLACE = "row"
+    PLACE = Place.ROW
     DIALECT = ()
 
     def __init__(self) -> None:

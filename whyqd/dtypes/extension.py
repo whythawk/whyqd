@@ -3,6 +3,8 @@ from enum import Enum
 
 
 class ExtensionKind(str, Enum):
+    """What an installed extension adds to whyqd: an action, or a field type."""
+
     ACTION = "action"
     TYPE = "type"
 

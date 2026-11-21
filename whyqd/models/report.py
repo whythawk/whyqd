@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import Optional, Union
 from pydantic import BaseModel, ConfigDict, Field
 
-from whyqd.dtypes import FindingKind, MimeType, SettingSource
+from whyqd.dtypes import FindingKind, MimeType, Place, SettingSource
 
 SettingValue = Union[bool, int, str, list[int], None]
 
@@ -59,7 +59,7 @@ class ReportModel(BaseModel):
     path: str = Field(..., description="The file read.")
     mime: MimeType = Field(..., description="The file's format.")
     sheet: Optional[str] = Field(None, description="The sheet read, in a workbook.")
-    place: str = Field("line", description="What `rows` counts: a text file's `line`, a sheet's `row`.")
+    place: Place = Field(Place.LINE, description="What `rows` counts: a text file's `line`, a sheet's `row`.")
     settings: list[SettingModel] = Field(
         [], description="Each setting the read used. Empty where the file could not be read."
     )

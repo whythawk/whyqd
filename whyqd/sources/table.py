@@ -3,6 +3,7 @@ import warnings
 
 import polars as pl
 
+from whyqd.dtypes import Place
 from whyqd.models import DialectModel
 from whyqd.sources.row_key import RowKeyParser
 
@@ -29,7 +30,7 @@ class TableParser:
         lines: list[int],
         dialect: DialectModel,
         names: list[str] | None = None,
-        place: str = "line",
+        place: Place = Place.LINE,
         beside: list[pl.DataFrame] | None = None,
     ) -> tuple[pl.DataFrame, list[pl.DataFrame]]:
         """The table a grid reads as under its dialect, its first column the row key, and the frames beside it.
@@ -46,7 +47,7 @@ class TableParser:
             grid's last column are columns the file leaves empty, which the grid trims: each is added, empty, so every
             file of a format with fixed fields reads to one shape. Columns past the last name are named by position,
             with a warning, so no cell is lost and none moves.
-        place: str, default "line"
+        place: Place, default Place.LINE
             What `lines` counts, as the wrangler would look for it: a text file's `line`, a sheet's `row`.
         beside: list[pl.DataFrame] | None, default None
             Frames in the grid's shape, such as each cell's type.
@@ -117,7 +118,7 @@ class TableParser:
             names = [f"Unnamed: {i}" if n is None else n for i, n in enumerate(header.row(0))]
         return self.row_key.deconflict(columns=names)
 
-    def fit(self, *, grid: pl.DataFrame, lines: list[int], fields: list[int], place: str = "line") -> None:
+    def fit(self, *, grid: pl.DataFrame, lines: list[int], fields: list[int], place: Place = Place.LINE) -> None:
         """Whether a grid's rows fit their records.
 
         Raises

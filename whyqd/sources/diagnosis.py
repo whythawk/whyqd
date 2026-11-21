@@ -6,7 +6,7 @@ import polars as pl
 
 from whyqd.config.patterns import PythonPatterns
 from whyqd.config.settings import settings
-from whyqd.dtypes import FindingKind, MimeType, SettingSource
+from whyqd.dtypes import FindingKind, MimeType, Place, SettingSource
 from whyqd.models import DialectModel, FindingModel, ProposalModel, ReportModel, SettingModel
 from whyqd.sources.table import TableParser
 
@@ -286,7 +286,7 @@ class DiagnosisParser:
     def are(self, items: list) -> str:
         return "are" if len(items) > 1 else "is"
 
-    def preview(self, *, grid: pl.DataFrame, lines: list[int], place: str) -> str:
+    def preview(self, *, grid: pl.DataFrame, lines: list[int], place: Place) -> str:
         """A short text of the grid as read, from its top and its end, each row numbered as the wrangler would look for
         it, so the rows above a header can be seen, which leave the table. A row's trailing empty cells are left out, a
         line break in a cell shows as `\\n`, and each cell and line is cut to the length a report shows."""

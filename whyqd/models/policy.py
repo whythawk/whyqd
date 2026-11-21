@@ -5,7 +5,7 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator, model_valida
 
 from whyqd.config.names import NameTables
 from whyqd.config.patterns import PythonPatterns
-from whyqd.dtypes import CellType, FieldType, ReadingKind, ReadingWarning, RefusalReason, SerialDate
+from whyqd.dtypes import CellType, FieldFamilies, FieldType, ReadingKind, ReadingWarning, RefusalReason, SerialDate
 
 
 class NumberFormatModel(BaseModel):
@@ -167,9 +167,6 @@ class PolicyModel(BaseModel):
       ```
     """
 
-    NUMBERS: ClassVar[frozenset[str]] = frozenset({FieldType.NUMBER.value, FieldType.INTEGER.value})
-    UNREAD: ClassVar[frozenset[str]] = frozenset({FieldType.STRING.value, FieldType.ARRAY.value, FieldType.ANY.value})
-    QUANTITIES: ClassVar[frozenset[str]] = frozenset({FieldType.TIME.value, FieldType.DURATION.value})
     EXACT: ClassVar[str] = "decimal"
     PAIR: ClassVar[str] = "|"
     # What a 1.x `usdate` stated: month first, with any of its separators
@@ -256,13 +253,13 @@ class PolicyModel(BaseModel):
         """
         rules = self.rules or RulesModel()
         declared = rules.model_fields_set
-        number, boolean = dtype in self.NUMBERS, dtype == FieldType.BOOLEAN.value
-        temporal = not (number or boolean or dtype in self.UNREAD)
+        number, boolean = dtype in FieldFamilies.NUMBERS, dtype == FieldType.BOOLEAN.value
+        temporal = not (number or boolean or dtype in FieldFamilies.NO_POLICY)
         if temporal:
             self.standardise(dtype=dtype, rules=rules)
         exact = number and self.base == self.EXACT and dtype == FieldType.NUMBER.value
         unfit = [f"`base` {self.base}"] if self.base not in (None, dtype) and not exact else []
-        if dtype in self.UNREAD and (self.format is not None or declared):
+        if dtype in FieldFamilies.NO_POLICY and (self.format is not None or declared):
             unfit.append("`format` or `rules`")
         if isinstance(self.format, NumberFormatModel) != number and self.format is not None:
             unfit.append(f"`format` {self.format}")
@@ -272,7 +269,7 @@ class PolicyModel(BaseModel):
         unfit += [f"`rules.{rule}`" for rule in declared & RulesModel.PATTERNED if number]
         if "zone" in declared and dtype != FieldType.DATETIME.value:
             unfit.append("`rules.zone`")
-        if "serial" in declared and dtype in self.QUANTITIES:
+        if "serial" in declared and dtype in FieldFamilies.QUANTITIES:
             unfit.append("`rules.serial`")
         patterns = [self.format] * isinstance(self.format, str) + rules.alternateFormats
         if boolean:
@@ -335,7 +332,9 @@ class PolicyModel(BaseModel):
             if length > 2:
                 return "M" * length
             minutes = (
-                before[:1] in tuple("hH") or after[:1] in tuple("sS") or (letter == "m" and dtype in cls.QUANTITIES)
+                before[:1] in tuple("hH")
+                or after[:1] in tuple("sS")
+                or (letter == "m" and dtype in FieldFamilies.QUANTITIES)
             )
             return ("m" if minutes else "M") * length
         if letter in "hH":

@@ -121,6 +121,7 @@
       "type": "object"
     },
     "CellType": {
+      "description": "The type a file stores a cell as, written beside its text where the format stores types. How each renders as\ntext, the rule every reader follows: `describe`.",
       "enum": [
         "s",
         "n",
@@ -392,6 +393,7 @@
       "type": "object"
     },
     "ExtensionKind": {
+      "description": "What an installed extension adds to whyqd: an action, or a field type.",
       "enum": [
         "action",
         "type"
@@ -545,6 +547,7 @@
       "type": "object"
     },
     "FieldType": {
+      "description": "A field's type, as a schema declares it. What each holds: `describe`.",
       "enum": [
         "string",
         "number",
@@ -1098,6 +1101,7 @@
       "type": "object"
     },
     "SerialDate": {
+      "description": "How a bare number counts a date, as a declared `rules.serial` says. What each counts: `describe`.",
       "enum": [
         "excel-1900",
         "excel-1904",

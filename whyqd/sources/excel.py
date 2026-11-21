@@ -11,7 +11,7 @@ import polars as pl
 import python_calamine
 
 from whyqd.config.patterns import PythonPatterns
-from whyqd.dtypes import CellType, MimeType
+from whyqd.dtypes import CellType, MimeType, Place
 from whyqd.models import DialectModel
 from whyqd.sources.cell import CellParser
 from whyqd.sources.grid import GridParser
@@ -44,7 +44,7 @@ class ExcelParser:
     in another form, and is not, so there they read as python-calamine gives them.
     """
 
-    PLACE = "row"
+    PLACE = Place.ROW
     DIALECT = ("sheet",)
     # Each error's code, as Excel shows it: calamine's `CellErrorType` (https://github.com/tafia/calamine, `lib.rs`)
     ERRORS = {

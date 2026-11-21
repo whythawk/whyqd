@@ -7,7 +7,7 @@ from typing import ClassVar
 import pandas as pd
 import polars as pl
 
-from whyqd.dtypes import CellType, FieldType, FindingKind, MimeType
+from whyqd.dtypes import CellType, FieldFamilies, FieldType, FindingKind, MimeType, Place
 from whyqd.models import FieldModel, FindingModel, PolicyModel, ReportModel
 from whyqd.reading.reading import ReadingParser
 from whyqd.sources.row_key import RowKeyParser
@@ -40,7 +40,6 @@ class ConformanceParser:
       ```
     """
 
-    NOT_READ: ClassVar[frozenset[str]] = frozenset({FieldType.ANY.value, FieldType.ARRAY.value})
     TEXT: ClassVar[str] = FieldType.STRING.value
     PANDAS: ClassVar[dict[str, str]] = {
         "number": "Float64",
@@ -48,17 +47,6 @@ class ConformanceParser:
         "boolean": "boolean",
         "string": "string",
     }
-    DATES: ClassVar[frozenset[str]] = frozenset(
-        {
-            FieldType.DATE.value,
-            FieldType.DATETIME.value,
-            FieldType.USDATE.value,
-            FieldType.MONTH.value,
-            FieldType.QUARTER.value,
-            FieldType.YEAR.value,
-        }
-    )
-    NUMBERS: ClassVar[frozenset[str]] = frozenset({FieldType.NUMBER.value, FieldType.INTEGER.value})
     MAPS_DIRECTLY: ClassVar[frozenset[str]] = frozenset({"RENAME", "SELECT", "SELECT_NEWEST", "SELECT_OLDEST"})
     WARNINGS: ClassVar[dict[str, str]] = {
         "stored-as-other-type": "a workbook stores these as another type, which Excel may have converted on opening; "
@@ -102,7 +90,7 @@ class ConformanceParser:
         )
 
     def is_declared(self, field: FieldModel) -> bool:
-        return field.dtype not in (self.TEXT, *self.NOT_READ) or field.policy is not None
+        return field.dtype not in (self.TEXT, *FieldFamilies.NOT_READ) or field.policy is not None
 
     def source(
         self,
@@ -122,7 +110,7 @@ class ConformanceParser:
                 continue
             cells = self.missing(table[field.name].alias(self.reading.CELL), missing)
             tags = types[field.name] if field.name in types.columns else None
-            if self.is_declared(field) and field.dtype not in self.NOT_READ:
+            if self.is_declared(field) and field.dtype not in FieldFamilies.NOT_READ:
                 read = self.reading.column(cells=cells, dtype=field.dtype, policy=field.policy, types=tags)
                 self.keep(field=field.name, cells=cells, readings=read, rows=rows)
                 self.warn_currencies(field=field.name, cells=cells, dtype=field.dtype, policy=field.policy)
@@ -155,7 +143,7 @@ class ConformanceParser:
 
     def warn_currencies(self, *, field: str, cells: pl.Series, dtype: str, policy: PolicyModel | None) -> None:
         """Warn where a number field reads more than one currency, with each one's count, so nobody sums them."""
-        if dtype not in self.NUMBERS:
+        if dtype not in FieldFamilies.NUMBERS:
             return
         counts = self.reading.currencies(cells=cells, policy=policy or PolicyModel())
         if sum(1 for count in counts.values() if count) > 1:
@@ -282,7 +270,7 @@ class ConformanceParser:
             if field.name not in df.columns or field.name in self.conflicted:
                 continue
             column = df[field.name]
-            if field.dtype in self.NOT_READ:
+            if field.dtype in FieldFamilies.NOT_READ:
                 if field.dtype == FieldType.ARRAY.value:
                     df[field.name] = pd.Series(
                         [self.as_list(value) for value in column.tolist()], index=df.index, dtype=object
@@ -366,9 +354,13 @@ class ConformanceParser:
     def conflict(self, *, source: FieldModel, destination: FieldModel) -> None:
         """A source field declared as one type and mapped to another that cannot hold it, found with no cell read."""
         declared, wanted = source.dtype, destination.dtype
-        if declared in (self.TEXT, *self.NOT_READ) or wanted in (self.TEXT, *self.NOT_READ) or declared == wanted:
+        if (
+            declared in (self.TEXT, *FieldFamilies.NOT_READ)
+            or wanted in (self.TEXT, *FieldFamilies.NOT_READ)
+            or declared == wanted
+        ):
             return
-        if {declared, wanted} <= self.DATES or {declared, wanted} <= self.NUMBERS:
+        if {declared, wanted} <= FieldFamilies.DATES or {declared, wanted} <= FieldFamilies.NUMBERS:
             return
         self.conflicted.add(destination.name)
         self.faults.append(
@@ -384,4 +376,4 @@ class ConformanceParser:
 
     def report(self, *, path: str, mime: MimeType) -> ReportModel:
         """Everything a run found, what halts it first."""
-        return ReportModel(path=path, mime=mime, place="row", findings=[*self.faults, *self.warnings])
+        return ReportModel(path=path, mime=mime, place=Place.ROW, findings=[*self.faults, *self.warnings])

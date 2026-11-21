@@ -7,7 +7,7 @@ from whyqd.models.constraints import ConstraintsModel
 from whyqd.models.identifier import Identifier
 from whyqd.models.policy import PolicyModel
 from whyqd.models.reference import ReferenceModel
-from whyqd.dtypes import FieldType
+from whyqd.dtypes import FieldFamilies, FieldType
 
 
 class FieldModel(BaseModel):
@@ -37,7 +37,7 @@ class FieldModel(BaseModel):
 
     @model_validator(mode="after")
     def zero_fits(self) -> FieldModel:
-        if self.constraints and self.constraints.zeroAsTrue and self.dtype not in PolicyModel.NUMBERS:
+        if self.constraints and self.constraints.zeroAsTrue and self.dtype not in FieldFamilies.NUMBERS:
             raise ValueError(
                 f"Field `{self.name}` is `{self.dtype}`, which holds no zero, so `zeroAsTrue` cannot apply. Remove it, "
                 "or change the field's type. [whyqd:constraint-zero-as-true]"

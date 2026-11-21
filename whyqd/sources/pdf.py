@@ -3,7 +3,7 @@ from pathlib import Path
 
 import polars as pl
 
-from whyqd.dtypes import MimeType
+from whyqd.dtypes import MimeType, Place
 from whyqd.models import DialectModel
 from whyqd.sources.grid import GridParser
 
@@ -17,7 +17,7 @@ class PdfParser:
     repeated atop a later page, and is left out. Read through pdfplumber, the `pdf` extra.
     """
 
-    PLACE = "row"
+    PLACE = Place.ROW
     DIALECT = ("cells", "pages", "columns")
     # Points between the tops of two words on one line: pdfplumber's own `y_tolerance`
     LINE = 3

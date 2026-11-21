@@ -8,7 +8,7 @@ import polars as pl
 
 from whyqd.config.patterns import PythonPatterns
 from whyqd.config.settings import settings
-from whyqd.dtypes import EncodingStep, MimeType
+from whyqd.dtypes import EncodingStep, MimeType, Place
 from whyqd.models import DialectModel, FindingModel, ProposalModel
 from whyqd.sources.encoding import EncodingParser
 from whyqd.sources.grid import GridParser, ReadFault
@@ -25,7 +25,7 @@ class CsvParser:
     quote, so it cannot read every file as written.
     """
 
-    PLACE = "line"
+    PLACE = Place.LINE
     DIALECT = ("encoding", "encodingStep", "delimiter", "quoteChar", "doubleQuote")
     # What a `csv-quote` fault's setting takes, to read past it
     PAST_QUOTE = {"quoteChar": None, "doubleQuote": False}

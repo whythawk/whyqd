@@ -10,7 +10,16 @@ import polars as pl
 
 from whyqd.config.names import NameTables
 from whyqd.config.patterns import PolarsPatterns
-from whyqd.dtypes import CellType, FieldType, FindingKind, ReadingKind, ReadingWarning, RefusalReason, SerialDate
+from whyqd.dtypes import (
+    CellType,
+    FieldFamilies,
+    FieldType,
+    FindingKind,
+    ReadingKind,
+    ReadingWarning,
+    RefusalReason,
+    SerialDate,
+)
 from whyqd.models import CellReadingModel, FindingModel, NumberFormatModel, PolicyModel, RulesModel
 
 
@@ -64,9 +73,6 @@ class ReadingParser:
         "quarter": ["yyyy-MM"],
         "year": ["yyyy"],
     }
-    PERIODS: ClassVar[frozenset[str]] = frozenset(
-        {FieldType.MONTH.value, FieldType.QUARTER.value, FieldType.YEAR.value}
-    )
     # A period names no day, and a year no month, so its date is first read at the period's start
     DEFAULTS: ClassVar[dict[str, str]] = {"M": "1", "d": "1"}
     QUARTER_MONTHS: ClassVar[int] = 3
@@ -76,8 +82,6 @@ class ReadingParser:
     EPOCH_1900_EARLY: ClassVar[datetime] = datetime(1899, 12, 31)
     EPOCH_1904: ClassVar[datetime] = datetime(1904, 1, 1)
     EPOCH_UNIX: ClassVar[datetime] = datetime(1970, 1, 1)
-    # A time of day is no date, and a year's own number is a year, so neither reads a bare number as a serial undeclared
-    NO_SERIAL: ClassVar[frozenset[str]] = frozenset({FieldType.TIME.value, FieldType.YEAR.value})
     PHANTOM_LEAP_DAY: ClassVar[int] = 60
     LAST_SERIAL_1900: ClassVar[int] = 2_958_465
     LAST_SERIAL_1904: ClassVar[int] = 2_957_003
@@ -639,7 +643,7 @@ class ReadingParser:
             stated = found["2"].alias(self.CELL)
             text = found["1"].alias(self.CELL).zip_with(stated.is_not_null(), text)
             offsets = stated if stated.is_not_null().any() or rules.zone else None
-        period = dtype in self.PERIODS
+        period = dtype in FieldFamilies.PERIODS
         parsed = FieldType.DATE.value if period else dtype
         read = self.patterns_read(text=text, patterns=declared or self.CANONICAL[dtype], rules=rules, dtype=parsed)
         warned = {}
@@ -656,7 +660,7 @@ class ReadingParser:
         serial_time = pl.repeat(False, cells.len(), eager=True)
         # A pattern of digits alone, as `yyyyMMdd`, already says what a bare number is
         digits_only = any(all(is_field for is_field, _ in PolicyModel.parts(pattern)) for pattern in declared)
-        if rules.serial or not (dtype in self.NO_SERIAL or digits_only):
+        if rules.serial or not (dtype in FieldFamilies.NO_SERIAL or digits_only):
             system = SerialDate(rules.serial or SerialDate.EXCEL_1900)
             fits, value, serial_time, types, serial = self.serials(
                 text=text, types=types, fits=fits, value=value, system=system
@@ -849,7 +853,7 @@ class ReadingParser:
     def stored_patterns(self, dtype: str) -> list[str]:
         """What a stored date cell's rendering may be, for a type: a datetime at midnight renders as a date, and a period
         is whichever date the cell holds."""
-        if dtype in self.PERIODS:
+        if dtype in FieldFamilies.PERIODS:
             return [self.STORED_DATETIME_MIDNIGHT]
         canonical = self.CANONICAL[dtype]
         return [*canonical, self.STORED_DATETIME_MIDNIGHT] if dtype == FieldType.DATETIME.value else canonical
