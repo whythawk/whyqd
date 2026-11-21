@@ -36,15 +36,23 @@ class ConstraintsModel(BaseModel):
     @field_validator("maximum", "maxLength")
     @classmethod
     def is_maximum(cls, v: Optional[Union[int, float]], info: ValidationInfo):
-        least = info.data.get({"maximum": "minimum", "maxLength": "minLength"}[info.field_name])
+        bound = {"maximum": "minimum", "maxLength": "minLength"}[info.field_name]
+        least = info.data.get(bound)
         if least is not None and v is not None and v < least:
-            raise ValueError(f"`{info.field_name}` ({v}) must not be less than its minimum ({least}).")
+            raise ValueError(
+                f"`{info.field_name}` {v} is below `{bound}` {least}. Change one, so the maximum is not below the "
+                "minimum. [whyqd:constraint-bounds]"
+            )
         return v
 
     @field_validator("category")
     @classmethod
     def check_categories_unique(cls, v: Optional[List[CategoryModel]]):
-        repeated = len(v) - len({c.name for c in v})
+        names = [c.name for c in v]
+        repeated = sorted({name for name in names if names.count(name) > 1})
         if repeated:
-            raise ValueError(f"Categories must be unique. There are {repeated} duplications.")
+            raise ValueError(
+                f"Categories {', '.join(f'`{name}`' for name in repeated)} appear more than once. Remove the repeats. "
+                "[whyqd:category-repeated]"
+            )
         return v

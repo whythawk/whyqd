@@ -48,5 +48,8 @@ class ActionScriptModel(BaseModel):
     @model_validator(mode="after")
     def correspondence_categorises(self) -> ActionScriptModel:
         if self.correspondence and self.script.split(">")[0].strip() != "CATEGORISE":
-            raise ValueError(f"Only a `CATEGORISE` step cites a correspondence, not `{self.script}`.")
+            raise ValueError(
+                f"Step `{self.script}` cites a correspondence, which only a `CATEGORISE` step maps by. Remove its "
+                "`correspondence`. [whyqd:correspondence-not-categorise]"
+            )
         return self

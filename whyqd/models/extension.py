@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import Optional
 
 from packaging.specifiers import InvalidSpecifier, SpecifierSet
-from pydantic import BaseModel, ConfigDict, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, ValidationInfo, field_validator
 
 from whyqd.dtypes import ExtensionKind
 
@@ -26,9 +26,12 @@ class ExtensionModel(BaseModel):
 
     @field_validator("version")
     @classmethod
-    def is_specifier(cls, v: str) -> str:
+    def is_specifier(cls, v: str, info: ValidationInfo) -> str:
         try:
             SpecifierSet(v)
         except InvalidSpecifier as e:
-            raise ValueError(f"`{v}` is not a version specifier, such as `>=1.2.3,<2`.") from e
+            raise ValueError(
+                f"Extension `{info.data.get('name')}`: `{v}` is not a version specifier, such as `>=1.2.3,<2`. Correct "
+                "its `version`. [whyqd:extension-specifier]"
+            ) from e
         return v

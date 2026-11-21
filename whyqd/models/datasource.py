@@ -77,8 +77,11 @@ class DataSourceModel(BaseModel):
         columns = info.data["columns"]
         absent = set(v).difference(c.name for c in columns or [])
         if not columns or absent:
-            noun = {"preserve": "Columns", "key": "Key columns"}[info.field_name]
-            raise ValueError(f"{noun} ({absent}) not in source data columns.")
+            named = ", ".join(f"`{name}`" for name in sorted(absent or v))
+            raise ValueError(
+                f"Data source `{info.data.get('path')}`: `{info.field_name}` names {named}, not among its columns. "
+                f"Correct `{info.field_name}`. [whyqd:columns-unknown]"
+            )
         return v
 
     def get_checksum(self, content: str) -> str | None:

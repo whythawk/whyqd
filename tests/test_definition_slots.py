@@ -318,7 +318,7 @@ class TestReasonsAndReferences:
         assert written["actions"][CATEGORISE]["correspondence"] == REFERENCE
 
     def test_correspondence_only_categorises(self):
-        with pytest.raises(ValueError, match="Only a `CATEGORISE` step"):
+        with pytest.raises(ValueError, match="whyqd:correspondence-not-categorise"):
             qd.CrosswalkDefinition(crosswalk=crosswalk(steps={RENAME: {"correspondence": REFERENCE}}))
 
     def test_reference_needs_its_version(self):

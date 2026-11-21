@@ -44,7 +44,10 @@ class CitationModel(BaseModel):
     @classmethod
     def month_abbreviation(cls, v: Optional[str]):
         if v.lower() not in ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"]:
-            raise ValueError("Month must conform to the BibTeX three-letter code definition.")
+            raise ValueError(
+                f"The citation's month `{v}` is not one of BibTeX's three-letter months. Write it as one, `jan` to `dec`. "
+                "[whyqd:citation-month]"
+            )
         return v.lower()
 
     @field_validator("year")
@@ -52,6 +55,7 @@ class CitationModel(BaseModel):
     def year_is_four(cls, v: Optional[int]):
         if v < 1000 or int(math.log10(v)) + 1 != 4:
             raise ValueError(
-                "Year must be in the period 1000 to 9999. There may be a year 9999 problem, but if you're still using this software by then, I'll be impressed."
+                f"The citation's year `{v}` is not four digits. Write the year in full, such as `2024`. "
+                "[whyqd:citation-year]"
             )
         return v

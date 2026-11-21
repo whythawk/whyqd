@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: BSD-3-Clause
 from __future__ import annotations
-from pydantic import field_validator, ConfigDict, BaseModel, Field
+from pydantic import field_validator, ConfigDict, BaseModel, Field, ValidationInfo
 from typing import List, Optional, Union
 
 from whyqd.models.citation import CitationModel
@@ -49,8 +49,12 @@ class SchemaModel(BaseModel):
 
     @field_validator("fields")
     @classmethod
-    def are_fields_unique(cls, v: List[FieldModel]):
-        repeated = len(v) - len({f.name for f in v})
+    def are_fields_unique(cls, v: List[FieldModel], info: ValidationInfo):
+        names = [f.name for f in v]
+        repeated = sorted({name for name in names if names.count(name) > 1})
         if repeated:
-            raise ValueError(f"Field names must be unique. There are {repeated} duplications.")
+            raise ValueError(
+                f"Schema `{info.data.get('name')}` names fields {', '.join(f'`{name}`' for name in repeated)} more than "
+                "once. Rename or remove the repeats. [whyqd:field-repeated]"
+            )
         return v
