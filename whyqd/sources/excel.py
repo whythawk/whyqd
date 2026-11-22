@@ -6,6 +6,7 @@ import zipfile
 from pathlib import Path
 from typing import ClassVar
 from xml.etree import ElementTree
+from xml.parsers import expat
 
 import fastexcel
 import polars as pl
@@ -95,6 +96,7 @@ class ExcelParser(Reader):
 
     # The date of serial 1, by whether the workbook is in the 1904 date system
     SERIAL_ONE: ClassVar[dict[bool, date]] = {False: date(1900, 1, 1), True: date(1904, 1, 2)}
+    CHUNK_BYTES: ClassVar[int] = 1 << 16
 
     def __init__(self) -> None:
         self.cell = CellParser()
@@ -217,8 +219,8 @@ class ExcelParser(Reader):
         with zipfile.ZipFile(source) as book:
             _, parts, path = self.locate(book=book, sheet=sheet)
             styles = self.styles(book=book, path=parts["styles"][0][0]) if "styles" in parts else []
-            for row, column, element in self.walk(book=book, path=path):
-                style = int(element.get("s", 0))
+            for row, column, attributes, _ in self.walk(book=book, path=path):
+                style = int(attributes.get("s", 0))
                 if row < height and column < width:
                     codes[self.grids.COLUMN.format(column)][row] = (
                         styles[style] if style < len(styles) else self.BUILT_IN[0]
@@ -237,11 +239,11 @@ class ExcelParser(Reader):
             date1904 = any(
                 self.local(e.tag) == "workbookPr" and e.get("date1904", "0") in ("1", "true") for e in workbook.iter()
             )
-            for row, column, element in self.walk(book=book, path=path):
+            for row, column, attributes, text in self.walk(book=book, path=path, values=True):
                 value = rows[row][column] if row < len(rows) and column < len(rows[row]) else None
-                if not isinstance(value, time) or element.get("t", "n") != "n":
+                if not isinstance(value, time) or attributes.get("t", "n") != "n":
                     continue
-                stored = float(next(e.text for e in element if self.local(e.tag) == "v"))
+                stored = float(text)
                 if stored < 0:
                     lost[(row, column)] = stored
                 elif stored >= 0.5 and value == time(0):
@@ -272,22 +274,56 @@ class ExcelParser(Reader):
         }
         return root, parts, next(target for target, i in parts["worksheet"] if i == ids[sheet])
 
-    def walk(self, *, book: zipfile.ZipFile, path: str) -> Iterator[tuple[int, int, ElementTree.Element]]:
-        """Each cell in a sheet's XML, by its row and column from A1, cleared once it has been read."""
+    def walk(
+        self, *, book: zipfile.ZipFile, path: str, values: bool = False
+    ) -> Iterator[tuple[int, int, dict[str, str], str | None]]:
+        """Each cell in a sheet's XML by its row and column from A1, with its attributes and, where `values` asks, its
+        stored value, streamed.
+
+        Only a cell's start is handled unless its value is asked for, since building every element, or handling every
+        run of text, is most of the time a large sheet takes. A cell is held back until the next one starts, so its value
+        is whole when it is given.
+        """
+        cells: list[list] = []
         row = column = -1
+        stored: list[str] | None = None
+
+        def start(name: str, attributes: dict[str, str]) -> None:
+            nonlocal row, column, stored
+            tag = self.local(name)
+            if tag == "row":
+                row, column = (int(attributes["r"]) - 1 if "r" in attributes else row + 1), -1
+            elif tag == "c":
+                if reference := attributes.get("r"):
+                    letters, number = self.patterns.CELL_REFERENCE.fullmatch(reference).groups()
+                    row, column = int(number) - 1, self.column(letters=letters)
+                else:
+                    column += 1
+                cells.append([row, column, attributes, None])
+            elif tag == "v" and values:
+                stored = []
+
+        def text(data: str) -> None:
+            if stored is not None:
+                stored.append(data)
+
+        def end(name: str) -> None:
+            nonlocal stored
+            if stored is not None and self.local(name) == "v":
+                cells[-1][3], stored = "".join(stored), None
+
+        parser = expat.ParserCreate(namespace_separator="}")
+        parser.StartElementHandler = start
+        if values:
+            parser.buffer_text = True
+            parser.CharacterDataHandler, parser.EndElementHandler = text, end
         with book.open(path) as xml:
-            for event, element in ElementTree.iterparse(xml, events=("start", "end")):
-                tag = self.local(element.tag)
-                if event == "start" and tag == "row":
-                    row, column = (int(element.get("r")) - 1 if element.get("r") else row + 1), -1
-                elif event == "end" and tag == "c":
-                    if reference := element.get("r"):
-                        letters, number = self.patterns.CELL_REFERENCE.fullmatch(reference).groups()
-                        row, column = int(number) - 1, self.column(letters=letters)
-                    else:
-                        column += 1
-                    yield row, column, element
-                    element.clear()
+            while chunk := xml.read(self.CHUNK_BYTES):
+                parser.Parse(chunk, False)
+                yield from (tuple(cell) for cell in cells[:-1])
+                del cells[:-1]
+            parser.Parse(b"", True)
+            yield from (tuple(cell) for cell in cells)
 
     def parts(self, *, book: zipfile.ZipFile, path: str, where: str) -> dict[str, list[tuple[str, str]]]:
         """A relationships part's targets by their type's last word (`worksheet`, `styles`), each with its id."""
