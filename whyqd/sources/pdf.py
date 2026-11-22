@@ -1,14 +1,16 @@
 # SPDX-License-Identifier: BSD-3-Clause
 from pathlib import Path
+from typing import ClassVar
 
 import polars as pl
 
 from whyqd.dtypes import MimeType, Place
 from whyqd.models import DialectModel
-from whyqd.sources.grid import GridParser
+from whyqd.sources.grid import GridParser, ReadFault
+from whyqd.sources.reader import Reader
 
 
-class PdfParser:
+class PdfParser(Reader):
     """A PDF's table as the grid, at best effort: a PDF holds a printed page, not a table.
 
     What the file shows is read: whether it holds text, and whether its ruling gives a table, which sets how cells are
@@ -17,10 +19,11 @@ class PdfParser:
     repeated atop a later page, and is left out. Read through pdfplumber, the `pdf` extra.
     """
 
-    PLACE = Place.ROW
-    DIALECT = ("cells", "pages", "columns")
+    PLACE: ClassVar[Place] = Place.ROW
+    DIALECT: ClassVar[tuple[str, ...]] = ("cells", "pages", "columns")
+    FINGERPRINTED: ClassVar[bool] = False
     # Points between the tops of two words on one line: pdfplumber's own `y_tolerance`
-    LINE = 3
+    LINE: ClassVar[int] = 3
 
     def __init__(self) -> None:
         self.grids = GridParser()
@@ -47,10 +50,7 @@ class PdfParser:
         try:
             opened = pdfplumber.open(source)
         except PdfminerException as e:
-            raise ValueError(
-                f"`{source.name}` cannot be opened as a PDF file. Check its format, or ask its owner for a sound copy. "
-                "[whyqd:file-unreadable]"
-            ) from e
+            raise self.unreadable(source=source, kind="a PDF file") from e
         with opened as pdf:
             pages = self.pages(pages=pdf.pages, declared=dialect.pages, source=source)
             if not any(page.chars for page in pages):
@@ -81,13 +81,15 @@ class PdfParser:
             try:
                 numbers = range(int(first), int(last or first) + 1)
             except ValueError as e:
-                raise ValueError(
-                    f"`pages` `{declared}` names pages by number from 1: `5-7`, or `1,3,5-7`. [whyqd:pdf-pages]"
+                raise ReadFault(
+                    f"`pages` `{declared}` names pages by number from 1: `5-7`, or `1,3,5-7`. [whyqd:pdf-pages]",
+                    setting="pages",
                 ) from e
             if not numbers or numbers.start < 1 or numbers.stop - 1 > len(pages):
-                raise ValueError(
+                raise ReadFault(
                     f"`pages` `{declared}` names a page `{source.name}` does not have: it has {len(pages)}. "
-                    "[whyqd:pdf-pages]"
+                    "[whyqd:pdf-pages]",
+                    setting="pages",
                 )
             chosen.extend(pages[n - 1] for n in numbers)
         return chosen

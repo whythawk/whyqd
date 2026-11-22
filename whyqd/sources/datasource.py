@@ -16,6 +16,7 @@ from whyqd.sources.fingerprint import FingerprintParser
 from whyqd.sources.location import LocationParser
 from whyqd.sources.pdf import PdfParser
 from whyqd.sources.profile import ProfileParser
+from whyqd.sources.reader import Reader
 from whyqd.sources.row_key import RowKeyParser
 from whyqd.sources.table import TableParser
 from whyqd.sources.v1 import V1ChecksumParser
@@ -48,12 +49,10 @@ class DataSourceParser:
         self.row_key = RowKeyParser()
         self.reading = ReadingParser()
         arrow, excel = ArrowParser(), ExcelParser()
-        self.readers = {
+        self.readers: dict[MimeType, Reader] = {
             MimeType.CSV: CsvParser(),
             MimeType.PARQUET: arrow,
-            MimeType.PRQ: arrow,
             MimeType.FEATHER: arrow,
-            MimeType.FTR: arrow,
             MimeType.XLS: excel,
             MimeType.XLSX: excel,
             MimeType.PDF: PdfParser(),
@@ -176,7 +175,7 @@ class DataSourceParser:
             )
         return DialectModel(**self.core.formats.dialect_1x(settings))
 
-    def reader(self, *, mime: MimeType) -> CsvParser | ExcelParser | ArrowParser | PdfParser:
+    def reader(self, *, mime: MimeType) -> Reader:
         if mime not in self.readers:
             raise ValueError(
                 f"whyqd does not read `{mime.value}` files. It reads {', '.join(sorted({m.name for m in self.readers}))}. "
@@ -267,9 +266,9 @@ class DataSourceParser:
     ) -> tuple[DataSourceModel, pl.DataFrame]:
         """A file's data source, its columns, row count, `fp0` and byte hash, and the dialect that reads it; and its
         table, as `get` would read it."""
-        path = self.location.locate(source=source)
-        read = self.reader(mime=mime).grid(source=path, mime=mime, dialect=self.declare(dialect=dialect))
-        fp0 = None if mime == MimeType.PDF else self.fingerprints.fp0(grid=read[0], types=read[1])
+        path, reader = self.location.locate(source=source), self.reader(mime=mime)
+        read = reader.grid(source=path, mime=mime, dialect=self.declare(dialect=dialect))
+        fp0 = self.fingerprints.fp0(grid=read[0], types=read[1]) if reader.FINGERPRINTED else None
         return self.model(source=source, path=path, mime=mime, read=read, names=names, fp0=fp0)
 
     def model(
@@ -287,8 +286,9 @@ class DataSourceParser:
         grid, types, lines, dialect = read
         reader = self.reader(mime=mime)
         beside = [grid, types]
-        if mime == MimeType.XLSX:
-            beside.append(reader.formats(source=path, sheet=dialect.sheet, height=grid.height, width=grid.width))
+        coded = reader.formats(source=path, mime=mime, sheet=dialect.sheet, height=grid.height, width=grid.width)
+        if coded is not None:
+            beside.append(coded)
         table, (text, types, *formats) = self.tables.table(
             grid=grid, lines=lines, dialect=dialect, names=names, place=reader.PLACE, beside=beside
         )
@@ -323,9 +323,10 @@ class DataSourceParser:
         """The `fp0` of the sheet or file a data source's dialect reads, as it is now. `None` for a PDF, which has
         none."""
         mime = self.get_mimetype(mimetype=source.mime)
-        if mime == MimeType.PDF:
+        reader = self.reader(mime=mime)
+        if not reader.FINGERPRINTED:
             return None
-        grid, types, _, _ = self.reader(mime=mime).grid(source=path, mime=mime, dialect=self.dialect(source=source))
+        grid, types, _, _ = reader.grid(source=path, mime=mime, dialect=self.dialect(source=source))
         return self.fingerprints.fp0(grid=grid, types=types)
 
     def verify(self, *, source: DataSourceModel, directory: str | Path | None = None) -> None:
@@ -469,7 +470,7 @@ class DataSourceParser:
                 "[whyqd:derive-settings]"
             )
         mimetype = self.get_mimetype(mimetype=mimetype)
-        if mimetype in (MimeType.XLS, MimeType.XLSX):
+        if self.reader(mime=mimetype).WORKBOOK:
             return self.derive_sheets(source=source, mime=mimetype, dialect=dialect, names=names)
         return self.derive(source=source, mime=mimetype, dialect=dialect, names=names)
 
@@ -493,7 +494,7 @@ class DataSourceParser:
         """
         mime = self.get_mimetype(mimetype=mimetype)
         given, path, reader = self.declare(dialect=dialect), self.location.locate(source=source), self.reader(mime=mime)
-        if mime not in (MimeType.XLS, MimeType.XLSX):
+        if not reader.WORKBOOK:
             return [self.diagnoses.report(source=path, mime=mime, reader=reader, given=given, propose=propose)]
         try:
             sheets = reader.sheets(source=path)

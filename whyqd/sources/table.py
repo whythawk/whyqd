@@ -6,7 +6,7 @@ import polars as pl
 
 from whyqd.dtypes import Place
 from whyqd.models import DialectModel
-from whyqd.sources.grid import GridParser
+from whyqd.sources.grid import GridParser, ReadFault
 from whyqd.sources.row_key import RowKeyParser
 
 
@@ -87,9 +87,10 @@ class TableParser:
         header = frames[0].head(dialect.headerRowCount)
         frames = [f.slice(dialect.headerRowCount) for f in frames]
         if header.height < dialect.headerRowCount:
-            raise ValueError(
+            raise ReadFault(
                 f"The file ends before its header: `skipRows` {dialect.skipRows} and `headerRowCount` "
-                f"{dialect.headerRowCount} pass every row. Declare where the header starts. [whyqd:header-past-end]"
+                f"{dialect.headerRowCount} pass every row. Declare where the header starts. [whyqd:header-past-end]",
+                setting="skipRows",
             )
         if dialect.skipBlankRows:
             kept = ~frames[0].select(pl.all_horizontal(pl.all().is_null())).to_series()
@@ -137,15 +138,17 @@ class TableParser:
         for i in range(grid.height):
             n = fields[i % span]
             if n < width and any(v is not None for v in grid.row(i)[n:]):
-                raise ValueError(
+                raise ReadFault(
                     f"`rowsPerRecord` {fields} declares {n} field{'s' if n != 1 else ''} on {place} {lines[i]}, but "
-                    "it holds more. Check the file there: a record may have lost a row. [whyqd:record-overflow]"
+                    "it holds more. Check the file there: a record may have lost a row. [whyqd:record-overflow]",
+                    setting="rowsPerRecord",
                 )
         if grid.height % span:
             last = grid.height - grid.height % span
-            raise ValueError(
+            raise ReadFault(
                 f"`rowsPerRecord` {fields} declares {span} rows to a record, but the last, from {place} "
-                f"{lines[last]}, has {grid.height - last}. [whyqd:record-short]"
+                f"{lines[last]}, has {grid.height - last}. [whyqd:record-short]",
+                setting="rowsPerRecord",
             )
 
     def join(self, *, grid: pl.DataFrame, fields: list[int]) -> pl.DataFrame:

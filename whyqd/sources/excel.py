@@ -4,6 +4,7 @@ from datetime import date, time
 import posixpath
 import zipfile
 from pathlib import Path
+from typing import ClassVar
 from xml.etree import ElementTree
 
 import fastexcel
@@ -14,10 +15,11 @@ from whyqd.config.patterns import PythonPatterns
 from whyqd.dtypes import CellType, MimeType, Place
 from whyqd.models import DialectModel
 from whyqd.sources.cell import CellParser
-from whyqd.sources.grid import GridParser
+from whyqd.sources.grid import GridParser, ReadFault
+from whyqd.sources.reader import Reader
 
 
-class ExcelParser:
+class ExcelParser(Reader):
     """A workbook's sheet as the grid: each cell its stored value in whyqd's text, never as displayed.
 
     Every sheet is read, a hidden one included, since it is the publisher's data; each is its own table. A cell is read
@@ -44,10 +46,11 @@ class ExcelParser:
     in another form, and is not, so there they read as python-calamine gives them.
     """
 
-    PLACE = Place.ROW
-    DIALECT = ("sheet",)
+    PLACE: ClassVar[Place] = Place.ROW
+    DIALECT: ClassVar[tuple[str, ...]] = ("sheet",)
+    WORKBOOK: ClassVar[bool] = True
     # Each error's code, as Excel shows it: calamine's `CellErrorType` (https://github.com/tafia/calamine, `lib.rs`)
-    ERRORS = {
+    ERRORS: ClassVar[dict[str, str]] = {
         "Div0": "#DIV/0!",
         "NA": "#N/A",
         "Name": "#NAME?",
@@ -59,7 +62,7 @@ class ExcelParser:
     }
     # Each built-in format's code, stored as an id alone, for the ids every language shares: ECMA-376 Part 1,
     # section 18.8.30 (https://ecma-international.org/publications-and-standards/standards/ecma-376/)
-    BUILT_IN = {
+    BUILT_IN: ClassVar[dict[int, str]] = {
         0: "General",
         1: "0",
         2: "0.00",
@@ -91,7 +94,7 @@ class ExcelParser:
     }
 
     # The date of serial 1, by whether the workbook is in the 1904 date system
-    SERIAL_ONE = {False: date(1900, 1, 1), True: date(1904, 1, 2)}
+    SERIAL_ONE: ClassVar[dict[bool, date]] = {False: date(1900, 1, 1), True: date(1904, 1, 2)}
 
     def __init__(self) -> None:
         self.cell = CellParser()
@@ -109,10 +112,7 @@ class ExcelParser:
         try:
             workbook = python_calamine.CalamineWorkbook.from_path(str(source))
         except python_calamine.CalamineError as e:
-            raise ValueError(
-                f"`{source.name}` cannot be opened as a workbook. Check its format, or ask its owner for a sound copy. "
-                "[whyqd:file-unreadable]"
-            ) from e
+            raise self.unreadable(source=source, kind="a workbook") from e
         return [
             (m.name, m.visible != python_calamine.SheetVisibleEnum.Visible)
             for m in workbook.sheets_metadata
@@ -143,9 +143,10 @@ class ExcelParser:
         if sheet is None and len(names) == 1:
             sheet = names[0]
         if sheet not in names:
-            raise ValueError(
+            raise ReadFault(
                 f"`{source.name}` has no sheet `{sheet}`. Name one of `{'`, `'.join(names)}` in the dialect's `sheet`. "
-                "[whyqd:sheet-unknown]"
+                "[whyqd:sheet-unknown]",
+                setting="sheet",
             )
         read = python_calamine.CalamineWorkbook.from_path(str(source)).get_sheet_by_name(sheet)
         try:
@@ -171,7 +172,7 @@ class ExcelParser:
         grid, types = self.grids.build(columns=columns, types=types)
         return grid, types, self.grids.numbers(grid=grid), dialect.model_copy(update={"sheet": sheet})
 
-    def facts(self, *, source: Path, sheet: str, types: pl.DataFrame) -> dict[str, list[str]]:
+    def facts(self, *, source: Path, sheet: str | None, types: pl.DataFrame) -> dict[str, list[str]]:
         """What a sheet holds that its grid's text does not show: its `merged` ranges and its `errors`, each cell named
         as a workbook names it, in reading order."""
         read = python_calamine.CalamineWorkbook.from_path(str(source)).get_sheet_by_name(sheet)
@@ -193,13 +194,17 @@ class ExcelParser:
             letters = chr(65 + remainder) + letters
         return f"{letters}{row + 1}"
 
-    def formats(self, *, source: Path, sheet: str, height: int, width: int) -> pl.DataFrame:
+    def formats(
+        self, *, source: Path, mime: MimeType, sheet: str | None, height: int, width: int
+    ) -> pl.DataFrame | None:
         """Each cell's number format code in a sheet of an `.xlsx`, in the shape of its grid.
 
         No engine whyqd reads a workbook with gives a cell's format, so it is read from the workbook's XML: the code
         the workbook stores, a built-in id's from ECMA-376, or `id 5` for an id the standard leaves to the application.
-        An `.xls` stores its formats in another form, and is not read for them.
+        An `.xls` stores its formats in another form, and is not read for them: `None`.
         """
+        if mime != MimeType.XLSX:
+            return None
         codes = {self.grids.COLUMN.format(j): [None] * height for j in range(width)}
         with zipfile.ZipFile(source) as book:
             _, parts, path = self.locate(book=book, sheet=sheet)

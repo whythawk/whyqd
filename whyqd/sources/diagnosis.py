@@ -1,13 +1,15 @@
 # SPDX-License-Identifier: BSD-3-Clause
 from pathlib import Path
+from typing import ClassVar
 import warnings
 
 import polars as pl
 
 from whyqd.config.patterns import PythonPatterns
 from whyqd.config.settings import settings
-from whyqd.dtypes import FindingKind, MimeType, Place, SettingSource
+from whyqd.dtypes import EncodingStep, FindingKind, MimeType, Place, SettingSource
 from whyqd.models import DialectModel, FindingModel, ProposalModel, ReportModel, SettingModel
+from whyqd.sources.reader import Reader
 from whyqd.sources.table import TableParser
 
 
@@ -21,18 +23,9 @@ class DiagnosisParser:
     """
 
     # The dialect's settings the table reads, whatever the file's format
-    TABLE = ("skipRows", "headerRowCount", "skipBlankRows", "trim", "rowsPerRecord")
+    TABLE: ClassVar[tuple[str, ...]] = ("skipRows", "headerRowCount", "skipBlankRows", "trim", "rowsPerRecord")
     # Those a read can settle from the file where they are not declared
-    SETTLED = ("encoding", "encodingStep", "cells", "sheet")
-    ADDRESSED_BY = {
-        "csv-character": "delimiter",
-        "encoding-replaced": "encoding",
-        "header-past-end": "skipRows",
-        "pdf-pages": "pages",
-        "record-overflow": "rowsPerRecord",
-        "record-short": "rowsPerRecord",
-        "sheet-unknown": "sheet",
-    }
+    SETTLED: ClassVar[tuple[str, ...]] = ("encoding", "encodingStep", "cells", "sheet")
 
     def __init__(self) -> None:
         self.tables = TableParser()
@@ -43,7 +36,7 @@ class DiagnosisParser:
         *,
         source: Path,
         mime: MimeType,
-        reader,
+        reader: Reader,
         given: DialectModel,
         sheet: str | None = None,
         hidden: bool = False,
@@ -78,7 +71,7 @@ class DiagnosisParser:
                     if propose
                     else report
                 )
-        findings = [f for w in caught if (f := self.finding(error=str(w.message))) is not None]
+        findings = [f for w in caught if (f := self.finding(error=w.message)) is not None]
         for w in caught:
             if not self.patterns.MESSAGE.match(str(w.message)):
                 warnings.warn_explicit(w.message, w.category, w.filename, w.lineno)
@@ -119,22 +112,20 @@ class DiagnosisParser:
         report: ReportModel,
         source: Path,
         mime: MimeType,
-        reader,
+        reader: Reader,
         dialect: DialectModel,
         widths: pl.Series | None = None,
     ) -> ReportModel:
         """A report with the settings that would read past the file's faults added. Without the extra that one needs, a
         finding says so, in place of that proposal."""
         faults = report.findings
-        proposals = []
-        if hasattr(reader, "proposals"):
-            proposals += reader.proposals(source=source, mime=mime, dialect=dialect, faults=faults)
-            try:
-                if encoding := reader.encoding_proposal(source=source, dialect=dialect, faults=faults):
-                    proposals.append(encoding)
-            except ImportError as e:
-                message = self.patterns.MESSAGE.match(str(e))
-                report.findings.append(self.fact(code=message.group(2), message=message.group(1)))
+        proposals = reader.proposals(source=source, mime=mime, dialect=dialect, faults=faults)
+        try:
+            if encoding := reader.encoding_proposal(source=source, dialect=dialect, faults=faults):
+                proposals.append(encoding)
+        except ImportError as e:
+            message = self.patterns.MESSAGE.match(str(e))
+            report.findings.append(self.fact(code=message.group(2), message=message.group(1)))
         if widths is not None and (records := self.records(widths=widths, dialect=dialect)):
             proposals.append(records)
         report.proposals = proposals
@@ -159,29 +150,29 @@ class DiagnosisParser:
         )
 
     def refused(
-        self, *, source: Path, mime: MimeType, reader, error: ValueError, sheet: str | None = None
+        self, *, source: Path, mime: MimeType, reader: Reader, error: ValueError, sheet: str | None = None
     ) -> ReportModel:
         """The report on a file that could not be read: what failed and where, since no grid exists."""
         return ReportModel(
             path=str(source), mime=mime, sheet=sheet, place=reader.PLACE, findings=[self.finding(error=error)]
         )
 
-    def finding(self, *, error: ValueError | str) -> FindingModel | None:
-        """A refusal or warning as a fault. A message with no code is whyqd's own, not the file's: `None` for a warning,
-        and an error is raised again, so a fault in the code is not reported as one in the file.
+    def finding(self, *, error: ValueError | Warning) -> FindingModel | None:
+        """A refusal or warning as a fault, with the setting that addresses it where it names one. A message with no
+        code is whyqd's own, not the file's: `None` for a warning, and an error is raised again, so a fault in the code
+        is not reported as one in the file.
         """
         message = self.patterns.MESSAGE.match(str(error))
         if message is None:
-            if isinstance(error, str):
+            if isinstance(error, Warning):
                 return None
             raise error
-        code = message.group(2)
         return FindingModel(
-            code=code,
+            code=message.group(2),
             kind=FindingKind.FAULT,
             message=message.group(1),
             rows=getattr(error, "rows", []),
-            setting=getattr(error, "setting", None) or self.ADDRESSED_BY.get(code),
+            setting=getattr(error, "setting", None),
         )
 
     def settings(self, *, given: DialectModel, read: DialectModel, names: tuple[str, ...]) -> list[SettingModel]:
@@ -191,7 +182,7 @@ class DiagnosisParser:
         for name in names:
             declared = name in given.model_fields_set
             if name == "encoding":
-                declared = read.encodingStep == "declared"
+                declared = read.encodingStep == EncodingStep.DECLARED
             if declared:
                 source = SettingSource.DECLARED
             elif name in self.SETTLED and getattr(read, name) is not None:
@@ -212,7 +203,7 @@ class DiagnosisParser:
         self,
         *,
         source: Path,
-        reader,
+        reader: Reader,
         sheet: str | None,
         grid: pl.DataFrame,
         types: pl.DataFrame,
@@ -248,26 +239,25 @@ class DiagnosisParser:
                     code="hidden-sheet", message=f"Sheet `{sheet}` is hidden by its publisher, and read like any other."
                 )
             )
-        if hasattr(reader, "facts"):
-            cells = reader.facts(source=source, sheet=sheet, types=types)
-            if merged := cells["merged"]:
-                findings.append(
-                    self.fact(
-                        code="merged-range",
-                        message=f"Cells {self.listed(merged)} are merged; the first of each holds its value, and the "
-                        "rest read as empty.",
-                        cells=merged[: settings.REPORT_PLACES],
-                    )
+        cells = reader.facts(source=source, sheet=sheet, types=types)
+        if merged := cells["merged"]:
+            findings.append(
+                self.fact(
+                    code="merged-range",
+                    message=f"Cells {self.listed(merged)} are merged; the first of each holds its value, and the "
+                    "rest read as empty.",
+                    cells=merged[: settings.REPORT_PLACES],
                 )
-            if errors := cells["errors"]:
-                findings.append(
-                    self.fact(
-                        code="error-cells",
-                        message=f"Cell{'s' if len(errors) > 1 else ''} {self.listed(errors)} {self.are(errors)} error "
-                        "cells, each read as its code.",
-                        cells=errors[: settings.REPORT_PLACES],
-                    )
+            )
+        if errors := cells["errors"]:
+            findings.append(
+                self.fact(
+                    code="error-cells",
+                    message=f"Cell{'s' if len(errors) > 1 else ''} {self.listed(errors)} {self.are(errors)} error "
+                    "cells, each read as its code.",
+                    cells=errors[: settings.REPORT_PLACES],
                 )
+            )
         return findings
 
     def fact(self, *, code: str, message: str, **where) -> FindingModel:

@@ -15,6 +15,14 @@ class ReadFault(ValueError):
         self.setting = setting
 
 
+class ReadWarning(UserWarning):
+    """A file read with a loss, and which setting addresses it."""
+
+    def __init__(self, message: str, *, setting: str | None = None) -> None:
+        super().__init__(message)
+        self.setting = setting
+
+
 class GridParser:
     """The grid every reader gives: each cell's text, null where empty, in columns `column_0` on, and beside it each
     cell's type, a `CellType`, in a frame of the same shape.

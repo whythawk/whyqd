@@ -2,9 +2,11 @@
 import codecs
 import warnings
 from collections import Counter
+from typing import ClassVar
 
 from whyqd.config.settings import settings
 from whyqd.dtypes import EncodingStep
+from whyqd.sources.grid import ReadWarning
 
 
 class EncodingParser:
@@ -16,11 +18,16 @@ class EncodingParser:
     loads with every byte kept, and reads as its text once the wrangler declares its encoding.
     """
 
-    BOMS = ((b"\xef\xbb\xbf", "utf-8"), (b"\xfe\xff", "utf-16be"), (b"\xff\xfe", "utf-16le"))
+    BOMS: ClassVar[tuple[tuple[bytes, str], ...]] = (
+        (b"\xef\xbb\xbf", "utf-8"),
+        (b"\xfe\xff", "utf-16be"),
+        (b"\xff\xfe", "utf-16le"),
+    )
     # Python's `cp1252` leaves five bytes undefined, which the standard decodes to the code point of their value
-    WINDOWS_1252 = "".join(
+    WINDOWS_1252: ClassVar[str] = "".join(
         chr(b) if b in (0x81, 0x8D, 0x8F, 0x90, 0x9D) else bytes([b]).decode("cp1252") for b in range(256)
     )
+    REPLACED_CODE: ClassVar[str] = "encoding-replaced"
 
     def name(self, *, label: str) -> str:
         """The standard's name, in lower case, for an encoding's label.
@@ -136,8 +143,10 @@ class EncodingParser:
             for value, count in Counter(v for _, v in replaced).most_common(3)
         )
         warnings.warn(
-            f"{source} is declared `{name}`, but {len(replaced)} of its bytes are not, and read as � (commonest: "
-            f"{commonest}). Declare its own encoding, most often `windows-1252`. [whyqd:encoding-replaced]",
-            UserWarning,
+            ReadWarning(
+                f"{source} is declared `{name}`, but {len(replaced)} of its bytes are not, and read as � (commonest: "
+                f"{commonest}). Declare its own encoding, most often `windows-1252`. [whyqd:{self.REPLACED_CODE}]",
+                setting="encoding",
+            ),
             stacklevel=2,
         )

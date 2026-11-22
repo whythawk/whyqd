@@ -1,6 +1,7 @@
 # SPDX-License-Identifier: BSD-3-Clause
 from itertools import islice
 from pathlib import Path
+from typing import ClassVar
 import csv
 import warnings
 
@@ -12,9 +13,10 @@ from whyqd.dtypes import EncodingStep, MimeType, Place
 from whyqd.models import DialectModel, FindingModel, ProposalModel
 from whyqd.sources.encoding import EncodingParser
 from whyqd.sources.grid import GridParser, ReadFault
+from whyqd.sources.reader import Reader
 
 
-class CsvParser:
+class CsvParser(Reader):
     """A CSV file as the grid: each cell's text as written, in rows as read, by the dialect and nothing else.
 
     Every line end (`\\r\\n`, `\\n`, `\\r`) ends a row, and a quoted cell keeps its line breaks. The grid is as wide
@@ -25,10 +27,11 @@ class CsvParser:
     quote, so it cannot read every file as written.
     """
 
-    PLACE = Place.LINE
-    DIALECT = ("encoding", "encodingStep", "delimiter", "quoteChar", "doubleQuote")
+    PLACE: ClassVar[Place] = Place.LINE
+    DIALECT: ClassVar[tuple[str, ...]] = ("encoding", "encodingStep", "delimiter", "quoteChar", "doubleQuote")
+    QUOTE_CODE: ClassVar[str] = "csv-quote"
     # What a `csv-quote` fault's setting takes, to read past it
-    PAST_QUOTE = {"quoteChar": None, "doubleQuote": False}
+    PAST_QUOTE: ClassVar[dict[str, str | bool | None]] = {"quoteChar": None, "doubleQuote": False}
 
     def __init__(self) -> None:
         self.encoding = EncodingParser()
@@ -90,7 +93,7 @@ class CsvParser:
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
             for fault in faults:
-                if fault.code != "csv-quote" or fault.setting not in self.PAST_QUOTE:
+                if fault.code != self.QUOTE_CODE or fault.setting not in self.PAST_QUOTE:
                     continue
                 value = self.PAST_QUOTE[fault.setting]
                 try:
@@ -104,7 +107,7 @@ class CsvParser:
                         evidence=f"Line {fault.rows[0]} cannot be read without it, and the whole file reads with it.",
                     )
                 )
-            if not found and not any(f.code == "csv-quote" for f in faults):
+            if not found and not any(f.code == self.QUOTE_CODE for f in faults):
                 text = self.decoded(source=source, dialect=dialect)[0]
                 found += self.delimiter(text=text, dialect=dialect)
         return found
@@ -162,7 +165,7 @@ class CsvParser:
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
             _, read, step = self.decoded(source=source, dialect=dialect)
-        if step != EncodingStep.WINDOWS_1252 and not any(f.code == "encoding-replaced" for f in faults):
+        if step != EncodingStep.WINDOWS_1252 and not any(f.code == self.encoding.REPLACED_CODE for f in faults):
             return None
         detected = self.encoding.detect(data=source.read_bytes())
         if detected is None or detected[0] == read:
@@ -181,9 +184,10 @@ class CsvParser:
             # lines matched from the text, since `io.StringIO` copies it at four bytes a character
             reader = csv.reader((m.group() for m in self.patterns.LINE.finditer(text)), **settings)
         except TypeError as e:
-            raise ValueError(
+            raise ReadFault(
                 f"`{source.name}` cannot be read with `delimiter` {dialect.delimiter!r} and `quoteChar` "
-                f"{dialect.quoteChar!r}: each must be one character ({e}). [whyqd:csv-character]"
+                f"{dialect.quoteChar!r}: each must be one character ({e}). [whyqd:csv-character]",
+                setting="delimiter",
             ) from e
         rows, lines, line = [], [], 1
         try:
@@ -201,7 +205,7 @@ class CsvParser:
                 else "If a quote there is text, declare `quoteChar` as null."
             )
             raise ReadFault(
-                f"`{source.name}` cannot be read from line {line}: {e}. {advice} [whyqd:csv-quote]",
+                f"`{source.name}` cannot be read from line {line}: {e}. {advice} [whyqd:{self.QUOTE_CODE}]",
                 rows=[line],
                 setting=setting,
             ) from e

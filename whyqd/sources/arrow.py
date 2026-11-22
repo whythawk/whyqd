@@ -1,5 +1,6 @@
 # SPDX-License-Identifier: BSD-3-Clause
 from pathlib import Path
+from typing import ClassVar
 
 import polars as pl
 
@@ -7,17 +8,18 @@ from whyqd.dtypes import CellType, MimeType, Place
 from whyqd.models import DialectModel
 from whyqd.sources.cell import CellParser
 from whyqd.sources.grid import GridParser
+from whyqd.sources.reader import Reader
 
 
-class ArrowParser:
+class ArrowParser(Reader):
     """A Parquet or Feather file as the grid: its column names as the first row, then each value in whyqd's text.
 
     A columnar file stores types, not text, so each value is rendered as `CellParser.render` gives it, and the file
     reads as the same table written as a CSV does. Its names are its header row, so the dialect's defaults read them.
     """
 
-    PLACE = Place.ROW
-    DIALECT = ()
+    PLACE: ClassVar[Place] = Place.ROW
+    DIALECT: ClassVar[tuple[str, ...]] = ()
 
     def __init__(self) -> None:
         self.cell = CellParser()
@@ -35,12 +37,9 @@ class ArrowParser:
             For a file that is not what its format says, or a column holding a type whyqd has no text for, naming it.
         """
         try:
-            df = pl.read_parquet(source) if mime in (MimeType.PARQUET, MimeType.PRQ) else pl.read_ipc(source)
+            df = pl.read_parquet(source) if mime == MimeType.PARQUET else pl.read_ipc(source)
         except pl.exceptions.PolarsError as e:
-            raise ValueError(
-                f"`{source.name}` cannot be opened as a {mime.name} file. Check its format, or ask its owner for a "
-                "sound copy. [whyqd:file-unreadable]"
-            ) from e
+            raise self.unreadable(source=source, kind=f"a {mime.name} file") from e
         columns, types = [], []
         for name in df.columns:
             try:
