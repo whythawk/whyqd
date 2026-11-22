@@ -109,10 +109,17 @@ class ExcelParser(Reader):
         ValueError
             For a file that is not a sound workbook.
         """
+        return self.listed(workbook=self.opened(source=source))
+
+    def opened(self, *, source: Path) -> python_calamine.CalamineWorkbook:
+        """The workbook, open for reading, refused where the file is not a sound one."""
         try:
-            workbook = python_calamine.CalamineWorkbook.from_path(str(source))
+            return python_calamine.CalamineWorkbook.from_path(str(source))
         except python_calamine.CalamineError as e:
             raise self.unreadable(source=source, kind="a workbook") from e
+
+    def listed(self, *, workbook: python_calamine.CalamineWorkbook) -> list[tuple[str, bool]]:
+        """An open workbook's worksheets, in order, each with whether its publisher hid it."""
         return [
             (m.name, m.visible != python_calamine.SheetVisibleEnum.Visible)
             for m in workbook.sheets_metadata
@@ -138,7 +145,8 @@ class ExcelParser(Reader):
         ValueError
             For a sheet the workbook does not have, naming those it has, or a duration too large to read.
         """
-        names = [name for name, _ in self.sheets(source=source)]
+        workbook = self.opened(source=source)
+        names = [name for name, _ in self.listed(workbook=workbook)]
         sheet = dialect.sheet
         if sheet is None and len(names) == 1:
             sheet = names[0]
@@ -148,7 +156,7 @@ class ExcelParser(Reader):
                 "[whyqd:sheet-unknown]",
                 setting="sheet",
             )
-        read = python_calamine.CalamineWorkbook.from_path(str(source)).get_sheet_by_name(sheet)
+        read = workbook.get_sheet_by_name(sheet)
         try:
             rows = read.to_python(skip_empty_area=False)
         except OverflowError as e:
@@ -175,7 +183,7 @@ class ExcelParser(Reader):
     def facts(self, *, source: Path, sheet: str | None, types: pl.DataFrame) -> dict[str, list[str]]:
         """What a sheet holds that its grid's text does not show: its `merged` ranges and its `errors`, each cell named
         as a workbook names it, in reading order."""
-        read = python_calamine.CalamineWorkbook.from_path(str(source)).get_sheet_by_name(sheet)
+        read = self.opened(source=source).get_sheet_by_name(sheet)
         merged = sorted(read.merged_cell_ranges or [])
         errors = sorted(
             (i, j) for j, c in enumerate(types.columns) for i in types[c].eq(CellType.ERROR.value).arg_true().to_list()
