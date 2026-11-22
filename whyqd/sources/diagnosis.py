@@ -76,7 +76,7 @@ class DiagnosisParser:
             if not self.patterns.MESSAGE.match(str(w.message)):
                 warnings.warn_explicit(w.message, w.category, w.filename, w.lineno)
         try:
-            self.tables.table(grid=grid, lines=lines, dialect=read, place=reader.PLACE)
+            self.tables.table(grid=grid, lines=lines, dialect=read, source=source.name, place=reader.PLACE)
         except ValueError as e:
             findings.append(self.finding(error=e))
         widths = self.widths(grid=grid)

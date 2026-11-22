@@ -191,7 +191,13 @@ class DataSourceParser:
         reader = self.reader(mime=mime)
         grid, types, lines, dialect = reader.grid(source=source, mime=mime, dialect=dialect)
         table, beside = self.tables.table(
-            grid=grid, lines=lines, dialect=dialect, names=names, place=reader.PLACE, beside=[types] if typed else []
+            grid=grid,
+            lines=lines,
+            dialect=dialect,
+            source=source.name,
+            place=reader.PLACE,
+            names=names,
+            beside=[types] if typed else [],
         )
         return table, beside[0] if typed else None
 
@@ -290,7 +296,7 @@ class DataSourceParser:
         if coded is not None:
             beside.append(coded)
         table, (text, types, *formats) = self.tables.table(
-            grid=grid, lines=lines, dialect=dialect, names=names, place=reader.PLACE, beside=beside
+            grid=grid, lines=lines, dialect=dialect, source=path.name, place=reader.PLACE, names=names, beside=beside
         )
         formats = formats[0] if formats else None
         checksums = [

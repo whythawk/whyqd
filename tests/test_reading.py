@@ -209,7 +209,12 @@ class TestLocaleColumns:
         kind = MimeType[mime]
         grid, types, lines, dialect = reader.reader(mime=kind).grid(source=source, mime=kind, dialect=reader.declare(dialect=None))
         table, (text, types) = reader.tables.table(
-            grid=grid, lines=lines, dialect=dialect, names=None, place=reader.reader(mime=kind).PLACE, beside=[grid, types]
+            grid=grid,
+            lines=lines,
+            dialect=dialect,
+            source=source.name,
+            place=reader.reader(mime=kind).PLACE,
+            beside=[grid, types],
         )
         return text, types
 

@@ -35,8 +35,9 @@ class TableParser:
         grid: pl.DataFrame,
         lines: list[int],
         dialect: DialectModel,
+        source: str,
+        place: Place,
         names: list[str] | None = None,
-        place: Place = Place.LINE,
         beside: list[pl.DataFrame] | None = None,
     ) -> tuple[pl.DataFrame, list[pl.DataFrame]]:
         """The table a grid reads as under its dialect, its first column the row key, and the frames beside it.
@@ -48,12 +49,14 @@ class TableParser:
         lines: list[int]
             Where in the file each grid row starts, counted from 1, for messages.
         dialect: DialectModel
+        source: str
+            The file's name, for messages.
         names: list[str] | None, default None
             One name per column, in place of the header row's; required for a header over several rows. Names past the
             grid's last column are columns the file leaves empty, which the grid trims: each is added, empty, so every
             file of a format with fixed fields reads to one shape. Columns past the last name are named by position,
             with a warning, so no cell is lost and none moves.
-        place: Place, default Place.LINE
+        place: Place
             What `lines` counts, as the wrangler would look for it: a text file's `line`, a sheet's `row`.
         beside: list[pl.DataFrame] | None, default None
             Frames in the grid's shape, such as each cell's type.
@@ -77,7 +80,7 @@ class TableParser:
             )
         frames, lines = [f.slice(dialect.skipRows) for f in [grid, *beside]], lines[dialect.skipRows :]
         if dialect.rowsPerRecord:
-            self.fit(grid=frames[0], lines=lines, fields=dialect.rowsPerRecord, place=place)
+            self.fit(grid=frames[0], lines=lines, fields=dialect.rowsPerRecord, source=source, place=place)
             frames = [self.join(grid=f, fields=dialect.rowsPerRecord) for f in frames]
             lines = lines[:: len(dialect.rowsPerRecord)]
         if trim := self.TRIM.get(dialect.trim):
@@ -88,14 +91,14 @@ class TableParser:
         frames = [f.slice(dialect.headerRowCount) for f in frames]
         if header.height < dialect.headerRowCount:
             raise ReadFault(
-                f"The file ends before its header: `skipRows` {dialect.skipRows} and `headerRowCount` "
+                f"`{source}` ends before its header: `skipRows` {dialect.skipRows} and `headerRowCount` "
                 f"{dialect.headerRowCount} pass every row. Declare where the header starts. [whyqd:header-past-end]",
                 setting="skipRows",
             )
         if dialect.skipBlankRows:
             kept = ~frames[0].select(pl.all_horizontal(pl.all().is_null())).to_series()
             frames = [f.filter(kept) for f in frames]
-        columns = self.names(header=header, names=names, dialect=dialect)
+        columns = self.names(header=header, names=names, dialect=dialect, source=source)
         empty = [pl.lit(None, dtype=pl.String).alias(self.EMPTY.format(i)) for i in range(header.width, len(columns))]
         frames = [f.with_columns(empty) for f in frames]
         for frame in frames:
@@ -103,12 +106,12 @@ class TableParser:
         grid, *beside = frames
         return grid.with_row_index(self.row_key.ROW), beside
 
-    def names(self, *, header: pl.DataFrame, names: list[str] | None, dialect: DialectModel) -> list[str]:
+    def names(self, *, header: pl.DataFrame, names: list[str] | None, dialect: DialectModel, source: str) -> list[str]:
         width = header.width
         if names is not None:
             if len(names) < width:
                 warnings.warn(
-                    f"`names` gives {len(names)} names for a table of {width} columns, so the rest are named by "
+                    f"`names` gives {len(names)} names for the {width} columns of `{source}`, so the rest are named by "
                     "position. Check the list, and give one per column, in order. [whyqd:names-short]",
                     UserWarning,
                     stacklevel=2,
@@ -116,8 +119,8 @@ class TableParser:
                 names = [*names, *(self.UNNAMED.format(i) for i in range(len(names), width))]
         elif dialect.headerRowCount > 1:
             raise ValueError(
-                f"`headerRowCount` is {dialect.headerRowCount}, so declare the names in `names`, one for each of its "
-                f"{width} columns, in order. [whyqd:header-names]"
+                f"`{source}` has `headerRowCount` {dialect.headerRowCount}, so declare its names in `names`, one for "
+                f"each of its {width} columns, in order. [whyqd:header-names]"
             )
         elif dialect.headerRowCount == 0:
             names = [self.grids.COLUMN.format(i) for i in range(width)]
@@ -125,7 +128,7 @@ class TableParser:
             names = [self.UNNAMED.format(i) if n is None else n for i, n in enumerate(header.row(0))]
         return self.row_key.deconflict(columns=names)
 
-    def fit(self, *, grid: pl.DataFrame, lines: list[int], fields: list[int], place: Place = Place.LINE) -> None:
+    def fit(self, *, grid: pl.DataFrame, lines: list[int], fields: list[int], source: str, place: Place) -> None:
         """Whether a grid's rows fit their records.
 
         Raises
@@ -139,15 +142,17 @@ class TableParser:
             n = fields[i % span]
             if n < width and any(v is not None for v in grid.row(i)[n:]):
                 raise ReadFault(
-                    f"`rowsPerRecord` {fields} declares {n} field{'s' if n != 1 else ''} on {place} {lines[i]}, but "
-                    "it holds more. Check the file there: a record may have lost a row. [whyqd:record-overflow]",
+                    f"`rowsPerRecord` {fields} declares {n} field{'s' if n != 1 else ''} on {place} {lines[i]} of "
+                    f"`{source}`, but it holds more. Check the file there: a record may have lost a row. "
+                    "[whyqd:record-overflow]",
                     setting="rowsPerRecord",
                 )
         if grid.height % span:
             last = grid.height - grid.height % span
             raise ReadFault(
-                f"`rowsPerRecord` {fields} declares {span} rows to a record, but the last, from {place} "
-                f"{lines[last]}, has {grid.height - last}. [whyqd:record-short]",
+                f"`rowsPerRecord` {fields} declares {span} rows to a record, but the last in `{source}`, from {place} "
+                f"{lines[last]}, has {grid.height - last}. Check the file's end, or declare `rowsPerRecord` again. "
+                "[whyqd:record-short]",
                 setting="rowsPerRecord",
             )
 
