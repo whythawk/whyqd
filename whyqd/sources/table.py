@@ -20,7 +20,17 @@ class TableParser:
     rows, so a column can be profiled as its cells read.
     """
 
-    TRIM = {True: str.strip, "start": str.lstrip, "end": str.rstrip}
+    # Polars' string method for each end the dialect's `trim` names
+    TRIM: ClassVar[dict[bool | str, str]] = {
+        True: "strip_chars",
+        "start": "strip_chars_start",
+        "end": "strip_chars_end",
+    }
+    # What `trim` strips: every character Python's `str.isspace` takes, which Polars' own default does not (U+001C to
+    # U+001F)
+    WHITESPACE: ClassVar[str] = "".join(
+        map(chr, (0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x1C, 0x1D, 0x1E, 0x1F, 0x20, 0x85, 0xA0, 0x1680))
+    ) + "".join(map(chr, (*range(0x2000, 0x200B), 0x2028, 0x2029, 0x202F, 0x205F, 0x3000)))
     # A header's column with no name, and a named column the file leaves empty, each by its position from 0
     UNNAMED: ClassVar[str] = "Unnamed: {}"
     EMPTY: ClassVar[str] = "empty_{}"
@@ -83,9 +93,11 @@ class TableParser:
             self.fit(grid=frames[0], lines=lines, fields=dialect.rowsPerRecord, source=source, place=place)
             frames = [self.join(grid=f, fields=dialect.rowsPerRecord) for f in frames]
             lines = lines[:: len(dialect.rowsPerRecord)]
-        if trim := self.TRIM.get(dialect.trim):
+        if side := self.TRIM.get(dialect.trim):
+            stripped = [getattr(pl.col(c).str, side)(self.WHITESPACE) for c in frames[0].columns]
             frames[0] = frames[0].with_columns(
-                pl.col(c).map_elements(lambda v: trim(v) or None, return_dtype=pl.String) for c in frames[0].columns
+                pl.when(s == "").then(None).otherwise(s).alias(c)
+                for s, c in zip(stripped, frames[0].columns, strict=True)
             )
         header = frames[0].head(dialect.headerRowCount)
         frames = [f.slice(dialect.headerRowCount) for f in frames]
