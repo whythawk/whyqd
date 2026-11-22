@@ -35,12 +35,9 @@ class PdfParser(Reader):
         with `cells` recorded. It has no `fp0`, since the grid depends on how the PDF is read: its `cells`, `columns`,
         and `pages`.
 
-        Raises
-        ------
-        ImportError
-            Without the `pdf` extra.
-        ValueError
-            For a file that is not a PDF, a PDF with no text, such as a scan, or pages it does not have.
+        Raises:
+          ImportError: Without the `pdf` extra.
+          ValueError: For a file that is not a PDF, a PDF with no text, such as a scan, or pages it does not have.
         """
         try:
             import pdfplumber
@@ -61,7 +58,7 @@ class PdfParser(Reader):
                 )
             if dialect.columns:
                 cells = "text"
-                rows = [row for page in pages for row in self.lines(page=page, columns=dialect.columns)]
+                rows = [row for page in pages for row in self.by_columns(page=page, columns=dialect.columns)]
             else:
                 cells = dialect.cells or ("lines" if any(page.find_tables() for page in pages) else "text")
                 rows = []
@@ -82,7 +79,8 @@ class PdfParser(Reader):
                 numbers = range(int(first), int(last or first) + 1)
             except ValueError as e:
                 raise ReadFault(
-                    f"`pages` `{declared}` names pages by number from 1: `5-7`, or `1,3,5-7`. [whyqd:pdf-pages]",
+                    f"`{source.name}`'s `pages` `{declared}` cannot be read. Name pages by number from 1: `5-7`, or "
+                    "`1,3,5-7`. [whyqd:pdf-pages]",
                     setting="pages",
                 ) from e
             if not numbers or numbers.start < 1 or numbers.stop - 1 > len(pages):
@@ -100,7 +98,7 @@ class PdfParser(Reader):
             return {}
         return {"vertical_strategy": "text", "horizontal_strategy": "text"}
 
-    def lines(self, *, page, columns: list[float]) -> list[list[str | None]]:
+    def by_columns(self, *, page, columns: list[float]) -> list[list[str | None]]:
         """A page's rows under declared columns: each line of text a row, each word in the column it starts in.
 
         A word belongs to the last column whose left edge it starts at or after, one left of the first edge to the
@@ -126,6 +124,7 @@ class PdfParser(Reader):
         return rows[:end] + [r for r in rows[end:] if self.row(r) not in header]
 
     def row(self, row: list[str | None]) -> tuple[str, ...]:
+        """A row's cells as text, without its trailing empty ones, so a header repeated narrower still matches."""
         cells = [c or "" for c in row]
         while cells and not cells[-1]:
             cells.pop()

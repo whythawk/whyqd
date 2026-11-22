@@ -19,30 +19,23 @@ class CellParser:
 
         Each type's rule is in `CellType.describe`. Empty, and empty text, are `None`.
 
-        Parameters
-        ----------
-        value: str | int | float | bool | date | time | timedelta | None
-            The cell's stored value, as a Python type.
-        error: bool, default False
-            Whether the reader reports the cell as an error, such as `#N/A`.
+        Parameters:
+          value: The cell's stored value, as a Python type.
+          error: Whether the reader reports the cell as an error, such as `#N/A`.
 
-        Raises
-        ------
-        TypeError
-            For any other type, which has no defined rendering.
-        ValueError
-            For a number that is not finite, which no cell stores.
+        Raises:
+          TypeError: For any other type, which has no defined rendering.
+          ValueError: For a number that is not finite, which no cell stores.
 
-        Example
-        -------
-        ```python
-        cell = CellParser()
-        cell.render(value=1.0)                           # (CellType.NUMBER, "1")
-        cell.render(value=datetime(2024, 4, 1))          # (CellType.DATE, "2024-04-01")
-        cell.render(value=datetime(2024, 4, 1, 9, 30))   # (CellType.DATE, "2024-04-01T09:30:00")
-        cell.render(value="#N/A", error=True)            # (CellType.ERROR, "#N/A")
-        cell.render(value="")                            # None
-        ```
+        Examples:
+          ```python
+          cell = CellParser()
+          cell.render(value=1.0)                           # (CellType.NUMBER, "1")
+          cell.render(value=datetime(2024, 4, 1))          # (CellType.DATE, "2024-04-01")
+          cell.render(value=datetime(2024, 4, 1, 9, 30))   # (CellType.DATE, "2024-04-01T09:30:00")
+          cell.render(value="#N/A", error=True)            # (CellType.ERROR, "#N/A")
+          cell.render(value="")                            # None
+          ```
         """
         if value is None or value == "":
             return None
@@ -71,12 +64,11 @@ class CellParser:
     def duration(self, *, value: timedelta) -> str:
         """A length of time as ISO 8601, in hours, minutes, and seconds, as a spreadsheet's `[h]:mm` counts it.
 
-        Example
-        -------
-        ```python
-        CellParser().duration(value=timedelta(hours=25, minutes=30))   # "PT25H30M"
-        CellParser().duration(value=timedelta(0))                      # "PT0S"
-        ```
+        Examples:
+          ```python
+          CellParser().duration(value=timedelta(hours=25, minutes=30))   # "PT25H30M"
+          CellParser().duration(value=timedelta(0))                      # "PT0S"
+          ```
         """
         sign, seconds = ("-", -value) if value < timedelta(0) else ("", value)
         microseconds = seconds // timedelta(microseconds=1)

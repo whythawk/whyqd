@@ -31,10 +31,9 @@ class ArrowParser(Reader):
         """The file's grid and each value's type (its names `s`), the row of the file each grid row is, counted from
         1, and the dialect unchanged.
 
-        Raises
-        ------
-        ValueError
-            For a file that is not what its format says, or a column holding a type whyqd has no text for, naming it.
+        Raises:
+          ValueError: For a file that is not what its format says, or a column holding a type whyqd has no text for,
+            naming it.
         """
         try:
             df = pl.read_parquet(source) if mime == MimeType.PARQUET else pl.read_ipc(source)

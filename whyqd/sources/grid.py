@@ -40,13 +40,13 @@ class GridParser:
         """The grid and its types from a reader's columns, trimmed.
 
         Parameters:
-            columns: Each column's cells, top to bottom, as text, `None` where empty.
-            types: Each cell's `CellType` value, in the columns' shape; where `None`, every cell holding text is `s`.
+          columns: Each column's cells, top to bottom, as text, `None` where empty.
+          types: Each cell's `CellType` value, in the columns' shape; where `None`, every cell holding text is `s`.
 
         Examples:
-            ```python
-            GridParser().build(columns=[["Code", "12"]], types=[["s", "n"]])
-            ```
+          ```python
+          GridParser().build(columns=[["Code", "12"]], types=[["s", "n"]])
+          ```
         """
         names = [self.COLUMN.format(i) for i in range(len(columns))]
         schema = {name: pl.String for name in names}
@@ -60,9 +60,9 @@ class GridParser:
         empty text `None`.
 
         Examples:
-            ```python
-            GridParser().from_rows(rows=[["Code", "Name"], ["12"]])   # two columns, "Name" above an empty cell
-            ```
+          ```python
+          GridParser().from_rows(rows=[["Code", "Name"], ["12"]])   # two columns, "Name" above an empty cell
+          ```
         """
         width = max((len(row) for row in rows), default=0)
         return self.build(columns=[[(row[i] or None) if i < len(row) else None for row in rows] for i in range(width)])
@@ -76,14 +76,14 @@ class GridParser:
         """The grid and its types without the grid's trailing empty columns and rows.
 
         Parameters:
-            grid: Each cell's text, null where empty.
-            types: Each cell's `CellType` value, in the grid's shape; where `None`, every cell holding text is `s`.
+          grid: Each cell's text, null where empty.
+          types: Each cell's `CellType` value, in the grid's shape; where `None`, every cell holding text is `s`.
 
         Examples:
-            ```python
-            grid = pl.DataFrame({"column_0": ["a", None], "column_1": [None, None]})
-            GridParser().trim(grid=grid)   # one column, one row: "a", typed "s"
-            ```
+          ```python
+          grid = pl.DataFrame({"column_0": ["a", None], "column_1": [None, None]})
+          GridParser().trim(grid=grid)   # one column, one row: "a", typed "s"
+          ```
         """
         filled = [c for c in grid.columns if grid[c].null_count() < grid.height]
         if not filled:

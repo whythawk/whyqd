@@ -44,20 +44,14 @@ class DiagnosisParser:
     ) -> ReportModel:
         """The report on a file, or one sheet of a workbook.
 
-        Parameters
-        ----------
-        source: Path
-        mime: MimeType
-        reader
-            The reader of its format.
-        given: DialectModel
-            The dialect as the wrangler declared it.
-        sheet: str | None, default None
-            The sheet to read, where the wrangler did not name it.
-        hidden: bool, default False
-            Whether the workbook's publisher hid the sheet.
-        propose: bool, default False
-            Also propose settings that would read past a fault. Never applied.
+        Parameters:
+          source: The file.
+          mime: Its format.
+          reader: The reader of its format.
+          given: The dialect as the wrangler declared it.
+          sheet: The sheet to read, where the wrangler did not name it.
+          hidden: Whether the workbook's publisher hid the sheet.
+          propose: Also propose settings that would read past a fault. Never applied.
         """
         dialect = given.model_copy(update={"sheet": sheet}) if sheet else given
         with warnings.catch_warnings(record=True) as caught:
@@ -261,6 +255,7 @@ class DiagnosisParser:
         return findings
 
     def fact(self, *, code: str, message: str, **where) -> FindingModel:
+        """A fact, with where in the file it is: its `rows`, `columns`, or `cells`."""
         return FindingModel(code=code, kind=FindingKind.FACT, message=message, **where)
 
     def listed(self, items: list) -> str:
@@ -274,6 +269,7 @@ class DiagnosisParser:
         return f"{', '.join(shown[:-1])}, and {shown[-1]}"
 
     def are(self, items: list) -> str:
+        """The verb for so many items: `is` for one, `are` for more."""
         return "are" if len(items) > 1 else "is"
 
     def preview(self, *, grid: pl.DataFrame, lines: list[int], place: Place) -> str:
@@ -298,5 +294,6 @@ class DiagnosisParser:
         return "\n".join(text)
 
     def shortened(self, *, value: str | None, width: int) -> str:
+        """A cell or line on one line, its breaks shown as `\\r` and `\\n`, cut to `width` with `…` where longer."""
         value = (value or "").replace("\r", "\\r").replace("\n", "\\n")
         return value if len(value) <= width else f"{value[: width - 1]}…"

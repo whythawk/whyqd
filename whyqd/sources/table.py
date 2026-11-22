@@ -52,36 +52,25 @@ class TableParser:
     ) -> tuple[pl.DataFrame, list[pl.DataFrame]]:
         """The table a grid reads as under its dialect, its first column the row key, and the frames beside it.
 
-        Parameters
-        ----------
-        grid: pl.DataFrame
-            Each cell's text, null where empty, as a reader gives it.
-        lines: list[int]
-            Where in the file each grid row starts, counted from 1, for messages.
-        dialect: DialectModel
-        source: str
-            The file's name, for messages.
-        names: list[str] | None, default None
-            One name per column, in place of the header row's; required for a header over several rows. Names past the
-            grid's last column are columns the file leaves empty, which the grid trims: each is added, empty, so every
-            file of a format with fixed fields reads to one shape. Columns past the last name are named by position,
-            with a warning, so no cell is lost and none moves.
-        place: Place
-            What `lines` counts, as the wrangler would look for it: a text file's `line`, a sheet's `row`.
-        beside: list[pl.DataFrame] | None, default None
-            Frames in the grid's shape, such as each cell's type.
+        Parameters:
+          grid: Each cell's text, null where empty, as a reader gives it.
+          lines: Where in the file each grid row starts, counted from 1, for messages.
+          dialect: How the grid reads as a table.
+          source: The file's name, for messages.
+          place: What `lines` counts, as the wrangler would look for it: a text file's `line`, a sheet's `row`.
+          names: One name per column, in place of the header row's; required for a header over several rows. Names past
+            the grid's last column are columns the file leaves empty, which the grid trims: each is added, empty, so
+            every file of a format with fixed fields reads to one shape. Columns past the last name are named by
+            position, with a warning, so no cell is lost and none moves.
+          beside: Frames in the grid's shape, such as each cell's type.
 
-        Raises
-        ------
-        ValueError
-            For a declaration the file does not fit, or one that is incomplete.
+        Returns:
+          The table: row `0` is the first row after the header; each column's name is its only name. A grid with no
+          cells gives a table of no columns and no rows. Then each frame beside it, its rows and names the table's,
+          without the row key, and its cells untrimmed.
 
-        Returns
-        -------
-        tuple[pl.DataFrame, list[pl.DataFrame]]
-            The table: row `0` is the first row after the header; each column's name is its only name. A grid with no
-            cells gives a table of no columns and no rows. Then each frame beside it, its rows and names the table's,
-            without the row key, and its cells untrimmed.
+        Raises:
+          ValueError: For a declaration the file does not fit, or one that is incomplete.
         """
         beside = beside or []
         if grid.width == 0:
@@ -119,6 +108,13 @@ class TableParser:
         return grid.with_row_index(self.row_key.ROW), beside
 
     def names(self, *, header: pl.DataFrame, names: list[str] | None, dialect: DialectModel, source: str) -> list[str]:
+        """Each column's name: from `names` where given, a short list's rest named by position with a warning; else
+        from a header of one row, a column it leaves unnamed by position; else, with no header row, by position. Any
+        named like a part of the row key is renamed.
+
+        Raises:
+          ValueError: For a header over several rows with no `names`.
+        """
         width = header.width
         if names is not None:
             if len(names) < width:
@@ -143,11 +139,9 @@ class TableParser:
     def fit(self, *, grid: pl.DataFrame, lines: list[int], fields: list[int], source: str, place: Place) -> None:
         """Whether a grid's rows fit their records.
 
-        Raises
-        ------
-        ValueError
-            Naming the line where a row holds values past its fields, or where the file ends inside a record, since
-            every record after it would be misread.
+        Raises:
+          ValueError: Naming the line where a row holds values past its fields, or where the file ends inside a record,
+            since every record after it would be misread.
         """
         span, width = len(fields), grid.width
         for i in range(grid.height):

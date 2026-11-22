@@ -15,16 +15,16 @@ class LocationParser:
         """The local path of a source, downloading one given by URI.
 
         Parameters:
-            source: A file's path, or a URI with a scheme, a host, and a path.
-            directory: Where to download a URI's file; `settings.WHYQD_DIRECTORY` where `None`.
+          source: A file's path, or a URI with a scheme, a host, and a path.
+          directory: Where to download a URI's file; `settings.WHYQD_DIRECTORY` where `None`.
 
         Raises:
-            FileNotFoundError: Where no file is there.
+          FileNotFoundError: Where no file is there.
 
         Examples:
-            ```python
-            LocationParser().locate(source="data/rates.csv")   # Path("data/rates.csv")
-            ```
+          ```python
+          LocationParser().locate(source="data/rates.csv")   # Path("data/rates.csv")
+          ```
         """
         if self.is_uri(source=source):
             source = self.download(source=source, directory=directory)

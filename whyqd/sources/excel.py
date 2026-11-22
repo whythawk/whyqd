@@ -2,6 +2,7 @@
 from collections.abc import Iterator
 from datetime import date, time
 import posixpath
+import string
 import zipfile
 from pathlib import Path
 from typing import ClassVar
@@ -97,6 +98,8 @@ class ExcelParser(Reader):
     # The date of serial 1, by whether the workbook is in the 1904 date system
     SERIAL_ONE: ClassVar[dict[bool, date]] = {False: date(1900, 1, 1), True: date(1904, 1, 2)}
     CHUNK_BYTES: ClassVar[int] = 1 << 16
+    # A column's letters count in base 26, `A` as 1 and `Z` as 26, with no zero
+    LETTERS: ClassVar[str] = string.ascii_uppercase
 
     def __init__(self) -> None:
         self.cell = CellParser()
@@ -106,10 +109,8 @@ class ExcelParser(Reader):
     def sheets(self, *, source: Path) -> list[tuple[str, bool]]:
         """Each worksheet's name, in workbook order, and whether its publisher hid it.
 
-        Raises
-        ------
-        ValueError
-            For a file that is not a sound workbook.
+        Raises:
+          ValueError: For a file that is not a sound workbook.
         """
         return self.listed(workbook=self.opened(source=source))
 
@@ -134,18 +135,13 @@ class ExcelParser(Reader):
         """A sheet's grid and each cell's type, the spreadsheet's number for each grid row, and the dialect naming the
         sheet.
 
-        Parameters
-        ----------
-        source: Path
-        mime: MimeType
-            Whether the workbook has XML to read a lost value back from.
-        dialect: DialectModel
-            Its `sheet` names the sheet; a workbook of one sheet needs none.
+        Parameters:
+          source: The workbook.
+          mime: Whether the workbook has XML to read a lost value back from.
+          dialect: Its `sheet` names the sheet; a workbook of one sheet needs none.
 
-        Raises
-        ------
-        ValueError
-            For a sheet the workbook does not have, naming those it has, or a duration too large to read.
+        Raises:
+          ValueError: For a sheet the workbook does not have, naming those it has, or a duration too large to read.
         """
         workbook = self.opened(source=source)
         names = [name for name, _ in self.listed(workbook=workbook)]
@@ -158,15 +154,16 @@ class ExcelParser(Reader):
                 "[whyqd:sheet-unknown]",
                 setting="sheet",
             )
-        read = workbook.get_sheet_by_name(sheet)
+        worksheet = workbook.get_sheet_by_name(sheet)
         try:
-            rows = read.to_python(skip_empty_area=False)
+            rows = worksheet.to_python(skip_empty_area=False)
         except OverflowError as e:
             raise ValueError(
-                f"`{source.name}` sheet `{sheet}` row {self.overflow_row(read=read)} holds a duration too large to "
-                "read. Change that cell's format to a number and derive from that copy. [whyqd:duration-range]"
+                f"`{source.name}` sheet `{sheet}` row {self.overflow_row(worksheet=worksheet)} holds a duration too "
+                "large to read. Change that cell's format to a number and derive from that copy. "
+                "[whyqd:duration-range]"
             ) from e
-        errors = self.errors(source=source, sheet=sheet, start=read.start)
+        errors = self.errors(source=source, sheet=sheet, start=worksheet.start)
         lost = {}
         if mime == MimeType.XLSX and any(isinstance(value, time) for row in rows for value in row):
             lost = self.below_one(source=source, sheet=sheet, rows=rows)
@@ -185,8 +182,8 @@ class ExcelParser(Reader):
     def facts(self, *, source: Path, sheet: str | None, types: pl.DataFrame) -> dict[str, list[str]]:
         """What a sheet holds that its grid's text does not show: its `merged` ranges and its `errors`, each cell named
         as a workbook names it, in reading order."""
-        read = self.opened(source=source).get_sheet_by_name(sheet)
-        merged = sorted(read.merged_cell_ranges or [])
+        worksheet = self.opened(source=source).get_sheet_by_name(sheet)
+        merged = sorted(worksheet.merged_cell_ranges or [])
         errors = sorted(
             (i, j) for j, c in enumerate(types.columns) for i in types[c].eq(CellType.ERROR.value).arg_true().to_list()
         )
@@ -200,8 +197,8 @@ class ExcelParser(Reader):
         """A cell's reference from its row and column, each counted from 0: `B3` is row 2, column 1."""
         letters, column = "", column + 1
         while column:
-            column, remainder = divmod(column - 1, 26)
-            letters = chr(65 + remainder) + letters
+            column, remainder = divmod(column - 1, len(self.LETTERS))
+            letters = self.LETTERS[remainder] + letters
         return f"{letters}{row + 1}"
 
     def formats(
@@ -217,7 +214,7 @@ class ExcelParser(Reader):
             return None
         codes = {self.grids.COLUMN.format(j): [None] * height for j in range(width)}
         with zipfile.ZipFile(source) as book:
-            _, parts, path = self.locate(book=book, sheet=sheet)
+            _, parts, path = self.sheet_part(book=book, sheet=sheet)
             styles = self.styles(book=book, path=parts["styles"][0][0]) if "styles" in parts else []
             for row, column, attributes, _ in self.walk(book=book, path=path):
                 style = int(attributes.get("s", 0))
@@ -235,7 +232,7 @@ class ExcelParser(Reader):
         """
         lost = {}
         with zipfile.ZipFile(source) as book:
-            workbook, _, path = self.locate(book=book, sheet=sheet)
+            workbook, _, path = self.sheet_part(book=book, sheet=sheet)
             date1904 = any(
                 self.local(e.tag) == "workbookPr" and e.get("date1904", "0") in ("1", "true") for e in workbook.iter()
             )
@@ -250,18 +247,18 @@ class ExcelParser(Reader):
                     lost[(row, column)] = self.SERIAL_ONE[date1904]
         return lost
 
-    def overflow_row(self, *, read: python_calamine.CalamineSheet) -> int:
+    def overflow_row(self, *, worksheet: python_calamine.CalamineSheet) -> int:
         """The spreadsheet's number for the row holding a duration too large to read, where the reader, counting
         from A1, stops."""
         count = 0
         try:
-            for _ in read.iter_rows():
+            for _ in worksheet.iter_rows():
                 count += 1
         except OverflowError:
             pass
         return count + 1
 
-    def locate(self, *, book: zipfile.ZipFile, sheet: str) -> tuple[ElementTree.Element, dict, str]:
+    def sheet_part(self, *, book: zipfile.ZipFile, sheet: str) -> tuple[ElementTree.Element, dict, str]:
         """A workbook's root, its parts by their type's last word, and the path of this sheet's XML."""
         workbook = self.parts(book=book, path="_rels/.rels", where="")["officeDocument"][0][0]
         folder, name = posixpath.split(workbook)
@@ -296,7 +293,7 @@ class ExcelParser(Reader):
             elif tag == "c":
                 if reference := attributes.get("r"):
                     letters, number = self.patterns.CELL_REFERENCE.fullmatch(reference).groups()
-                    row, column = int(number) - 1, self.column(letters=letters)
+                    row, column = int(number) - 1, self.column_index(letters=letters)
                 else:
                     column += 1
                 cells.append([row, column, attributes, None])
@@ -348,11 +345,11 @@ class ExcelParser(Reader):
             codes.append(custom.get(number, self.BUILT_IN.get(number, f"id {number}")))
         return codes
 
-    def column(self, *, letters: str) -> int:
+    def column_index(self, *, letters: str) -> int:
         """A column's index from 0, by its letters: `A` is 0, `AA` 26."""
         index = 0
         for letter in letters:
-            index = index * 26 + ord(letter) - 64
+            index = index * len(self.LETTERS) + self.LETTERS.index(letter) + 1
         return index - 1
 
     def local(self, tag: str) -> str:
@@ -363,8 +360,8 @@ class ExcelParser(Reader):
         """Each error cell's code, by its row and column from A1."""
         if start is None:
             return {}
-        read = fastexcel.read_excel(str(source)).load_sheet(sheet, header_row=None, dtypes="string")
-        _, found = read.to_arrow_with_errors()
+        loaded = fastexcel.read_excel(str(source)).load_sheet(sheet, header_row=None, dtypes="string")
+        _, found = loaded.to_arrow_with_errors()
         codes = {}
         for error in found.errors if found else []:
             if kind := self.patterns.EXCEL_ERROR.search(error.detail):

@@ -44,23 +44,14 @@ class CsvParser(Reader):
         """The file's grid and its types, the line each of its rows starts on, and the dialect with the encoding
         recorded. Every cell is text, so typed `s`; each is kept as written, `trim` being the table's.
 
-        Parameters
-        ----------
-        source: Path
-        mime: MimeType
-            Read only to share the interface every reader has.
-        dialect: DialectModel
-            How the file is written. Its encoding is read as declared where the wrangler declared it; otherwise the
-            ladder settles it, and the dialect returned records which step did.
+        Parameters:
+          source: The file.
+          mime: Not read; every reader takes it.
+          dialect: How the file is written. Its encoding is read as declared where the wrangler declared it; otherwise
+            the ladder settles it, and the dialect returned records which step did.
 
-        Raises
-        ------
-        ValueError
-            Where the file cannot be read as the dialect describes it, naming the line and the setting.
-
-        Returns
-        -------
-        tuple[pl.DataFrame, pl.DataFrame, list[int], DialectModel]
+        Raises:
+          ValueError: Where the file cannot be read as the dialect describes it, naming the line and the setting.
         """
         text, encoding, step = self.decoded(source=source, dialect=dialect)
         dialect = dialect.model_copy(update={"encoding": encoding, "encodingStep": step})
@@ -69,6 +60,8 @@ class CsvParser(Reader):
         return grid, types, lines[: grid.height], dialect
 
     def decoded(self, *, source: Path, dialect: DialectModel) -> tuple[str, str, EncodingStep]:
+        """The file's text, the encoding it was read in, and the step that settled it: the dialect's encoding where it
+        was declared, or was by the definition this dialect comes from; otherwise the ladder's."""
         declared = None
         if dialect.encodingStep == EncodingStep.DECLARED or (
             dialect.encodingStep is None and "encoding" in dialect.model_fields_set
@@ -113,6 +106,8 @@ class CsvParser(Reader):
         return found
 
     def delimiter(self, *, text: str, dialect: DialectModel) -> list[ProposalModel]:
+        """A delimiter that fits the file's first lines where the one read by does not, by the rules `proposals` gives;
+        none where the evidence is mixed."""
         lines = [m.group() for m in islice(self.patterns.LINE.finditer(text), settings.REPORT_SAMPLE_LINES)]
         lines = [line for line in lines if line.strip("\r\n")]
         if len(lines) < 2:
@@ -157,10 +152,8 @@ class CsvParser(Reader):
         """The encoding this file more likely is, where its read could only fall back on `windows-1252`, or replaced
         bytes it could not decode. A file that decoded as itself is never second-guessed.
 
-        Raises
-        ------
-        ImportError
-            Without the `diagnose` extra, only where a proposal is called for.
+        Raises:
+          ImportError: Without the `diagnose` extra, only where a proposal is called for.
         """
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
@@ -173,16 +166,22 @@ class CsvParser(Reader):
         return ProposalModel(setting="encoding", value=detected[0], evidence=detected[1])
 
     def rows(self, *, text: str, dialect: DialectModel, source: Path) -> tuple[list[list[str]], list[int]]:
-        settings = {"delimiter": dialect.delimiter, "doublequote": dialect.doubleQuote, "strict": True}
+        """The text's rows, each its cells as written, and the line each starts on, counted from 1.
+
+        Raises:
+          ValueError: Where the dialect's characters are not single characters, or a line cannot be parsed by them,
+            naming the line and the setting to change.
+        """
+        options = {"delimiter": dialect.delimiter, "doublequote": dialect.doubleQuote, "strict": True}
         if dialect.quoteChar is None:
-            settings["quoting"] = csv.QUOTE_NONE
+            options["quoting"] = csv.QUOTE_NONE
         else:
-            settings["quotechar"] = dialect.quoteChar
+            options["quotechar"] = dialect.quoteChar
         if not dialect.doubleQuote:
-            settings["escapechar"] = "\\"
+            options["escapechar"] = "\\"
         try:
             # lines matched from the text, since `io.StringIO` copies it at four bytes a character
-            reader = csv.reader((m.group() for m in self.patterns.LINE.finditer(text)), **settings)
+            reader = csv.reader((m.group() for m in self.patterns.LINE.finditer(text)), **options)
         except TypeError as e:
             raise ReadFault(
                 f"`{source.name}` cannot be read with `delimiter` {dialect.delimiter!r} and `quoteChar` "
