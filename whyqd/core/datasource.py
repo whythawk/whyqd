@@ -219,7 +219,7 @@ class DataSourceDefinition(BaseDefinition):
                 raise ImportError("Verifying a 1.x checksum needs the extra: pip install whyqd[verify-1x]") from e
             if V1ChecksumParser().checksum(model=m) != table:
                 raise AssertionError(f"{self.model_name.title()} model checksum does not match derived checksum.")
-            path = self.reader.locate(source=m.path)
+            path = self.reader.location.locate(source=m.path)
             found = {ChecksumContent.BYTES: self.reader.fingerprints.byte_hash(source=path)}
             # One read with pandas' settings has no dialect to parse its grid by
             if not (m.attributes and m.attributes.terms):

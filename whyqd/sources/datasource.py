@@ -13,6 +13,7 @@ from whyqd.sources.csv import CsvParser
 from whyqd.sources.diagnosis import DiagnosisParser
 from whyqd.sources.excel import ExcelParser
 from whyqd.sources.fingerprint import FingerprintParser
+from whyqd.sources.location import LocationParser
 from whyqd.sources.pdf import PdfParser
 from whyqd.sources.profile import ProfileParser
 from whyqd.sources.row_key import RowKeyParser
@@ -40,6 +41,7 @@ class DataSourceParser:
         self.core = CoreParser()
         self.diagnoses = DiagnosisParser()
         self.fingerprints = FingerprintParser()
+        self.location = LocationParser()
         self.profiles = ProfileParser()
         self.v1 = V1ChecksumParser()
         self.tables = TableParser()
@@ -96,7 +98,7 @@ class DataSourceParser:
             )
         if isinstance(source, DataSourceModel):
             mime = self.get_mimetype(mimetype=source.mime)
-            path = self.locate(source=source.path, directory=directory)
+            path = self.location.locate(source=source.path, directory=directory)
             table, _ = self.read(
                 source=path, mime=mime, dialect=self.dialect(source=source), names=source.names or None
             )
@@ -110,7 +112,7 @@ class DataSourceParser:
                     "numbered differently. Check any stored action that names rows. [whyqd:rows-renumbered]"
                 )
             return table.to_pandas()
-        path = self.locate(source=source, directory=directory)
+        path = self.location.locate(source=source, directory=directory)
         table, _ = self.read(source=path, mime=self.get_mimetype(mimetype=mimetype), dialect=DialectModel())
         return table.to_pandas()
 
@@ -143,14 +145,6 @@ class DataSourceParser:
     ###################################################################################################
     ### DATA MODEL SCHEMA DERIVATION AND WRITER UTILITIES
     ###################################################################################################
-
-    def locate(self, *, source: str | Path, directory: str | Path | None = None) -> Path:
-        """The local path of a source, downloading one given by URI."""
-        if self.core.check_uri(source=source):
-            source = self.core.download_uri_source(source=source, directory=directory)
-        if not self.core.check_source(source=source):
-            raise FileNotFoundError(f"No file at `{source}`. [whyqd:source-missing]")
-        return Path(source)
 
     def declare(self, *, dialect: DialectModel | dict | None) -> DialectModel:
         """A dialect as the wrangler declares it, refusing a setting whyqd does not know, naming those it does."""
@@ -202,7 +196,7 @@ class DataSourceParser:
     def typed_table(self, *, source: DataSourceModel) -> tuple[pl.DataFrame, pl.DataFrame]:
         """A data source's table, keyed by `__row__`, and each cell's stored type, for reading by its schema."""
         mime = self.get_mimetype(mimetype=source.mime)
-        path = self.locate(source=source.path)
+        path = self.location.locate(source=source.path)
         reader = self.reader(mime=mime)
         grid, types, lines, dialect = reader.grid(source=path, mime=mime, dialect=self.dialect(source=source))
         table, (types,) = self.tables.table(
@@ -226,7 +220,7 @@ class DataSourceParser:
         mime = self.get_mimetype(mimetype=mimetype)
         given = self.declare(dialect=dialect)
         given = given.model_copy(update={"sheet": sheet}) if sheet else given
-        path, reader = self.locate(source=source), self.reader(mime=mime)
+        path, reader = self.location.locate(source=source), self.reader(mime=mime)
         try:
             grid, types, lines, read = reader.grid(source=path, mime=mime, dialect=given)
             table, (types,) = self.tables.table(
@@ -273,7 +267,7 @@ class DataSourceParser:
     ) -> tuple[DataSourceModel, pl.DataFrame]:
         """A file's data source, its columns, row count, `fp0` and byte hash, and the dialect that reads it; and its
         table, as `get` would read it."""
-        path = self.locate(source=source)
+        path = self.location.locate(source=source)
         read = self.reader(mime=mime).grid(source=path, mime=mime, dialect=self.declare(dialect=dialect))
         fp0 = None if mime == MimeType.PDF else self.fingerprints.fp0(grid=read[0], types=read[1])
         return self.model(source=source, path=path, mime=mime, read=read, names=names, fp0=fp0)
@@ -348,7 +342,7 @@ class DataSourceParser:
         hashed, fp0 = source.get_checksum(ChecksumContent.BYTES), source.get_checksum(ChecksumContent.FP0)
         if hashed is None and fp0 is None:
             raise ValueError(f"`{source.path}` has no checksum whyqd can verify. [whyqd:checksum-none]")
-        path = self.locate(source=source.path, directory=directory)
+        path = self.location.locate(source=source.path, directory=directory)
         if hashed is not None and self.fingerprints.byte_hash(source=path) == hashed:
             return
         if fp0 is None or self.fingerprint(source=source, path=path) != fp0:
@@ -381,7 +375,7 @@ class DataSourceParser:
             For a dialect or names given for a sheet the workbook does not have, or dialects that cannot be matched to
             its sheets.
         """
-        path = self.locate(source=source)
+        path = self.location.locate(source=source)
         reader = self.reader(mime=mime)
         sheets = reader.sheets(source=path)
         order = [name for name, _ in sheets]
@@ -498,7 +492,7 @@ class DataSourceParser:
             For a file that is not there.
         """
         mime = self.get_mimetype(mimetype=mimetype)
-        given, path, reader = self.declare(dialect=dialect), self.locate(source=source), self.reader(mime=mime)
+        given, path, reader = self.declare(dialect=dialect), self.location.locate(source=source), self.reader(mime=mime)
         if mime not in (MimeType.XLS, MimeType.XLSX):
             return [self.diagnoses.report(source=path, mime=mime, reader=reader, given=given, propose=propose)]
         try:

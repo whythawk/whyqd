@@ -4,10 +4,6 @@ from typing import TYPE_CHECKING
 from pydantic import Json
 import json
 import sys
-from urllib.parse import urlparse
-import urllib
-import posixpath
-from uuid import uuid4
 from datetime import datetime, timezone
 from pathlib import Path, PurePath
 
@@ -114,19 +110,6 @@ class CoreParser:
         # whyqd/core/common ... .parent.parent -> whyqd/
         return Path(__file__).resolve().parent.parent
 
-    def check_uri(self, *, source: str) -> bool:
-        # https://stackoverflow.com/a/38020041
-        try:
-            result = urlparse(source)
-            return all([result.scheme, result.netloc, result.path])
-        except (ValueError, AttributeError):
-            return False
-
-    def check_path_or_uri(self, *, source: str) -> bool:
-        if not isinstance(source, str):
-            source = str(source)
-        return any([Path(source).exists(), self.check_uri(source=source)])
-
     def rename_file(self, *, source: str, newname: str, add_suffix: bool = False) -> str:
         p = Path(source)
         if add_suffix:
@@ -143,36 +126,6 @@ class CoreParser:
             source.unlink()
         else:
             source.unlink(missing_ok=True)
-
-    def download_uri_source(self, source: str, directory: Path | str | None = None) -> Path:
-        """Downloads a source at a remote uri, and returns a Path for that downloaded source.
-
-        Parameters
-        ----------
-        source: str
-            URI path to source.
-        directory: Path | str | None
-
-        Returns
-        -------
-        Path to local source.
-        """
-        request = urllib.request.Request(source, method="HEAD")
-        request = urllib.request.urlopen(request).info()
-        filename = request.get_filename()
-        if not filename:
-            #  https://stackoverflow.com/a/11783319/295606
-            source_path = urllib.request.urlsplit(source).path
-            filename = posixpath.basename(source_path)
-        if not filename:
-            # Make something up ...
-            filename = f"temporary-{uuid4()}"
-        if not directory:
-            directory = self.default_directory
-        local_source = Path(directory) / filename
-        if not self.check_source(source=local_source):
-            urllib.request.urlretrieve(source, local_source)
-        return local_source
 
     ###################################################################################################
     ### JSON & FILE LOAD & SAVE
