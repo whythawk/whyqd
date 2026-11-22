@@ -62,7 +62,7 @@ class CsvParser:
         text, encoding, step = self.decoded(source=source, dialect=dialect)
         dialect = dialect.model_copy(update={"encoding": encoding, "encodingStep": step})
         rows, lines = self.rows(text=text, dialect=dialect, source=source)
-        grid, types = self.to_grid(rows=rows)
+        grid, types = self.grids.from_rows(rows=rows)
         return grid, types, lines[: grid.height], dialect
 
     def decoded(self, *, source: Path, dialect: DialectModel) -> tuple[str, str, EncodingStep]:
@@ -206,11 +206,3 @@ class CsvParser:
                 setting=setting,
             ) from e
         return rows, lines
-
-    def to_grid(self, *, rows: list[list[str]]) -> tuple[pl.DataFrame, pl.DataFrame]:
-        width = max((len(r) for r in rows), default=0)
-        grid = pl.DataFrame(
-            {f"column_{i}": [r[i] if i < len(r) and r[i] != "" else None for r in rows] for i in range(width)},
-            schema={f"column_{i}": pl.String for i in range(width)},
-        )
-        return self.grids.trim(grid=grid)

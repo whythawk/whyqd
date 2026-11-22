@@ -160,20 +160,16 @@ class ExcelParser:
         if mime == MimeType.XLSX and any(isinstance(value, time) for row in rows for value in row):
             lost = self.below_one(source=source, sheet=sheet, rows=rows)
         width = max((len(r) for r in rows), default=0)
-        columns = {f"column_{j}": [] for j in range(width)}
-        types = {f"column_{j}": [] for j in range(width)}
+        columns, types = [[] for _ in range(width)], [[] for _ in range(width)]
         for i, row in enumerate(rows):
             for j in range(width):
                 value = lost.get((i, j), row[j] if j < len(row) else None)
                 code = errors.get((i, j))
                 rendered = self.cell.render(value=code, error=True) if code else self.cell.render(value=value)
-                columns[f"column_{j}"].append(None if rendered is None else rendered[1])
-                types[f"column_{j}"].append(None if rendered is None else rendered[0].value)
-        schema = {c: pl.String for c in columns}
-        grid, types = self.grids.trim(
-            grid=pl.DataFrame(columns, schema=schema), types=pl.DataFrame(types, schema=schema)
-        )
-        return grid, types, list(range(1, grid.height + 1)), dialect.model_copy(update={"sheet": sheet})
+                columns[j].append(None if rendered is None else rendered[1])
+                types[j].append(None if rendered is None else rendered[0].value)
+        grid, types = self.grids.build(columns=columns, types=types)
+        return grid, types, self.grids.numbers(grid=grid), dialect.model_copy(update={"sheet": sheet})
 
     def facts(self, *, source: Path, sheet: str, types: pl.DataFrame) -> dict[str, list[str]]:
         """What a sheet holds that its grid's text does not show: its `merged` ranges and its `errors`, each cell named
@@ -204,14 +200,16 @@ class ExcelParser:
         the workbook stores, a built-in id's from ECMA-376, or `id 5` for an id the standard leaves to the application.
         An `.xls` stores its formats in another form, and is not read for them.
         """
-        codes = {f"column_{j}": [None] * height for j in range(width)}
+        codes = {self.grids.COLUMN.format(j): [None] * height for j in range(width)}
         with zipfile.ZipFile(source) as book:
             _, parts, path = self.locate(book=book, sheet=sheet)
             styles = self.styles(book=book, path=parts["styles"][0][0]) if "styles" in parts else []
             for row, column, element in self.walk(book=book, path=path):
                 style = int(element.get("s", 0))
                 if row < height and column < width:
-                    codes[f"column_{column}"][row] = styles[style] if style < len(styles) else self.BUILT_IN[0]
+                    codes[self.grids.COLUMN.format(column)][row] = (
+                        styles[style] if style < len(styles) else self.BUILT_IN[0]
+                    )
         return pl.DataFrame(codes, schema={c: pl.String for c in codes})
 
     def below_one(self, *, source: Path, sheet: str, rows: list[list]) -> dict[tuple[int, int], float | date]:

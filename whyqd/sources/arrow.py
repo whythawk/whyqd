@@ -41,8 +41,8 @@ class ArrowParser:
                 f"`{source.name}` cannot be opened as a {mime.name} file. Check its format, or ask its owner for a "
                 "sound copy. [whyqd:file-unreadable]"
             ) from e
-        columns, types = {}, {}
-        for i, name in enumerate(df.columns):
+        columns, types = [], []
+        for name in df.columns:
             try:
                 cells = [self.cell.render(value=v) for v in df[name].to_list()]
             except (TypeError, ValueError) as e:
@@ -50,10 +50,7 @@ class ArrowParser:
                     f"`{source.name}` column `{name}` holds {df.schema[name]} values, which whyqd cannot read as text "
                     f"({e}). Write it as text, numbers, booleans, or dates. [whyqd:arrow-type]"
                 ) from e
-            columns[f"column_{i}"] = [name, *(None if c is None else c[1] for c in cells)]
-            types[f"column_{i}"] = [CellType.STRING.value, *(None if c is None else c[0].value for c in cells)]
-        schema = {c: pl.String for c in columns}
-        grid, types = self.grids.trim(
-            grid=pl.DataFrame(columns, schema=schema), types=pl.DataFrame(types, schema=schema)
-        )
-        return grid, types, list(range(1, grid.height + 1)), dialect
+            columns.append([name, *(None if c is None else c[1] for c in cells)])
+            types.append([CellType.STRING.value, *(None if c is None else c[0].value for c in cells)])
+        grid, types = self.grids.build(columns=columns, types=types)
+        return grid, types, self.grids.numbers(grid=grid), dialect

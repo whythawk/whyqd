@@ -1,10 +1,12 @@
 # SPDX-License-Identifier: BSD-3-Clause
+from typing import ClassVar
 import warnings
 
 import polars as pl
 
 from whyqd.dtypes import Place
 from whyqd.models import DialectModel
+from whyqd.sources.grid import GridParser
 from whyqd.sources.row_key import RowKeyParser
 
 
@@ -19,8 +21,12 @@ class TableParser:
     """
 
     TRIM = {True: str.strip, "start": str.lstrip, "end": str.rstrip}
+    # A header's column with no name, and a named column the file leaves empty, each by its position from 0
+    UNNAMED: ClassVar[str] = "Unnamed: {}"
+    EMPTY: ClassVar[str] = "empty_{}"
 
     def __init__(self) -> None:
+        self.grids = GridParser()
         self.row_key = RowKeyParser()
 
     def table(
@@ -89,7 +95,7 @@ class TableParser:
             kept = ~frames[0].select(pl.all_horizontal(pl.all().is_null())).to_series()
             frames = [f.filter(kept) for f in frames]
         columns = self.names(header=header, names=names, dialect=dialect)
-        empty = [pl.lit(None, dtype=pl.String).alias(f"empty_{i}") for i in range(header.width, len(columns))]
+        empty = [pl.lit(None, dtype=pl.String).alias(self.EMPTY.format(i)) for i in range(header.width, len(columns))]
         frames = [f.with_columns(empty) for f in frames]
         for frame in frames:
             frame.columns = columns
@@ -106,16 +112,16 @@ class TableParser:
                     UserWarning,
                     stacklevel=2,
                 )
-                names = [*names, *(f"Unnamed: {i}" for i in range(len(names), width))]
+                names = [*names, *(self.UNNAMED.format(i) for i in range(len(names), width))]
         elif dialect.headerRowCount > 1:
             raise ValueError(
                 f"`headerRowCount` is {dialect.headerRowCount}, so declare the names in `names`, one for each of its "
                 f"{width} columns, in order. [whyqd:header-names]"
             )
         elif dialect.headerRowCount == 0:
-            names = [f"column_{i}" for i in range(width)]
+            names = [self.grids.COLUMN.format(i) for i in range(width)]
         else:
-            names = [f"Unnamed: {i}" if n is None else n for i, n in enumerate(header.row(0))]
+            names = [self.UNNAMED.format(i) if n is None else n for i, n in enumerate(header.row(0))]
         return self.row_key.deconflict(columns=names)
 
     def fit(self, *, grid: pl.DataFrame, lines: list[int], fields: list[int], place: Place = Place.LINE) -> None:
@@ -150,6 +156,6 @@ class TableParser:
         for j, n in enumerate(fields):
             part = grid.gather_every(span, offset=j).select(pl.nth(range(min(n, width))))
             for k in range(part.width, n):
-                part = part.with_columns(pl.lit(None, dtype=pl.String).alias(f"column_{k}"))
+                part = part.with_columns(pl.lit(None, dtype=pl.String).alias(self.grids.COLUMN.format(k)))
             parts.append(part.rename(lambda c, j=j: f"{j}:{c}"))
         return pl.concat(parts, how="horizontal")

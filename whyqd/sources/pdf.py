@@ -68,14 +68,8 @@ class PdfParser:
                 for page in pages:
                     for table in page.extract_tables(self.settings(cells=cells)):
                         rows.extend(table)
-        rows = self.unrepeated(rows=rows, dialect=dialect)
-        width = max((len(r) for r in rows), default=0)
-        grid = pl.DataFrame(
-            {f"column_{i}": [r[i] if i < len(r) and r[i] else None for r in rows] for i in range(width)},
-            schema={f"column_{i}": pl.String for i in range(width)},
-        )
-        grid, types = self.grids.trim(grid=grid)
-        return grid, types, list(range(1, grid.height + 1)), dialect.model_copy(update={"cells": cells})
+        grid, types = self.grids.from_rows(rows=self.unrepeated(rows=rows, dialect=dialect))
+        return grid, types, self.grids.numbers(grid=grid), dialect.model_copy(update={"cells": cells})
 
     def pages(self, *, pages: list, declared: str | None, source: Path) -> list:
         """The pages a dialect's `pages` names, counted from 1, or every page."""
