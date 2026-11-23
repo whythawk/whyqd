@@ -42,26 +42,14 @@ class BaseReadingParser:
         "two-numbers": ("holds two numbers", "split it with a crosswalk action"),
         "number-form-character": ("holds a character such as `¹` or `½`", "correct the file, or delete the row"),
         "mixed-digits": ("mixes digits of different scripts", "correct the file, or delete the row"),
-        "undeclared-character": (
-            "holds something undeclared",
-            "declare it in `format`, `rules.currency`, or `rules.marks`, or if it means nothing in `missingValues`",
-        ),
+        "undeclared-character": ("holds something undeclared", "declare it in the field's `policy`"),
         "undeclared-sign": ("has an undeclared negative form", "declare it in `rules.negative`"),
         "undeclared-exponent": ("has an undeclared exponent", "set `rules.exponent`, if it is a number"),
         "undeclared-non-finite": ("is `NaN` or `INF`", "set `rules.nonFinite`, or use `missingValues`"),
-        "grouping-mismatch": (
-            "does not fit the declared marks",
-            "correct `format`'s `decimalChar` and `groupChar`, or if it means nothing use `missingValues`",
-        ),
+        "grouping-mismatch": ("does not fit the declared marks", "correct `format`'s `decimalChar` and `groupChar`"),
         "too-many-digits": ("has more digits than its type holds", "use a `string` field"),
-        "not-in-format": (
-            "does not fit the format",
-            "correct `format`, add to `rules.alternateFormats`, or if it means nothing use `missingValues`",
-        ),
-        "two-readings": (
-            "could be read two ways",
-            "declare `format`, or `rules.language` for a month's name, or keep the pattern the file uses",
-        ),
+        "not-in-format": ("does not fit the format", "correct `format`, or add to `rules.alternateFormats`"),
+        "two-readings": ("could be read two ways", "declare `format`"),
         "no-zone": ("states no offset, beside cells that do", "declare `rules.zone`"),
         "impossible-date": ("names no such date or time", "correct `format`, or delete the row"),
         "error-cell": ("is a workbook's error cell", "use `missingValues`, or delete the row"),
@@ -71,7 +59,7 @@ class BaseReadingParser:
         self.patterns = PolarsPatterns()
 
     def is_blank(self, cells: pl.Series) -> pl.Series:
-        """Empty or only whitespace, by load's one definition."""
+        """Empty or only whitespace: typing's blank, never a value. Load holds such a cell as written."""
         return (cells.is_null() | cells.str.contains(self.patterns.WHITESPACE) | (cells == "")).fill_null(True)
 
     def normalised(self, text: str) -> str:
@@ -193,13 +181,17 @@ class BaseReadingParser:
     ) -> FindingModel:
         says, does = self.ADVICE[reason]
         if reason == RefusalReason.NOT_IN_FORMAT.value and not shape.strip(f"{self.SHAPE_DIGIT}."):
-            does = f"{does}, or if these are Excel date serials set `rules.serial`"
-        cells = "1 cell" if count == 1 else f"{count} cells"
+            does = "set `rules.serial`, if these are Excel date serials"
+        cells = (
+            f"1 cell shaped `{shape}`, at row {first},"
+            if count == 1
+            else f"{count} cells shaped `{shape}`, first at row {first}, each"
+        )
         named = f" (`{detail}`)" if detail else ""
         return FindingModel(
             code=reason,
             kind=FindingKind.FAULT,
-            message=f"Field `{field}`: {cells} shaped `{shape}`, first at row {first}, {says}{named}. Next, {does}.",
+            message=f"Field `{field}`: {cells} {says}{named}. Next, {does}.",
             rows=[first],
             field=field,
             shape=shape,

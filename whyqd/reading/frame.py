@@ -40,7 +40,7 @@ class FrameParser:
         return pl.Series(self.reading.CELL, texts, dtype=pl.String)
 
     def without_blanks(self, *, column: pd.Series) -> pd.Series:
-        """A text column with each blank cell, by load's one definition, as an empty one: a blank is never a value."""
+        """A text column with each blank cell, empty or only whitespace, as an empty one: a blank is never a value."""
         return column.where(~self.reading.is_blank(self.cells(column)).to_numpy(), None)
 
     def is_usable_as(self, column: pd.Series, dtype: str) -> bool:

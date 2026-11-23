@@ -35,7 +35,7 @@ class ReadingKind(str, Enum):
     DESCRIPTIONS = nonmember(
         {
             "value": "The cell fits its field's declaration, and holds this value.",
-            "blank": "The cell is empty or only whitespace, by load's one definition, so it is never a value.",
+            "blank": "The cell is empty or only whitespace, so it is never a value.",
             "refused": "The cell does not fit its field's declaration, and is never read another way.",
         }
     )
