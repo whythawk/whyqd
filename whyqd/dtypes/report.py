@@ -62,6 +62,8 @@ class ReadingWarning(str, Enum):
     YEAR_BELOW_1000 = "year-below-1000"
     TIME_DROPPED = "time-dropped"
     REPEATED_HOUR = "repeated-hour"
+    BOOLEAN_AS_NUMBER = "boolean-as-number"
+    NUMBER_AS_BOOLEAN = "number-as-boolean"
 
     DESCRIPTIONS = nonmember(
         {
@@ -88,6 +90,10 @@ class ReadingWarning(str, Enum):
             "time-dropped": "A date field's cell also held a time other than midnight, which a date does not keep. A "
             "`datetime` field keeps it.",
             "repeated-hour": "The clocks went back, so this time happened twice, and it read as the earlier.",
+            "boolean-as-number": "A boolean read as a number, `true` as 1 and `false` as 0, where a boolean field "
+            "maps to a number one or a workbook stores a boolean in a number field.",
+            "number-as-boolean": "A number read as a boolean, 1 as `true` and 0 as `false`, where a number field maps "
+            "to a boolean one or a workbook stores a number in a boolean field; any other number is refused.",
         }
     )
 

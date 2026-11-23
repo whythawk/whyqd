@@ -112,6 +112,13 @@ class TestReader:
         assert read[0]["value"] == 1234.5 and read[1]["value"] == 2.5e-05
         assert read[2]["reason"] == "not-in-format"
 
+    def test_a_stored_boolean_and_number_read_across_with_a_warning(self):
+        numbers = readings(cells=["TRUE", "FALSE"], cell_types=["b", "b"], dtype="number")
+        assert [(r["value"], r["warnings"]) for r in numbers] == [(1.0, ["boolean-as-number"]), (0.0, ["boolean-as-number"])]
+        booleans = readings(cells=["1", "0", "2"], cell_types=["n", "n", "n"], dtype="boolean")
+        assert [(r["value"], r["reason"]) for r in booleans] == [(True, None), (False, None), (None, "not-in-format")]
+        assert booleans[0]["warnings"] == ["number-as-boolean"]
+
     def test_a_cell_with_no_offset_beside_those_with_one_needs_a_zone(self):
         cells = ["2024-04-13T12:45:00Z", "2024-04-13T12:45:00"]
         read = readings(cells=cells, dtype="datetime")

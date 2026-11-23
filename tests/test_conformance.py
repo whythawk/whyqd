@@ -168,6 +168,30 @@ class TestTypes:
             run.process()
         assert [(f.field, f.code, f.count) for f in run.report.findings] == [("a", "type-conflict", None)]
 
+    def test_a_boolean_reads_as_a_number_and_says_so(self, tmp_path):
+        run = build(
+            tmp_path, [["a"], ["true"], ["false"]], source={"a": {"type": "boolean"}}, destination={"a": {"type": "number"}}
+        )
+        run.process()
+        assert run.data["a"].tolist() == [1.0, 0.0]
+        assert warned(run) == [("a", "boolean-as-number")]
+
+    def test_a_number_reads_as_a_boolean_and_says_so(self, tmp_path):
+        run = build(
+            tmp_path, [["a"], ["1"], ["0"]], source={"a": {"type": "number"}}, destination={"a": {"type": "boolean"}}
+        )
+        run.process()
+        assert run.data["a"].tolist() == [True, False]
+        assert warned(run) == [("a", "number-as-boolean")]
+
+    def test_any_other_number_halts_as_a_boolean(self, tmp_path):
+        run = build(
+            tmp_path, [["a"], ["1"], ["2"]], source={"a": {"type": "number"}}, destination={"a": {"type": "boolean"}}
+        )
+        with pytest.raises(ValueError):
+            run.process()
+        assert faults(run) == [("a", "not-in-format", 1)]
+
     def test_a_datetime_mapped_to_a_date_drops_its_time_and_says_so(self, tmp_path):
         run = build(
             tmp_path,

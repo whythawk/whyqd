@@ -50,6 +50,8 @@ class ConformanceParser:
     """
 
     TEXT: ClassVar[str] = FieldType.STRING.value
+    # A boolean maps to a number and back, each read with a warning, as numbers map to each other
+    NUMBERS_OR_BOOLEAN: ClassVar[frozenset[str]] = FieldFamilies.NUMBERS | {FieldType.BOOLEAN.value}
     MAPS_DIRECTLY: ClassVar[frozenset[str]] = frozenset({"RENAME", "SELECT", "SELECT_NEWEST", "SELECT_OLDEST"})
     WARNINGS: ClassVar[dict[str, str]] = {
         ConformanceFinding.STORED_AS_OTHER_TYPE.value: "a workbook stores these as another type, which Excel may have "
@@ -74,6 +76,10 @@ class ConformanceParser:
         "shortened",
         "time-dropped": "a date does not keep a time; use a `datetime` field if it matters",
         "repeated-hour": "the clocks went back, so these read as the earlier time; check them if the hour matters",
+        "boolean-as-number": "a boolean read as a number, `true` as 1 and `false` as 0; check the destination wants "
+        "a number",
+        "number-as-boolean": "a number read as a boolean, 1 as `true` and 0 as `false`; check the destination wants "
+        "a boolean",
         ConformanceFinding.UNREAD_REFUSAL.value: "no action reads this field, so it does not stop the transform; "
         "correct its declaration or remove it",
     }
@@ -318,7 +324,7 @@ class ConformanceParser:
             or declared == wanted
         ):
             return
-        if {declared, wanted} <= FieldFamilies.DATES or {declared, wanted} <= FieldFamilies.NUMBERS:
+        if {declared, wanted} <= FieldFamilies.DATES or {declared, wanted} <= self.NUMBERS_OR_BOOLEAN:
             return
         self.conflicted.add(destination.name)
         self.faults.append(

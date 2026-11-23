@@ -19,6 +19,8 @@ class BaseReadingParser:
     BIDI: ClassVar[str] = PolarsPatterns.BIDI_MARKS
     # What a refusal's shape writes for each digit, so cells differing only in their digits group together
     SHAPE_DIGIT: ClassVar[str] = "9"
+    # A boolean's text for `true`, in any case: a stored boolean renders `TRUE`
+    TRUE: ClassVar[str] = "true"
     WARNING_CODES: ClassVar[list[str]] = [warning.value for warning in ReadingWarning]
     # A reading's columns, and those every type's working frame holds
     KIND: ClassVar[str] = "kind"

@@ -122,6 +122,7 @@ class NumberParser(BaseReadingParser):
         text, negative = self.negatives(text, rules)
         if not rules.negative:
             warned[ReadingWarning.SIGN] = negative
+        warned[ReadingWarning.BOOLEAN_AS_NUMBER] = types == CellType.BOOLEAN.value
         minus = text.str.contains(p.LEADING_MINUS).fill_null(False)
         core = text.str.replace(p.LEADING_MINUS, "")
         decimal, group, shapes = declared or (self.DECIMAL_MARK, self.GROUP_MARK, self.GROUP_SHAPES)
@@ -237,6 +238,7 @@ class NumberParser(BaseReadingParser):
         refusals = (
             (pl.col(self.TYPE) == CellType.ERROR.value, RefusalReason.ERROR_CELL),
             (pl.col(self.TYPE) == CellType.NUMBER.value, None),
+            (pl.col(self.TYPE) == CellType.BOOLEAN.value, None),
             (pl.col(self.TYPE) != CellType.STRING.value, RefusalReason.NOT_IN_FORMAT),
             (pl.col(self.BLANK), None),
             (pl.col(self.FORM), RefusalReason.NUMBER_FORM),
@@ -254,13 +256,17 @@ class NumberParser(BaseReadingParser):
         return self.refusal(refusals)
 
     def canonical(self) -> pl.Expr:
-        """Each number as canonical text, with its sign and exponent; a stored number is its own rendering."""
+        """Each number as canonical text, with its sign and exponent; a stored number is its own rendering, and a stored
+        boolean 1 or 0."""
         written = pl.col(self.DIGITS) + pl.when(pl.col(self.EXPONENT).is_not_null()).then(
             pl.lit("e") + pl.col(self.EXPONENT)
         ).otherwise(pl.lit(""))
+        true = pl.col(self.CELL).str.to_lowercase() == self.TRUE
         return (
             pl.when(pl.col(self.TYPE) == CellType.NUMBER.value)
             .then(pl.col(self.CELL))
+            .when(pl.col(self.TYPE) == CellType.BOOLEAN.value)
+            .then(pl.when(true).then(pl.lit("1")).otherwise(pl.lit("0")))
             .when(pl.col(self.NEGATIVE))
             .then(pl.lit("-") + written)
             .otherwise(written)
