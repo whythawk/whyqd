@@ -95,8 +95,9 @@ class RulesModel(BaseModel):
     )
     cellFormats: dict[CellType, str] = Field(
         {},
-        description="By a workbook's stored cell type, a pattern reading that cell's rendering, where it differs from "
-        "its text: `{'d': 'yyyy-dd-MM'}` for a column of date cells whose day and month Excel swapped.",
+        description="For a date, time, or period field, the pattern a workbook's stored date cells (`d`) are read by, "
+        "where it differs from their text: `{'d': 'yyyy-dd-MM'}` for a column of date cells whose day and month Excel "
+        "swapped.",
     )
     model_config = ConfigDict(extra="forbid", validate_assignment=True)
 
@@ -224,6 +225,12 @@ class PolicyModel(BaseModel):
             unfit.append("`rules.zone`")
         if "serial" in declared and dtype in FieldFamilies.QUANTITIES:
             unfit.append("`rules.serial`")
+        if "cellFormats" in declared and (not temporal or dtype == FieldType.DURATION.value):
+            unfit.append("`rules.cellFormats`")
+        elif "cellFormats" in declared:
+            unfit += [
+                f"`rules.cellFormats` for `{tag.value}` cells" for tag in rules.cellFormats if tag != CellType.DATE
+            ]
         patterns = self.declared_patterns()
         if boolean:
             unfit += [f"`{pair}`, not one `true|false` pair" for pair in patterns if pair.count(self.PAIR) != 1]

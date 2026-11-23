@@ -804,7 +804,7 @@
             "type": "string"
           },
           "default": {},
-          "description": "By a workbook's stored cell type, a pattern reading that cell's rendering, where it differs from its text: `{'d': 'yyyy-dd-MM'}` for a column of date cells whose day and month Excel swapped.",
+          "description": "For a date, time, or period field, the pattern a workbook's stored date cells (`d`) are read by, where it differs from their text: `{'d': 'yyyy-dd-MM'}` for a column of date cells whose day and month Excel swapped.",
           "propertyNames": {
             "$ref": "#/$defs/CellType"
           },
