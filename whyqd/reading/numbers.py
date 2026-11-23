@@ -26,6 +26,21 @@ class NumberParser(BaseReadingParser):
     DECIMAL_PRECISION: ClassVar[int] = 38
     PERCENT: ClassVar[int] = 2
     PER_MILLE: ClassVar[int] = 3
+    # A number's working columns: its text once marks are read past, without a sign, and what else is left; whether a
+    # lone mark could be either, a space splits digits, and how many runs of digits; the exponent, canonical digits,
+    # and how far a percent moves the point; two signs, the sign read, and whether it is `NaN` or `INF`
+    TEXT: ClassVar[str] = "text"
+    CORE: ClassVar[str] = "core"
+    LEFT: ClassVar[str] = "left"
+    EITHER: ClassVar[str] = "either"
+    SPACED: ClassVar[str] = "spaced"
+    RUNS: ClassVar[str] = "runs"
+    EXPONENT: ClassVar[str] = "exponent"
+    DIGITS: ClassVar[str] = "digits"
+    SHIFT: ClassVar[str] = "shift"
+    SIGNS: ClassVar[str] = "signs"
+    NEGATIVE: ClassVar[str] = "negative"
+    NON_FINITE: ClassVar[str] = "non_finite"
 
     def number_format(self, policy: PolicyModel) -> tuple[str, str | None, list[tuple[int, int]]] | None:
         """The decimal mark, group mark, and group sizes declared, each normalised as a cell is, or `None` where the
@@ -45,36 +60,40 @@ class NumberParser(BaseReadingParser):
         """A number as `Float64`, or as exact decimals where `base` is `decimal` or a cell holds more digits than a
         `Float64` keeps, the column then reading as decimals with that cell warning."""
         read = self.parts(cells=cells, types=types, policy=policy)
-        finite = read["text"].str.contains(self.patterns.NON_FINITE).fill_null(False)
+        finite = read[self.TEXT].str.contains(self.patterns.NON_FINITE).fill_null(False)
         if policy.base == PolicyModel.EXACT:
             return self.outcome(*self.as_decimal(read, finite=finite))
         lost = self.float_losses(read)
         if lost.any():
             return self.outcome(*self.as_decimal(read.with_columns(lost), finite=finite))
-        digits = read["text"].str.replace("INF", "inf").str.to_lowercase().zip_with(finite, read["digits"])
-        read = read.with_columns(digits.alias("digits"))
-        scale = (10.0 ** read["shift"].cast(pl.Float64)).alias(self.CELL)
-        return self.outcome(read, read["digits"].cast(pl.Float64, strict=False) / scale)
+        digits = read[self.TEXT].str.replace("INF", "inf").str.to_lowercase().zip_with(finite, read[self.DIGITS])
+        read = read.with_columns(digits.alias(self.DIGITS))
+        scale = (10.0 ** read[self.SHIFT].cast(pl.Float64)).alias(self.CELL)
+        return self.outcome(read, read[self.DIGITS].cast(pl.Float64, strict=False) / scale)
 
     def read_integer(self, *, cells: pl.Series, types: pl.Series, policy: PolicyModel) -> pl.DataFrame:
         """A whole number, a fraction rounded half away from zero, as Excel's `ROUND` does, with a warning."""
         read = self.parts(cells=cells, types=types, policy=policy)
-        whole = read["digits"].str.contains(self.patterns.WHOLE).fill_null(False) & (read["shift"] == 0)
-        value = read["digits"].str.replace(self.patterns.FRACTION, "").cast(pl.Int64, strict=False)
+        whole = read[self.DIGITS].str.contains(self.patterns.WHOLE).fill_null(False) & (read[self.SHIFT] == 0)
+        value = read[self.DIGITS].str.replace(self.patterns.FRACTION, "").cast(pl.Int64, strict=False)
         rounded = pl.repeat(False, cells.len(), eager=True)
-        others = read.filter(~whole & pl.col("reason").is_null() & ~pl.col("blank")).select("digits", "shift").unique()
+        others = (
+            read.filter(~whole & pl.col(self.REASON).is_null() & ~pl.col(self.BLANK))
+            .select(self.DIGITS, self.SHIFT)
+            .unique()
+        )
         if others.height:
             exact = {(text, shift): Decimal(text).scaleb(-shift) for text, shift in others.rows()}
             near = {key: number.to_integral_value(rounding=ROUND_HALF_UP) for key, number in exact.items()}
-            keys = read.select("digits", "shift").rows()
+            keys = read.select(self.DIGITS, self.SHIFT).rows()
             changed = pl.Series(self.CELL, [key in near and near[key] != exact[key] for key in keys], dtype=pl.Boolean)
             written = pl.Series(self.CELL, [str(near[key]) if key in near else None for key in keys], dtype=pl.String)
             value = value.zip_with(whole, written.cast(pl.Int64, strict=False))
             rounded = changed
-        lost = value.is_null() & read["digits"].is_not_null() & read["reason"].is_null() & ~read["blank"]
+        lost = value.is_null() & read[self.DIGITS].is_not_null() & read[self.REASON].is_null() & ~read[self.BLANK]
         read = read.with_columns(
             rounded.alias(ReadingWarning.ROUNDED.value),
-            pl.when(lost).then(pl.lit(RefusalReason.TOO_MANY_DIGITS.value)).otherwise("reason").alias("reason"),
+            pl.when(lost).then(pl.lit(RefusalReason.TOO_MANY_DIGITS.value)).otherwise(self.REASON).alias(self.REASON),
         )
         return self.outcome(read, value)
 
@@ -140,24 +159,24 @@ class NumberParser(BaseReadingParser):
         detail = last.zip_with(either, space.zip_with(spaced & (left == ""), left))
         read = pl.DataFrame(
             {
-                "cell": cells,
-                "type": types,
-                "blank": self.is_blank(cells),
-                "form": cells.str.contains(p.NUMBER_FORM).fill_null(False),
-                "mixed": mixed,
-                "text": text,
-                "core": core,
-                "left": left,
-                "detail": detail,
-                "either": either.fill_null(False),
-                "spaced": spaced.fill_null(False),
-                "runs": mantissa.str.extract_all(p.number_run(decimal, group)).list.len(),
-                "exponent": exponent,
-                "fits": fits.fill_null(False),
-                "digits": digits,
-                "shift": shift,
-                "signs": negative & minus,
-                "negative": negative | minus,
+                self.CELL: cells,
+                self.TYPE: types,
+                self.BLANK: self.is_blank(cells),
+                self.FORM: cells.str.contains(p.NUMBER_FORM).fill_null(False),
+                self.MIXED: mixed,
+                self.TEXT: text,
+                self.CORE: core,
+                self.LEFT: left,
+                self.DETAIL: detail,
+                self.EITHER: either.fill_null(False),
+                self.SPACED: spaced.fill_null(False),
+                self.RUNS: mantissa.str.extract_all(p.number_run(decimal, group)).list.len(),
+                self.EXPONENT: exponent,
+                self.FITS: fits.fill_null(False),
+                self.DIGITS: digits,
+                self.SHIFT: shift,
+                self.SIGNS: negative & minus,
+                self.NEGATIVE: negative | minus,
                 **{code.value: flag.fill_null(False) for code, flag in warned.items()},
             }
         )
@@ -189,73 +208,78 @@ class NumberParser(BaseReadingParser):
     def number_reason(self, rules: RulesModel) -> pl.Expr:
         """Why a cell is refused, the first of these that holds. A stored cell is decided by its type alone."""
         p = self.patterns
-        finite = pl.col("text").str.contains(p.NON_FINITE).fill_null(False)
-        signed = pl.col("text").str.contains(p.BRACKETED) | pl.col("text").str.contains(p.TRAILING_MINUS)
+        finite = pl.col(self.TEXT).str.contains(p.NON_FINITE).fill_null(False)
+        signed = pl.col(self.TEXT).str.contains(p.BRACKETED) | pl.col(self.TEXT).str.contains(p.TRAILING_MINUS)
         refusals = (
-            (pl.col("type") == CellType.ERROR.value, RefusalReason.ERROR_CELL),
-            (pl.col("type") == CellType.NUMBER.value, None),
-            (pl.col("type") != CellType.STRING.value, RefusalReason.NOT_IN_FORMAT),
-            (pl.col("blank"), None),
-            (pl.col("form"), RefusalReason.NUMBER_FORM),
-            (pl.col("mixed"), RefusalReason.MIXED_DIGITS),
+            (pl.col(self.TYPE) == CellType.ERROR.value, RefusalReason.ERROR_CELL),
+            (pl.col(self.TYPE) == CellType.NUMBER.value, None),
+            (pl.col(self.TYPE) != CellType.STRING.value, RefusalReason.NOT_IN_FORMAT),
+            (pl.col(self.BLANK), None),
+            (pl.col(self.FORM), RefusalReason.NUMBER_FORM),
+            (pl.col(self.MIXED), RefusalReason.MIXED_DIGITS),
             (finite & (not rules.nonFinite), RefusalReason.UNDECLARED_NON_FINITE),
             (finite, None),
-            (pl.col("core") == "", RefusalReason.NO_NUMBER),
-            (signed.fill_null(False) | pl.col("signs"), RefusalReason.UNDECLARED_SIGN),
-            (pl.col("exponent").is_not_null() & (rules.exponent is False), RefusalReason.UNDECLARED_EXPONENT),
-            (pl.col("exponent").is_null() & (pl.col("left") != ""), RefusalReason.UNDECLARED_CHARACTER),
-            (pl.col("either") | pl.col("spaced"), RefusalReason.UNDECLARED_CHARACTER),
-            (pl.col("runs") > 1, RefusalReason.TWO_NUMBERS),
-            (~pl.col("fits"), RefusalReason.GROUPING),
+            (pl.col(self.CORE) == "", RefusalReason.NO_NUMBER),
+            (signed.fill_null(False) | pl.col(self.SIGNS), RefusalReason.UNDECLARED_SIGN),
+            (pl.col(self.EXPONENT).is_not_null() & (rules.exponent is False), RefusalReason.UNDECLARED_EXPONENT),
+            (pl.col(self.EXPONENT).is_null() & (pl.col(self.LEFT) != ""), RefusalReason.UNDECLARED_CHARACTER),
+            (pl.col(self.EITHER) | pl.col(self.SPACED), RefusalReason.UNDECLARED_CHARACTER),
+            (pl.col(self.RUNS) > 1, RefusalReason.TWO_NUMBERS),
+            (~pl.col(self.FITS), RefusalReason.GROUPING),
         )
         return self.refusal(refusals)
 
     def canonical(self) -> pl.Expr:
         """Each number as canonical text, with its sign and exponent; a stored number is its own rendering."""
-        written = pl.col("digits") + pl.when(pl.col("exponent").is_not_null()).then(
-            pl.lit("e") + pl.col("exponent")
+        written = pl.col(self.DIGITS) + pl.when(pl.col(self.EXPONENT).is_not_null()).then(
+            pl.lit("e") + pl.col(self.EXPONENT)
         ).otherwise(pl.lit(""))
         return (
-            pl.when(pl.col("type") == CellType.NUMBER.value)
-            .then(pl.col("cell"))
-            .when(pl.col("negative"))
+            pl.when(pl.col(self.TYPE) == CellType.NUMBER.value)
+            .then(pl.col(self.CELL))
+            .when(pl.col(self.NEGATIVE))
             .then(pl.lit("-") + written)
             .otherwise(written)
-            .alias("digits")
+            .alias(self.DIGITS)
         )
 
     def float_losses(self, read: pl.DataFrame) -> pl.Series:
         """Whether each number has more digits than a `Float64` keeps, compared exactly, and only where it might."""
-        significant = read["digits"].str.replace_all(self.patterns.SIGN_OR_POINT, "").str.strip_chars_start("0")
-        possible = (read["reason"].is_null() & (significant.str.len_chars() > self.FLOAT_DIGITS)).fill_null(False)
+        significant = read[self.DIGITS].str.replace_all(self.patterns.SIGN_OR_POINT, "").str.strip_chars_start("0")
+        possible = (read[self.REASON].is_null() & (significant.str.len_chars() > self.FLOAT_DIGITS)).fill_null(False)
         lost = [
             text
-            for text in read["digits"].filter(possible).unique().to_list()
+            for text in read[self.DIGITS].filter(possible).unique().to_list()
             if Decimal(text) != Decimal(repr(float(text)))
         ]
-        return (read["digits"].is_in(lost) & possible).alias(ReadingWarning.EXACT_DECIMAL.value)
+        return (read[self.DIGITS].is_in(lost) & possible).alias(ReadingWarning.EXACT_DECIMAL.value)
 
     def as_decimal(self, read: pl.DataFrame, *, finite: pl.Series) -> tuple[pl.DataFrame, pl.Series]:
         """Exact values, in the scale the column's own cells need, so none rounds. A decimal has no `NaN` or `INF`, and
         a number too long for its precision is refused."""
-        read = read.with_columns(finite.alias("finite")).with_columns(
-            pl.when("finite")
+        read = read.with_columns(finite.alias(self.NON_FINITE)).with_columns(
+            pl.when(self.NON_FINITE)
             .then(pl.lit(RefusalReason.UNDECLARED_NON_FINITE.value))
-            .otherwise("reason")
-            .alias("reason")
+            .otherwise(self.REASON)
+            .alias(self.REASON)
         )
-        kept = read.filter(pl.col("reason").is_null() & ~pl.col("blank")).select("digits", "shift").unique().rows()
+        kept = (
+            read.filter(pl.col(self.REASON).is_null() & ~pl.col(self.BLANK))
+            .select(self.DIGITS, self.SHIFT)
+            .unique()
+            .rows()
+        )
         exact = {(text, shift): Decimal(text).scaleb(-shift) for text, shift in kept}
         scale = max((max(0, -value.as_tuple().exponent) for value in exact.values()), default=0)
         fits = {key: value for key, value in exact.items() if value.adjusted() + 1 + scale <= self.DECIMAL_PRECISION}
-        written = [fits.get(key) for key in read.select("digits", "shift").rows()]
+        written = [fits.get(key) for key in read.select(self.DIGITS, self.SHIFT).rows()]
         value = pl.Series(self.CELL, written, dtype=pl.Decimal(self.DECIMAL_PRECISION, scale))
         too_long = [key[0] for key in exact if key not in fits]
         read = read.with_columns(
-            pl.when(pl.col("digits").is_in(too_long))
+            pl.when(pl.col(self.DIGITS).is_in(too_long))
             .then(pl.lit(RefusalReason.TOO_MANY_DIGITS.value))
-            .otherwise("reason")
-            .alias("reason")
+            .otherwise(self.REASON)
+            .alias(self.REASON)
         )
         return read, value
 

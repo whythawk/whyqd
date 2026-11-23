@@ -7,7 +7,16 @@ from typing import ClassVar
 import pandas as pd
 import polars as pl
 
-from whyqd.dtypes import CellType, FieldFamilies, FieldType, FindingKind, MimeType, Place
+from whyqd.dtypes import (
+    CellType,
+    ConformanceFinding,
+    FieldFamilies,
+    FieldType,
+    FindingKind,
+    MimeType,
+    Place,
+    ReadingKind,
+)
 from whyqd.models import FieldModel, FindingModel, PolicyModel, ReportModel
 from whyqd.reading.reading import ReadingParser
 from whyqd.sources.row_key import RowKeyParser
@@ -42,16 +51,16 @@ class ConformanceParser:
 
     TEXT: ClassVar[str] = FieldType.STRING.value
     PANDAS: ClassVar[dict[str, str]] = {
-        "number": "Float64",
-        "integer": "Int64",
-        "boolean": "boolean",
-        "string": "string",
+        FieldType.NUMBER.value: "Float64",
+        FieldType.INTEGER.value: "Int64",
+        FieldType.BOOLEAN.value: "boolean",
+        FieldType.STRING.value: "string",
     }
     MAPS_DIRECTLY: ClassVar[frozenset[str]] = frozenset({"RENAME", "SELECT", "SELECT_NEWEST", "SELECT_OLDEST"})
     WARNINGS: ClassVar[dict[str, str]] = {
-        "stored-as-other-type": "a workbook stores these as another type, which Excel may have converted on opening; "
+        ConformanceFinding.STORED_AS_OTHER_TYPE.value: "a workbook stores these as another type, which Excel may have converted on opening; "
         "check them against the file's owner",
-        "several-currencies": "the amounts are in several currencies, and read as one number; split them with a crosswalk "
+        ConformanceFinding.SEVERAL_CURRENCIES.value: "the amounts are in several currencies, and read as one number; split them with a crosswalk "
         "action before summing",
         "currency-read": "a currency mark was read past; declare it in `rules.currency` to confirm",
         "sign-read": "a negative form such as `(x)` was read as negative; declare it in `rules.negative` to confirm",
@@ -69,7 +78,7 @@ class ConformanceParser:
         "year-below-1000": "these read as a year before 1000; declare `yy` and `rules.yearStart` if the year is shortened",
         "time-dropped": "a date does not keep a time; use a `datetime` field if it matters",
         "repeated-hour": "the clocks went back, so these read as the earlier time; check them if the hour matters",
-        "unread-refusal": "no action reads this field, so it does not stop the transform; correct its declaration or "
+        ConformanceFinding.UNREAD_REFUSAL.value: "no action reads this field, so it does not stop the transform; correct its declaration or "
         "remove it",
     }
 
@@ -114,7 +123,7 @@ class ConformanceParser:
                 read = self.reading.column(cells=cells, dtype=field.dtype, policy=field.policy, types=tags)
                 self.keep(field=field.name, cells=cells, readings=read, rows=rows)
                 self.warn_currencies(field=field.name, cells=cells, dtype=field.dtype, policy=field.policy)
-                df[field.name] = self.pandas(read["value"], field.dtype, df.index)
+                df[field.name] = self.pandas(read[self.reading.VALUE], field.dtype, df.index)
                 continue
             df[field.name] = (
                 cells.to_pandas()
@@ -148,7 +157,13 @@ class ConformanceParser:
         counts = self.reading.numbers.currencies(cells=cells, policy=policy or PolicyModel())
         if sum(1 for count in counts.values() if count) > 1:
             detail = ", ".join(f"`{mark}`: {count}" for mark, count in counts.items() if count)
-            self.warn(code="several-currencies", field=field, says=detail, count=sum(counts.values()), first=None)
+            self.warn(
+                code=ConformanceFinding.SEVERAL_CURRENCIES.value,
+                field=field,
+                says=detail,
+                count=sum(counts.values()),
+                first=None,
+            )
 
     def warn(self, *, code: str, field: str, says: str, count: int, first: int | None) -> None:
         where = "" if first is None else f", first at row {first}"
@@ -168,10 +183,16 @@ class ConformanceParser:
         if stored:
             first = rows.filter(types.is_in(list(stored)).fill_null(False)).min()
             says = ", ".join(f"{count} {CellType(tag).name.lower()} cells" for tag, count in stored.items())
-            self.warn(code="stored-as-other-type", field=field, says=says, count=sum(stored.values()), first=first)
+            self.warn(
+                code=ConformanceFinding.STORED_AS_OTHER_TYPE.value,
+                field=field,
+                says=says,
+                count=sum(stored.values()),
+                first=first,
+            )
 
     def warn_cells(self, *, field: str, readings: pl.DataFrame, cells: pl.Series, rows: pl.Series) -> None:
-        warned = readings["warnings"]
+        warned = readings[self.reading.WARNINGS]
         for code in warned.explode().drop_nulls().unique().sort().to_list():
             mask = warned.list.contains(code).fill_null(False)
             self.warn(
@@ -185,7 +206,7 @@ class ConformanceParser:
         for refused in self.refused:
             kept = refused.rows.is_in(surviving.implode().explode()).fill_null(False)
             readings = refused.readings.filter(kept)
-            if readings["reason"].null_count() == readings.height:
+            if readings[self.reading.REASON].null_count() == readings.height:
                 continue
             found = self.reading.findings(
                 field=refused.field,
@@ -196,9 +217,13 @@ class ConformanceParser:
             if refused.field in read_fields:
                 self.faults += found
             else:
-                count = readings["reason"].drop_nulls().len()
+                count = readings[self.reading.REASON].drop_nulls().len()
                 self.warn(
-                    code="unread-refusal", field=refused.field, says=f"{count} cells refused", count=count, first=None
+                    code=ConformanceFinding.UNREAD_REFUSAL.value,
+                    field=refused.field,
+                    says=f"{count} cells refused",
+                    count=count,
+                    first=None,
                 )
         self.refused = []
 
@@ -288,9 +313,10 @@ class ConformanceParser:
             self.warn_currencies(field=field.name, cells=cells, dtype=field.dtype, policy=policy)
             self.faults += self.reading.findings(field=field.name, cells=cells, readings=read, rows=rows)
             # A text field keeps a whitespace-only cell as written, though it counts as blank when a value is required
-            value = cells if field.dtype == self.TEXT else read["value"]
+            value = cells if field.dtype == self.TEXT else read[self.reading.VALUE]
             df[field.name] = self.pandas(value, field.dtype, df.index)
-            self.check_constraints(field=field, column=df[field.name], rows=rows, skip=read["kind"] == "refused")
+            refused = read[self.reading.KIND] == ReadingKind.REFUSED.value
+            self.check_constraints(field=field, column=df[field.name], rows=rows, skip=refused)
         return df
 
     def check_constraints(
@@ -307,30 +333,30 @@ class ConformanceParser:
             blank = blank | (column.astype("string").str.strip() == "").fillna(False)
         failures = {}
         if limits.required:
-            failures["constraint-required"] = (blank & kept, "holds nothing, and is required")
+            failures[ConformanceFinding.CONSTRAINT_REQUIRED] = (blank & kept, "holds nothing, and is required")
         if limits.unique:
             duplicated = column.duplicated(keep=False) & ~blank
-            failures["constraint-unique"] = (duplicated & kept, "repeats a value, and must be unique")
+            failures[ConformanceFinding.CONSTRAINT_UNIQUE] = (duplicated & kept, "repeats a value, and must be unique")
         numeric = pd.api.types.is_numeric_dtype(column) and not pd.api.types.is_bool_dtype(column)
         if numeric and limits.minimum is not None:
-            failures["constraint-minimum"] = (
+            failures[ConformanceFinding.CONSTRAINT_MINIMUM] = (
                 (column < limits.minimum).fillna(False) & kept,
                 f"is below {limits.minimum}",
             )
         if numeric and limits.maximum is not None:
-            failures["constraint-maximum"] = (
+            failures[ConformanceFinding.CONSTRAINT_MAXIMUM] = (
                 (column > limits.maximum).fillna(False) & kept,
                 f"is above {limits.maximum}",
             )
         if field.dtype == self.TEXT:
             lengths = column.astype("string").str.len()
             if limits.minLength is not None:
-                failures["constraint-min-length"] = (
+                failures[ConformanceFinding.CONSTRAINT_MIN_LENGTH] = (
                     (lengths < limits.minLength).fillna(False) & kept,
                     f"has under {limits.minLength} characters",
                 )
             if limits.maxLength is not None:
-                failures["constraint-max-length"] = (
+                failures[ConformanceFinding.CONSTRAINT_MAX_LENGTH] = (
                     (lengths > limits.maxLength).fillna(False) & kept,
                     f"has over {limits.maxLength} characters",
                 )
@@ -340,7 +366,7 @@ class ConformanceParser:
                 first = rows.filter(pl.Series(failed.to_numpy().astype(bool))).min()
                 self.faults.append(
                     FindingModel(
-                        code=code,
+                        code=code.value,
                         kind=FindingKind.FAULT,
                         message=f"Field `{field.name}`: {count} cells, first at row {first}, each {says}. Next, loosen "
                         "the constraint, or decide about the source.",
@@ -365,7 +391,7 @@ class ConformanceParser:
         self.conflicted.add(destination.name)
         self.faults.append(
             FindingModel(
-                code="type-conflict",
+                code=ConformanceFinding.TYPE_CONFLICT.value,
                 kind=FindingKind.FAULT,
                 message=f"Source field `{source.name}` is `{declared}`, and the crosswalk maps it to `{destination.name}`, "
                 f"which is `{wanted}`. Next, change one of the two types.",

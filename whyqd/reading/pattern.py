@@ -19,8 +19,9 @@ class PatternParser:
     """
 
     YEAR_FIELDS: ClassVar[frozenset[str]] = frozenset({"y", "yy", "yyyy"})
-    MONTH_FIELDS: ClassVar[frozenset[str]] = frozenset({"M", "MM", "MMM", "MMMM"})
-    NAME_FIELDS: ClassVar[frozenset[str]] = frozenset({"MMM", "MMMM", "E", "EEE", "EEEE"})
+    MONTH_NAMES: ClassVar[frozenset[str]] = frozenset({"MMM", "MMMM"})
+    MONTH_FIELDS: ClassVar[frozenset[str]] = frozenset({"M", "MM"}) | MONTH_NAMES
+    NAME_FIELDS: ClassVar[frozenset[str]] = MONTH_NAMES | {"E", "EEE", "EEEE"}
     DATE_FIELDS: ClassVar[frozenset[str]] = YEAR_FIELDS | MONTH_FIELDS | {"d", "dd", "E", "EEE", "EEEE"}
     TIME_FIELDS: ClassVar[frozenset[str]] = frozenset({"H", "HH", "h", "hh", "a", "m", "mm", "s", "ss", "S"})
     READABLE: ClassVar[dict[str, frozenset[str]]] = {

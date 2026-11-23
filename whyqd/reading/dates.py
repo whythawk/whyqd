@@ -57,7 +57,18 @@ class DateParser(BaseReadingParser):
     }
     YEAR_WIDTH: ClassVar[int] = 4
     FIELD_WIDTH: ClassVar[int] = 2
+    ISO_WIDTHS: ClassVar[dict[str, int]] = {"y": YEAR_WIDTH, "S": 1}
+    CENTURY: ClassVar[int] = 100
+    TIME_UNIT: ClassVar[str] = "us"
+    # Each unit a duration's ISO 8601 form holds, in the order it is written
     MICROSECONDS: ClassVar[dict[str, int]] = {"d": 86_400_000_000, "H": 3_600_000_000, "m": 60_000_000, "s": 1_000_000}
+    # A temporal reading's own columns: two patterns reading a cell differently, a cell naming a real date or time,
+    # and a cell with no offset beside those with one
+    TWICE: ClassVar[str] = "twice"
+    NAMED: ClassVar[str] = "named"
+    NO_ZONE: ClassVar[str] = "no_zone"
+    # The day periods read in every language, with whether each is the afternoon
+    DAY_PERIODS: ClassVar[dict[str, bool]] = {"am": False, "a.m.": False, "pm": True, "p.m.": True}
 
     def __init__(self) -> None:
         super().__init__()
@@ -76,22 +87,21 @@ class DateParser(BaseReadingParser):
                 regex.append(p.literal(text))
                 continue
             beside = [written[i][0] for i in (index - 1, index + 1) if 0 <= i < len(written)]
-            if text in ("MMM", "MMMM"):
+            if text in self.pattern.MONTH_NAMES:
                 captured = p.names(list(self.month_names(rules)))
             elif text[0] == "E":
                 captured = p.names(self.weekday_names(rules))
             elif text == "a":
                 captured = p.names(list(self.day_period_names(rules)))
             elif (quantities and not fields) or text == "S":
-                captured = "[0-9]+"
+                captured = p.DIGIT_RUN
             elif any(beside):
-                captured = f"[0-9]{{{4 if text[0] == 'y' and len(text) != 2 else len(text)}}}"
+                captured = p.digits(self.YEAR_WIDTH if text[0] == "y" and len(text) != 2 else len(text))
             else:
-                low, high = self.pattern.WIDTHS[text]
-                captured = f"[0-9]{{{low},{high}}}"
-            regex.append(f"({captured})")
+                captured = p.digits(*self.pattern.WIDTHS[text])
+            regex.append(p.captured(captured))
             fields.append(text)
-        return "^" + "".join(regex) + (p.TIME_TAIL if tail else "") + "$", fields
+        return p.whole_cell("".join(regex) + (p.TIME_TAIL if tail else "")), fields
 
     def name_key(self, name: str) -> str:
         """A declared name as a cell's may be compared with it: without case or a closing `.`. `name_keys` is the same
@@ -127,7 +137,7 @@ class DateParser(BaseReadingParser):
     def day_period_names(self, rules: RulesModel) -> dict[str, bool]:
         """Every spelling a field reads for a day period, with whether it is the afternoon: `AM` and `PM` always."""
         table = NameTables.language(rules.language) if rules.language else None
-        spelled = {"am": False, "a.m.": False, "pm": True, "p.m.": True}
+        spelled = dict(self.DAY_PERIODS)
         for afternoon, key in ((False, "morning"), (True, "afternoon")):
             spelled |= {self.normalised(name).lower(): afternoon for name in (table[key] if table else [])}
         for afternoon, entry in zip((False, True), rules.dayPeriods):
@@ -143,11 +153,11 @@ class DateParser(BaseReadingParser):
         parts = {}
         for index, field in enumerate(fields):
             column = found[str(index + 1)].alias(self.CELL)
-            if field in ("MMM", "MMMM"):
+            if field in self.pattern.MONTH_NAMES:
                 keys = self.name_keys(column)
                 column = keys.replace_strict(self.month_names(rules), default=None, return_dtype=pl.String)
             if field == "yy":
-                column = (rules.yearStart + ((column.cast(pl.Int64) - rules.yearStart) % 100)).cast(pl.String)
+                column = (rules.yearStart + ((column.cast(pl.Int64) - rules.yearStart) % self.CENTURY)).cast(pl.String)
             parts[field[0]] = column
         if "Q" in parts:
             parts["M"] = (parts["Q"].cast(pl.Int64) * self.QUARTER_MONTHS - (self.QUARTER_MONTHS - 1)).cast(pl.String)
@@ -160,15 +170,14 @@ class DateParser(BaseReadingParser):
                 for letter in letters
             }
         )
-        widths = {"y": self.YEAR_WIDTH, "S": 1}
-        columns = [pl.col(letter).str.zfill(widths.get(letter, self.FIELD_WIDTH)) for letter in letters]
+        columns = [pl.col(letter).str.zfill(self.ISO_WIDTHS.get(letter, self.FIELD_WIDTH)) for letter in letters]
         joined = frame.select(pl.format(written, *columns).alias(self.CELL))[self.CELL]
         if dtype == FieldType.DATE.value:
             value = joined.str.to_date(form, strict=False)
         elif dtype == FieldType.TIME.value:
             value = joined.str.to_time(form, strict=False)
         else:
-            value = joined.str.to_datetime(form, strict=False, time_unit="us")
+            value = joined.str.to_datetime(form, strict=False, time_unit=self.TIME_UNIT)
         return found["1"].is_not_null().alias(self.CELL), value.alias(self.CELL)
 
     def twenty_four_hour(self, *, hours: pl.Series, periods: pl.Series, rules: RulesModel) -> pl.Series:
@@ -349,7 +358,7 @@ class DateParser(BaseReadingParser):
         moments = {cell: self.serial_date(cell, system) for cell in text.filter(serial).unique().to_list()}
         read = [moments.get(cell) for cell in text.to_list()]
         held_time = [moment is not None and (moment.hour or moment.minute or moment.second) for moment in read]
-        written = pl.Series(self.CELL, read, dtype=pl.Datetime("us")).cast(value.dtype)
+        written = pl.Series(self.CELL, read, dtype=pl.Datetime(self.TIME_UNIT)).cast(value.dtype)
         tags = pl.repeat(CellType.STRING.value, text.len(), eager=True).zip_with(serial, types)
         held = pl.Series(self.CELL, [bool(held) for held in held_time], dtype=pl.Boolean) & serial
         return fits | serial, written.zip_with(serial, value), held, tags, serial
@@ -363,7 +372,7 @@ class DateParser(BaseReadingParser):
         stated = offsets.is_not_null()
         minutes = {cell: self.offset_minutes(cell) for cell in offsets.drop_nulls().unique().to_list()}
         shift = pl.Series(self.CELL, [minutes.get(o, 0) for o in offsets.to_list()], dtype=pl.Int64)
-        utc = value.dt.replace_time_zone(self.UTC) - shift.cast(pl.Duration("us")) * self.MICROSECONDS["m"]
+        utc = value.dt.replace_time_zone(self.UTC) - shift.cast(pl.Duration(self.TIME_UNIT)) * self.MICROSECONDS["m"]
         from_offset = utc.dt.convert_time_zone(target).alias(self.CELL)
         if zone is None:
             nothing = pl.repeat(None, value.len(), eager=True, dtype=from_offset.dtype).alias(self.CELL)
@@ -397,14 +406,14 @@ class DateParser(BaseReadingParser):
         length = cells.len()
         frame = pl.DataFrame(
             {
-                "blank": self.is_blank(cells),
-                "type": types,
-                "form": cells.str.contains(self.patterns.NUMBER_FORM).fill_null(False),
-                "mixed": mixed,
-                "fits": fits,
-                "twice": twice,
-                "named": named,
-                "no_zone": pl.repeat(False, length, eager=True) if no_zone is None else no_zone,
+                self.BLANK: self.is_blank(cells),
+                self.TYPE: types,
+                self.FORM: cells.str.contains(self.patterns.NUMBER_FORM).fill_null(False),
+                self.MIXED: mixed,
+                self.FITS: fits,
+                self.TWICE: twice,
+                self.NAMED: named,
+                self.NO_ZONE: pl.repeat(False, length, eager=True) if no_zone is None else no_zone,
                 **{code.value: flag.fill_null(False) for code, flag in (warned or {}).items()},
             }
         )
@@ -427,7 +436,7 @@ class DateParser(BaseReadingParser):
             written = self.pattern_dtype(pattern, dtype)
             tail = dtype == FieldType.DATE.value
             fit, read = self.pattern_value(text=text, pattern=pattern, rules=rules, dtype=written, tail=tail)
-            read = read if written == dtype else read.cast(pl.Datetime("us")).alias(self.CELL)
+            read = read if written == dtype else read.cast(pl.Datetime(self.TIME_UNIT)).alias(self.CELL)
             if fits is None:
                 fits, twice, value = fit, pl.repeat(False, text.len(), eager=True).alias(self.CELL), read
                 continue
@@ -447,14 +456,14 @@ class DateParser(BaseReadingParser):
     def temporal_reason(self) -> pl.Expr:
         """Why a date, time, or duration cell is refused, the first of these that holds."""
         refusals = (
-            (pl.col("type") == CellType.ERROR.value, RefusalReason.ERROR_CELL),
-            (~pl.col("type").is_in([CellType.STRING.value, CellType.DATE.value]), RefusalReason.NOT_IN_FORMAT),
-            (pl.col("blank"), None),
-            (pl.col("form"), RefusalReason.NUMBER_FORM),
-            (pl.col("mixed"), RefusalReason.MIXED_DIGITS),
-            (~pl.col("fits"), RefusalReason.NOT_IN_FORMAT),
-            (pl.col("twice"), RefusalReason.TWO_READINGS),
-            (pl.col("no_zone"), RefusalReason.NO_ZONE),
-            (~pl.col("named"), RefusalReason.IMPOSSIBLE_DATE),
+            (pl.col(self.TYPE) == CellType.ERROR.value, RefusalReason.ERROR_CELL),
+            (~pl.col(self.TYPE).is_in([CellType.STRING.value, CellType.DATE.value]), RefusalReason.NOT_IN_FORMAT),
+            (pl.col(self.BLANK), None),
+            (pl.col(self.FORM), RefusalReason.NUMBER_FORM),
+            (pl.col(self.MIXED), RefusalReason.MIXED_DIGITS),
+            (~pl.col(self.FITS), RefusalReason.NOT_IN_FORMAT),
+            (pl.col(self.TWICE), RefusalReason.TWO_READINGS),
+            (pl.col(self.NO_ZONE), RefusalReason.NO_ZONE),
+            (~pl.col(self.NAMED), RefusalReason.IMPOSSIBLE_DATE),
         )
         return self.refusal(refusals)

@@ -26,7 +26,8 @@ class PolarsPatterns:
     DATE: ClassVar[str] = r"^[0-9]+[/.-][0-9]+[/.-][0-9]+$"
     # What reading a cell removes or changes: the bidirectional marks LRM, RLM, and ALM; minus-like characters NFKC
     # leaves; a digit of another script; a character NFKC would turn into a digit of its number
-    BIDI: ClassVar[str] = "[\u200e\u200f\u061c]"
+    BIDI_MARKS: ClassVar[str] = "\u200e\u200f\u061c"
+    BIDI: ClassVar[str] = f"[{BIDI_MARKS}]"
     MINUS: ClassVar[str] = "[‐‑‒–—−]"
     OTHER_DIGIT: ClassVar[str] = r"[\p{Nd}&&[^0-9]]"
     NUMBER_FORM: ClassVar[str] = r"\p{No}"
@@ -74,6 +75,22 @@ class PolarsPatterns:
     UNIX_SERIAL: ClassVar[str] = r"^[0-9]+(?:\.[0-9]+)?$"
     TRAILING_DOT: ClassVar[str] = r"\.$"
     DOT_OR_SPACE: ClassVar[str] = r"[.\s]"
+    DIGIT_RUN: ClassVar[str] = "[0-9]+"
+
+    @staticmethod
+    def digits(low: int, high: int | None = None) -> str:
+        """Exactly `low` digits, or with `high` from `low` to `high`."""
+        return f"[0-9]{{{low}}}" if high is None else f"[0-9]{{{low},{high}}}"
+
+    @staticmethod
+    def captured(pattern: str) -> str:
+        """`pattern` as a group whose match is kept."""
+        return f"({pattern})"
+
+    @staticmethod
+    def whole_cell(pattern: str) -> str:
+        """`pattern` matching a cell from its start to its end."""
+        return f"^{pattern}$"
 
     @staticmethod
     def names(tokens: list[str]) -> str:

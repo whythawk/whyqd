@@ -5,4 +5,12 @@ from .cell import CellType, SerialDate
 from .checksum import ChecksumContent
 from .encoding import EncodingStep
 from .extension import ExtensionKind
-from .report import FindingKind, Place, ReadingKind, ReadingWarning, RefusalReason, SettingSource
+from .report import (
+    ConformanceFinding,
+    FindingKind,
+    Place,
+    ReadingKind,
+    ReadingWarning,
+    RefusalReason,
+    SettingSource,
+)

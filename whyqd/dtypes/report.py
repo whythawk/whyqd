@@ -144,6 +144,43 @@ class RefusalReason(str, Enum):
         return self.DESCRIPTIONS[self.value]
 
 
+class ConformanceFinding(str, Enum):
+    """What a transform found about a field as a whole, beside each cell's refusals and warnings: a conflict of types,
+    a failed constraint, or something worth checking."""
+
+    TYPE_CONFLICT = "type-conflict"
+    CONSTRAINT_REQUIRED = "constraint-required"
+    CONSTRAINT_UNIQUE = "constraint-unique"
+    CONSTRAINT_MINIMUM = "constraint-minimum"
+    CONSTRAINT_MAXIMUM = "constraint-maximum"
+    CONSTRAINT_MIN_LENGTH = "constraint-min-length"
+    CONSTRAINT_MAX_LENGTH = "constraint-max-length"
+    STORED_AS_OTHER_TYPE = "stored-as-other-type"
+    SEVERAL_CURRENCIES = "several-currencies"
+    UNREAD_REFUSAL = "unread-refusal"
+
+    DESCRIPTIONS = nonmember(
+        {
+            "type-conflict": "A source field's type cannot become its destination's, found before any cell is read.",
+            "constraint-required": "A destination field requires a value, and these cells hold none.",
+            "constraint-unique": "A destination field's values must be unique, and these repeat one.",
+            "constraint-minimum": "These values are below the destination field's minimum.",
+            "constraint-maximum": "These values are above the destination field's maximum.",
+            "constraint-min-length": "These texts are shorter than the destination field allows.",
+            "constraint-max-length": "These texts are longer than the destination field allows.",
+            "stored-as-other-type": "A text field's cells a workbook stores as another type, which Excel may have "
+            "converted on opening, the original gone.",
+            "several-currencies": "A number field's amounts are in more than one currency, which read as one number.",
+            "unread-refusal": "A field's cells were refused, and no action reads the field, so the transform goes on.",
+        }
+    )
+
+    @property
+    def describe(self) -> str:
+        """What this value means."""
+        return self.DESCRIPTIONS[self.value]
+
+
 class Place(StrEnum):
     """What a report's rows count, which its messages and preview name. A `StrEnum`, so a message prints `line`."""
 

@@ -45,19 +45,20 @@ class DurationParser(BaseReadingParser):
             fits, within, value = (one.zip_with(is_stored, other) for one, other in zip((fits, within, value), written))
         twice = pl.repeat(False, cells.len(), eager=True)
         frame = self.dates.temporal_frame(cells=cells, types=types, mixed=mixed, fits=fits, twice=twice, named=within)
-        return self.outcome(frame, value.cast(pl.Duration("us")))
+        return self.outcome(frame, value.cast(pl.Duration(self.dates.TIME_UNIT)))
 
     def iso_durations(self, text: pl.Series) -> tuple[pl.Series, pl.Series, pl.Series]:
         """Whether each cell is an ISO 8601 duration, that it is always in range, and its microseconds."""
         found = text.str.extract_groups(self.patterns.DURATION).struct.unnest()
+        units = self.dates.MICROSECONDS
         amounts = {
             letter: found[str(index + 2)].cast(pl.Float64).fill_null(0.0).alias(self.CELL)
-            for index, letter in enumerate("dHms")
+            for index, letter in enumerate(units)
         }
         any_part = pl.DataFrame({str(i): found[str(i)] for i in range(2, 6)}).select(
             pl.any_horizontal(pl.all().is_not_null()).alias(self.CELL)
         )[self.CELL]
-        total = sum(amounts[letter] * float(self.dates.MICROSECONDS[letter]) for letter in "dHms")
+        total = sum(amounts[letter] * float(units[letter]) for letter in units)
         negative = found["1"].is_not_null().alias(self.CELL)
         signed = (total * -1.0).zip_with(negative, total).round().cast(pl.Int64).alias(self.CELL)
         return any_part, pl.repeat(True, text.len(), eager=True).alias(self.CELL), signed

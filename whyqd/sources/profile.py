@@ -6,6 +6,7 @@ import polars as pl
 from whyqd.config.patterns import PolarsPatterns
 from whyqd.dtypes import CellType
 from whyqd.models import ProfileModel
+from whyqd.reading.reader import BaseReadingParser
 
 
 class ProfileParser:
@@ -16,7 +17,7 @@ class ProfileParser:
     """
 
     FORMATTED: ClassVar[list[str]] = [CellType.NUMBER.value, CellType.DATE.value]
-    CELL: ClassVar[str] = "cell"
+    CELL: ClassVar[str] = BaseReadingParser.CELL
 
     def __init__(self) -> None:
         self.patterns = PolarsPatterns()

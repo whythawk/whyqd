@@ -16,8 +16,25 @@ class BaseReadingParser:
 
     CELL: ClassVar[str] = "cell"
     NORMAL: ClassVar[str] = "NFKC"
-    BIDI: ClassVar[str] = "‎‏؜"
-    WARNINGS: ClassVar[list[str]] = [warning.value for warning in ReadingWarning]
+    BIDI: ClassVar[str] = PolarsPatterns.BIDI_MARKS
+    # What a refusal's shape writes for each digit, so cells differing only in their digits group together
+    SHAPE_DIGIT: ClassVar[str] = "9"
+    WARNING_CODES: ClassVar[list[str]] = [warning.value for warning in ReadingWarning]
+    # A reading's columns, and those every type's working frame holds
+    KIND: ClassVar[str] = "kind"
+    VALUE: ClassVar[str] = "value"
+    REASON: ClassVar[str] = "reason"
+    DETAIL: ClassVar[str] = "detail"
+    WARNINGS: ClassVar[str] = "warnings"
+    BLANK: ClassVar[str] = "blank"
+    TYPE: ClassVar[str] = "type"
+    FORM: ClassVar[str] = "form"
+    MIXED: ClassVar[str] = "mixed"
+    FITS: ClassVar[str] = "fits"
+    SHAPE: ClassVar[str] = "shape"
+    ROW: ClassVar[str] = "row"
+    COUNT: ClassVar[str] = "count"
+    FIRST: ClassVar[str] = "first"
     ADVICE: ClassVar[dict[str, tuple[str, str]]] = {
         "no-number": ("holds no number", "declare it in the schema's `missingValues`"),
         "two-numbers": ("holds two numbers", "split it with a crosswalk action"),
@@ -96,35 +113,36 @@ class BaseReadingParser:
         for condition, refused in reversed(refusals):
             written = pl.lit(None, dtype=pl.String) if refused is None else pl.lit(refused.value)
             reason = pl.when(condition).then(written).otherwise(reason)
-        return reason.alias("reason")
+        return reason.alias(self.REASON)
 
     def outcome(self, read: pl.DataFrame, value: pl.Series) -> pl.DataFrame:
         """The five columns of a reading, from each cell's reason and value, and a column of its own for each warning a
         reader found, so a value's warnings are a list and a refusal or a blank has none."""
-        refused = pl.col("reason").is_not_null()
-        blank = pl.col("blank") & (pl.col("type") == CellType.STRING.value)
-        undeclared = pl.col("reason") == RefusalReason.UNDECLARED_CHARACTER.value
-        detail = pl.when(undeclared).then("detail") if "detail" in read.columns else pl.lit(None, dtype=pl.String)
-        found = [pl.when(pl.col(code)).then(pl.lit(code)) for code in self.WARNINGS if code in read.columns]
-        warnings = pl.concat_list([pl.lit(None, dtype=pl.String), *found]).list.drop_nulls()
+        refused = pl.col(self.REASON).is_not_null()
+        blank = pl.col(self.BLANK) & (pl.col(self.TYPE) == CellType.STRING.value)
+        undeclared = pl.col(self.REASON) == RefusalReason.UNDECLARED_CHARACTER.value
+        empty = pl.lit(None, dtype=pl.String)
+        detail = pl.when(undeclared).then(self.DETAIL) if self.DETAIL in read.columns else empty
+        found = [pl.when(pl.col(code)).then(pl.lit(code)) for code in self.WARNING_CODES if code in read.columns]
+        warnings = pl.concat_list([empty, *found]).list.drop_nulls()
         warnings = pl.when(refused | blank).then(pl.lit([], dtype=pl.List(pl.String))).otherwise(warnings)
-        return read.with_columns(value.alias("value")).select(
+        return read.with_columns(value.alias(self.VALUE)).select(
             pl.when(refused)
             .then(pl.lit(ReadingKind.REFUSED.value))
             .when(blank)
             .then(pl.lit(ReadingKind.BLANK.value))
             .otherwise(pl.lit(ReadingKind.VALUE.value))
-            .alias("kind"),
-            pl.when(refused | blank).then(None).otherwise("value").alias("value"),
-            pl.col("reason"),
-            detail.alias("detail"),
-            warnings.alias("warnings"),
+            .alias(self.KIND),
+            pl.when(refused | blank).then(None).otherwise(self.VALUE).alias(self.VALUE),
+            pl.col(self.REASON),
+            detail.alias(self.DETAIL),
+            warnings.alias(self.WARNINGS),
         )
 
     def read_string(self, *, cells: pl.Series, types: pl.Series, policy: PolicyModel) -> pl.DataFrame:
         """A text field keeps a cell exactly as written. A blank is a blank, and nothing can be refused."""
-        read = pl.DataFrame({"blank": self.is_blank(cells) & (types == CellType.STRING.value), "type": types})
-        return self.outcome(read.with_columns(pl.lit(None, dtype=pl.String).alias("reason")), cells)
+        read = pl.DataFrame({self.BLANK: self.is_blank(cells) & (types == CellType.STRING.value), self.TYPE: types})
+        return self.outcome(read.with_columns(pl.lit(None, dtype=pl.String).alias(self.REASON)), cells)
 
     def stored_types(self, types: pl.Series) -> dict[str, int]:
         """How many of a text field's cells a workbook stored as another type, which Excel may have converted on
@@ -140,23 +158,23 @@ class BaseReadingParser:
         rows = pl.int_range(1, cells.len() + 1, eager=True) if rows is None else rows
         refused = pl.DataFrame(
             {
-                "shape": cells.alias(self.CELL).str.replace_all(self.patterns.ANY_DIGIT, "9"),
-                "reason": readings["reason"],
-                "detail": readings["detail"],
-                "row": rows.alias(self.CELL),
+                self.SHAPE: cells.alias(self.CELL).str.replace_all(self.patterns.ANY_DIGIT, self.SHAPE_DIGIT),
+                self.REASON: readings[self.REASON],
+                self.DETAIL: readings[self.DETAIL],
+                self.ROW: rows.alias(self.CELL),
             }
-        ).filter(pl.col("reason").is_not_null())
-        grouped = refused.group_by("reason", "shape").agg(
-            pl.len().alias("count"), pl.col("row").min().alias("first"), pl.col("detail").first()
+        ).filter(pl.col(self.REASON).is_not_null())
+        grouped = refused.group_by(self.REASON, self.SHAPE).agg(
+            pl.len().alias(self.COUNT), pl.col(self.ROW).min().alias(self.FIRST), pl.col(self.DETAIL).first()
         )
-        ordered = grouped.sort("count", "reason", "shape", descending=[True, False, False])
+        ordered = grouped.sort(self.COUNT, self.REASON, self.SHAPE, descending=[True, False, False])
         return [self.finding(field=field, **row) for row in ordered.iter_rows(named=True)]
 
     def finding(
         self, *, field: str, reason: str, shape: str, count: int, first: int, detail: str | None
     ) -> FindingModel:
         says, does = self.ADVICE[reason]
-        if reason == RefusalReason.NOT_IN_FORMAT.value and not shape.strip("9."):
+        if reason == RefusalReason.NOT_IN_FORMAT.value and not shape.strip(f"{self.SHAPE_DIGIT}."):
             does = f"{does}, or if these are Excel date serials set `rules.serial`"
         cells = "1 cell" if count == 1 else f"{count} cells"
         named = f" (`{detail}`)" if detail else ""
