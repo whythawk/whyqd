@@ -26,6 +26,8 @@ class BaseReadingParser:
     REASON: ClassVar[str] = "reason"
     DETAIL: ClassVar[str] = "detail"
     WARNINGS: ClassVar[str] = "warnings"
+    # A number's reading keeps each cell's currency marks too, so they are counted without stepping its cells again
+    MARKS: ClassVar[str] = "marks"
     BLANK: ClassVar[str] = "blank"
     TYPE: ClassVar[str] = "type"
     FORM: ClassVar[str] = "form"
@@ -117,7 +119,8 @@ class BaseReadingParser:
 
     def outcome(self, read: pl.DataFrame, value: pl.Series) -> pl.DataFrame:
         """The five columns of a reading, from each cell's reason and value, and a column of its own for each warning a
-        reader found, so a value's warnings are a list and a refusal or a blank has none."""
+        reader found, so a value's warnings are a list and a refusal or a blank has none; and a number's marks, where
+        its reader kept them."""
         refused = pl.col(self.REASON).is_not_null()
         blank = pl.col(self.BLANK) & (pl.col(self.TYPE) == CellType.STRING.value)
         undeclared = pl.col(self.REASON) == RefusalReason.UNDECLARED_CHARACTER.value
@@ -136,6 +139,7 @@ class BaseReadingParser:
             pl.col(self.REASON),
             detail.alias(self.DETAIL),
             warnings.alias(self.WARNINGS),
+            *[pl.col(self.MARKS)] * (self.MARKS in read.columns),
         )
 
     def warned(self, read: pl.DataFrame) -> pl.Series:

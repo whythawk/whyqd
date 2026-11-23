@@ -107,7 +107,9 @@ class NumberParser(BaseReadingParser):
         p, rules = self.patterns, policy.declared_rules()
         length = cells.len()
         declared = self.number_format(policy)
-        text, mixed = self.prepared(cells)
+        stepped = self.steps(cells)
+        text, mixed = self.digits(stepped)
+        currencies = {} if len(rules.currency) == 1 else {self.MARKS: stepped.str.extract_all(self.currency(rules))}
         warned = {}
         marks = [self.normalised(mark) for mark in [*rules.currency, *rules.marks]]
         if marks:
@@ -177,6 +179,7 @@ class NumberParser(BaseReadingParser):
                 self.SHIFT: shift,
                 self.SIGNS: negative & minus,
                 self.NEGATIVE: negative | minus,
+                **currencies,
                 **{code.value: flag.fill_null(False) for code, flag in warned.items()},
             }
         )
@@ -283,17 +286,20 @@ class NumberParser(BaseReadingParser):
         )
         return read, value
 
-    def currencies(self, *, cells: pl.Series, policy: PolicyModel) -> dict[str, int]:
+    def currency(self, rules: RulesModel) -> str:
+        """The currency marks a field's cells are counted by: those it declares, or with none any mark read."""
+        if rules.currency:
+            return self.patterns.any_of([self.normalised(mark) for mark in rules.currency])
+        return self.patterns.CURRENCY
+
+    def currencies(self, *, readings: pl.DataFrame, policy: PolicyModel) -> dict[str, int]:
         """Each currency mark's count, since a number read loses which currency it was in: each declared mark, where a
-        field declares more than one, or with none declared each mark read. `¬£` is counted apart from the `£` inside
-        it."""
+        field declares more than one, or with none declared each mark read, from the marks its reading found. `¬£` is
+        counted apart from the `£` inside it."""
         declared = policy.declared_rules().currency
-        if len(declared) == 1:
+        if self.MARKS not in readings.columns:
             return {}
-        marks = (
-            self.patterns.any_of([self.normalised(mark) for mark in declared]) if declared else self.patterns.CURRENCY
-        )
-        found = self.steps(cells.alias(self.CELL)).str.extract_all(marks).explode()
+        found = readings[self.MARKS].explode()
         counts = dict(found.alias(self.CELL).drop_nulls().value_counts().iter_rows())
         if not declared:
             return counts

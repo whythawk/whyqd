@@ -147,11 +147,16 @@ class TestReader:
         assert ReadingParser().stored_types(types) == {"d": 2, "n": 1}
 
     def test_more_than_one_currency_is_counted(self):
-        reader = ReadingParser().numbers
-        cells = pl.Series("amount", ["£5", "£6", "€7", "¬£8", "9"], dtype=pl.String)
-        policy = PolicyModel(rules={"currency": ["£", "€", "¬£"]})
-        assert reader.currencies(cells=cells, policy=policy) == {"£": 2, "€": 1, "¬£": 1}
-        assert reader.currencies(cells=cells, policy=PolicyModel(rules={"currency": ["£"]})) == {}
+        reader = ReadingParser()
+        cells = pl.Series("amount", ["£5", "£6", "€7", "¬£8", "9", "‎£ 1"], dtype=pl.String)
+        counted = {"£": 3, "€": 1, "¬£": 1}
+        for policy, counts in (
+            (PolicyModel(rules={"currency": ["£", "€", "¬£"]}), counted),
+            (PolicyModel(), counted),
+            (PolicyModel(rules={"currency": ["£"]}), {}),
+        ):
+            readings = reader.column(cells=cells, dtype="number", policy=policy)
+            assert reader.numbers.currencies(readings=readings, policy=policy) == counts
 
     def test_commonly_typed_patterns_read(self):
         for typed in ("dd/mm/yyyy", "DD/MM/YYYY", "%d/%m/%Y", "dd/MM/yyyy"):

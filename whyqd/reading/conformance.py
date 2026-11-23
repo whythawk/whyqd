@@ -117,7 +117,7 @@ class ConformanceParser:
             if self.is_declared(field) and field.dtype not in FieldFamilies.NOT_READ:
                 read = self.reading.column(cells=cells, dtype=field.dtype, policy=field.policy, types=tags)
                 self.keep(field=field.name, cells=cells, readings=read, rows=rows)
-                self.warn_currencies(field=field.name, cells=cells, dtype=field.dtype, policy=field.policy)
+                self.warn_currencies(field=field.name, readings=read, dtype=field.dtype, policy=field.policy)
                 df[field.name] = self.frame.pandas(read[self.reading.VALUE], field.dtype, df.index)
                 continue
             df[field.name] = self.frame.strings(cells, df.index)
@@ -133,11 +133,11 @@ class ConformanceParser:
         self.refused.append(Refused(field=field, cells=cells, readings=readings, rows=rows))
         self.warn_cells(field=field, readings=readings, cells=cells, rows=rows)
 
-    def warn_currencies(self, *, field: str, cells: pl.Series, dtype: str, policy: PolicyModel | None) -> None:
+    def warn_currencies(self, *, field: str, readings: pl.DataFrame, dtype: str, policy: PolicyModel | None) -> None:
         """Warn where a number field reads more than one currency, with each one's count, so nobody sums them."""
         if dtype not in FieldFamilies.NUMBERS:
             return
-        counts = self.reading.numbers.currencies(cells=cells, policy=policy or PolicyModel())
+        counts = self.reading.numbers.currencies(readings=readings, policy=policy or PolicyModel())
         if sum(1 for count in counts.values() if count) > 1:
             detail = ", ".join(f"`{mark}`: {count}" for mark, count in counts.items() if count)
             self.warn(
@@ -235,7 +235,7 @@ class ConformanceParser:
             policy = policies.get(field.name) or field.policy
             read = self.reading.column(cells=cells, dtype=field.dtype, policy=policy, types=tags)
             self.warn_cells(field=field.name, readings=read, cells=cells, rows=rows)
-            self.warn_currencies(field=field.name, cells=cells, dtype=field.dtype, policy=policy)
+            self.warn_currencies(field=field.name, readings=read, dtype=field.dtype, policy=policy)
             self.faults += self.reading.findings(field=field.name, cells=cells, readings=read, rows=rows)
             # A text field keeps a whitespace-only cell as written, though it counts as blank when a value is required
             value = cells if field.dtype == self.TEXT else read[self.reading.VALUE]
