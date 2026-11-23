@@ -1,10 +1,10 @@
 # SPDX-License-Identifier: BSD-3-Clause
 from __future__ import annotations
-from typing import Any, ClassVar, Optional, Union
-from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
+from typing import ClassVar, Optional, Union
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from whyqd.config.names import NameTables
-from whyqd.dtypes import CellType, FieldFamilies, FieldType, ReadingKind, ReadingWarning, RefusalReason, SerialDate
+from whyqd.dtypes import CellType, FieldFamilies, FieldType, SerialDate
 from whyqd.reading.pattern import PatternParser
 
 
@@ -250,7 +250,7 @@ class PolicyModel(BaseModel):
         different readings."""
         grammar = self.PATTERN
         fields = [{text for is_field, text in grammar.parts(pattern) if is_field} for pattern in patterns]
-        for pattern, held in zip(patterns, fields):
+        for pattern, held in zip(patterns, fields, strict=True):
             needed = grammar.NEEDED.get(dtype, frozenset())
             letters = {field[0].replace("h", "H").replace("Q", "M") for field in held}
             if (
@@ -274,11 +274,6 @@ class PolicyModel(BaseModel):
                 f"Field `{name}` has names in its pattern, so it needs `rules.language`, such as `de`, to say which "
                 "names they are. [whyqd:policy-names]"
             )
-        if ("h" in every or "hh" in every) != ("a" in every):
-            raise ValueError(
-                f"Field `{name}`: a 12-hour `h` and a day period `a` go together. Declare both, or use `H`. "
-                "[whyqd:policy-day-periods]"
-            )
         for index, first in enumerate(patterns):
             for second in patterns[index + 1 :]:
                 if grammar.two_readings(first, second):
@@ -286,25 +281,3 @@ class PolicyModel(BaseModel):
                         f"Field `{name}`: a cell could fit both `{first}` and `{second}`, and read differently. Keep "
                         "the one the file uses. [whyqd:policy-two-readings]"
                     )
-
-
-class CellReadingModel(BaseModel):
-    """What one cell read as under its field's declaration: a value, a blank, or a refusal with its reason, and a warning
-    for each thing read past what was declared."""
-
-    kind: ReadingKind = Field(..., description="A value, a blank, or a refusal.")
-    value: Any = Field(None, description="The value read, for a cell that held one.")
-    reason: Optional[RefusalReason] = Field(None, description="Why the cell was refused.")
-    detail: Optional[str] = Field(None, description="What in the cell was refused, such as the character it holds.")
-    warnings: list[ReadingWarning] = Field(
-        [], description="What to check about a value that was read: `£1,234.50` carries two."
-    )
-    model_config = ConfigDict(use_enum_values=True, validate_assignment=True)
-
-    @model_validator(mode="after")
-    def reason_refuses(self) -> CellReadingModel:
-        if (self.kind == ReadingKind.REFUSED.value) != (self.reason is not None):
-            raise ValueError("A refusal has a reason, and nothing else does.")
-        if self.kind != ReadingKind.VALUE.value and self.value is not None:
-            raise ValueError("Only a cell read as a value holds one.")
-        return self

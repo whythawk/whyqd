@@ -179,6 +179,8 @@ class BaseReadingParser:
     def finding(
         self, *, field: str, reason: str, shape: str, count: int, first: int, detail: str | None
     ) -> FindingModel:
+        """One group of a column's refusals as a finding: the field, how many cells of this shape, the first row, what
+        they hold, and the one thing to do."""
         says, does = self.ADVICE[reason]
         if reason == RefusalReason.NOT_IN_FORMAT.value and not shape.strip(f"{self.SHAPE_DIGIT}."):
             does = "set `rules.serial`, if these are Excel date serials"

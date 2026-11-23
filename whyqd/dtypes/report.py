@@ -65,8 +65,8 @@ class ReadingWarning(str, Enum):
 
     DESCRIPTIONS = nonmember(
         {
-            "currency-read": "A currency mark was read past, the number kept. Declaring it in `rules.currency` confirms "
-            "it.",
+            "currency-read": "A currency mark was read past, the number kept. Declaring it in `rules.currency` "
+            "confirms it.",
             "sign-read": "A negative form such as `(x)` or `x-` was read as negative. Declaring it in `rules.negative` "
             "confirms it.",
             "percent-read": "A percent was read as a fraction, `5%` as 0.05. Declaring `rules.percent` confirms it.",

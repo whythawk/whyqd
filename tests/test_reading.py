@@ -65,19 +65,28 @@ class TestKeys:
                 FieldModel(name=field, type=DESTINATION[field], policy=policy)
 
 
+def readings(
+    *, cells: list[str | None], dtype: str, policy: PolicyModel | None = None, cell_types: list[str] | None = None
+) -> list[dict]:
+    """Each cell's reading as a row of `ReadingParser.column`'s."""
+    types = None if cell_types is None else pl.Series("cell", cell_types, dtype=pl.String)
+    read = ReadingParser().column(cells=pl.Series("cell", cells, dtype=pl.String), dtype=dtype, policy=policy, types=types)
+    return list(read.iter_rows(named=True))
+
+
 def check_reading(dtype: str, name: str, index: int) -> None:
     group = TYPING[dtype][name]
     case = group["cases"][index]
     policy = PolicyModel(**group["policy"]) if group["policy"] else None
-    reading = ReadingParser().read(
+    reading = readings(
         cells=[case["text"]], cell_types=[case.get("cell_type", "s")], dtype=group["type"], policy=policy
     )[0]
-    assert reading.kind == {"refuse": "refused"}.get(case["outcome"], case["outcome"]), (case, reading)
+    assert reading["kind"] == {"refuse": "refused"}.get(case["outcome"], case["outcome"]), (case, reading)
     if case["outcome"] == "refuse":
-        assert reading.reason == case["reason"], (case, reading)
+        assert reading["reason"] == case["reason"], (case, reading)
     if case["outcome"] == "value":
-        assert same(group["type"], reading.value, case["value"]), (case, reading)
-    assert sorted(reading.warnings) == sorted(case.get("warnings", [])), (case, reading)
+        assert same(group["type"], reading["value"], case["value"]), (case, reading)
+    assert sorted(reading["warnings"]) == sorted(case.get("warnings", [])), (case, reading)
 
 
 class TestReader:
@@ -87,37 +96,37 @@ class TestReader:
 
     def test_a_column_reads_each_cell_by_the_one_declaration(self):
         policy = PolicyModel(format={"decimalChar": ",", "groupChar": "."}, rules={"currency": ["€"]})
-        read = ReadingParser().read(cells=["1.234,50 €", "1,234.50", "", "٣٤"], dtype="number", policy=policy)
-        assert [r.kind for r in read] == ["value", "refused", "blank", "value"]
-        assert read[0].value == 1234.5 and read[3].value == 34
+        read = readings(cells=["1.234,50 €", "1,234.50", "", "٣٤"], dtype="number", policy=policy)
+        assert [r["kind"] for r in read] == ["value", "refused", "blank", "value"]
+        assert read[0]["value"] == 1234.5 and read[3]["value"] == 34
 
     def test_a_decimal_column_takes_its_scale_from_its_cells(self):
-        read = ReadingParser().read(cells=["1.5", "0.125", "2"], dtype="number", policy=PolicyModel(base="decimal"))
-        assert [r.value for r in read] == [Decimal("1.5"), Decimal("0.125"), Decimal("2")]
+        read = readings(cells=["1.5", "0.125", "2"], dtype="number", policy=PolicyModel(base="decimal"))
+        assert [r["value"] for r in read] == [Decimal("1.5"), Decimal("0.125"), Decimal("2")]
 
     def test_a_stored_number_is_already_a_value(self):
         policy = PolicyModel(format={"decimalChar": ",", "groupChar": "."})
-        read = ReadingParser().read(
+        read = readings(
             cells=["1234.5", "2.5e-05", "2024-01-01"], cell_types=["n", "n", "d"], dtype="number", policy=policy
         )
-        assert read[0].value == 1234.5 and read[1].value == 2.5e-05
-        assert read[2].reason == "not-in-format"
+        assert read[0]["value"] == 1234.5 and read[1]["value"] == 2.5e-05
+        assert read[2]["reason"] == "not-in-format"
 
     def test_a_cell_with_no_offset_beside_those_with_one_needs_a_zone(self):
         cells = ["2024-04-13T12:45:00Z", "2024-04-13T12:45:00"]
-        read = ReadingParser().read(cells=cells, dtype="datetime")
-        assert read[1].reason == "no-zone"
-        zoned = ReadingParser().read(cells=cells, dtype="datetime", policy=PolicyModel(rules={"zone": "UTC"}))
-        assert [r.kind for r in zoned] == ["value", "value"]
+        read = readings(cells=cells, dtype="datetime")
+        assert read[1]["reason"] == "no-zone"
+        zoned = readings(cells=cells, dtype="datetime", policy=PolicyModel(rules={"zone": "UTC"}))
+        assert [r["kind"] for r in zoned] == ["value", "value"]
 
     @pytest.mark.parametrize("cell", ["1st April 2024", "c. 1850", "<5", "Mon–Fri", "12E4", "٣4", "½", "#N/A", "anything"])
     def test_text_is_always_the_way_out(self, cell):
-        reading = ReadingParser().read(cells=[cell], dtype="string")[0]
-        assert (reading.kind, reading.value) == ("value", cell)
+        reading = readings(cells=[cell], dtype="string")[0]
+        assert (reading["kind"], reading["value"]) == ("value", cell)
 
     def test_a_negative_is_never_read_twice_into_a_positive(self):
-        read = ReadingParser().read(cells=["(-5)"], dtype="number", policy=PolicyModel(rules={"negative": ["(x)"]}))
-        assert read[0].reason == "undeclared-sign"
+        read = readings(cells=["(-5)"], dtype="number", policy=PolicyModel(rules={"negative": ["(x)"]}))
+        assert read[0]["reason"] == "undeclared-sign"
 
     @pytest.mark.parametrize("name", ["count", "^a$", "*", "cell"])
     def test_a_columns_name_never_changes_its_reading(self, name):
@@ -160,8 +169,8 @@ class TestReader:
 
     def test_commonly_typed_patterns_read(self):
         for typed in ("dd/mm/yyyy", "DD/MM/YYYY", "%d/%m/%Y", "dd/MM/yyyy"):
-            read = ReadingParser().read(cells=["1/4/2024"], dtype="date", policy=PolicyModel(format=typed))
-            assert str(read[0].value) == "2024-04-01", typed
+            read = readings(cells=["1/4/2024"], dtype="date", policy=PolicyModel(format=typed))
+            assert str(read[0]["value"]) == "2024-04-01", typed
 
     def test_a_cells_name_keys_as_a_declared_one_does(self):
         dates = ReadingParser().dates

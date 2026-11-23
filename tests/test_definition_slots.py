@@ -6,7 +6,7 @@ from pathlib import Path
 import pytest
 
 import whyqd as qd
-from whyqd.models import ActionScriptModel, CellReadingModel
+from whyqd.models import ActionScriptModel
 from whyqd.parsers import FormatParser
 
 DIRECTORY = Path(__file__).resolve().parent / "data"
@@ -246,25 +246,6 @@ class TestActionPolicy:
     def test_refused_elsewhere(self, script, policy):
         with pytest.raises(ValueError, match=r"\[whyqd:policy-on-action\]"):
             ActionScriptModel(script=script, policy=policy)
-
-
-class TestCellReading:
-    @pytest.mark.parametrize(
-        "reading",
-        [{"kind": "value", "value": 43.4}, {"kind": "blank"}, {"kind": "refused", "reason": "two-numbers"}],
-        ids=lambda r: r["kind"],
-    )
-    def test_three_kinds(self, reading):
-        assert CellReadingModel(**reading).kind == reading["kind"]
-
-    @pytest.mark.parametrize(
-        "reading",
-        [{"kind": "refused"}, {"kind": "value", "reason": "two-numbers"}, {"kind": "blank", "value": 1}],
-        ids=str,
-    )
-    def test_inconsistent_refused(self, reading):
-        with pytest.raises(ValueError):
-            CellReadingModel(**reading)
 
 
 CROSSWALK = DIRECTORY / "test_crosswalk.crosswalk"

@@ -12,7 +12,7 @@ class PatternParser:
     A policy's pattern is translated when it is declared, and a stored cell's format when it is read, so both read by
     one grammar. Pure Python, so a definition loads without the engine.
 
-    Example:
+    Examples:
       ```python
       PatternParser().standard_pattern("DD/MM/YYYY", "date")   # "dd/MM/yyyy"
       ```
@@ -158,7 +158,7 @@ class PatternParser:
         if len(ones) != len(others):
             return False
         differs = False
-        for (one_field, one), (other_field, other) in zip(ones, others):
+        for (one_field, one), (other_field, other) in zip(ones, others, strict=True):
             if one_field != other_field or (not one_field and one != other):
                 return False
             if one_field:

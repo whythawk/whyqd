@@ -5,7 +5,7 @@ from functools import partial
 import polars as pl
 
 from whyqd.dtypes import CellType, FieldType
-from whyqd.models import CellReadingModel, PolicyModel
+from whyqd.models import PolicyModel
 from whyqd.reading.booleans import BooleanParser
 from whyqd.reading.dates import DateParser
 from whyqd.reading.durations import DurationParser
@@ -18,14 +18,18 @@ class ReadingParser(BaseReadingParser):
 
     A cell reads by the declaration alone, never by another cell or the machine's locale, and a cell it cannot read is
     refused, never read another way. A workbook's stored cell is already a value, so a policy's text rules read only
-    text cells. A cell without a type is text.
+    text cells. A cell without a type is text. Each type has its own reader, which this sends the column to.
 
-    Example:
+    Examples:
       ```python
+      import polars as pl
+
+      from whyqd.models import PolicyModel
       from whyqd.reading.reading import ReadingParser
 
       policy = PolicyModel(format={"decimalChar": ",", "groupChar": "."}, rules={"currency": ["€"]})
-      ReadingParser().read(cells=["1.234,50 €", "1,234.50", ""], dtype="number", policy=policy)
+      cells = pl.Series(["1.234,50 €", "1,234.50", ""])
+      ReadingParser().column(cells=cells, dtype="number", policy=policy)["kind"]   # value, refused, blank
       ```
     """
 
@@ -49,29 +53,20 @@ class ReadingParser(BaseReadingParser):
             FieldType.DURATION.value: self.durations.read_duration,
         }
 
-    def read(
-        self,
-        *,
-        cells: list[str | None],
-        dtype: str,
-        policy: PolicyModel | None = None,
-        cell_types: list[str | None] | None = None,
-    ) -> list[CellReadingModel]:
-        """Each cell's reading as a model. A column's worth is quicker read with `column`."""
-        types = None if cell_types is None else pl.Series(self.CELL, cell_types, dtype=pl.String)
-        read = self.column(cells=pl.Series(self.CELL, cells, dtype=pl.String), dtype=dtype, policy=policy, types=types)
-        return [CellReadingModel(**row) for row in read.iter_rows(named=True)]
-
     def column(
         self, *, cells: pl.Series, dtype: str, policy: PolicyModel | None = None, types: pl.Series | None = None
     ) -> pl.DataFrame:
-        """A column's readings, one row to a cell, in `kind`, `value`, `reason`, and `detail`.
+        """A column's readings, one row to a cell: its `kind`, `value`, `reason`, `detail`, and `warnings`, and for a
+        number the currency `marks` it holds.
 
         Parameters:
           cells: Each cell's text as stored, null where empty.
           dtype: The field's type.
           policy: The field's declaration; with none, the type's canonical form.
           types: Each cell's `CellType` tag, for a file that stores them.
+
+        Returns:
+          One row to a cell, in the order given.
 
         Raises:
           AttributeError: For a type with no reader.

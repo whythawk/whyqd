@@ -60,13 +60,13 @@ class NumberParser(BaseReadingParser):
         """A number as `Float64`, or as exact decimals where `base` is `decimal` or a cell holds more digits than a
         `Float64` keeps, the column then reading as decimals with that cell warning."""
         read = self.parts(cells=cells, types=types, policy=policy)
-        finite = read[self.TEXT].str.contains(self.patterns.NON_FINITE).fill_null(False)
+        non_finite = read[self.TEXT].str.contains(self.patterns.NON_FINITE).fill_null(False)
         if policy.base == PolicyModel.EXACT:
-            return self.outcome(*self.as_decimal(read, finite=finite))
+            return self.outcome(*self.as_decimal(read, non_finite=non_finite))
         lost = self.float_losses(read)
         if lost.any():
-            return self.outcome(*self.as_decimal(read.with_columns(lost), finite=finite))
-        digits = read[self.TEXT].str.replace("INF", "inf").str.to_lowercase().zip_with(finite, read[self.DIGITS])
+            return self.outcome(*self.as_decimal(read.with_columns(lost), non_finite=non_finite))
+        digits = read[self.TEXT].str.to_lowercase().zip_with(non_finite, read[self.DIGITS])
         read = read.with_columns(digits.alias(self.DIGITS))
         scale = (10.0 ** read[self.SHIFT].cast(pl.Float64)).alias(self.CELL)
         return self.outcome(read, read[self.DIGITS].cast(pl.Float64, strict=False) / scale)
@@ -111,28 +111,15 @@ class NumberParser(BaseReadingParser):
         text, mixed = self.digits(stepped)
         currencies = {} if len(rules.currency) == 1 else {self.MARKS: stepped.str.extract_all(self.currency(rules))}
         warned = {}
-        marks = [self.normalised(mark) for mark in [*rules.currency, *rules.marks]]
-        if marks:
-            text = text.str.replace_all(p.any_of(marks), "").str.strip_chars()
+        text, currency = self.read_past_marks(text, rules)
         if not rules.currency:
-            warned[ReadingWarning.CURRENCY] = text.str.contains(p.CURRENCY)
-            text = text.str.replace_all(p.CURRENCY, "").str.strip_chars()
-        shift = pl.repeat(0, length, eager=True, dtype=pl.Int64)
-        percent = (rules.percent or self.UNDECLARED_PERCENT, self.PERCENT, rules.percent is None)
-        for mark, places, warns in (percent, (rules.perMille, self.PER_MILLE, False)):
-            if mark:
-                found = text.str.contains(self.normalised(mark), literal=True).fill_null(False)
-                text = text.str.replace_all(self.normalised(mark), "", literal=True).str.strip_chars()
-                shift = pl.repeat(places, length, eager=True, dtype=pl.Int64).zip_with(found, shift)
-                if warns:
-                    warned[ReadingWarning.PERCENT] = found
-        negative = pl.repeat(False, length, eager=True)
-        for form in rules.negative or self.UNDECLARED_NEGATIVE:
-            prefix, suffix = (self.normalised(part).strip() for part in form.split(RulesModel.NUMBER_PLACE))
-            around = p.around(prefix, suffix)
-            found = text.str.contains(around).fill_null(False)
-            negative = negative | found
-            text = text.str.extract(around).zip_with(found, text)
+            warned[ReadingWarning.CURRENCY] = currency
+        text, shift, percent = self.point_moved(text, rules.percent or self.UNDECLARED_PERCENT, self.PERCENT)
+        if rules.percent is None:
+            warned[ReadingWarning.PERCENT] = percent
+        if rules.perMille:
+            text, shift, _ = self.point_moved(text, rules.perMille, self.PER_MILLE, shift=shift)
+        text, negative = self.negatives(text, rules)
         if not rules.negative:
             warned[ReadingWarning.SIGN] = negative
         minus = text.str.contains(p.LEADING_MINUS).fill_null(False)
@@ -185,6 +172,40 @@ class NumberParser(BaseReadingParser):
         )
         return read.with_columns(self.number_reason(rules), self.canonical())
 
+    def read_past_marks(self, text: pl.Series, rules: RulesModel) -> tuple[pl.Series, pl.Series | None]:
+        """Each cell's text without its declared currency and other marks, and, with no currency declared, without any
+        of Unicode's currency marks, with whether each cell held one."""
+        p = self.patterns
+        marks = [self.normalised(mark) for mark in [*rules.currency, *rules.marks]]
+        if marks:
+            text = text.str.replace_all(p.any_of(marks), "").str.strip_chars()
+        if rules.currency:
+            return text, None
+        return text.str.replace_all(p.CURRENCY, "").str.strip_chars(), text.str.contains(p.CURRENCY)
+
+    def point_moved(
+        self, text: pl.Series, mark: str, places: int, *, shift: pl.Series | None = None
+    ) -> tuple[pl.Series, pl.Series, pl.Series]:
+        """Each cell's text without a percent's or per mille's `mark`, how many `places` its point moves where it held
+        one, beside any `shift` already found, and whether it held one."""
+        written = self.normalised(mark)
+        found = text.str.contains(written, literal=True).fill_null(False)
+        shift = pl.repeat(0, text.len(), eager=True, dtype=pl.Int64) if shift is None else shift
+        moved = pl.repeat(places, text.len(), eager=True, dtype=pl.Int64).zip_with(found, shift)
+        return text.str.replace_all(written, "", literal=True).str.strip_chars(), moved, found
+
+    def negatives(self, text: pl.Series, rules: RulesModel) -> tuple[pl.Series, pl.Series]:
+        """Each cell's number out of the negative form around it, and whether it had one: the field's declared forms,
+        or with none `(x)` and `x-`."""
+        negative = pl.repeat(False, text.len(), eager=True)
+        for form in rules.negative or self.UNDECLARED_NEGATIVE:
+            prefix, suffix = (self.normalised(part).strip() for part in form.split(RulesModel.NUMBER_PLACE))
+            around = self.patterns.around(prefix, suffix)
+            found = text.str.contains(around).fill_null(False)
+            negative = negative | found
+            text = text.str.extract(around).zip_with(found, text)
+        return text, negative
+
     def undeclared_marks(
         self, mantissa: pl.Series, last: pl.Series
     ) -> tuple[pl.Series, pl.Series, pl.Series, pl.Series]:
@@ -211,7 +232,7 @@ class NumberParser(BaseReadingParser):
     def number_reason(self, rules: RulesModel) -> pl.Expr:
         """Why a cell is refused, the first of these that holds. A stored cell is decided by its type alone."""
         p = self.patterns
-        finite = pl.col(self.TEXT).str.contains(p.NON_FINITE).fill_null(False)
+        non_finite = pl.col(self.TEXT).str.contains(p.NON_FINITE).fill_null(False)
         signed = pl.col(self.TEXT).str.contains(p.BRACKETED) | pl.col(self.TEXT).str.contains(p.TRAILING_MINUS)
         refusals = (
             (pl.col(self.TYPE) == CellType.ERROR.value, RefusalReason.ERROR_CELL),
@@ -220,8 +241,8 @@ class NumberParser(BaseReadingParser):
             (pl.col(self.BLANK), None),
             (pl.col(self.FORM), RefusalReason.NUMBER_FORM),
             (pl.col(self.MIXED), RefusalReason.MIXED_DIGITS),
-            (finite & (not rules.nonFinite), RefusalReason.UNDECLARED_NON_FINITE),
-            (finite, None),
+            (non_finite & (not rules.nonFinite), RefusalReason.UNDECLARED_NON_FINITE),
+            (non_finite, None),
             (pl.col(self.CORE) == "", RefusalReason.NO_NUMBER),
             (signed.fill_null(False) | pl.col(self.SIGNS), RefusalReason.UNDECLARED_SIGN),
             (pl.col(self.EXPONENT).is_not_null() & (rules.exponent is False), RefusalReason.UNDECLARED_EXPONENT),
@@ -257,10 +278,10 @@ class NumberParser(BaseReadingParser):
         ]
         return (read[self.DIGITS].is_in(lost) & possible).alias(ReadingWarning.EXACT_DECIMAL.value)
 
-    def as_decimal(self, read: pl.DataFrame, *, finite: pl.Series) -> tuple[pl.DataFrame, pl.Series]:
+    def as_decimal(self, read: pl.DataFrame, *, non_finite: pl.Series) -> tuple[pl.DataFrame, pl.Series]:
         """Exact values, in the scale the column's own cells need, so none rounds. A decimal has no `NaN` or `INF`, and
         a number too long for its precision is refused."""
-        read = read.with_columns(finite.alias(self.NON_FINITE)).with_columns(
+        read = read.with_columns(non_finite.alias(self.NON_FINITE)).with_columns(
             pl.when(self.NON_FINITE)
             .then(pl.lit(RefusalReason.UNDECLARED_NON_FINITE.value))
             .otherwise(self.REASON)

@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: BSD-3-Clause
 from __future__ import annotations
 from datetime import datetime, timedelta
-from typing import ClassVar
+from typing import ClassVar, NamedTuple
 
 import polars as pl
 
@@ -10,6 +10,15 @@ from whyqd.dtypes import CellType, FieldFamilies, FieldType, ReadingWarning, Ref
 from whyqd.models import PolicyModel, RulesModel
 from whyqd.reading.pattern import PatternParser
 from whyqd.reading.reader import BaseReadingParser
+
+
+class Zoned(NamedTuple):
+    """A datetime column read in its zone: the values, whether each fell in an hour the clocks repeated, and whether
+    each states neither an offset nor a zone to read it in."""
+
+    value: pl.Series
+    repeated: pl.Series
+    no_zone: pl.Series
 
 
 class DateParser(BaseReadingParser):
@@ -79,7 +88,8 @@ class DateParser(BaseReadingParser):
     ) -> tuple[str, list[str]]:
         """A declared pattern as a regular expression capturing each field, and those fields in order. A number's width
         says nothing of its meaning, so `dd` reads `1`, unless digits run together, as in `yyyyMMdd`. On a duration the
-        first field is a quantity of any length: `H:mm` reads `100:30`. With `tail`, a date's cell may also hold a time."""
+        first field is a quantity of any length: `H:mm` reads `100:30`. With `tail`, a date's cell may also hold a
+        time."""
         p, regex, fields = self.patterns, [], []
         written = self.pattern.parts(self.normalised(pattern))
         for index, (is_field, text) in enumerate(written):
@@ -123,6 +133,7 @@ class DateParser(BaseReadingParser):
         return names
 
     def weekday_names(self, rules: RulesModel) -> list[str]:
+        """Every spelling of a weekday in the field's language, keyed as a cell's is; a weekday is read past."""
         return [self.name_key(name) for name in NameTables.language(rules.language)["weekdays"]]
 
     def period_key(self, name: str) -> str:
@@ -140,7 +151,7 @@ class DateParser(BaseReadingParser):
         spelled = dict(self.DAY_PERIODS)
         for afternoon, key in ((False, "morning"), (True, "afternoon")):
             spelled |= {self.normalised(name).lower(): afternoon for name in (table[key] if table else [])}
-        for afternoon, entry in zip((False, True), rules.dayPeriods):
+        for afternoon, entry in zip((False, True), rules.dayPeriods, strict=False):
             spelled |= {self.normalised(name).lower(): afternoon for name in RulesModel.spellings(entry)}
         return spelled | {self.period_key(name): afternoon for name, afternoon in spelled.items()}
 
@@ -206,10 +217,7 @@ class DateParser(BaseReadingParser):
         text, mixed = self.prepared(cells)
         offsets = None
         if dtype == FieldType.DATETIME.value:
-            found = text.str.extract_groups(self.patterns.OFFSET).struct.unnest()
-            stated = found["2"].alias(self.CELL)
-            text = found["1"].alias(self.CELL).zip_with(stated.is_not_null(), text)
-            offsets = stated if stated.is_not_null().any() or rules.zone else None
+            text, offsets = self.offsets(text, zone=rules.zone)
         period = dtype in FieldFamilies.PERIODS
         parsed = FieldType.DATE.value if period else dtype
         read = self.patterns_read(text=text, patterns=declared or self.CANONICAL[dtype], rules=rules, dtype=parsed)
@@ -218,10 +226,8 @@ class DateParser(BaseReadingParser):
             read, warned = self.undeclared_dates(text=text, read=read, rules=rules)
         is_stored = types == CellType.DATE.value
         if is_stored.any():
-            stored = rules.cellFormats.get(CellType.DATE)
-            patterns = [self.pattern.standard_pattern(stored, dtype)] if stored else self.stored_patterns(dtype)
-            rendered = self.patterns_read(text=text, patterns=patterns, rules=rules, dtype=parsed)
-            read = tuple(one.zip_with(is_stored, other) for one, other in zip(rendered, read))
+            rendered = self.stored_read(text=text, rules=rules, dtype=dtype, parsed=parsed)
+            read = tuple(one.zip_with(is_stored, other) for one, other in zip(rendered, read, strict=True))
             warned = {code: flag & ~is_stored for code, flag in warned.items()}
         fits, twice, value = read
         serial_time = pl.repeat(False, cells.len(), eager=True)
@@ -245,9 +251,8 @@ class DateParser(BaseReadingParser):
         if period:
             value = self.period_end(value, dtype).alias(self.CELL)
         if offsets is not None:
-            value, warned[ReadingWarning.REPEATED_HOUR], no_zone = self.zoned(
-                value=value, offsets=offsets, zone=rules.zone
-            )
+            zoned = self.zoned(value=value, offsets=offsets, zone=rules.zone)
+            value, warned[ReadingWarning.REPEATED_HOUR], no_zone = zoned.value, zoned.repeated, zoned.no_zone
         frame = self.temporal_frame(
             cells=cells,
             types=types,
@@ -363,25 +368,40 @@ class DateParser(BaseReadingParser):
         held = pl.Series(self.CELL, [bool(held) for held in held_time], dtype=pl.Boolean) & serial
         return fits | serial, written.zip_with(serial, value), held, tags, serial
 
-    def zoned(
-        self, *, value: pl.Series, offsets: pl.Series, zone: str | None
+    def offsets(self, text: pl.Series, *, zone: str | None) -> tuple[pl.Series, pl.Series | None]:
+        """Each datetime cell's text without its offset, and the offsets, where any cell states one or a zone is
+        declared, so the column is read in a zone."""
+        found = text.str.extract_groups(self.patterns.OFFSET).struct.unnest()
+        stated = found["2"].alias(self.CELL)
+        text = found["1"].alias(self.CELL).zip_with(stated.is_not_null(), text)
+        return text, stated if stated.is_not_null().any() or zone else None
+
+    def stored_read(
+        self, *, text: pl.Series, rules: RulesModel, dtype: str, parsed: str
     ) -> tuple[pl.Series, pl.Series, pl.Series]:
-        """A datetime in its zone or, with none declared, UTC, from each cell's own offset or its declared clock. Returns
+        """Each stored date cell's rendering read, by the pattern `rules.cellFormats` gives it, or with none by what the
+        rendering may be for `dtype`, as `patterns_read` returns it."""
+        stored = rules.cellFormats.get(CellType.DATE)
+        patterns = [self.pattern.standard_pattern(stored, dtype)] if stored else self.stored_patterns(dtype)
+        return self.patterns_read(text=text, patterns=patterns, rules=rules, dtype=parsed)
+
+    def zoned(self, *, value: pl.Series, offsets: pl.Series, zone: str | None) -> Zoned:
+        """A datetime in its zone or, with none declared, UTC, from each cell's own offset or its declared clock, with
         whether the clocks repeated each time, read as the earlier, and whether a cell has neither offset nor zone."""
         target = zone or self.UTC
         stated = offsets.is_not_null()
+        unchanged = pl.repeat(False, value.len(), eager=True)
         minutes = {cell: self.offset_minutes(cell) for cell in offsets.drop_nulls().unique().to_list()}
         shift = pl.Series(self.CELL, [minutes.get(o, 0) for o in offsets.to_list()], dtype=pl.Int64)
         utc = value.dt.replace_time_zone(self.UTC) - shift.cast(pl.Duration(self.TIME_UNIT)) * self.MICROSECONDS["m"]
         from_offset = utc.dt.convert_time_zone(target).alias(self.CELL)
         if zone is None:
             nothing = pl.repeat(None, value.len(), eager=True, dtype=from_offset.dtype).alias(self.CELL)
-            no_zone = ~stated & value.is_not_null()
-            return from_offset.zip_with(stated, nothing), pl.repeat(False, value.len(), eager=True), no_zone
+            return Zoned(from_offset.zip_with(stated, nothing), unchanged, ~stated & value.is_not_null())
         earlier = value.dt.replace_time_zone(target, ambiguous="earliest", non_existent="null").alias(self.CELL)
         later = value.dt.replace_time_zone(target, ambiguous="latest", non_existent="null").alias(self.CELL)
         repeated = (~stated & (earlier != later)).fill_null(False)
-        return from_offset.zip_with(stated, earlier), repeated, pl.repeat(False, value.len(), eager=True)
+        return Zoned(from_offset.zip_with(stated, earlier), repeated, unchanged)
 
     def offset_minutes(self, offset: str) -> int:
         """A cell's offset from UTC, in minutes: `Z`, `+01`, `+0100`, or `-05:30`."""
@@ -403,6 +423,8 @@ class DateParser(BaseReadingParser):
         no_zone: pl.Series | None = None,
         warned: dict[ReadingWarning, pl.Series] | None = None,
     ) -> pl.DataFrame:
+        """A date's, time's, or duration's working frame: what each cell is and how it fitted, a column for each
+        warning, and the reason a cell is refused."""
         length = cells.len()
         frame = pl.DataFrame(
             {
@@ -420,8 +442,8 @@ class DateParser(BaseReadingParser):
         return frame.with_columns(self.temporal_reason())
 
     def stored_patterns(self, dtype: str) -> list[str]:
-        """What a stored date cell's rendering may be, for a type: a datetime at midnight renders as a date, and a period
-        is whichever date the cell holds."""
+        """What a stored date cell's rendering may be, for a type: a datetime at midnight renders as a date, and a
+        period is whichever date the cell holds."""
         if dtype in FieldFamilies.PERIODS:
             return [self.STORED_DATETIME_MIDNIGHT]
         canonical = self.CANONICAL[dtype]

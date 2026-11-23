@@ -40,7 +40,7 @@ class ConformanceParser:
     only where the crosswalk reads it, in a row that survives. Each run finishes reading first, so one report holds
     everything found, and a transform either has a table that conforms or has none.
 
-    Example:
+    Examples:
       ```python
       conformance = ConformanceParser()
       df = conformance.source(table=table, types=types, fields=fields, missing=[], inputs={})
@@ -62,14 +62,16 @@ class ConformanceParser:
         "marks-read": "which mark is the decimal was settled by the cell itself; declare `format` to confirm",
         "exponent-read": "an exponent was read, `1e3` as 1000; set `rules.exponent`, or a `string` field if it is a "
         "reference",
-        "exact-decimal": "more digits than a `Float64` holds, so read as exact decimals; declare `base` as `decimal` to "
-        "confirm",
+        "exact-decimal": "more digits than a `Float64` holds, so read as exact decimals; declare `base` as `decimal` "
+        "to confirm",
         "integer-rounded": "a fraction rounded half away from zero, `5.5` to 6; use a `number` field to keep it",
         "serial-read": "a bare number read as a date serial, text by Excel's 1900 system; declare `rules.serial` to "
         "confirm",
         "month-name-read": "a month's name read with no language declared; declare `rules.language` to confirm",
-        "date-order-read": "a date's order was settled by the cell itself, as `13/04/2024`; declare `format` to confirm",
-        "year-below-1000": "these read as a year before 1000; declare `yy` and `rules.yearStart` if the year is shortened",
+        "date-order-read": "a date's order was settled by the cell itself, as `13/04/2024`; declare `format` to "
+        "confirm",
+        "year-below-1000": "these read as a year before 1000; declare `yy` and `rules.yearStart` if the year is "
+        "shortened",
         "time-dropped": "a date does not keep a time; use a `datetime` field if it matters",
         "repeated-hour": "the clocks went back, so these read as the earlier time; check them if the hour matters",
         ConformanceFinding.UNREAD_REFUSAL.value: "no action reads this field, so it does not stop the transform; "
@@ -94,6 +96,7 @@ class ConformanceParser:
         )
 
     def is_declared(self, field: FieldModel) -> bool:
+        """Whether a field says how to read it: a type other than text, or a policy."""
         return field.dtype not in (self.TEXT, *FieldFamilies.NOT_READ) or field.policy is not None
 
     def source(
@@ -105,8 +108,8 @@ class ConformanceParser:
         missing: list[str],
         inputs: dict[str, str],
     ) -> pd.DataFrame:
-        """The table for the actions: each declared field read, the rest kept as text. `inputs` names an undeclared field
-        an action reads as a type, whose refusals are recorded and whose text is left for that action."""
+        """The table for the actions: each declared field read, the rest kept as text. `inputs` names an undeclared
+        field an action reads as a type, whose refusals are recorded and whose text is left for that action."""
         df = table.to_pandas()
         rows = table[self.row_key.ROW]
         for field in fields:
@@ -131,7 +134,7 @@ class ConformanceParser:
     def keep(self, *, field: str, cells: pl.Series, readings: pl.DataFrame, rows: pl.Series) -> None:
         """Hold a field's refusals until the rows that survive are known, and report what warns."""
         self.refused.append(Refused(field=field, cells=cells, readings=readings, rows=rows))
-        self.warn_cells(field=field, readings=readings, cells=cells, rows=rows)
+        self.warn_cells(field=field, readings=readings, rows=rows)
 
     def warn_currencies(self, *, field: str, readings: pl.DataFrame, dtype: str, policy: PolicyModel | None) -> None:
         """Warn where a number field reads more than one currency, with each one's count, so nobody sums them."""
@@ -149,6 +152,8 @@ class ConformanceParser:
             )
 
     def warn(self, *, code: str, field: str, says: str, count: int, first: int | None) -> None:
+        """Report a warning on `field`: what was found, how many cells, the first row where one is known, and the
+        warning's text from `WARNINGS`."""
         where = "" if first is None else f", first at row {first}"
         self.warnings.append(
             FindingModel(
@@ -162,6 +167,7 @@ class ConformanceParser:
         )
 
     def warn_stored(self, *, field: str, types: pl.Series, rows: pl.Series) -> None:
+        """Warn where a text field's cells are stored in a workbook as another type, by each type's count."""
         stored = self.reading.stored_types(types)
         if stored:
             first = rows.filter(types.is_in(list(stored)).fill_null(False)).min()
@@ -174,7 +180,8 @@ class ConformanceParser:
                 first=first,
             )
 
-    def warn_cells(self, *, field: str, readings: pl.DataFrame, cells: pl.Series, rows: pl.Series) -> None:
+    def warn_cells(self, *, field: str, readings: pl.DataFrame, rows: pl.Series) -> None:
+        """One warning for each code a field's readings carry, with how many cells and the first row."""
         warned = readings[self.reading.WARNINGS]
         for code in warned.explode().drop_nulls().unique().sort().to_list():
             mask = warned.list.contains(code).fill_null(False)
@@ -187,7 +194,7 @@ class ConformanceParser:
         unread field only warns."""
         surviving = pl.Series(self.row_key.ROW, pd.to_numeric(df[self.row_key.ROW]).to_numpy(), dtype=pl.UInt32)
         for refused in self.refused:
-            kept = refused.rows.is_in(surviving.implode().explode()).fill_null(False)
+            kept = refused.rows.is_in(surviving).fill_null(False)
             readings = refused.readings.filter(kept)
             if readings[self.reading.REASON].null_count() == readings.height:
                 continue
@@ -234,7 +241,7 @@ class ConformanceParser:
             cells = self.missing(cells, missing)
             policy = policies.get(field.name) or field.policy
             read = self.reading.column(cells=cells, dtype=field.dtype, policy=policy, types=tags)
-            self.warn_cells(field=field.name, readings=read, cells=cells, rows=rows)
+            self.warn_cells(field=field.name, readings=read, rows=rows)
             self.warn_currencies(field=field.name, readings=read, dtype=field.dtype, policy=policy)
             self.faults += self.reading.findings(field=field.name, cells=cells, readings=read, rows=rows)
             # A text field keeps a whitespace-only cell as written, though it counts as blank when a value is required
@@ -247,8 +254,8 @@ class ConformanceParser:
     def check_constraints(
         self, *, field: FieldModel, column: pd.Series, rows: pl.Series, skip: pl.Series | None = None
     ) -> None:
-        """Check each constraint the field applies. A refused cell has already been reported, so it is not counted again.
-        An unmapped category term is not yet checked, since whyqd cannot yet say what to do with one."""
+        """Check each constraint the field applies. A refused cell has already been reported, so it is not counted
+        again. An unmapped category term is not yet checked, since whyqd cannot yet say what to do with one."""
         limits = field.constraints
         if limits is None:
             return
@@ -318,8 +325,8 @@ class ConformanceParser:
             FindingModel(
                 code=ConformanceFinding.TYPE_CONFLICT.value,
                 kind=FindingKind.FAULT,
-                message=f"Source field `{source.name}` is `{declared}`, and the crosswalk maps it to `{destination.name}`, "
-                f"which is `{wanted}`. Next, change one of the two types.",
+                message=f"Source field `{source.name}` is `{declared}`, and the crosswalk maps it to "
+                f"`{destination.name}`, which is `{wanted}`. Next, change one of the two types.",
                 field=source.name,
                 setting=f"type of `{source.name}`",
             )

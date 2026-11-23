@@ -27,41 +27,34 @@ class DurationParser(BaseReadingParser):
         rules = policy.declared_rules()
         declared = policy.declared_patterns()
         text, mixed = self.prepared(cells)
-        fits, within, value = self.iso_durations(text)
+        fits, value = self.iso_durations(text)
+        within = pl.repeat(True, cells.len(), eager=True).alias(self.CELL)
         if declared:
-            written = None
-            for pattern in declared:
-                read = self.pattern_duration(text=text, pattern=pattern, rules=rules)
-                written = (
-                    read
-                    if written is None
-                    else (
-                        written[0] | read[0],
-                        written[1].zip_with(written[0], read[1]),
-                        written[2].zip_with(written[0], read[2]),
-                    )
-                )
+            readings = [self.pattern_duration(text=text, pattern=pattern, rules=rules) for pattern in declared]
+            matched, bounded, total = readings[0]
+            for fit, inside, amount in readings[1:]:
+                bounded = bounded.zip_with(matched, inside)
+                total = total.zip_with(matched, amount)
+                matched = matched | fit
             is_stored = types == CellType.DATE.value
-            fits, within, value = (one.zip_with(is_stored, other) for one, other in zip((fits, within, value), written))
+            fits = fits.zip_with(is_stored, matched)
+            within = within.zip_with(is_stored, bounded)
+            value = value.zip_with(is_stored, total)
         twice = pl.repeat(False, cells.len(), eager=True)
         frame = self.dates.temporal_frame(cells=cells, types=types, mixed=mixed, fits=fits, twice=twice, named=within)
         return self.outcome(frame, value.cast(pl.Duration(self.dates.TIME_UNIT)))
 
-    def iso_durations(self, text: pl.Series) -> tuple[pl.Series, pl.Series, pl.Series]:
-        """Whether each cell is an ISO 8601 duration, that it is always in range, and its microseconds."""
+    def iso_durations(self, text: pl.Series) -> tuple[pl.Series, pl.Series]:
+        """Whether each cell is an ISO 8601 duration, holding at least one unit, and its microseconds."""
         found = text.str.extract_groups(self.patterns.DURATION).struct.unnest()
         units = self.dates.MICROSECONDS
-        amounts = {
-            letter: found[str(index + 2)].cast(pl.Float64).fill_null(0.0).alias(self.CELL)
-            for index, letter in enumerate(units)
-        }
-        any_part = pl.DataFrame({str(i): found[str(i)] for i in range(2, 6)}).select(
-            pl.any_horizontal(pl.all().is_not_null()).alias(self.CELL)
-        )[self.CELL]
+        groups = {letter: str(index + 2) for index, letter in enumerate(units)}
+        amounts = {letter: found[group].cast(pl.Float64).fill_null(0.0) for letter, group in groups.items()}
+        any_part = found.select(pl.any_horizontal(pl.col(group).is_not_null() for group in groups.values()))
         total = sum(amounts[letter] * float(units[letter]) for letter in units)
-        negative = found["1"].is_not_null().alias(self.CELL)
+        negative = found["1"].is_not_null()
         signed = (total * -1.0).zip_with(negative, total).round().cast(pl.Int64).alias(self.CELL)
-        return any_part, pl.repeat(True, text.len(), eager=True).alias(self.CELL), signed
+        return any_part.to_series().alias(self.CELL), signed
 
     def pattern_duration(
         self, *, text: pl.Series, pattern: str, rules: RulesModel
