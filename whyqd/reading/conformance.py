@@ -145,7 +145,7 @@ class ConformanceParser:
         """Warn where a number field reads more than one currency, with each one's count, so nobody sums them."""
         if dtype not in FieldFamilies.NUMBERS:
             return
-        counts = self.reading.currencies(cells=cells, policy=policy or PolicyModel())
+        counts = self.reading.numbers.currencies(cells=cells, policy=policy or PolicyModel())
         if sum(1 for count in counts.values() if count) > 1:
             detail = ", ".join(f"`{mark}`: {count}" for mark, count in counts.items() if count)
             self.warn(code="several-currencies", field=field, says=detail, count=sum(counts.values()), first=None)

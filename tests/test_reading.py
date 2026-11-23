@@ -128,7 +128,7 @@ class TestReader:
         assert ReadingParser().stored_types(types) == {"d": 2, "n": 1}
 
     def test_more_than_one_currency_is_counted(self):
-        reader = ReadingParser()
+        reader = ReadingParser().numbers
         cells = pl.Series("amount", ["£5", "£6", "€7", "¬£8", "9"], dtype=pl.String)
         policy = PolicyModel(rules={"currency": ["£", "€", "¬£"]})
         assert reader.currencies(cells=cells, policy=policy) == {"£": 2, "€": 1, "¬£": 1}
