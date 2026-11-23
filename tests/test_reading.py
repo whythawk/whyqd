@@ -9,6 +9,7 @@ in `tests/data/builders/`. A reading does not depend on the machine's locale, so
 The tests of the reader and of the conversion fail until those are built, each pinned as a strict expected failure.
 """
 
+import itertools
 import json
 import math
 from decimal import Decimal
@@ -20,7 +21,7 @@ import pytest
 
 import whyqd as qd
 from tests.test_locale import machine_locale  # noqa: F401
-from whyqd.dtypes import MimeType, RefusalReason
+from whyqd.dtypes import CellType, MimeType, RefusalReason
 from whyqd.config.names import NameTables
 from whyqd.models import FieldModel, PolicyModel, RulesModel
 from whyqd.reading.reading import ReadingParser
@@ -123,6 +124,23 @@ class TestReader:
         cells = pl.Series(name, ["1", "x"], dtype=pl.String)
         read = ReadingParser().column(cells=cells, dtype="number")
         assert read["kind"].to_list() == ["value", "refused"]
+
+    def test_each_combination_of_warnings_lists_in_order(self):
+        reader = ReadingParser()
+        codes = reader.WARNING_CODES[:4]
+        combinations = list(itertools.product([False, True], repeat=len(codes)))
+        count = len(combinations)
+        read = pl.DataFrame(
+            {
+                reader.BLANK: [False] * count + [True, False],
+                reader.TYPE: [CellType.STRING.value] * (count + 2),
+                reader.REASON: [None] * count + [None, RefusalReason.NO_NUMBER.value],
+                **{code: [combination[i] for combination in combinations] + [True, True] for i, code in enumerate(codes)},
+            }
+        )
+        warnings = reader.outcome(read, pl.Series([1.0] * (count + 2)))[reader.WARNINGS].to_list()
+        written = [[code for i, code in enumerate(codes) if combination[i]] for combination in combinations]
+        assert warnings == [*written, [], []]
 
     def test_a_text_fields_stored_types_are_counted(self):
         types = pl.Series("id", ["s", "d", "n", "d", None], dtype=pl.String)

@@ -123,9 +123,8 @@ class BaseReadingParser:
         undeclared = pl.col(self.REASON) == RefusalReason.UNDECLARED_CHARACTER.value
         empty = pl.lit(None, dtype=pl.String)
         detail = pl.when(undeclared).then(self.DETAIL) if self.DETAIL in read.columns else empty
-        found = [pl.when(pl.col(code)).then(pl.lit(code)) for code in self.WARNING_CODES if code in read.columns]
-        warnings = pl.concat_list([empty, *found]).list.drop_nulls()
-        warnings = pl.when(refused | blank).then(pl.lit([], dtype=pl.List(pl.String))).otherwise(warnings)
+        listed = pl.List(pl.String)
+        warnings = pl.when(refused | blank).then(pl.lit([], dtype=listed)).otherwise(self.warned(read))
         return read.with_columns(value.alias(self.VALUE)).select(
             pl.when(refused)
             .then(pl.lit(ReadingKind.REFUSED.value))
@@ -138,6 +137,21 @@ class BaseReadingParser:
             detail.alias(self.DETAIL),
             warnings.alias(self.WARNINGS),
         )
+
+    def warned(self, read: pl.DataFrame) -> pl.Series:
+        """Each cell's warnings, in `WARNING_CODES`' order, from a column of its own for each warning a reader found.
+        Cells share few combinations, so each combination's list is written once and given to every cell holding it."""
+        codes = [code for code in self.WARNING_CODES if code in read.columns]
+        if not codes:
+            return pl.repeat([], read.height, eager=True, dtype=pl.List(pl.String))
+        combination = read.select(
+            pl.sum_horizontal(pl.col(code).cast(pl.UInt32) * (1 << place) for place, code in enumerate(codes))
+        ).to_series()
+        lists = {
+            key: [code for place, code in enumerate(codes) if key >> place & 1]
+            for key in combination.unique().to_list()
+        }
+        return combination.replace_strict(lists, return_dtype=pl.List(pl.String))
 
     def read_string(self, *, cells: pl.Series, types: pl.Series, policy: PolicyModel) -> pl.DataFrame:
         """A text field keeps a cell exactly as written. A blank is a blank, and nothing can be refused."""
