@@ -1,6 +1,8 @@
 # SPDX-License-Identifier: BSD-3-Clause
 from __future__ import annotations
 import ast
+import math
+from decimal import Decimal
 from typing import ClassVar
 
 import pandas as pd
@@ -9,6 +11,7 @@ import polars as pl
 from whyqd.dtypes import CellType, FieldType
 from whyqd.models import PolicyModel
 from whyqd.reading.reading import ReadingParser
+from whyqd.sources.cell import CellParser
 
 
 class FrameParser:
@@ -33,6 +36,7 @@ class FrameParser:
 
     def __init__(self) -> None:
         self.reading = ReadingParser()
+        self.cell = CellParser()
 
     def cells(self, column: pd.Series) -> pl.Series:
         """A pandas column's values as text cells, null where missing."""
@@ -79,25 +83,21 @@ class FrameParser:
         )
 
     def as_cells(self, column: pd.Series) -> tuple[pl.Series, pl.Series]:
-        """A built column as a reader takes it: each value's text, and whether it is a stored value already."""
+        """A built column as a reader takes it: each value's text and cell type, rendered as a stored cell would be, so
+        a value has one text whichever path it takes. Text, an empty one included, stays as written; an exact decimal
+        and an infinity, which no cell stores, keep their own text."""
         texts, tags = [], []
         for value in column.astype(object).tolist():
-            if value is None or value is pd.NA or (isinstance(value, float) and value != value) or value is pd.NaT:
-                texts.append(None)
-                tags.append(CellType.STRING.value)
-            elif isinstance(value, bool):
-                texts.append("TRUE" if value else "FALSE")
-                tags.append(CellType.BOOLEAN.value)
-            elif isinstance(value, (int, float)) or type(value).__name__ == "Decimal":
-                texts.append(repr(float(value)) if isinstance(value, float) else str(value))
-                tags.append(CellType.NUMBER.value)
-            elif hasattr(value, "isoformat") and not isinstance(value, str):
-                midnight = isinstance(value, pd.Timestamp) and value == value.normalize()
-                texts.append(value.date().isoformat() if midnight else value.isoformat())
-                tags.append(CellType.DATE.value)
+            if value is None or value is pd.NA or value is pd.NaT or (isinstance(value, float) and math.isnan(value)):
+                tag, text = CellType.STRING, None
+            elif isinstance(value, str):
+                tag, text = CellType.STRING, value
+            elif isinstance(value, Decimal) or (isinstance(value, float) and math.isinf(value)):
+                tag, text = CellType.NUMBER, str(value)
             else:
-                texts.append(str(value))
-                tags.append(CellType.STRING.value)
+                tag, text = self.cell.render(value=value)
+            texts.append(text)
+            tags.append(tag.value)
         return pl.Series(self.reading.CELL, texts, dtype=pl.String), pl.Series(self.reading.CELL, tags, dtype=pl.String)
 
     def as_list(self, value) -> list | None:

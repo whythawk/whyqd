@@ -6,14 +6,17 @@ report holds everything found; and a constraint applied is checked. Everywhere b
 """
 
 import json
+from datetime import timedelta
 from pathlib import Path
 
 import openpyxl
+import pandas as pd
 import pytest
 
 import whyqd as qd
 from whyqd import ConformanceError
 from whyqd.models import ActionScriptModel, FieldModel, PolicyModel
+from whyqd.reading.frame import FrameParser
 
 DATA = Path(__file__).resolve().parent / "data"
 PRESENCE = json.loads((DATA / "synthetic-typing" / "typing-key.json").read_text(encoding="utf-8"))["categorise"]
@@ -143,6 +146,20 @@ class TestHalting:
 
 
 class TestTypes:
+    def test_a_number_written_as_text_reads_as_a_cell_would(self, tmp_path):
+        run = build(
+            tmp_path, [["a"], ["1"], ["1.5"], ["1e20"]], source={"a": {"type": "number"}}, destination={"a": {"type": "string"}}
+        )
+        run.process()
+        assert run.data["a"].tolist() == ["1", "1.5", "100000000000000000000"]
+
+    def test_a_built_value_has_one_text_whichever_path_it_takes(self):
+        cells, tags = FrameParser().as_cells(
+            pd.Series([timedelta(hours=25, minutes=30), pd.Timestamp("2024-04-01 09:30"), pd.Timestamp("2024-04-01"), ""])
+        )
+        assert cells.to_list() == ["PT25H30M", "2024-04-01T09:30:00", "2024-04-01", ""]
+        assert tags.to_list() == ["d", "d", "d", "s"]
+
     def test_a_conflict_is_found_with_no_cell_read(self, tmp_path):
         run = build(
             tmp_path, [["a"], ["2024-04-13"]], source={"a": {"type": "date"}}, destination={"a": {"type": "number"}}
@@ -216,11 +233,6 @@ class TestTypes:
             run.process()
         assert run.data["a"].tolist() == [5, 6, 6, -6, 3]
         assert warned(run) == [("a", "integer-rounded")]
-
-    def test_a_declared_number_writes_as_text(self, tmp_path):
-        run = build(tmp_path, [["a"], ["5"]], source={"a": {"type": "number"}}, destination={"a": {"type": "string"}})
-        run.process()
-        assert run.data["a"].tolist() == ["5.0"]
 
     def test_text_is_kept_exactly(self, tmp_path):
         run = build(tmp_path, [["a"], ["'  x  y"], ["a\\b"]])
