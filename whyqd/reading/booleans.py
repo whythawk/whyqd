@@ -5,7 +5,7 @@ from typing import ClassVar
 import polars as pl
 
 from whyqd.dtypes import CellType, ReadingWarning, RefusalReason
-from whyqd.models import PolicyModel
+from whyqd.models import PolicyModel, RulesModel
 from whyqd.reading.reader import BaseReadingParser
 
 
@@ -20,7 +20,7 @@ class BooleanParser(BaseReadingParser):
         a value, and a stored number reads 1 as `true` and 0 as `false`, with a warning, any other number refused."""
         terms = {}
         for pair in policy.declared_patterns():
-            yes, no = (self.normalised(term) for term in pair.split(PolicyModel.PAIR))
+            yes, no = (RulesModel.normalised(term) for term in pair.split(PolicyModel.PAIR))
             terms |= {yes: True, no: False}
         text = self.steps(cells)
         lower = text.str.to_lowercase()

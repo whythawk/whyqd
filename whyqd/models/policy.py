@@ -1,9 +1,11 @@
 # SPDX-License-Identifier: BSD-3-Clause
 from __future__ import annotations
+import unicodedata
 from typing import ClassVar, Optional, Union
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from whyqd.config.names import NameTables
+from whyqd.config.patterns import PolarsPatterns
 from whyqd.dtypes import CellType, FieldFamilies, FieldType, SerialDate
 from whyqd.reading.pattern import PatternParser
 
@@ -37,6 +39,7 @@ class RulesModel(BaseModel):
     MONTHS: ClassVar[int] = 12
     DAY_PERIODS: ClassVar[int] = 2
     NUMBER_PLACE: ClassVar[str] = "x"
+    NORMAL: ClassVar[str] = "NFKC"
 
     currency: list[str] = Field(
         [],
@@ -106,6 +109,20 @@ class RulesModel(BaseModel):
         """A name's entry in `monthNames` or `dayPeriods` as its list of spellings."""
         return [entry] if isinstance(entry, str) else entry
 
+    @classmethod
+    def normalised(cls, text: str) -> str:
+        """A declaration as a cell's fixed steps leave it, so a declared U+202F or `￥` finds its cell: bidirectional
+        marks removed, then Unicode's NFKC."""
+        return unicodedata.normalize(
+            cls.NORMAL, text.translate({ord(mark): None for mark in PolarsPatterns.BIDI_MARKS})
+        )
+
+    @classmethod
+    def name_key(cls, name: str) -> str:
+        """A declared name as a cell's may be compared with it, and with the field's other names: normalised, without
+        case or one closing `.`, so `Jan.` and `jan` are one name and `Jan..` another."""
+        return cls.normalised(name).lower().removesuffix(".")
+
     @field_validator("negative")
     @classmethod
     def holds_the_number(cls, v: list[str]) -> list[str]:
@@ -130,7 +147,7 @@ class RulesModel(BaseModel):
     @classmethod
     def one_for_each(cls, v: list, info) -> list:
         wanted = cls.MONTHS if info.field_name == "monthNames" else cls.DAY_PERIODS
-        spelled = [name.lower().rstrip(".") for entry in v for name in cls.spellings(entry)]
+        spelled = [cls.name_key(name) for entry in v for name in cls.spellings(entry)]
         if v and (len(v) != wanted or len(spelled) != len(set(spelled))):
             raise ValueError(
                 f"`rules.{info.field_name}` needs {wanted} entries, in order, with no name in two of them. "

@@ -48,11 +48,11 @@ class NumberParser(BaseReadingParser):
         declared = policy.format if isinstance(policy.format, NumberFormatModel) else None
         if declared is None or not declared.model_fields_set:
             return None
-        decimal = self.normalised(declared.decimalChar or self.DECIMAL_MARK)
-        group = self.normalised(declared.groupChar) if declared.groupChar else None
+        decimal = RulesModel.normalised(declared.decimalChar or self.DECIMAL_MARK)
+        group = RulesModel.normalised(declared.groupChar) if declared.groupChar else None
         sizes = (self.GROUP_SIZE, self.GROUP_SIZE)
         if declared.pattern and group:
-            written = self.normalised(declared.pattern).split(decimal)[0].split(group)
+            written = RulesModel.normalised(declared.pattern).split(decimal)[0].split(group)
             sizes = (len(written[-1]), len(written[-2]) if len(written) > 2 else len(written[-1]))
         return decimal, group, [sizes]
 
@@ -177,7 +177,7 @@ class NumberParser(BaseReadingParser):
         """Each cell's text without its declared currency and other marks, and, with no currency declared, without any
         of Unicode's currency marks, with whether each cell held one."""
         p = self.patterns
-        marks = [self.normalised(mark) for mark in [*rules.currency, *rules.marks]]
+        marks = [RulesModel.normalised(mark) for mark in [*rules.currency, *rules.marks]]
         if marks:
             text = text.str.replace_all(p.any_of(marks), "").str.strip_chars()
         if rules.currency:
@@ -189,7 +189,7 @@ class NumberParser(BaseReadingParser):
     ) -> tuple[pl.Series, pl.Series, pl.Series]:
         """Each cell's text without a percent's or per mille's `mark`, how many `places` its point moves where it held
         one, beside any `shift` already found, and whether it held one."""
-        written = self.normalised(mark)
+        written = RulesModel.normalised(mark)
         found = text.str.contains(written, literal=True).fill_null(False)
         shift = pl.repeat(0, text.len(), eager=True, dtype=pl.Int64) if shift is None else shift
         moved = pl.repeat(places, text.len(), eager=True, dtype=pl.Int64).zip_with(found, shift)
@@ -200,7 +200,7 @@ class NumberParser(BaseReadingParser):
         or with none `(x)` and `x-`."""
         negative = pl.repeat(False, text.len(), eager=True)
         for form in rules.negative or self.UNDECLARED_NEGATIVE:
-            prefix, suffix = (self.normalised(part).strip() for part in form.split(RulesModel.NUMBER_PLACE))
+            prefix, suffix = (RulesModel.normalised(part).strip() for part in form.split(RulesModel.NUMBER_PLACE))
             around = self.patterns.around(prefix, suffix)
             found = text.str.contains(around).fill_null(False)
             negative = negative | found
@@ -316,7 +316,7 @@ class NumberParser(BaseReadingParser):
     def currency(self, rules: RulesModel) -> str:
         """The currency marks a field's cells are counted by: those it declares, or with none any mark read."""
         if rules.currency:
-            return self.patterns.any_of([self.normalised(mark) for mark in rules.currency])
+            return self.patterns.any_of([RulesModel.normalised(mark) for mark in rules.currency])
         return self.patterns.CURRENCY
 
     def currencies(self, *, readings: pl.DataFrame, policy: PolicyModel) -> dict[str, int]:
@@ -330,4 +330,4 @@ class NumberParser(BaseReadingParser):
         counts = dict(found.alias(self.CELL).drop_nulls().value_counts().iter_rows())
         if not declared:
             return counts
-        return {mark: counts.get(self.normalised(mark), 0) for mark in declared}
+        return {mark: counts.get(RulesModel.normalised(mark), 0) for mark in declared}

@@ -112,6 +112,12 @@ class TestReader:
         assert read[0]["value"] == 1234.5 and read[1]["value"] == 2.5e-05
         assert read[2]["reason"] == "not-in-format"
 
+    def test_a_declared_name_keeps_all_but_one_closing_dot(self):
+        months = ["Jan..", *"Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec".split()]
+        policy = PolicyModel(format="d MMM yyyy", rules={"monthNames": months})
+        read = readings(cells=["1 Jan.. 2024", "1 Jan. 2024"], dtype="date", policy=policy)
+        assert [str(r["value"]) for r in read] == ["2024-01-01", "None"]
+
     def test_a_stored_boolean_and_number_read_across_with_a_warning(self):
         numbers = readings(cells=["TRUE", "FALSE"], cell_types=["b", "b"], dtype="number")
         assert [(r["value"], r["warnings"]) for r in numbers] == [(1.0, ["boolean-as-number"]), (0.0, ["boolean-as-number"])]
@@ -187,7 +193,7 @@ class TestReader:
                 names |= set(RulesModel.spellings(entry))
             periods |= {*table["morning"], *table["afternoon"]}
         for spelled, one, many in (
-            (names, dates.name_key, dates.name_keys),
+            (names, RulesModel.name_key, dates.name_keys),
             (periods, dates.period_key, dates.period_keys),
         ):
             written = sorted(spelled)

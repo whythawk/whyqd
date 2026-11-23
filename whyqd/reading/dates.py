@@ -91,7 +91,7 @@ class DateParser(BaseReadingParser):
         first field is a quantity of any length: `H:mm` reads `100:30`. With `tail`, a date's cell may also hold a
         time."""
         p, regex, fields = self.patterns, [], []
-        written = self.pattern.parts(self.normalised(pattern))
+        written = self.pattern.parts(RulesModel.normalised(pattern))
         for index, (is_field, text) in enumerate(written):
             if not is_field:
                 regex.append(p.literal(text))
@@ -113,13 +113,8 @@ class DateParser(BaseReadingParser):
             fields.append(text)
         return p.whole_cell("".join(regex) + (p.TIME_TAIL if tail else "")), fields
 
-    def name_key(self, name: str) -> str:
-        """A declared name as a cell's may be compared with it: without case or a closing `.`. `name_keys` is the same
-        rule for a column of cells."""
-        return self.normalised(name).lower().rstrip(".")
-
     def name_keys(self, cells: pl.Series) -> pl.Series:
-        """Each cell's name as `name_key` writes a declared one, the cells having had their fixed steps."""
+        """Each cell's name as `RulesModel.name_key` writes a declared one, the cells having had their fixed steps."""
         return cells.str.to_lowercase().str.replace(self.patterns.TRAILING_DOT, "")
 
     def month_names(self, rules: RulesModel) -> dict[str, str]:
@@ -127,19 +122,19 @@ class DateParser(BaseReadingParser):
         table = NameTables.language(rules.language) if rules.language else None
         names = {}
         for index, entries in enumerate(table["months"] if table else []):
-            names |= {self.name_key(entry): f"{index + 1:02d}" for entry in entries}
+            names |= {RulesModel.name_key(entry): f"{index + 1:02d}" for entry in entries}
         for index, entry in enumerate(rules.monthNames):
-            names |= {self.name_key(name): f"{index + 1:02d}" for name in RulesModel.spellings(entry)}
+            names |= {RulesModel.name_key(name): f"{index + 1:02d}" for name in RulesModel.spellings(entry)}
         return names
 
     def weekday_names(self, rules: RulesModel) -> list[str]:
         """Every spelling of a weekday in the field's language, keyed as a cell's is; a weekday is read past."""
-        return [self.name_key(name) for name in NameTables.language(rules.language)["weekdays"]]
+        return [RulesModel.name_key(name) for name in NameTables.language(rules.language)["weekdays"]]
 
     def period_key(self, name: str) -> str:
         """A declared day period as a cell's may be compared with it: without case, dots, or spaces, so `p. m.` is
         `pm`. `period_keys` is the same rule for a column of cells."""
-        return "".join(char for char in self.normalised(name).lower() if char != "." and not char.isspace())
+        return "".join(char for char in RulesModel.normalised(name).lower() if char != "." and not char.isspace())
 
     def period_keys(self, cells: pl.Series) -> pl.Series:
         """Each cell's day period as `period_key` writes a declared one, the cells having had their fixed steps."""
@@ -150,9 +145,9 @@ class DateParser(BaseReadingParser):
         table = NameTables.language(rules.language) if rules.language else None
         spelled = dict(self.DAY_PERIODS)
         for afternoon, key in ((False, "morning"), (True, "afternoon")):
-            spelled |= {self.normalised(name).lower(): afternoon for name in (table[key] if table else [])}
+            spelled |= {RulesModel.normalised(name).lower(): afternoon for name in (table[key] if table else [])}
         for afternoon, entry in zip((False, True), rules.dayPeriods, strict=False):
-            spelled |= {self.normalised(name).lower(): afternoon for name in RulesModel.spellings(entry)}
+            spelled |= {RulesModel.normalised(name).lower(): afternoon for name in RulesModel.spellings(entry)}
         return spelled | {self.period_key(name): afternoon for name, afternoon in spelled.items()}
 
     def pattern_value(
@@ -295,8 +290,10 @@ class DateParser(BaseReadingParser):
             {key: {int(month)} for key, month in self.month_names(rules).items()} if declared else NameTables.months()
         )
         present = name.drop_nulls().unique().to_list()
-        months = {key: len(meanings.get(self.name_key(key), ())) for key in present}
-        month = {key: str(next(iter(meanings[self.name_key(key)]))) for key, count in months.items() if count == 1}
+        months = {key: len(meanings.get(RulesModel.name_key(key), ())) for key in present}
+        month = {
+            key: str(next(iter(meanings[RulesModel.name_key(key)]))) for key, count in months.items() if count == 1
+        }
         count = name.replace_strict(months, default=0, return_dtype=pl.Int64).fill_null(0)
         dated = self.iso_date(
             year=year, month=name.replace_strict(month, default=None, return_dtype=pl.String), day=day

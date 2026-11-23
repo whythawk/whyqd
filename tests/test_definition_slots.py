@@ -67,6 +67,7 @@ MISFITS = [
     ("date", {"format": "d MMM yyyy", "rules": {"language": "klingon"}}, "policy-names"),
     ("date", {"format": "d MMM yyyy", "rules": {"monthNames": MONTHS[:11]}}, "policy-names"),
     ("date", {"format": "d MMM yyyy", "rules": {"monthNames": [*MONTHS[:11], "Jan"]}}, "policy-names"),
+    ("date", {"format": "d MMM yyyy", "rules": {"monthNames": ["Jan", "Ｊａｎ", *MONTHS[2:]]}}, "policy-names"),
     ("time", {"format": "h:mm a", "rules": {"dayPeriods": ["AM"]}}, "policy-names"),
     ("date", {"format": "dd/MM/yyyy HH:mm"}, "policy-pattern"),
     ("date", {"format": "MM/yyyy"}, "policy-pattern"),

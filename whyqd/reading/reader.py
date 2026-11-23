@@ -7,7 +7,7 @@ import polars as pl
 
 from whyqd.config.patterns import PolarsPatterns
 from whyqd.dtypes import CellType, FindingKind, ReadingKind, ReadingWarning, RefusalReason
-from whyqd.models import FindingModel, PolicyModel
+from whyqd.models import FindingModel, PolicyModel, RulesModel
 
 
 class BaseReadingParser:
@@ -15,8 +15,7 @@ class BaseReadingParser:
     are reported. Each type's reader inherits it."""
 
     CELL: ClassVar[str] = "cell"
-    NORMAL: ClassVar[str] = "NFKC"
-    BIDI: ClassVar[str] = PolarsPatterns.BIDI_MARKS
+    NORMAL: ClassVar[str] = RulesModel.NORMAL
     # What a refusal's shape writes for each digit, so cells differing only in their digits group together
     SHAPE_DIGIT: ClassVar[str] = "9"
     # A boolean's text for `true`, in any case: a stored boolean renders `TRUE`
@@ -63,10 +62,6 @@ class BaseReadingParser:
     def is_blank(self, cells: pl.Series) -> pl.Series:
         """Empty or only whitespace: typing's blank, never a value. Load holds such a cell as written."""
         return (cells.is_null() | cells.str.contains(self.patterns.WHITESPACE) | (cells == "")).fill_null(True)
-
-    def normalised(self, text: str) -> str:
-        """A declaration as a cell's fixed steps leave it, so a declared U+202F or `￥` finds its cell."""
-        return unicodedata.normalize(self.NORMAL, text.translate({ord(mark): None for mark in self.BIDI}))
 
     def steps(self, cells: pl.Series) -> pl.Series:
         """A cell's fixed steps, whatever the field declares: bidirectional marks, NFKC, minus-like characters, ends."""
