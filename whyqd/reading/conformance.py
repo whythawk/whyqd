@@ -1,6 +1,5 @@
 # SPDX-License-Identifier: BSD-3-Clause
 from __future__ import annotations
-import ast
 from dataclasses import dataclass
 from typing import ClassVar
 
@@ -18,6 +17,7 @@ from whyqd.dtypes import (
     ReadingKind,
 )
 from whyqd.models import FieldModel, FindingModel, PolicyModel, ReportModel
+from whyqd.reading.frame import FrameParser
 from whyqd.reading.reading import ReadingParser
 from whyqd.sources.row_key import RowKeyParser
 
@@ -50,18 +50,12 @@ class ConformanceParser:
     """
 
     TEXT: ClassVar[str] = FieldType.STRING.value
-    PANDAS: ClassVar[dict[str, str]] = {
-        FieldType.NUMBER.value: "Float64",
-        FieldType.INTEGER.value: "Int64",
-        FieldType.BOOLEAN.value: "boolean",
-        FieldType.STRING.value: "string",
-    }
     MAPS_DIRECTLY: ClassVar[frozenset[str]] = frozenset({"RENAME", "SELECT", "SELECT_NEWEST", "SELECT_OLDEST"})
     WARNINGS: ClassVar[dict[str, str]] = {
-        ConformanceFinding.STORED_AS_OTHER_TYPE.value: "a workbook stores these as another type, which Excel may have converted on opening; "
-        "check them against the file's owner",
-        ConformanceFinding.SEVERAL_CURRENCIES.value: "the amounts are in several currencies, and read as one number; split them with a crosswalk "
-        "action before summing",
+        ConformanceFinding.STORED_AS_OTHER_TYPE.value: "a workbook stores these as another type, which Excel may have "
+        "converted on opening; check them against the file's owner",
+        ConformanceFinding.SEVERAL_CURRENCIES.value: "the amounts are in several currencies, and read as one number; "
+        "split them with a crosswalk action before summing",
         "currency-read": "a currency mark was read past; declare it in `rules.currency` to confirm",
         "sign-read": "a negative form such as `(x)` was read as negative; declare it in `rules.negative` to confirm",
         "percent-read": "a percent read as a fraction, `5%` as 0.05; declare `rules.percent` to confirm",
@@ -78,12 +72,13 @@ class ConformanceParser:
         "year-below-1000": "these read as a year before 1000; declare `yy` and `rules.yearStart` if the year is shortened",
         "time-dropped": "a date does not keep a time; use a `datetime` field if it matters",
         "repeated-hour": "the clocks went back, so these read as the earlier time; check them if the hour matters",
-        ConformanceFinding.UNREAD_REFUSAL.value: "no action reads this field, so it does not stop the transform; correct its declaration or "
-        "remove it",
+        ConformanceFinding.UNREAD_REFUSAL.value: "no action reads this field, so it does not stop the transform; "
+        "correct its declaration or remove it",
     }
 
     def __init__(self) -> None:
         self.reading = ReadingParser()
+        self.frame = FrameParser()
         self.row_key = RowKeyParser()
         self.refused: list[Refused] = []
         self.conflicted: set[str] = set()
@@ -123,27 +118,15 @@ class ConformanceParser:
                 read = self.reading.column(cells=cells, dtype=field.dtype, policy=field.policy, types=tags)
                 self.keep(field=field.name, cells=cells, readings=read, rows=rows)
                 self.warn_currencies(field=field.name, cells=cells, dtype=field.dtype, policy=field.policy)
-                df[field.name] = self.pandas(read[self.reading.VALUE], field.dtype, df.index)
+                df[field.name] = self.frame.pandas(read[self.reading.VALUE], field.dtype, df.index)
                 continue
-            df[field.name] = (
-                cells.to_pandas()
-                .astype(self.PANDAS[self.TEXT])
-                .set_axis(df.index)
-                .astype(object)
-                .where(cells.is_not_null().to_numpy(), None)
-            )
+            df[field.name] = self.frame.strings(cells, df.index)
             if tags is not None:
                 self.warn_stored(field=field.name, types=tags, rows=rows)
             if field.name in inputs:
                 read = self.reading.column(cells=cells, dtype=inputs[field.name], types=tags)
                 self.keep(field=field.name, cells=cells, readings=read, rows=rows)
         return df
-
-    def pandas(self, value: pl.Series, dtype: str, index: pd.Index) -> pd.Series:
-        """A read column for the pandas frame, an interim until the actions are written in Polars."""
-        if nullable := self.PANDAS.get(dtype):
-            return pd.Series(value.to_list(), dtype=nullable if value.dtype != pl.Decimal else object, index=index)
-        return pd.Series(value.to_pandas().to_numpy(), index=index)
 
     def keep(self, *, field: str, cells: pl.Series, readings: pl.DataFrame, rows: pl.Series) -> None:
         """Hold a field's refusals until the rows that survive are known, and report what warns."""
@@ -227,64 +210,6 @@ class ConformanceParser:
                 )
         self.refused = []
 
-    def as_cells(self, column: pd.Series) -> tuple[pl.Series, pl.Series]:
-        """A built column as a reader takes it: each value's text, and whether it is a stored value already."""
-        texts, tags = [], []
-        for value in column.astype(object).tolist():
-            if value is None or value is pd.NA or (isinstance(value, float) and value != value) or value is pd.NaT:
-                texts.append(None)
-                tags.append(CellType.STRING.value)
-            elif isinstance(value, bool):
-                texts.append("TRUE" if value else "FALSE")
-                tags.append(CellType.BOOLEAN.value)
-            elif isinstance(value, (int, float)) or type(value).__name__ == "Decimal":
-                texts.append(repr(float(value)) if isinstance(value, float) else str(value))
-                tags.append(CellType.NUMBER.value)
-            elif hasattr(value, "isoformat") and not isinstance(value, str):
-                midnight = isinstance(value, pd.Timestamp) and value == value.normalize()
-                texts.append(value.date().isoformat() if midnight else value.isoformat())
-                tags.append(CellType.DATE.value)
-            else:
-                texts.append(str(value))
-                tags.append(CellType.STRING.value)
-        return pl.Series(self.reading.CELL, texts, dtype=pl.String), pl.Series(self.reading.CELL, tags, dtype=pl.String)
-
-    def as_list(self, value) -> list | None:
-        """An array's value, from a list or the literal a saved file holds, each item as text."""
-        if isinstance(value, str):
-            value = ast.literal_eval(value)
-        if value is None or not len(value):
-            return None
-        return [None if pd.isna(item) else self.as_item(item) for item in value]
-
-    def as_item(self, item) -> str:
-        """An array's item as text: a date read at the source as its date alone, as a date cell renders."""
-        if isinstance(item, pd.Timestamp) and item == item.normalize():
-            return item.date().isoformat()
-        return str(item).strip()
-
-    def is_typed_as(self, column: pd.Series, dtype: str) -> bool:
-        """Whether a built column already holds its destination type, so it is passed on as it is."""
-        kind = str(column.dtype).lower()
-        if dtype == FieldType.NUMBER.value:
-            return kind in ("float64", "float32")
-        if dtype == FieldType.BOOLEAN.value:
-            return kind == "boolean"
-        if dtype == FieldType.DATE.value:
-            values = column.dropna()
-            return "datetime64" in kind and "," not in kind and (values == values.dt.normalize()).all()
-        if dtype == FieldType.DATETIME.value:
-            return "datetime64" in kind
-        if dtype == FieldType.TIME.value:
-            return (
-                kind == "object"
-                and column.dropna().map(lambda v: type(v).__name__ == "time").all()
-                and column.notna().any()
-            )
-        if dtype == FieldType.DURATION.value:
-            return "timedelta" in kind
-        return False
-
     def destination(
         self, *, df: pd.DataFrame, fields: list[FieldModel], missing: list[str], policies: dict[str, PolicyModel]
     ) -> pd.DataFrame:
@@ -298,14 +223,14 @@ class ConformanceParser:
             if field.dtype in FieldFamilies.NOT_READ:
                 if field.dtype == FieldType.ARRAY.value:
                     df[field.name] = pd.Series(
-                        [self.as_list(value) for value in column.tolist()], index=df.index, dtype=object
+                        [self.frame.as_list(value) for value in column.tolist()], index=df.index, dtype=object
                     )
                 self.check_constraints(field=field, column=df[field.name], rows=rows)
                 continue
-            if self.is_typed_as(column, field.dtype):
+            if self.frame.is_typed_as(column, field.dtype):
                 self.check_constraints(field=field, column=column, rows=rows)
                 continue
-            cells, tags = self.as_cells(column)
+            cells, tags = self.frame.as_cells(column)
             cells = self.missing(cells, missing)
             policy = policies.get(field.name) or field.policy
             read = self.reading.column(cells=cells, dtype=field.dtype, policy=policy, types=tags)
@@ -314,7 +239,7 @@ class ConformanceParser:
             self.faults += self.reading.findings(field=field.name, cells=cells, readings=read, rows=rows)
             # A text field keeps a whitespace-only cell as written, though it counts as blank when a value is required
             value = cells if field.dtype == self.TEXT else read[self.reading.VALUE]
-            df[field.name] = self.pandas(value, field.dtype, df.index)
+            df[field.name] = self.frame.pandas(value, field.dtype, df.index)
             refused = read[self.reading.KIND] == ReadingKind.REFUSED.value
             self.check_constraints(field=field, column=df[field.name], rows=rows, skip=refused)
         return df

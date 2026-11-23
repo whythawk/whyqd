@@ -7,7 +7,7 @@ from whyqd.parsers import ScriptParser
 if TYPE_CHECKING:
     import pandas as pd
     from whyqd.models import CategoryActionModel, CategoryModel, FieldModel
-    from whyqd.sources.datasource import DataSourceParser
+    from whyqd.reading.frame import FrameParser
 
 
 class BaseCategoryAction:
@@ -29,7 +29,7 @@ class BaseCategoryAction:
     """
 
     def __init__(self) -> None:
-        self._reader = None
+        self._frame = None
         self.parser = ScriptParser()
         self.name = ""
         self.title = ""
@@ -37,13 +37,13 @@ class BaseCategoryAction:
         self.structure = []
 
     @property
-    def reader(self) -> DataSourceParser:
-        # The reader loads the engine, which reading a definition must not
-        if self._reader is None:
-            from whyqd.sources.datasource import DataSourceParser
+    def frame(self) -> FrameParser:
+        # The bridge loads the engine, which reading a definition must not
+        if self._frame is None:
+            from whyqd.reading.frame import FrameParser
 
-            self._reader = DataSourceParser()
-        return self._reader
+            self._frame = FrameParser()
+        return self._frame
 
     @property
     def settings(self) -> CategoryActionModel:
@@ -176,7 +176,7 @@ class BaseCategoryAction:
                 if pd.api.types.is_numeric_dtype(conditions) and not pd.api.types.is_bool_dtype(conditions):
                     conditions = conditions if zero_counts else conditions.replace({0: np.nan})
             else:
-                conditions = self.reader.without_blanks(column=conditions)
+                conditions = self.frame.without_blanks(column=conditions)
             present = [not (pd.isnull(x) or (not x and not zero_counts)) for x in conditions.tolist()]
             conditions = pd.Series(present if assigned[0].name else [not p for p in present])
         else:

@@ -8,7 +8,6 @@ import polars as pl
 
 from whyqd.parsers.core import CoreParser
 from whyqd.reading.conformance import ConformanceParser
-from whyqd.reading.reading import ReadingParser
 from whyqd.sources.arrow import ArrowParser
 from whyqd.sources.csv import CsvParser
 from whyqd.sources.diagnosis import DiagnosisParser
@@ -27,7 +26,6 @@ from whyqd.models import (
     DataSourceAttributeModel,
     DialectModel,
     FindingModel,
-    PolicyModel,
     ReportModel,
 )
 from whyqd.dtypes import ChecksumContent, MimeType, FieldType
@@ -52,7 +50,6 @@ class DataSourceParser:
         self.v1 = V1ChecksumParser()
         self.tables = TableParser()
         self.row_key = RowKeyParser()
-        self.reading = ReadingParser()
         arrow, excel = ArrowParser(), ExcelParser()
         self.readers: dict[MimeType, Reader] = {
             MimeType.CSV: CsvParser(),
@@ -225,29 +222,6 @@ class DataSourceParser:
         df = conformance.source(table=table, types=types, fields=fields, missing=schema.get.missingValues, inputs={})
         conformance.settle_source(df=df, read_fields={field.name for field in fields})
         return [*conformance.faults, *conformance.warnings]
-
-    def without_blanks(self, *, column: pd.Series) -> pd.Series:
-        """A text column with each blank cell, by load's one definition, as an empty one: a blank is never a value."""
-        texts = pl.Series(
-            "cell", [None if pd.isna(v) else str(v) for v in column.astype(object).tolist()], dtype=pl.String
-        )
-        return column.where(~self.reading.is_blank(texts).to_numpy(), None)
-
-    def values(self, *, column: pd.Series, dtype: str, policy: PolicyModel | None = None) -> pd.Series:
-        """A column an action reads as `dtype`: as it is if already typed, or read by its field's declaration, with a
-        cell that cannot be read left empty, since the transform has already recorded its refusal."""
-        kind = str(column.dtype).lower()
-        if dtype == FieldType.NUMBER.value and kind in ("float64", "int64"):
-            return pd.Series(column.to_numpy(dtype="float64", na_value=float("nan")), index=column.index)
-        if dtype == FieldType.DATE.value and "datetime64" in kind:
-            return column
-        texts = pl.Series(
-            "cell", [None if pd.isna(v) else str(v) for v in column.astype(object).tolist()], dtype=pl.String
-        )
-        read = self.reading.column(cells=texts, dtype=dtype, policy=policy)
-        if dtype == FieldType.NUMBER.value:
-            return pd.Series(read["value"].to_list(), index=column.index, dtype="Float64").astype("float64")
-        return pd.Series(pd.to_datetime(read["value"].to_list(), errors="coerce"), index=column.index)
 
     def derive(
         self,
