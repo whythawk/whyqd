@@ -85,10 +85,10 @@ class NumberParser(BaseReadingParser):
         What has one sensible reading reads, with a warning, where the field declares nothing of its kind: a currency
         mark of Unicode's category `Sc`, `(x)` and `x-`, `%`, an exponent, and the marks `.` and `,`. Declaring one
         confirms it, and tightens it, so another of its kind refuses."""
-        p, rules = self.patterns, policy.rules or RulesModel()
+        p, rules = self.patterns, policy.declared_rules()
         length = cells.len()
         declared = self.number_format(policy)
-        text, mixed = self.digits(self.steps(cells))
+        text, mixed = self.prepared(cells)
         warned = {}
         marks = [self.normalised(mark) for mark in [*rules.currency, *rules.marks]]
         if marks:
@@ -117,27 +117,27 @@ class NumberParser(BaseReadingParser):
         minus = text.str.contains(p.LEADING_MINUS).fill_null(False)
         core = text.str.replace(p.LEADING_MINUS, "")
         decimal, group, shapes = declared or (self.DECIMAL_MARK, self.GROUP_MARK, self.GROUP_SHAPES)
-        exponent = core.str.extract(p.exponent(decimal, group), 2)
+        number, exponent = core.str.extract_groups(p.exponent(decimal, group)).struct.unnest()
         mantissa = core
         if rules.exponent is not False:
-            found = core.str.extract(p.exponent(decimal, group), 1)
-            mantissa = found.zip_with(found.is_not_null(), core)
+            mantissa = number.zip_with(number.is_not_null(), core)
             if rules.exponent is None:
                 warned[ReadingWarning.EXPONENT] = exponent.is_not_null()
+        last = mantissa.str.extract(p.LAST_MARK, 1)
         if declared:
             fits = mantissa.str.contains(p.number(decimal, group, shapes))
             digits = mantissa.str.replace_all(group, "", literal=True) if group else mantissa
             digits = digits.str.replace(decimal, ".", literal=True)
             either = pl.repeat(False, length, eager=True)
         else:
-            fits, digits, either, warned[ReadingWarning.MARKS] = self.undeclared_marks(mantissa)
+            fits, digits, either, warned[ReadingWarning.MARKS] = self.undeclared_marks(mantissa, last)
         # A space between digits may group them or part two numbers, so it is undeclared unless it is the group mark
         spaced = mantissa.str.contains(p.SPACED).fill_null(False)
         if group and group.isspace():
             spaced = pl.repeat(False, length, eager=True)
         left = core.str.replace_all(p.beside_number(decimal, group), "")
         space = pl.repeat(" ", length, eager=True, dtype=pl.String)
-        detail = mantissa.str.extract(p.LAST_MARK, 1).zip_with(either, space.zip_with(spaced & (left == ""), left))
+        detail = last.zip_with(either, space.zip_with(spaced & (left == ""), left))
         read = pl.DataFrame(
             {
                 "cell": cells,
@@ -148,6 +148,7 @@ class NumberParser(BaseReadingParser):
                 "text": text,
                 "core": core,
                 "left": left,
+                "detail": detail,
                 "either": either.fill_null(False),
                 "spaced": spaced.fill_null(False),
                 "runs": mantissa.str.extract_all(p.number_run(decimal, group)).list.len(),
@@ -155,23 +156,25 @@ class NumberParser(BaseReadingParser):
                 "fits": fits.fill_null(False),
                 "digits": digits,
                 "shift": shift,
-                "twice": negative & minus,
+                "signs": negative & minus,
                 "negative": negative | minus,
                 **{code.value: flag.fill_null(False) for code, flag in warned.items()},
             }
         )
-        return read.with_columns(self.number_reason(rules), self.canonical()).with_columns(left=detail)
+        return read.with_columns(self.number_reason(rules), self.canonical())
 
-    def undeclared_marks(self, mantissa: pl.Series) -> tuple[pl.Series, pl.Series, pl.Series, pl.Series]:
+    def undeclared_marks(
+        self, mantissa: pl.Series, last: pl.Series
+    ) -> tuple[pl.Series, pl.Series, pl.Series, pl.Series]:
         """Read `.` and `,` wherever only one reading fits: of two marks the last is the decimal; a repeated mark
         groups; and a lone mark is a decimal unless it could be either, a group of three after one to three digits, as
         `1,234`, since every CLDR locale's last group has three digits. Groups take either of CLDR's two shapes.
-        Returns whether each cell fits, its canonical digits, whether it could be either, and whether its marks warn."""
+        `last` is each cell's last mark. Returns whether each cell fits, its canonical digits, whether it could be
+        either, and whether its marks warn."""
         p = self.patterns
         point, comma = self.DECIMAL_MARK, self.GROUP_MARK
         dots = mantissa.str.count_matches(point, literal=True).fill_null(0)
         commas = mantissa.str.count_matches(comma, literal=True).fill_null(0)
-        last = mantissa.str.extract(p.LAST_MARK, 1)
         decimal_comma = (
             ((dots > 0) & (commas > 0) & (last == comma)) | ((dots > 1) & (commas == 0)) | ((commas == 1) & (dots == 0))
         ).fill_null(False)
@@ -198,18 +201,14 @@ class NumberParser(BaseReadingParser):
             (finite & (not rules.nonFinite), RefusalReason.UNDECLARED_NON_FINITE),
             (finite, None),
             (pl.col("core") == "", RefusalReason.NO_NUMBER),
-            (signed.fill_null(False) | pl.col("twice"), RefusalReason.UNDECLARED_SIGN),
+            (signed.fill_null(False) | pl.col("signs"), RefusalReason.UNDECLARED_SIGN),
             (pl.col("exponent").is_not_null() & (rules.exponent is False), RefusalReason.UNDECLARED_EXPONENT),
             (pl.col("exponent").is_null() & (pl.col("left") != ""), RefusalReason.UNDECLARED_CHARACTER),
             (pl.col("either") | pl.col("spaced"), RefusalReason.UNDECLARED_CHARACTER),
             (pl.col("runs") > 1, RefusalReason.TWO_NUMBERS),
             (~pl.col("fits"), RefusalReason.GROUPING),
         )
-        reason = pl.lit(None, dtype=pl.String)
-        for condition, refusal in reversed(refusals):
-            refused = pl.lit(None, dtype=pl.String) if refusal is None else pl.lit(refusal.value)
-            reason = pl.when(condition).then(refused).otherwise(reason)
-        return reason.alias("reason")
+        return self.refusal(refusals)
 
     def canonical(self) -> pl.Expr:
         """Each number as canonical text, with its sign and exponent; a stored number is its own rendering."""
@@ -264,7 +263,7 @@ class NumberParser(BaseReadingParser):
         """Each currency mark's count, since a number read loses which currency it was in: each declared mark, where a
         field declares more than one, or with none declared each mark read. `¬£` is counted apart from the `£` inside
         it."""
-        declared = (policy.rules or RulesModel()).currency
+        declared = policy.declared_rules().currency
         if len(declared) == 1:
             return {}
         marks = (

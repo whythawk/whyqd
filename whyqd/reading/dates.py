@@ -94,8 +94,13 @@ class DateParser(BaseReadingParser):
         return "^" + "".join(regex) + (p.TIME_TAIL if tail else "") + "$", fields
 
     def name_key(self, name: str) -> str:
-        """A name as a cell's may be compared with it: without case or a closing `.`."""
+        """A declared name as a cell's may be compared with it: without case or a closing `.`. `name_keys` is the same
+        rule for a column of cells."""
         return self.normalised(name).lower().rstrip(".")
+
+    def name_keys(self, cells: pl.Series) -> pl.Series:
+        """Each cell's name as `name_key` writes a declared one, the cells having had their fixed steps."""
+        return cells.str.to_lowercase().str.replace(self.patterns.TRAILING_DOT, "")
 
     def month_names(self, rules: RulesModel) -> dict[str, str]:
         """Every spelling a field reads for a month, with the month's number."""
@@ -104,17 +109,20 @@ class DateParser(BaseReadingParser):
         for index, entries in enumerate(table["months"] if table else []):
             names |= {self.name_key(entry): f"{index + 1:02d}" for entry in entries}
         for index, entry in enumerate(rules.monthNames):
-            names |= {
-                self.name_key(name): f"{index + 1:02d}" for name in ([entry] if isinstance(entry, str) else entry)
-            }
+            names |= {self.name_key(name): f"{index + 1:02d}" for name in RulesModel.spellings(entry)}
         return names
 
     def weekday_names(self, rules: RulesModel) -> list[str]:
         return [self.name_key(name) for name in NameTables.language(rules.language)["weekdays"]]
 
     def period_key(self, name: str) -> str:
-        """A day period as a cell's may be compared with it: without case, dots, or spaces, so `p. m.` is `pm`."""
+        """A declared day period as a cell's may be compared with it: without case, dots, or spaces, so `p. m.` is
+        `pm`. `period_keys` is the same rule for a column of cells."""
         return "".join(char for char in self.normalised(name).lower() if char != "." and not char.isspace())
+
+    def period_keys(self, cells: pl.Series) -> pl.Series:
+        """Each cell's day period as `period_key` writes a declared one, the cells having had their fixed steps."""
+        return cells.str.to_lowercase().str.replace_all(self.patterns.DOT_OR_SPACE, "")
 
     def day_period_names(self, rules: RulesModel) -> dict[str, bool]:
         """Every spelling a field reads for a day period, with whether it is the afternoon: `AM` and `PM` always."""
@@ -123,9 +131,7 @@ class DateParser(BaseReadingParser):
         for afternoon, key in ((False, "morning"), (True, "afternoon")):
             spelled |= {self.normalised(name).lower(): afternoon for name in (table[key] if table else [])}
         for afternoon, entry in zip((False, True), rules.dayPeriods):
-            spelled |= {
-                self.normalised(name).lower(): afternoon for name in ([entry] if isinstance(entry, str) else entry)
-            }
+            spelled |= {self.normalised(name).lower(): afternoon for name in RulesModel.spellings(entry)}
         return spelled | {self.period_key(name): afternoon for name, afternoon in spelled.items()}
 
     def pattern_value(
@@ -138,7 +144,7 @@ class DateParser(BaseReadingParser):
         for index, field in enumerate(fields):
             column = found[str(index + 1)].alias(self.CELL)
             if field in ("MMM", "MMMM"):
-                keys = column.str.to_lowercase().str.replace(self.patterns.TRAILING_DOT, "")
+                keys = self.name_keys(column)
                 column = keys.replace_strict(self.month_names(rules), default=None, return_dtype=pl.String)
             if field == "yy":
                 column = (rules.yearStart + ((column.cast(pl.Int64) - rules.yearStart) % 100)).cast(pl.String)
@@ -168,7 +174,7 @@ class DateParser(BaseReadingParser):
     def twenty_four_hour(self, *, hours: pl.Series, periods: pl.Series, rules: RulesModel) -> pl.Series:
         """A 12-hour clock's hour and day period as a 24-hour hour; one outside 1 to 12 reads as no such time."""
         hour = hours.cast(pl.Int64)
-        keys = periods.str.to_lowercase().str.replace_all(self.patterns.DOT_OR_SPACE, "")
+        keys = self.period_keys(periods)
         afternoon = keys.replace_strict(self.day_period_names(rules), default=False, return_dtype=pl.Boolean)
         written = (hour % self.HALF_DAY + afternoon.cast(pl.Int64) * self.HALF_DAY).cast(pl.String)
         valid = ((hour >= 1) & (hour <= self.HALF_DAY)).fill_null(False)
@@ -186,10 +192,9 @@ class DateParser(BaseReadingParser):
         cell is already a value, so it reads by its rendering, or by the pattern `rules.cellFormats` gives that
         rendering. A period reads as the date it ends on. A datetime's own offset is read wherever a cell has one, and
         `rules.zone` states the zone of a clock that has none. What is read with something worth checking warns."""
-        rules = policy.rules or RulesModel()
-        declared = [policy.format] * isinstance(policy.format, str) + rules.alternateFormats
-        declared = [self.pattern.standard_pattern(pattern, dtype) for pattern in declared]
-        text, mixed = self.digits(self.steps(cells))
+        rules = policy.declared_rules()
+        declared = [self.pattern.standard_pattern(pattern, dtype) for pattern in policy.declared_patterns()]
+        text, mixed = self.prepared(cells)
         offsets = None
         if dtype == FieldType.DATETIME.value:
             found = text.str.extract_groups(self.patterns.OFFSET).struct.unnest()
@@ -268,7 +273,7 @@ class DateParser(BaseReadingParser):
         day_name = spaced.str.extract_groups(p.DAY_NAME).struct.unnest()
         name_day = spaced.str.extract_groups(p.NAME_DAY).struct.unnest()
         first = day_name["1"].is_not_null()
-        name = day_name["2"].zip_with(first, name_day["1"]).str.to_lowercase().str.replace(p.TRAILING_DOT, "")
+        name = self.name_keys(day_name["2"].zip_with(first, name_day["1"]))
         day = day_name["1"].zip_with(first, name_day["2"])
         year = day_name["3"].zip_with(first, name_day["3"])
         declared = rules.language or rules.monthNames
@@ -302,11 +307,13 @@ class DateParser(BaseReadingParser):
 
     def iso_date(self, *, year: pl.Series, month: pl.Series, day: pl.Series) -> pl.Series:
         """A date from its year, month, and day as text, null where no such day exists."""
+        written, _, form = self.ISO[FieldType.DATE.value]
         frame = pl.DataFrame({"y": year, "M": month, "d": day})
-        written = frame.select(
-            pl.format("{}-{}-{}", pl.col("y"), pl.col("M").str.zfill(2), pl.col("d").str.zfill(2)).alias(self.CELL)
+        width = self.FIELD_WIDTH
+        joined = frame.select(
+            pl.format(written, pl.col("y"), pl.col("M").str.zfill(width), pl.col("d").str.zfill(width)).alias(self.CELL)
         )[self.CELL]
-        return written.str.to_date("%Y-%m-%d", strict=False)
+        return joined.str.to_date(form, strict=False)
 
     def serial_date(self, serial: str, system: SerialDate) -> datetime | None:
         """A date serial as a moment, or `None` for a serial its system has no date for. Excel's 1900 system counts a
@@ -450,8 +457,4 @@ class DateParser(BaseReadingParser):
             (pl.col("no_zone"), RefusalReason.NO_ZONE),
             (~pl.col("named"), RefusalReason.IMPOSSIBLE_DATE),
         )
-        reason = pl.lit(None, dtype=pl.String)
-        for condition, refusal in reversed(refusals):
-            refused = pl.lit(None, dtype=pl.String) if refusal is None else pl.lit(refusal.value)
-            reason = pl.when(condition).then(refused).otherwise(reason)
-        return reason.alias("reason")
+        return self.refusal(refusals)

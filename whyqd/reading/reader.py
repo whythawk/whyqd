@@ -65,6 +65,11 @@ class BaseReadingParser:
         text = cells.str.replace_all(p.BIDI, "").str.normalize(self.NORMAL)
         return text.str.replace_all(p.MINUS, "-").str.strip_chars()
 
+    def prepared(self, cells: pl.Series) -> tuple[pl.Series, pl.Series]:
+        """A cell's text after its fixed steps, with other scripts' digits as `0` to `9`, and whether each mixed
+        scripts."""
+        return self.digits(self.steps(cells))
+
     def latin_digits(self, text: str) -> str | None:
         """A digit of any script as its value from Unicode's data, or `None` for a cell mixing scripts."""
         zeros = set()
@@ -85,13 +90,21 @@ class BaseReadingParser:
         written = pl.Series(self.CELL, [latin.get(cell, cell) for cell in text.to_list()], dtype=pl.String)
         return written.fill_null(""), written.is_null() & text.is_not_null()
 
+    def refusal(self, refusals: tuple[tuple[pl.Expr, RefusalReason | None], ...]) -> pl.Expr:
+        """Why a cell is refused: the reason of the first condition that holds, `None` meaning it reads."""
+        reason = pl.lit(None, dtype=pl.String)
+        for condition, refused in reversed(refusals):
+            written = pl.lit(None, dtype=pl.String) if refused is None else pl.lit(refused.value)
+            reason = pl.when(condition).then(written).otherwise(reason)
+        return reason.alias("reason")
+
     def outcome(self, read: pl.DataFrame, value: pl.Series) -> pl.DataFrame:
         """The five columns of a reading, from each cell's reason and value, and a column of its own for each warning a
         reader found, so a value's warnings are a list and a refusal or a blank has none."""
         refused = pl.col("reason").is_not_null()
         blank = pl.col("blank") & (pl.col("type") == CellType.STRING.value)
         undeclared = pl.col("reason") == RefusalReason.UNDECLARED_CHARACTER.value
-        detail = pl.when(undeclared).then("left") if "left" in read.columns else pl.lit(None, dtype=pl.String)
+        detail = pl.when(undeclared).then("detail") if "detail" in read.columns else pl.lit(None, dtype=pl.String)
         found = [pl.when(pl.col(code)).then(pl.lit(code)) for code in self.WARNINGS if code in read.columns]
         warnings = pl.concat_list([pl.lit(None, dtype=pl.String), *found]).list.drop_nulls()
         warnings = pl.when(refused | blank).then(pl.lit([], dtype=pl.List(pl.String))).otherwise(warnings)

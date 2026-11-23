@@ -100,6 +100,11 @@ class RulesModel(BaseModel):
     )
     model_config = ConfigDict(extra="forbid", validate_assignment=True)
 
+    @staticmethod
+    def spellings(entry: str | list[str]) -> list[str]:
+        """A name's entry in `monthNames` or `dayPeriods` as its list of spellings."""
+        return [entry] if isinstance(entry, str) else entry
+
     @field_validator("negative")
     @classmethod
     def holds_the_number(cls, v: list[str]) -> list[str]:
@@ -124,7 +129,7 @@ class RulesModel(BaseModel):
     @classmethod
     def one_for_each(cls, v: list, info) -> list:
         wanted = cls.MONTHS if info.field_name == "monthNames" else cls.DAY_PERIODS
-        spelled = [name.lower().rstrip(".") for entry in v for name in ([entry] if isinstance(entry, str) else entry)]
+        spelled = [name.lower().rstrip(".") for entry in v for name in cls.spellings(entry)]
         if v and (len(v) != wanted or len(spelled) != len(set(spelled))):
             raise ValueError(
                 f"`rules.{info.field_name}` needs {wanted} entries, in order, with no name in two of them. "
@@ -184,6 +189,14 @@ class PolicyModel(BaseModel):
     rules: Optional[RulesModel] = Field(None, description="whyqd's own reading rules, beyond `base` and `format`.")
     model_config = ConfigDict(extra="forbid", validate_assignment=True)
 
+    def declared_rules(self) -> RulesModel:
+        """The rules declared, or with none an empty set of them."""
+        return self.rules or RulesModel()
+
+    def declared_patterns(self) -> list[str]:
+        """A date's patterns or a boolean's pairs: `format`, then `rules.alternateFormats`."""
+        return [self.format] * isinstance(self.format, str) + self.declared_rules().alternateFormats
+
     def check(self, *, name: str, dtype: str) -> None:
         """Save a date pattern in UAX 35's form, and refuse a policy that cannot read a field `name` of type `dtype`,
         when it is declared rather than at a read.
@@ -191,7 +204,7 @@ class PolicyModel(BaseModel):
         Raises:
           ValueError: Naming what does not fit, with its code.
         """
-        rules = self.rules or RulesModel()
+        rules = self.declared_rules()
         declared = rules.model_fields_set
         number, boolean = dtype in FieldFamilies.NUMBERS, dtype == FieldType.BOOLEAN.value
         temporal = not (number or boolean or dtype in FieldFamilies.NO_POLICY)
@@ -211,7 +224,7 @@ class PolicyModel(BaseModel):
             unfit.append("`rules.zone`")
         if "serial" in declared and dtype in FieldFamilies.QUANTITIES:
             unfit.append("`rules.serial`")
-        patterns = [self.format] * isinstance(self.format, str) + rules.alternateFormats
+        patterns = self.declared_patterns()
         if boolean:
             unfit += [f"`{pair}`, not one `true|false` pair" for pair in patterns if pair.count(self.PAIR) != 1]
         if unfit:

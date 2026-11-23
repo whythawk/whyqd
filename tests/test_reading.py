@@ -21,7 +21,8 @@ import pytest
 import whyqd as qd
 from tests.test_locale import machine_locale  # noqa: F401
 from whyqd.dtypes import MimeType, RefusalReason
-from whyqd.models import FieldModel, PolicyModel
+from whyqd.config.names import NameTables
+from whyqd.models import FieldModel, PolicyModel, RulesModel
 from whyqd.reading.reading import ReadingParser
 from whyqd.sources.datasource import DataSourceParser
 
@@ -138,6 +139,21 @@ class TestReader:
         for typed in ("dd/mm/yyyy", "DD/MM/YYYY", "%d/%m/%Y", "dd/MM/yyyy"):
             read = ReadingParser().read(cells=["1/4/2024"], dtype="date", policy=PolicyModel(format=typed))
             assert str(read[0].value) == "2024-04-01", typed
+
+    def test_a_cells_name_keys_as_a_declared_one_does(self):
+        dates = ReadingParser().dates
+        names, periods = set(), set()
+        for table in NameTables.languages().values():
+            for entry in [*table["months"], *table["weekdays"]]:
+                names |= set(RulesModel.spellings(entry))
+            periods |= {*table["morning"], *table["afternoon"]}
+        for spelled, one, many in (
+            (names, dates.name_key, dates.name_keys),
+            (periods, dates.period_key, dates.period_keys),
+        ):
+            written = sorted(spelled)
+            cells = dates.steps(pl.Series("cell", written, dtype=pl.String))
+            assert many(cells).to_list() == [one(name) for name in written]
 
     def test_refusals_group_by_shape(self):
         reader = ReadingParser()

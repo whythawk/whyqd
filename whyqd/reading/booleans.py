@@ -5,7 +5,7 @@ from typing import ClassVar
 import polars as pl
 
 from whyqd.dtypes import CellType, RefusalReason
-from whyqd.models import PolicyModel, RulesModel
+from whyqd.models import PolicyModel
 from whyqd.reading.reader import BaseReadingParser
 
 
@@ -17,9 +17,8 @@ class BooleanParser(BaseReadingParser):
     def read_boolean(self, *, cells: pl.Series, types: pl.Series, policy: PolicyModel) -> pl.DataFrame:
         """A declared pair exactly as written, or with none the canonical form in any case. A stored boolean is already
         a value."""
-        rules = policy.rules or RulesModel()
         terms = {}
-        for pair in [policy.format] * isinstance(policy.format, str) + rules.alternateFormats:
+        for pair in policy.declared_patterns():
             yes, no = (self.normalised(term) for term in pair.split(PolicyModel.PAIR))
             terms |= {yes: True, no: False}
         text = self.steps(cells)
@@ -32,16 +31,13 @@ class BooleanParser(BaseReadingParser):
         return self.outcome(read.with_columns(self.boolean_reason()), value)
 
     def boolean_reason(self) -> pl.Expr:
-        """Why a boolean cell is refused."""
-        return (
-            pl.when(pl.col("type") == CellType.ERROR.value)
-            .then(pl.lit(RefusalReason.ERROR_CELL.value))
-            .when(pl.col("type") == CellType.BOOLEAN.value)
-            .then(pl.lit(None, dtype=pl.String))
-            .when(pl.col("type") != CellType.STRING.value)
-            .then(pl.lit(RefusalReason.NOT_IN_FORMAT.value))
-            .when(pl.col("blank") | pl.col("known"))
-            .then(pl.lit(None, dtype=pl.String))
-            .otherwise(pl.lit(RefusalReason.NOT_IN_FORMAT.value))
-            .alias("reason")
+        """Why a boolean cell is refused, the first of these that holds."""
+        return self.refusal(
+            (
+                (pl.col("type") == CellType.ERROR.value, RefusalReason.ERROR_CELL),
+                (pl.col("type") == CellType.BOOLEAN.value, None),
+                (pl.col("type") != CellType.STRING.value, RefusalReason.NOT_IN_FORMAT),
+                (pl.col("blank") | pl.col("known"), None),
+                (pl.lit(True), RefusalReason.NOT_IN_FORMAT),
+            )
         )

@@ -24,9 +24,9 @@ class DurationParser(BaseReadingParser):
         """ISO 8601 days, hours, minutes, and seconds, or a declared pattern's quantities: `H:mm` reads `1:30`, and
         `m' min'` reads `25 min`. Years and months have no fixed length, so neither can be read. A stored duration reads
         by its rendering."""
-        rules = policy.rules or RulesModel()
-        declared = [policy.format] * isinstance(policy.format, str) + rules.alternateFormats
-        text, mixed = self.digits(self.steps(cells))
+        rules = policy.declared_rules()
+        declared = policy.declared_patterns()
+        text, mixed = self.prepared(cells)
         fits, within, value = self.iso_durations(text)
         if declared:
             written = None
