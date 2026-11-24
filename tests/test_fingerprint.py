@@ -168,7 +168,7 @@ class TestVerify:
         wb.save(source)
         with pytest.warns(UserWarning, match="saved again"):
             assert one.validate()
-        with pytest.raises(AssertionError, match="Two.*cells"):
+        with pytest.raises(ValueError, match="Two.*cells"):
             two.validate()
 
     def test_a_renamed_sheet_is_refused_by_name(self, tmp_path):
@@ -210,7 +210,7 @@ class TestVerify:
         source = workbook(tmp_path / "data.xlsx", {"A1": "Name", "A2": "a"})
         datasource = derive(source, "XLSX")
         workbook(source, {"A1": "Name", "A2": "b"})
-        with pytest.raises(AssertionError, match="cells"):
+        with pytest.raises(ValueError, match="cells"):
             datasource.validate()
 
     def test_a_verified_1x_checksum_gains_fp0_and_the_byte_hash(self):

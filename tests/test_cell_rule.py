@@ -97,7 +97,7 @@ class TestResave:
         for model in models:
             definition = qd.DataSourceDefinition(source=model)
             if model.dialect.sheet in changed:
-                with pytest.raises(AssertionError, match="source-changed"):
+                with pytest.raises(ValueError, match="source-changed"):
                     definition.validate()
             else:
                 with pytest.warns(UserWarning, match="source-saved-again"):

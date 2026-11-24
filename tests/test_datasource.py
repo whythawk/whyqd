@@ -84,7 +84,7 @@ class TestDataSource:
         changed = tmp_path / "changed.csv"
         changed.write_bytes(DATA["CSV"].read_bytes() + b"x\n")
         datasource.get.path = str(changed)
-        with pytest.raises(AssertionError):
+        with pytest.raises(ValueError, match="source-changed"):
             datasource.validate()
 
     def test_get_data_is_the_table_the_derive_read(self, tmp_path):

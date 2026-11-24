@@ -20,8 +20,8 @@ from whyqd.sources.profile import ProfileParser
 from whyqd.sources.reader import Reader
 from whyqd.sources.row_key import RowKeyParser
 from whyqd.sources.table import TableParser
-from whyqd.sources.v1 import V1ChecksumParser
 from whyqd.models import (
+    ChecksumModel,
     ColumnModel,
     DataSourceModel,
     DataSourceAttributeModel,
@@ -33,6 +33,7 @@ from whyqd.dtypes import ChecksumContent, MimeType, FieldType
 
 if TYPE_CHECKING:
     from whyqd.core.schema import SchemaDefinition
+    from whyqd.sources.v1 import V1ChecksumParser
 
 
 class DataSourceParser:
@@ -48,7 +49,7 @@ class DataSourceParser:
         self.fingerprints = FingerprintParser()
         self.location = LocationParser()
         self.profiles = ProfileParser()
-        self.v1 = V1ChecksumParser()
+        self._v1 = None
         self.tables = TableParser()
         self.row_key = RowKeyParser()
         arrow, excel = ArrowParser(), ExcelParser()
@@ -298,14 +299,37 @@ class DataSourceParser:
         grid, types, _, _ = reader.grid(source=path, mime=mime, dialect=self.dialect(source=source))
         return self.fingerprints.fp0(grid=grid, types=types)
 
-    def verify(self, *, source: DataSourceModel, directory: str | Path | None = None) -> None:
-        """Verify a data source's file by its byte hash, else by `fp0`, warning that the file was saved again with no
-        cell changed.
+    @property
+    def v1(self) -> V1ChecksumParser:
+        """1.x's own read and hash, which the `verify-1x` extra holds, loaded when a 1.x checksum is first met.
 
         Raises:
-          ValueError: For a data source with neither.
-          AssertionError: Where the file's cells are not those its data source was derived from.
+          ImportError: Naming the extra, where it is not installed.
         """
+        if self._v1 is None:
+            try:
+                from whyqd.sources.v1 import V1ChecksumParser
+            except ImportError as e:
+                raise ImportError("Verifying a 1.x checksum needs the extra: pip install whyqd[verify-1x]") from e
+            self._v1 = V1ChecksumParser()
+        return self._v1
+
+    def verify(self, *, source: DataSourceModel, directory: str | Path | None = None) -> None:
+        """Verify a data source's file: by the table 1.x read where it has that checksum, through 1.x's own read;
+        otherwise by its byte hash, else by `fp0`, warning that the file was saved again with no cell changed.
+
+        Raises:
+          ImportError: Where a 1.x checksum needs the `verify-1x` extra and it is not installed.
+          ValueError: Where the file is not the one its data source was derived from, or it has no checksum.
+        """
+        table = source.get_checksum(ChecksumContent.TABLE_1X)
+        if table is not None:
+            if self.v1.checksum(model=source) != table:
+                raise ValueError(
+                    f"`{source.name}` has changed: its table is not the one 1.x read when its data source was "
+                    "derived. Find the file it was derived from, or derive it again. [whyqd:source-changed]"
+                )
+            return
         hashed, fp0 = source.get_checksum(ChecksumContent.BYTES), source.get_checksum(ChecksumContent.FP0)
         if hashed is None and fp0 is None:
             raise ValueError(
@@ -316,7 +340,7 @@ class DataSourceParser:
         if hashed is not None and self.fingerprints.byte_hash(source=path) == hashed:
             return
         if fp0 is None or self.fingerprint(source=source, path=path) != fp0:
-            raise AssertionError(
+            raise ValueError(
                 f"`{source.name}` has changed: its cells are not those its data source was derived from. Find the file "
                 "it was derived from, or derive it again from this one. [whyqd:source-changed]"
             )
@@ -326,6 +350,20 @@ class DataSourceParser:
             UserWarning,
             stacklevel=2,
         )
+
+    def checksums_beside_1x(self, *, source: DataSourceModel) -> list[ChecksumModel]:
+        """The byte hash and `fp0` a data source verified through 1.x's read does not yet hold, so that once saved it
+        verifies without the extra. No `fp0` for one read with pandas' `attributes`, which has no dialect to parse
+        its grid by."""
+        path = self.location.locate(source=source.path)
+        found = {ChecksumContent.BYTES: self.fingerprints.byte_hash(source=path)}
+        if not (source.attributes and source.attributes.terms):
+            found[ChecksumContent.FP0] = self.fingerprint(source=source, path=path)
+        return [
+            ChecksumModel(**self.definition_formats.checksum(value=value, content=content))
+            for content, value in found.items()
+            if value is not None and source.get_checksum(content) is None
+        ]
 
     def derive_sheets(
         self,

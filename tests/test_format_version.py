@@ -191,6 +191,12 @@ class TestVerify1x:
         with pytest.raises(ImportError, match=r"whyqd\[verify-1x\]"):
             load(DIRECTORY / "test_portsmouth_source.data").validate()
 
+    def test_a_changed_1x_table_names_its_code(self):
+        model = json.loads((DIRECTORY / "test_portsmouth_source.data").read_text(encoding="utf-8"))
+        model["checksum"] = "0" * 128
+        with pytest.raises(ValueError, match=r"\[whyqd:source-changed\]"):
+            qd.DataSourceDefinition(source=model).validate()
+
     def test_verifies_through_its_own_read(self):
         # In a process of its own, where no test has loaded the reader: the 1.x read alone must not load it
         script = (

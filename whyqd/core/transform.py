@@ -262,15 +262,14 @@ class TransformDefinition(BaseDefinition):
                           `data_source` is provided (i.e. not from the `transform`) and not of `DataSourceModel`.
 
         Raises:
+          ImportError: If the `verify-1x` extra is not installed.
           ValueError: If any steps fail to validate.
 
         Returns:
           A boolean `True` on successful validation.
         """
-        # The checksums are 1.x's, so the files are read as 1.x read them
-        from whyqd.sources.v1 import V1ChecksumParser
-
-        v1 = V1ChecksumParser()
+        # An output's checksums are 1.x's, so the files are read as 1.x read them
+        v1 = self.reader.v1
 
         def crosscheck(df, checksum: str) -> None:
             if (generated := v1.table(df=df)) != checksum:
@@ -287,22 +286,11 @@ class TransformDefinition(BaseDefinition):
         elif isinstance(data_source, dict):
             model = self.definitions.build(kind=DataSourceModel, source=data_source)
         elif data_source is not None:
-            model = model.model_copy(update={"path": str(data_source)})
-        source_checksum = self.model.dataSource.get_checksum(ChecksumContent.TABLE_1X)
-        if source_checksum:
-            if data_source is None or isinstance(data_source, (dict, DataSourceModel)):
-                source_df = v1.read(source=model)
-            else:
-                source_df = v1.read(
-                    source=data_source, mimetype=mimetype_source, preserve=self.model.dataSource.preserve
-                )
-            crosscheck(source_df, source_checksum)
-        else:
-            try:
-                self.reader.verify(source=model)
-            except AssertionError as e:
-                raise ValueError(f"Validation failed. {e}") from e
-            source_df = self.reader.get(source=model)
+            moved = {"path": str(data_source)}
+            if mimetype_source:
+                moved["mime"] = self.reader.get_mimetype(mimetype=mimetype_source)
+            model = model.model_copy(update=moved)
+        self.reader.verify(source=model)
         # Validate destination
         destination_df = v1.read(
             source=data_destination, mimetype=mimetype_destination, preserve=self.model.dataDestination.preserve

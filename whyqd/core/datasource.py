@@ -5,9 +5,8 @@ from pathlib import Path
 from pydantic import Json
 
 from whyqd.dtypes import ChecksumContent, MimeType
-from whyqd.models import ChecksumModel, DataSourceModel, CitationModel, DialectModel, ReportModel
+from whyqd.models import DataSourceModel, CitationModel, DialectModel, ReportModel
 from whyqd.core.base import BaseDefinition
-from whyqd.config.settings import settings
 
 if TYPE_CHECKING:
     import pandas as pd
@@ -198,37 +197,18 @@ class DataSourceDefinition(BaseDefinition):
 
         Raises:
           ImportError: If a 1.x checksum needs verifying and the `verify-1x` extra is not installed.
-          AssertionError: If the source data does not match its checksum.
+          ValueError: If the file is not the one the data source was derived from, or there is no model.
 
         Returns:
           True if every data source verifies.
         """
         if not self.model:
             raise ValueError(f"{self.model_name.title()} model does not exist.")
-        models = self.model
-        if not isinstance(self.model, list):
-            models = [models]
+        models = self.model if isinstance(self.model, list) else [self.model]
         for m in models:
-            table = m.get_checksum(ChecksumContent.TABLE_1X)
-            if table is None:
-                self.reader.verify(source=m)
-                continue
-            try:
-                from whyqd.sources.v1 import V1ChecksumParser
-            except ImportError as e:
-                raise ImportError("Verifying a 1.x checksum needs the extra: pip install whyqd[verify-1x]") from e
-            if V1ChecksumParser().checksum(model=m) != table:
-                raise AssertionError(f"{self.model_name.title()} model checksum does not match derived checksum.")
-            path = self.reader.location.locate(source=m.path)
-            found = {ChecksumContent.BYTES: self.reader.fingerprints.byte_hash(source=path)}
-            # One read with pandas' settings has no dialect to parse its grid by
-            if not (m.attributes and m.attributes.terms):
-                found[ChecksumContent.FP0] = self.reader.fingerprint(source=m, path=path)
-            for content, value in found.items():
-                if m.get_checksum(content) is None and value is not None:
-                    m.checksums.append(
-                        ChecksumModel(algorithm=settings.CHECKSUM_ALGORITHM, checksumValue=value, content=content)
-                    )
+            self.reader.verify(source=m)
+            if m.get_checksum(ChecksumContent.TABLE_1X) is not None:
+                m.checksums += self.reader.checksums_beside_1x(source=m)
         return True
 
     #########################################################################################
