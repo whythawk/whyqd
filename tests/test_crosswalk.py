@@ -1,7 +1,11 @@
 # SPDX-License-Identifier: BSD-3-Clause
 from pathlib import Path
 
+import pandas as pd
+import pytest
+
 import whyqd as qd
+from whyqd.models import FieldModel
 from whyqd.parsers.definition import DefinitionParser
 
 SOURCE_DIRECTORY = Path(__file__).resolve().parent / "data"
@@ -73,3 +77,29 @@ class TestCrosswalk:
         CW = set(SCHEMA_SCRIPTS)
         assert cw - CW == {NEW_SCRIPT}
         assert CW - cw == set([SCHEMA_SCRIPTS[0], SCHEMA_SCRIPTS[-1]])
+
+
+NESTED = "CALCULATE > 'x' < [+ 'a', + [CALCULATE < [+ 'b', + 'c']]]"
+
+
+def numbers() -> qd.CrosswalkDefinition:
+    source = qd.SchemaDefinition(source={"name": "source", "fields": [{"name": n, "type": "number"} for n in "abc"]})
+    destination = qd.SchemaDefinition(source={"name": "destination", "fields": [{"name": "x", "type": "number"}]})
+    crosswalk = qd.CrosswalkDefinition()
+    crosswalk.set(crosswalk={"name": "nested"}, schema_source=source, schema_destination=destination)
+    return crosswalk
+
+
+class TestNestedScripts:
+    @pytest.mark.xfail(strict=True, raises=NameError, reason="a nested script is not yet parsed")
+    def test_a_nested_script_parses(self):
+        parsed = numbers().actions.parse(script=NESTED)
+        (nested,) = [term for term in parsed["source"] if isinstance(term, dict)]
+        assert [term.name for term in parsed["source"] if isinstance(term, FieldModel)] == ["a"]
+        assert nested["action"].name == "CALCULATE"
+        assert [term.name for term in nested["source"] if isinstance(term, FieldModel)] == ["b", "c"]
+
+    @pytest.mark.xfail(strict=True, raises=NameError, reason="a nested script is not yet parsed, so not run")
+    def test_a_nested_script_runs(self):
+        data = pd.DataFrame({"a": ["1"], "b": ["2"], "c": ["3"]})
+        assert numbers().actions.transform(df=data, script=NESTED)["x"].tolist() == [6]
