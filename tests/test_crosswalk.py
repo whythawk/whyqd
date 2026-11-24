@@ -79,6 +79,64 @@ class TestCrosswalk:
         assert CW - cw == set([SCHEMA_SCRIPTS[0], SCHEMA_SCRIPTS[-1]])
 
 
+GOOD = "CATEGORISE > 'group'::'g1' < 'kind'::['t1']"
+UNKNOWN = "CATEGORISE > 'group'::'nowhere' < 'kind'::['t2']"
+
+
+def categories() -> tuple[qd.SchemaDefinition, qd.SchemaDefinition]:
+    terms = lambda *names: {"category": [{"name": n} for n in names]}  # noqa: E731
+    source = qd.SchemaDefinition(
+        source={"name": "source", "fields": [{"name": "kind", "type": "string", "constraints": terms("t1", "t2")}]}
+    )
+    destination = qd.SchemaDefinition(
+        source={
+            "name": "destination",
+            "fields": [{"name": "group", "type": "string", "constraints": terms("g1", "g2")}],
+        }
+    )
+    return source, destination
+
+
+class TestUnknownCategory:
+    def test_refused_when_written(self):
+        source, destination = categories()
+        crosswalk = qd.CrosswalkDefinition()
+        crosswalk.set(crosswalk={"name": "c"}, schema_source=source, schema_destination=destination)
+        with pytest.raises(ValueError, match=r"`nowhere`.*`g1`, `g2`.*\[whyqd:category-unknown\]"):
+            crosswalk.actions.add(term=UNKNOWN)
+
+    def test_diagnose_finds_it_and_proposes_dropping_it(self):
+        source, destination = categories()
+        stored = {"name": "c", "actions": [{"script": GOOD}, {"script": UNKNOWN}]}
+        report = qd.CrosswalkDefinition().diagnose(
+            crosswalk=stored, schema_source=source, schema_destination=destination, propose=True
+        )
+        (finding,) = report.findings
+        assert finding.code == "category-unknown" and "`nowhere`" in finding.message
+        (proposal,) = report.proposals
+        assert (proposal.setting, proposal.value) == ("drop", finding.step)
+
+    def test_diagnose_reports_an_uncoded_refusal_as_its_step(self):
+        source, destination = categories()
+        stored = {"name": "c", "actions": [{"script": GOOD}, {"script": "RENAME > 'group' < ['nowhere']"}]}
+        report = qd.CrosswalkDefinition().diagnose(
+            crosswalk=stored, schema_source=source, schema_destination=destination
+        )
+        assert [(f.code, f.step) for f in report.findings] == [("step-refused", 1)]
+
+    def test_set_drops_the_steps_named(self):
+        source, destination = categories()
+        stored = {"name": "c", "actions": [{"script": GOOD}, {"script": UNKNOWN}]}
+        report = qd.CrosswalkDefinition().diagnose(
+            crosswalk=stored, schema_source=source, schema_destination=destination
+        )
+        crosswalk = qd.CrosswalkDefinition()
+        crosswalk.set(
+            crosswalk=stored, schema_source=source, schema_destination=destination, drop=[report.findings[0].step]
+        )
+        assert [step.script for step in crosswalk.actions.get_all()] == [GOOD]
+
+
 NESTED = "CALCULATE > 'x' < [+ 'a', + [CALCULATE < [+ 'b', + 'c']]]"
 
 

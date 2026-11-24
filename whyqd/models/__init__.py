@@ -7,7 +7,7 @@ from .citation import CitationModel
 from .category import CategoryModel
 from .dialect import DialectModel
 from .profile import ProfileModel
-from .report import FindingModel, ProposalModel, ReportModel, SettingModel
+from .report import CrosswalkReportModel, FindingModel, ProposalModel, ReportModel, SettingModel
 from .policy import NumberFormatModel, PolicyModel, RulesModel
 from .column import ColumnModel
 from .actionscript import ActionScriptModel

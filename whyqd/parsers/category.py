@@ -77,11 +77,12 @@ class CategoryParser(SchemaPairParser):
         if parsed.get("category"):
             parsed_category = self.parser.get_literal(text=parsed["category"])
             category = self.get_schema_field_category(field=destination, term=parsed_category, is_source=False)
-        if not destination and category:
-            raise ValueError(
-                f"Destination field and category are not valid for this category action script ({parsed['destination']}, {parsed['category']})."
-            )
-        # Return validated terms
+            if category is None:
+                terms = "`, `".join(str(c.name) for c in destination.constraints.category)
+                raise ValueError(
+                    f"`{parsed_category}` is not a term of destination field `{destination.name}`, whose terms are "
+                    f"`{terms}`. Name one of them. [whyqd:category-unknown]"
+                )
         return {
             "action": action,
             "destination": destination,
@@ -163,15 +164,8 @@ class CategoryParser(SchemaPairParser):
         Raises:
           ValueError: If its schema has no such field.
         """
-        schema = self.schema_destination
-        alt_schema = self.schema_source
-        if is_source:
-            schema = self.schema_source
-            alt_schema = self.schema_destination
+        schema = self.schema_source if is_source else self.schema_destination
         field = schema.fields.get(name=term)
-        if not field:
-            field = alt_schema.fields.get(name=term)
-            field = schema.fields.get(name=field.name)
         if not field:
             s = "destination"
             if is_source:
