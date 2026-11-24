@@ -96,18 +96,17 @@ class CRUDAction(CRUDBase[ActionScriptModel]):
         self.reconcile_crosswalk(fields=parsed.get("destination", []))
 
     def update(self, *, term: ActionScriptModel | dict) -> None:
-        """Update the parameters for a specific term, called by a unique `UUID`. If the `UUID` does not exist, then this
-        will raise a `ValueError`.
+        """Replace a step, found by its `uuid`, with the one given, whole: its script, policy, reason, and
+        correspondence.
 
         Parameters:
-          term: A dictionary conforming to the ActionScriptModel.
+          term: The step, or a dictionary conforming to the ActionScriptModel, with the `uuid` of the one it replaces.
 
         Raises:
-          ValueError: If the term does not exist.
+          ValueError: If no step has its `uuid`, or the step does not parse or fails its own checks.
         """
-        if isinstance(term, dict):
-            term = self.model(**term)
-        # Create a temporary FieldModel
+        # Validated whole, so a slot set without validation, as `model_copy` sets one, meets the step's checks
+        term = self.model.model_validate(term if isinstance(term, dict) else term.model_dump(by_alias=True))
         old_term = self.get(name=term.uuid.hex)
         if not old_term:
             raise ValueError(
@@ -115,7 +114,7 @@ class CRUDAction(CRUDBase[ActionScriptModel]):
                 "[whyqd:term-missing]"
             )
         self.parse(script=term)
-        old_term.script = term.script
+        self.multi[:] = [term if step is old_term else step for step in self.multi]
         self.recount()
 
     def remove(self, *, name: str | UUID) -> None:

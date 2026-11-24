@@ -5,7 +5,7 @@ import pandas as pd
 import pytest
 
 import whyqd as qd
-from whyqd.models import FieldModel
+from whyqd.models import ActionScriptModel, FieldModel, PolicyModel, ReasonModel, ReferenceModel
 from whyqd.parsers.definition import DefinitionParser
 
 SOURCE_DIRECTORY = Path(__file__).resolve().parent / "data"
@@ -157,6 +157,42 @@ class TestMapped:
         assert [field.name for field in crosswalk.actions.validate()] == []
         crosswalk.actions.remove(name=second.uuid)
         assert [field.name for field in crosswalk.actions.validate()] == ["x"]
+
+
+class TestUpdate:
+    def dated(self) -> qd.CrosswalkDefinition:
+        source = qd.SchemaDefinition(
+            source={"name": "source", "fields": [{"name": n, "type": "string"} for n in ("day", "year")]}
+        )
+        destination = qd.SchemaDefinition(source={"name": "destination", "fields": [{"name": "d", "type": "date"}]})
+        crosswalk = qd.CrosswalkDefinition()
+        crosswalk.set(crosswalk={"name": "dated"}, schema_source=source, schema_destination=destination)
+        crosswalk.actions.add(term="UNITE > 'd' < '-'::['day', 'year']")
+        return crosswalk
+
+    def updated(self, crosswalk: qd.CrosswalkDefinition, **slots) -> ActionScriptModel:
+        (step,) = crosswalk.actions.get_all()
+        crosswalk.actions.update(term=step.model_copy(update=slots))
+        (step,) = crosswalk.actions.get_all()
+        return step
+
+    def test_an_update_keeps_a_new_policy(self):
+        step = self.updated(self.dated(), policy=PolicyModel(format="dd/MM-yyyy"))
+        assert step.policy.format == "dd/MM-yyyy"
+
+    def test_an_update_keeps_a_new_reason(self):
+        step = self.updated(self.dated(), reason=ReasonModel(comment="Day and year joined"))
+        assert step.reason.comment == "Day and year joined"
+
+    def test_an_update_keeps_a_new_correspondence(self):
+        source, destination = categories()
+        crosswalk = qd.CrosswalkDefinition()
+        crosswalk.set(crosswalk={"name": "c"}, schema_source=source, schema_destination=destination)
+        crosswalk.actions.add(term=GOOD)
+        step = self.updated(crosswalk, correspondence=ReferenceModel(source="https://example.org/kinds", version="1"))
+        assert step.correspondence.version == "1"
+        with pytest.raises(ValueError, match=r"\[whyqd:correspondence-not-categorise\]"):
+            self.updated(crosswalk, script="RENAME > 'group' < ['kind']")
 
 
 class TestNestedScripts:
