@@ -148,6 +148,17 @@ def numbers() -> qd.CrosswalkDefinition:
     return crosswalk
 
 
+class TestMapped:
+    def test_removing_one_of_two_steps_keeps_the_field_mapped(self):
+        crosswalk = numbers()
+        crosswalk.actions.add_multi(terms=["RENAME > 'x' < ['a']", "RENAME > 'x' < ['b']"])
+        first, second = crosswalk.actions.get_all()
+        crosswalk.actions.remove(name=first.uuid)
+        assert [field.name for field in crosswalk.actions.validate()] == []
+        crosswalk.actions.remove(name=second.uuid)
+        assert [field.name for field in crosswalk.actions.validate()] == ["x"]
+
+
 class TestNestedScripts:
     @pytest.mark.xfail(strict=True, raises=NameError, reason="a nested script is not yet parsed")
     def test_a_nested_script_parses(self):

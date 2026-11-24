@@ -114,13 +114,9 @@ class CRUDAction(CRUDBase[ActionScriptModel]):
                 f"No step `{term.uuid}` is in the crosswalk to update (`{term.script}`). Add it first. "
                 "[whyqd:term-missing]"
             )
-        # And update the original data
-        parsed = self.parse(script=term)
-        # It parses, ensure reconciliation
-        old_parsed = self.parse(script=old_term)
-        self.reconcile_crosswalk(fields=old_parsed.get("destination", []), remove=True)
+        self.parse(script=term)
         old_term.script = term.script
-        self.reconcile_crosswalk(fields=parsed.get("destination", []))
+        self.recount()
 
     def remove(self, *, name: str | UUID) -> None:
         """Remove a specific term, called by a unique `UUID`.
@@ -130,10 +126,8 @@ class CRUDAction(CRUDBase[ActionScriptModel]):
         """
         script = self.get(name=name)
         if script:
-            parsed = self.parse(script=script)
-            # https://stackoverflow.com/a/1235631/295606
             self.multi[:] = [m for m in self.multi if m.uuid.hex != script.uuid.hex]
-            self.reconcile_crosswalk(fields=parsed.get("destination", []), remove=True)
+            self.recount()
 
     def parse(self, *, script: str | ActionScriptModel) -> dict:
         """Parse a script for any action, of any type, and return the corresponding transformation dictionary structure.
@@ -284,7 +278,8 @@ class CRUDAction(CRUDBase[ActionScriptModel]):
         parser.set_schema(schema_source=self.schema_source, schema_destination=self.schema_destination)
         return parser
 
-    def reconcile_crosswalk(self, *, fields: FieldModel | list[FieldModel], remove: bool = False) -> None:
+    def reconcile_crosswalk(self, *, fields: FieldModel | list[FieldModel] | None) -> None:
+        """Mark the destination fields a step builds as mapped."""
         if fields is None:
             return
         if not isinstance(fields, list):
@@ -292,7 +287,11 @@ class CRUDAction(CRUDBase[ActionScriptModel]):
         for f in fields:
             # A script's name finds the source field first, where both schemas have one of that name
             target = self.schema_destination.fields.get(name=f.name) or f
-            if remove:
-                self.uncrossed = self.uncrossed ^ {target.uuid}
-            else:
-                self.uncrossed = self.uncrossed - {target.uuid}
+            self.uncrossed = self.uncrossed - {target.uuid}
+
+    def recount(self) -> None:
+        """Count again, from every step, the destination fields none builds, as a removal or change needs: a field
+        two steps build stays mapped while either remains."""
+        self.uncrossed = {field.uuid for field in self.schema_destination.get.fields}
+        for step in self.multi:
+            self.reconcile_crosswalk(fields=self.parse(script=step).get("destination", []))
