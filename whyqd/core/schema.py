@@ -17,7 +17,7 @@ class SchemaDefinition(BaseDefinition):
     Parameters:
       source: A path to a json file containing a saved schema, or a dictionary conforming to the SchemaModel.
 
-    Example:
+    Examples:
       Create a new `SchemaDefinition` as follows:
 
       ```python
@@ -26,7 +26,7 @@ class SchemaDefinition(BaseDefinition):
       schema: qd.models.SchemaModel = {
           "name": "urban_population",
           "title": "Urban population",
-          "description": "Urban population refers to people living in urban areas as defined by national statistical offices.",
+          "description": "People living in urban areas, as national statistical offices define them.",
       }
       schema_destination = qd.SchemaDefinition()
       schema_destination.set(schema=schema)
@@ -86,15 +86,11 @@ class SchemaDefinition(BaseDefinition):
         """
         return self.crud
 
-    #########################################################################################
-    # DERIVE SCHEMA FROM TABULAR DATA
-    #########################################################################################
-
     def derive_model(self, *, data: DataSourceModel | dict) -> None:
-        """Derive a schema model from a data source model.
+        """Derive a schema model from a data source model, a field for each of its columns.
 
-        Arguments:
-            data: A model defining a single data source
+        Parameters:
+          data: A data source, or a dictionary of one.
         """
         if isinstance(data, dict):
             data = DataSourceModel(**self.definitions.formats.read(source=data))

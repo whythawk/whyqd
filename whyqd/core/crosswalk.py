@@ -17,10 +17,10 @@ class CrosswalkDefinition(BaseDefinition):
 
     Parameters:
       crosswalk: A dictionary conforming to the CrosswalkModel, or a path to a saved definition.
-      schema_source: Path to a json file containing a saved schema, or a dictionary conforming to one, or a definition.
-      schema_destination: Path to a json file containing a saved schema, or a dictionary conforming to one, or a definition.
+      schema_source: Path to a saved schema, or a dictionary conforming to one, or a definition.
+      schema_destination: Path to a saved schema, or a dictionary conforming to one, or a definition.
 
-    Example:
+    Examples:
       Create a new `CrosswalkDefinition` as follows:
 
       ```python
@@ -77,8 +77,8 @@ class CrosswalkDefinition(BaseDefinition):
 
         Parameters:
           crosswalk: A dictionary conforming to the CrosswalkModel, or a path to a saved definition.
-          schema_source: Path to a json file containing a saved schema, or a dictionary conforming to one, or a definition.
-          schema_destination: Path to a json file containing a saved schema, or a dictionary conforming to one, or a definition.
+          schema_source: Path to a saved schema, or a dictionary conforming to one, or a definition.
+          schema_destination: Path to a saved schema, or a dictionary conforming to one, or a definition.
         """
         self.model = self.definitions.build(kind=CrosswalkModel, source=crosswalk, model=self.model)
         # And update the original data
@@ -103,10 +103,6 @@ class CrosswalkDefinition(BaseDefinition):
             self.crud.set_schema(schema_source=self.schema_source, schema_destination=self.schema_destination)
             self._refresh_model_fields()
 
-    #########################################################################################
-    # MANAGE ACTION SCRIPTS
-    #########################################################################################
-
     @property
     def actions(self) -> CRUDAction:
         """Returns the active crud model for all Action operations. See [Action CRUD](action.md) for API.
@@ -120,10 +116,6 @@ class CrosswalkDefinition(BaseDefinition):
                 "[whyqd:crosswalk-schemas]"
             )
         return self.crud
-
-    #########################################################################################
-    # VALIDATION UTILITIES
-    #########################################################################################
 
     def validate(self) -> bool:
         """Validate that all required fields are returned from the crosswalk.

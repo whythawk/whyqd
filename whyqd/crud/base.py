@@ -45,8 +45,7 @@ class CRUDBase(Generic[ModelType]):
         will raise a `ValueError`.
 
         Parameters:
-          term: A dictionary conforming to the ModelType. Model names must be unique, so a valid `name` in the model list
-                will have no collisions.
+          term: A model, or a dictionary conforming to it, its `name` unique among those here.
 
         Raises:
           ValueError: If the term already exists.

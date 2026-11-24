@@ -181,7 +181,7 @@ class PolicyModel(BaseModel):
 
     A field without a policy is read as text.
 
-    Example:
+    Examples:
       ```python
       {"format": {"decimalChar": ",", "groupChar": "."}, "rules": {"currency": ["€"], "negative": ["x-"]}}
       {"format": "dd/mm/yy", "rules": {"yearStart": 1950}}

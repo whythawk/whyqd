@@ -14,42 +14,23 @@ if TYPE_CHECKING:
 
 
 class ActionParser(SchemaPairParser):
-    """Parsing functions for action scripts.
+    """The parser of a schema action's script, `ACTION > 'destination' < [modifier 'source', ...]`.
 
-    Can process and validate any action script. Scripts may be recursive and are of the form:
-
-        "ACTION > 'destination field' < [modifier 'source field', {action script}]"
-
-    Modifiers are dependent on the specific Action. Fields must be found in provided SchemaDefinitions.
+    Which modifiers a script may hold is the action's. Every field it names must be in the source or destination
+    schema. A source term may itself be a schema action's script, nested in brackets.
     """
-
-    ###################################################################################################
-    ### PARSE TRANSFORM SCRIPT
-    ###################################################################################################
 
     def parse(
         self, *, script: str, action: BaseSchemaAction
     ) -> dict[str, BaseSchemaAction | FieldModel | list[ModifierModel | FieldModel]]:
-        """Parse a script for a base action and return the corresponding destination field, and source structure for
-        transformation. Can, optionally, also update the existing schema list.
+        """A script's action, destination field, and source terms, checked against the action's structure.
 
-        Parameters
-        ----------
-        script: str
-        action: BaseSchemaAction
+        Returns:
+          `{"action": ..., "destination": ..., "source": [...]}`, the destination one field or a list, the source
+          modifiers and fields in order; for `NEW`, no source, its value set as the destination's default.
 
-        Raises
-        ------
-        ValueError if the script term is not recognised.
-
-        Returns
-        -------
-        dict of the form:
-            {
-                'action': BaseSchemaAction,
-                'destination': FieldModel | list[FieldModel],
-                'source': list[ModifierModel | FieldModel]
-            }
+        Raises:
+          ValueError: If a term names no field or modifier, or the source does not fit the action's structure.
         """
         if not self.schemas:
             raise ValueError("Schema has not been provided.")
@@ -130,10 +111,6 @@ class ActionParser(SchemaPairParser):
         action.validate(destination=destination, source=source)
         return {"action": action, "destination": destination, "source": source}
 
-    ###################################################################################################
-    ### IMPLEMENT VALIDATED SCRIPT
-    ###################################################################################################
-
     def transform(
         self,
         *,
@@ -143,27 +120,13 @@ class ActionParser(SchemaPairParser):
         source: Optional[list[Union[ModifierModel, dict]]] = None,
         **kwargs,
     ) -> pd.DataFrame:
-        """
-        A recursive transformation. A method should be a list fields upon which actions are applied, but
-        each field may have nested sub-fields requiring their own actions. Before the action on the
-        current field can be completed, it is necessary to perform the actions on each sub-field.
+        """The table with the action run on it, each nested source term's action run first into a column of its own.
 
-        Parameters
-        ----------
-        df: DataFrame
-            Working data to be transformed
-        action: SchemaActionModel
-        destination: FieldModel
-        source: list of ModifierModel, and dicts of nested transforms, default None
-        assigned: list of dict
-            Specific to CATEGORISE actions. Each dict has values for: Assignment ACTION, destination schema field,
-            schema category, source data column, and a list of source data column category terms assigned to that
-            schema category.
-
-        Returns
-        -------
-        Dataframe
-            Containing the implementation of all nested transformations
+        Parameters:
+          df: The table.
+          action: The action to run.
+          destination: The field the action builds.
+          source: Modifiers and fields, and nested scripts as parsed, in order.
         """
         if not source:
             return action.transform(df=df, destination=destination)
@@ -185,10 +148,6 @@ class ActionParser(SchemaPairParser):
                 flattened_source.append(term)
         # Action transform
         return action.transform(df=df, destination=destination, source=flattened_source)
-
-    ###################################################################################################
-    ### SUPPORT UTILITIES
-    ###################################################################################################
 
     def hexed_with_modifiers(self, *, script: str) -> str:
         """The script with each field name as its field's hex, as `ScriptParser.get_hexed_script` gives it, and each of
@@ -212,27 +171,11 @@ class ActionParser(SchemaPairParser):
     def recover_fields_from_hexed_script(
         self, *, parsed: list | dict, action: BaseSchemaAction
     ) -> list[dict[str, BaseSchemaAction | FieldModel | list[ModifierModel | FieldModel]]]:
-        """
-        Recovered fields and modifiers from a hexed script. Doubles up as a validator since any non-recovered
-        term causes a ValueError. Recursive for deeply-nested scripts.
+        """Each term of a hexed script as the modifier or field it names, a nested script's as its parsed form,
+        however deep.
 
-        Parameters
-        ----------
-        parsed: list, dict
-        action: BaseSchemaAction
-
-        Raises
-        ------
-        ValueError if the script term is not recognised.
-
-        Returns
-        -------
-        list of dicts of the form:
-            {
-                'action': BaseSchemaAction,
-                'destination': FieldModel,
-                'source': list[ModifierModel | FieldModel]
-            }
+        Raises:
+          ValueError: If a term names no modifier or field.
         """
         recovered_fields = []
         modifier_names = action.modifier_terms

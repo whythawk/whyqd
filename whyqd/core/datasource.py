@@ -43,7 +43,7 @@ class DataSourceDefinition(BaseDefinition):
     Parameters:
       source: A path to a json file containing a saved schema, or a dictionary conforming to the DataSourceModel.
 
-    Example:
+    Examples:
       Create and validate a new `DataSourceDefinition` as follows:
 
       ```python
@@ -70,8 +70,8 @@ class DataSourceDefinition(BaseDefinition):
             produce multiple data models which will be returned as a list. Each model will reflect the metadata for
             each sheet.
 
-            As always *look* at your data and test before implementing in code. You should see an additional `sheet_name`
-            field.
+            As always *look* at your data and test before implementing in code. Each sheet's data source names its
+            sheet in `dialect.sheet`.
 
         Returns:
           Pydantic DataSourceModel as a list, a single, or None
@@ -100,10 +100,6 @@ class DataSourceDefinition(BaseDefinition):
             self.data = self.reader.get(source=self.model)
         return self.data
 
-    #########################################################################################
-    # DERIVE SCHEMA FROM TABULAR DATA
-    #########################################################################################
-
     def derive_model(
         self,
         *,
@@ -120,7 +116,8 @@ class DataSourceDefinition(BaseDefinition):
           mimetype:  **whyqd** supports `xls`, `xlsx`, `csv`, `parquet` and `feather`.
           dialect: How the file is written, so it can be read: the dialect of CSV on the Web, as `DialectModel`
                    describes it. Undeclared, each setting takes its default; a CSV's encoding, undeclared, is settled by
-                   whyqd's ladder and recorded. For a workbook, a list, each naming its `sheet`, or one a sheet in order.
+                   whyqd's ladder and recorded. For a workbook, a list, each naming its `sheet`, or one a sheet in
+                   order.
           names: One name per column, for a file with no header row or a header over several rows; for a workbook, a
                  mapping of sheet to names. Names past the file's last filled column are added as empty columns;
                  columns past the last name are named by position, with a warning.
@@ -166,7 +163,7 @@ class DataSourceDefinition(BaseDefinition):
         Returns:
           One ReportModel, or one a sheet of a workbook.
 
-        Example:
+        Examples:
           ```python
           import whyqd as qd
 
@@ -183,10 +180,6 @@ class DataSourceDefinition(BaseDefinition):
                     source=source, mimetype=mimetype, dialect=dialect, sheet=report.sheet, schema=schema
                 )
         return reports
-
-    #########################################################################################
-    # VALIDATION UTILITIES
-    #########################################################################################
 
     def validate(self) -> bool:
         """Verify the source data against the data source's checksum.
@@ -214,10 +207,6 @@ class DataSourceDefinition(BaseDefinition):
                 m.checksums += self.reader.checksums_beside_1x(source=m)
         return True
 
-    #########################################################################################
-    # MANAGE CITATION
-    #########################################################################################
-
     def get_citation(self) -> dict[str, str | dict[str, str]] | list[dict[str, str | dict[str, str]]]:
         """Get the citation as a dictionary, or one a cited sheet of a workbook.
 
@@ -240,7 +229,7 @@ class DataSourceDefinition(BaseDefinition):
 
         Parameters:
           citation: A dictionary conforming to the CitationModel.
-          index: If there are multiple sources from the source data, provide the index (base 0) for the resource citation.
+          index: For a workbook, the sheet to cite, counted from 0; by default, every sheet.
         """
         # Create a temporary CitationModel
         if not isinstance(self.model, list):
@@ -255,17 +244,14 @@ class DataSourceDefinition(BaseDefinition):
                     kind=CitationModel, source=citation, model=self.model[index].citation
                 )
 
-    #########################################################################################
-    # SAVE UTILITIES FOR LISTS
-    #########################################################################################
-
     def get_json(self, hide_uuid: bool = False, format: str | None = None) -> Json | list[Json] | None:
         """Get the json model, or one per sheet.
 
         Parameters:
           hide_uuid: Hide all UUIDs in the nested JSON output. Mostly useful for validation assertions where the only
                      differences between sources are the UUIDs.
-          format: The definition format to write, one of `settings.FORMAT_VERSIONS` (`whyqd.config.settings`). Defaults to the current one.
+          format: The definition format to write, one of `settings.FORMAT_VERSIONS` (`whyqd.config.settings`).
+                  Defaults to the current one.
 
         Returns:
           Json-conforming output, a list of them, or None.
@@ -290,7 +276,8 @@ class DataSourceDefinition(BaseDefinition):
           filename:  Defaults to model name
           created_by:  Declare the model creator/updater
           hide_uuid:  Hide all UUIDs in the nested JSON output.
-          format: The definition format to write, one of `settings.FORMAT_VERSIONS` (`whyqd.config.settings`). Defaults to the current one.
+          format: The definition format to write, one of `settings.FORMAT_VERSIONS` (`whyqd.config.settings`).
+                  Defaults to the current one.
 
         Returns:
           Boolean True if saved.

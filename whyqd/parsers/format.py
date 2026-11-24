@@ -24,7 +24,7 @@ class FormatParser:
     it. They are kept in `whyqd/formats/<version>/<kind>.json`: 1.x's generated once from whyqd 1.2.8's own models
     and never changed, the current format's generated from today's models.
 
-    Example:
+    Examples:
       ```python
       from whyqd.parsers.format import FormatParser
 
@@ -181,9 +181,9 @@ class FormatParser:
             value["type"] = FieldType.USDATE.value
         for key in self.NEW:
             if key in value:
+                where = value.get("name") or value.get("path") or "a field’s constraints"
                 raise ValueError(
-                    f"`{key}` on `{value.get('name') or value.get('path') or 'a field’s constraints'}` is new in 2.0, so "
-                    f"1.x cannot hold it. Save in format 2.0. {self.REFUSED_1X}"
+                    f"`{key}` on `{where}` is new in 2.0, so 1.x cannot hold it. Save in format 2.0. {self.REFUSED_1X}"
                 )
         if isinstance(value.get("updated"), str):
             value["updated"] = value["updated"].removesuffix("Z")
@@ -222,8 +222,8 @@ class FormatParser:
         name, kind = field.get("name"), field.get("type")
         if kind == FieldType.TIME.value:
             raise ValueError(
-                f"Field `{name}` is a time of day, which 1.x cannot hold: its `time` is a length of time. Save in format "
-                f"2.0. {self.REFUSED_1X}"
+                f"Field `{name}` is a time of day, which 1.x cannot hold: its `time` is a length of time. Save in "
+                f"format 2.0. {self.REFUSED_1X}"
             )
         if kind == FieldType.DURATION.value:
             field["type"] = FieldType.TIME.value

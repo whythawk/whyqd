@@ -29,7 +29,7 @@ class TransformDefinition(BaseDefinition):
       crosswalk: A definition, or a dictionary conforming to the CrosswalkModel, or a path to a saved definition.
       data_source: Path to a tabular data source, or a dictionary conforming to a data source model.
 
-    Example:
+    Examples:
       Create a new `TransformDefinition`, and perform a crosswalk, then save the definition and transformed data
       as follows:
 
@@ -112,10 +112,6 @@ class TransformDefinition(BaseDefinition):
             else:
                 self.crosswalk.set(crosswalk=crosswalk)
             self.model.crosswalk = self.crosswalk.get
-
-    #########################################################################################
-    # PERFORM TRANSFORMATION PROCESS
-    #########################################################################################
 
     def process(self, *, strict: bool = False) -> None:
         """Perform a crosswalk. You can access the dataframe after completion at `.data`, if it exists, and what the run
@@ -207,7 +203,8 @@ class TransformDefinition(BaseDefinition):
             if field.policy and (field.policy.format is not None or field.policy.rules is not None):
                 raise ValueError(
                     f"Destination field `{field.name}` declares how a publisher wrote it, which a shared schema cannot "
-                    "know. Move its `format` and `rules` to the source field or the action. [whyqd:policy-on-destination]"
+                    "know. Move its `format` and `rules` to the source field or the action. "
+                    "[whyqd:policy-on-destination]"
                 )
         policies, inputs, read_fields = {}, {}, set()
         for script in self.crosswalk.crud.get_all():
@@ -247,10 +244,6 @@ class TransformDefinition(BaseDefinition):
             return [found for term in terms for found in self.flatten(term)]
         return [terms]
 
-    #########################################################################################
-    # VALIDATION UTILITIES
-    #########################################################################################
-
     def validate(
         self,
         *,
@@ -260,19 +253,16 @@ class TransformDefinition(BaseDefinition):
         data_source: DataSourceModel | dict | Path | str | None = None,
         mimetype_source: str | MimeType | None = None,
     ) -> bool:
-        """Validate the transformation process and all data checksums. Will perform all actions on each interim
-        data source.
+        """Verify a transform: its source is the file it was built from, its output is the file given, and running its
+        crosswalk again on the source builds that output.
 
         Parameters:
           transform: Path to a transform definition, or a dictionary conforming to a transform model.
-          data_destination: Path to a tabular data source, or a dictionary conforming to a data source model. Destination
-                            data for crosswalk validation.
-          mimetype_destination: **whyqd** supports reading from CSV, XLS, XLSX, Feather and Parquet files. Required if
-                                `data_destination` is not of `DataSourceModel`.
-          data_source: Path to a tabular data source, or a dictionary conforming to a data source model. Should be defined
-                      in `transform`, but you may have a different version from a different location.
-          mimetype_source: **whyqd** supports reading from CSV, XLS, XLSX, Feather and Parquet files. Required if
-                          `data_source` is provided (i.e. not from the `transform`) and not of `DataSourceModel`.
+          data_destination: The output file to check, by path.
+          mimetype_destination: The output file's format: CSV, XLS, XLSX, Feather, or Parquet.
+          data_source: The source, where it is not the one the transform names: a data source, a dictionary of one,
+            or the path of the same file elsewhere.
+          mimetype_source: For a source given by path, its format, where it differs from the stored one.
 
         Raises:
           ImportError: If the `verify-1x` extra is not installed.
@@ -287,7 +277,8 @@ class TransformDefinition(BaseDefinition):
         def crosscheck(df, checksum: str) -> None:
             if (generated := v1.table(df=df)) != checksum:
                 raise ValueError(
-                    f"Checksum provided ({checksum}) is not equal to the generated checksum ({generated}). Check your data source."
+                    f"Checksum provided ({checksum}) is not equal to the generated checksum ({generated}). Check your "
+                    "data source."
                 )
 
         # Prepare
@@ -343,10 +334,6 @@ class TransformDefinition(BaseDefinition):
                 "Check the rows each action names. [whyqd:row-past-end]"
             )
 
-    #########################################################################################
-    # SAVE UTILITIES
-    #########################################################################################
-
     def save(
         self,
         *,
@@ -375,7 +362,8 @@ class TransformDefinition(BaseDefinition):
           mimetype: **whyqd** supports saving to CSV, XLS, XLSX, Feather and Parquet files. Defaults to Parquet.
           created_by:  Declare the model creator/updater
           hide_uuid:  Hide all UUIDs in the nested JSON output.
-          format: The definition format to write, one of `settings.FORMAT_VERSIONS` (`whyqd.config.settings`). Defaults to the current one.
+          format: The definition format to write, one of `settings.FORMAT_VERSIONS` (`whyqd.config.settings`).
+                  Defaults to the current one.
 
         Returns:
           Boolean True if saved.

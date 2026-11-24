@@ -18,7 +18,7 @@ class IdentifierParser:
 
     Python's `uuid.uuid7()` exists only from 3.14; this gives the same layout on every Python whyqd supports.
 
-    Example:
+    Examples:
       ```python
       from whyqd.models.identifier import IdentifierParser
 

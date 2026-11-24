@@ -62,10 +62,6 @@ class BaseDefinition:
         """Refreshes the list of model fields and connects them to the Field CRUD"""
         pass
 
-    #########################################################################################
-    # MANAGE CITATION
-    #########################################################################################
-
     def get_citation(self) -> dict[str, str | dict[str, str]]:
         """Get the citation as a dictionary.
 
@@ -87,16 +83,16 @@ class BaseDefinition:
         **whyqd** is designed to support a research process and ensure citation of the incredible work done by
         research-based data scientists.
 
-        A citation has the following definable fields::
+        A citation has the following definable fields:
 
         - **author**: The name(s) of the author(s) (in the case of more than one author, separated by `and`),
         - **title**: The title of the work,
-        - **url**: The URL field is used to store the URL of a web page or FTP download. It is a non-standard BibTeX field,
+        - **url**: The URL of a web page or FTP download; a non-standard BibTeX field,
         - **publisher**: The publisher's name,
         - **institution**: The institution that was involved in the publishing, but not necessarily the publisher,
-        - **doi**: The doi field is used to store the digital object identifier (DOI) of a journal article, conference paper,
-          book chapter or book. It is a non-standard BibTeX field. It's recommended to simply use the DOI, and not a DOI link,
-        - **month**: The month of publication (or, if unpublished, the month of creation). Use three-letter abbreviation,
+        - **doi**: The digital object identifier (DOI) of a journal article, conference paper, book chapter, or book; a
+          non-standard BibTeX field. Give the DOI itself, not a link to it,
+        - **month**: The month of publication (or, if unpublished, of creation), as a three-letter abbreviation,
         - **year**: The year of publication (or, if unpublished, the year of creation),
         - **licence**: The terms under which the associated resource are licenced for reuse,
         - **note**: Miscellaneous extra information.
@@ -104,17 +100,17 @@ class BaseDefinition:
         Parameters:
           citation: A dictionary conforming to the CitationModel.
 
-        Example:
+        Examples:
           ```python
           import whyqd as qd
 
           datasource = qd.DataSourceDefinition()
           datasource.derive_model(source=SOURCE_DATA, mimetype=MIMETYPE)
           citation = {
-              "author": "Gavin Chait",
+              "author": "A. N. Author",
               "month": "feb",
               "year": 2020,
-              "title": "Portsmouth City Council normalised database of commercial ratepayers",
+              "title": "A town's business rates, one row a property",
               "url": "https://github.com/whythawk/whyqd/tree/master/tests/data",
               "licence": "Attribution 4.0 International (CC BY 4.0)",
           }
@@ -123,10 +119,6 @@ class BaseDefinition:
         """
         # Create a temporary CitationModel
         self.model.citation = self.definitions.build(kind=CitationModel, source=citation, model=self.model.citation)
-
-    #########################################################################################
-    # SAVE UTILITIES
-    #########################################################################################
 
     def exclude_uuid(self, *, model: BaseModel | dict) -> dict:
         """A definition without its UUIDs, in the current format, for comparing two that differ only by them.
@@ -151,7 +143,8 @@ class BaseDefinition:
         Parameters:
           hide_uuid: Hide all UUIDs in the nested JSON output. Mostly useful for validation assertions where the only
                      differences between sources are the UUIDs.
-          format: The definition format to write, one of `settings.FORMAT_VERSIONS` (`whyqd.config.settings`). Defaults to the current one; give
+          format: The definition format to write, one of `settings.FORMAT_VERSIONS` (`whyqd.config.settings`).
+                  Defaults to the current one; give
                   `"1.x"` to share with someone whose whyqd is older.
 
         Raises:
@@ -181,7 +174,8 @@ class BaseDefinition:
           filename:  Defaults to model name
           created_by:  Declare the model creator/updater
           hide_uuid:  Hide all UUIDs in the nested JSON output.
-          format: The definition format to write, one of `settings.FORMAT_VERSIONS` (`whyqd.config.settings`). Defaults to the current one.
+          format: The definition format to write, one of `settings.FORMAT_VERSIONS` (`whyqd.config.settings`).
+                  Defaults to the current one.
 
         Returns:
           Boolean True if saved.

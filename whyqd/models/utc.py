@@ -10,7 +10,7 @@ class UtcParser:
 
     A naive time is read as UTC, since 1.x wrote its times naive in UTC; a time in another zone is converted.
 
-    Example:
+    Examples:
       ```python
       from whyqd.models.utc import UtcParser
 

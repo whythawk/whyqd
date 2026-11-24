@@ -23,7 +23,7 @@ class ExtensionParser:
     [version specifier standard](https://packaging.python.org/en/latest/specifications/version-specifiers/#handling-of-pre-releases)
     has it.
 
-    Example:
+    Examples:
       ```python
       from whyqd.parsers.extension import ExtensionParser
 
@@ -50,8 +50,8 @@ class ExtensionParser:
         ]
         if not found:
             raise ValueError(
-                f"No installed package provides the {kind.value} `{name}` in `{kind.group}`. Install the one that does. "
-                "[whyqd:extension-not-provided]"
+                f"No installed package provides the {kind.value} `{name}` in `{kind.group}`. Install the one that "
+                "does. [whyqd:extension-not-provided]"
             )
         if len(found) > 1:
             raise ValueError(
@@ -85,8 +85,8 @@ class ExtensionParser:
                 installed = version(extension.distribution)
             except PackageNotFoundError:
                 raise ValueError(
-                    f"The {extension.kind} `{extension.name}` needs `{extension.distribution}`, which is not installed. "
-                    "Install it. [whyqd:extension-missing]"
+                    f"The {extension.kind} `{extension.name}` needs `{extension.distribution}`, which is not "
+                    "installed. Install it. [whyqd:extension-missing]"
                 ) from None
             if not SpecifierSet(extension.version).contains(installed, prereleases=True):
                 raise ValueError(
@@ -97,8 +97,8 @@ class ExtensionParser:
             group = ExtensionKind(extension.kind).group
             if not any(e.dist.name == extension.distribution for e in entry_points(group=group, name=extension.name)):
                 raise ValueError(
-                    f"`{extension.distribution}` does not provide the {extension.kind} `{extension.name}` in `{group}`. "
-                    "Correct the declaration's `distribution`. [whyqd:extension-not-provided]"
+                    f"`{extension.distribution}` does not provide the {extension.kind} `{extension.name}` in "
+                    f"`{group}`. Correct the declaration's `distribution`. [whyqd:extension-not-provided]"
                 )
 
     def declared(self, model: BaseModel) -> list[ExtensionModel]:

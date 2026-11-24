@@ -11,22 +11,10 @@ if TYPE_CHECKING:
 
 
 class MorphParser(SchemaPairParser):
-    """Parsing functions for morph implementations of action scripts.
+    """The parser of a morph's script, `ACTION > [fields] < [rows]`, each list flat, never nested.
 
-    Can process and validate any morphs script. Scripts must be 'flat' and are of the form:
-
-        "ACTION > [fields] < [rows]"
-
-    Where:
-
-    * the presence and order of the arrays is set by ACTION `structure`,
-    * `fields` are indicated by `>`, and
-    * `rows` are indicated by `<`.
+    Which lists a morph takes, and in what order, is its `structure`; either may open with a `'parameter'::`.
     """
-
-    ###################################################################################################
-    ### PARSE TRANSFORM SCRIPT
-    ###################################################################################################
 
     def parse(
         self,
@@ -34,22 +22,14 @@ class MorphParser(SchemaPairParser):
         script: str,
         action: BaseMorphAction,
     ) -> dict[str, MorphActionModel | list[FieldModel] | list[int] | str]:
-        """Generate the parsed dictionary of an initialised action script.
+        """A morph script's action, fields, rows, and parameters, checked against the morph's structure.
 
-        Parameters
-        ----------
-        script: str
-            An action script.
-        action: BaseSchemaAction
+        Returns:
+          `{"action", "destination", "source", "rows", "source_param", "destination_param"}`, each `None` where the
+          script has none.
 
-        Raises
-        ------
-        ValueError for any parsing errors.
-
-        Returns
-        -------
-        dict
-            Parsed dictionary of an initialised action script. Of the form::
+        Raises:
+          ValueError: If a list is nested, a field is in neither schema, or a list the structure needs is missing.
         """
         source, destination, rows, source_param, destination_param = None, None, None, None, None
         # Parse source terms
@@ -105,10 +85,6 @@ class MorphParser(SchemaPairParser):
             "destination_param": destination_param,
         }
 
-    ###################################################################################################
-    ### IMPLEMENT VALIDATED SCRIPT
-    ###################################################################################################
-
     def transform(
         self,
         *,
@@ -121,28 +97,16 @@ class MorphParser(SchemaPairParser):
         destination_param: str | None = None,
         **kwargs,
     ) -> pd.DataFrame:
-        """Transform a dataframe according to a morph script.
+        """The table with the morph run on it, which may add, remove, or reshape its columns and rows.
 
-        .. warning:: Morphs can change the table columns, effecting referencing. This will be captured into the
-            `DataSourceModel` and will effect Schema ACTION ColumnModel references. User beware.
-
-        Parameters
-        ----------
-        action: MorphActionModel
-        source: list of FieldModel or a FieldModel
-            List of source fields for the action, default None.
-        destination: list of FieldModel
-            List of destination fields for the action, default None.
-        rows: list of int, default None.
-        source_param: str
-            Additional parameters for a specific action, default None.
-        destination_param: str
-            Additional parameters for a specific action, default None.
-
-        Returns
-        -------
-        Dataframe
-            Containing the implementation of all transformations
+        Parameters:
+          df: The table.
+          action: The morph to run.
+          source: The fields it reads.
+          destination: The fields it writes.
+          rows: The rows it names, by row key.
+          source_param: The parameter before its source list.
+          destination_param: The parameter before its destination list.
         """
         return action.transform(
             df=df,
@@ -153,11 +117,12 @@ class MorphParser(SchemaPairParser):
             destination_param=destination_param,
         )
 
-    ###################################################################################################
-    ### SUPPORT UTILITIES
-    ###################################################################################################
-
     def get_morph_struts(self, *, term: str) -> list[str]:
+        """A bracketed list's terms, or a lone term as a list of one.
+
+        Raises:
+          ValueError: If the list is nested.
+        """
         terms = list(self.parser.generate_contents(text=term))
         if not terms:
             # It wasn't a list
