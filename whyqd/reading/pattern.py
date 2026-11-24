@@ -36,6 +36,7 @@ class PatternParser:
     }
     NEEDED: ClassVar[dict[str, frozenset[str]]] = {
         FieldType.DATE.value: frozenset("yMd"),
+        FieldType.USDATE.value: frozenset("yMd"),
         FieldType.TIME.value: frozenset("H"),
         FieldType.DATETIME.value: frozenset("yMdH"),
         FieldType.MONTH.value: frozenset("yM"),

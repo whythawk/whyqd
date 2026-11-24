@@ -1,5 +1,6 @@
 # SPDX-License-Identifier: BSD-3-Clause
 from __future__ import annotations
+import warnings
 from pydantic import ConfigDict, BaseModel, Field, model_validator
 from typing import Optional
 
@@ -37,6 +38,18 @@ class FieldModel(BaseModel):
         if self.policy:
             self.policy.standardise(dtype=self.dtype)
             self.policy.check(name=self.name, dtype=self.dtype)
+        return self
+
+    @model_validator(mode="after")
+    def usdate_deprecated(self) -> FieldModel:
+        # A 1.x definition's `usdate` is a `date` once read, so only a current one declares it
+        if self.dtype == FieldType.USDATE.value:
+            warnings.warn(
+                f"Field `{self.name}` is `usdate`, kept for 1.x definitions. Declare it `date` with a month-first "
+                "`policy`, such as `MM/dd/yyyy`. [whyqd:usdate-deprecated]",
+                FutureWarning,
+                stacklevel=2,
+            )
         return self
 
     @model_validator(mode="after")

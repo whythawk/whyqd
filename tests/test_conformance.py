@@ -6,6 +6,7 @@ report holds everything found; and a constraint applied is checked. Everywhere b
 """
 
 import json
+import warnings
 from datetime import timedelta
 from pathlib import Path
 
@@ -573,9 +574,16 @@ class TestUsdate:
     def test_a_1x_usdate_upgrades_to_a_month_first_date(self):
         stored = json.loads((DATA / "test_basildon_source.schema").read_text(encoding="utf-8"))
         stored["fields"][0]["type"] = "usdate"
-        field = qd.SchemaDefinition(source=stored).get.fields[0]
+        with warnings.catch_warnings():
+            warnings.simplefilter("error", FutureWarning)
+            field = qd.SchemaDefinition(source=stored).get.fields[0]
         assert field.dtype == "date"
         assert field.policy.format == "MM/dd/yyyy"
+
+    @pytest.mark.parametrize("pattern", ["MM/yyyy", "dd/MM"])
+    def test_its_pattern_is_checked_as_a_date_s(self, pattern):
+        with pytest.raises(ValueError, match=r"\[whyqd:policy-pattern\]"):
+            PolicyModel(format=pattern).check(name="f", dtype="usdate")
 
     def test_it_saves_back_as_1x_wrote_it(self):
         stored = json.loads((DATA / "test_basildon_source.schema").read_text(encoding="utf-8"))
@@ -584,8 +592,14 @@ class TestUsdate:
         assert written["fields"][0]["type"] == "usdate"
         assert "policy" not in written["fields"][0]
 
-    def test_it_reads_month_first(self, tmp_path):
-        run = build(tmp_path, [["a"], ["04/13/2024"], ["04-13-2024"]], source={"a": {"type": "usdate"}}, destination={"a": {"type": "date"}})
+    def test_it_reads_month_first_and_is_deprecated_in_2_0(self, tmp_path):
+        with pytest.warns(FutureWarning, match=r"`a`.*\[whyqd:usdate-deprecated\]"):
+            run = build(
+                tmp_path,
+                [["a"], ["04/13/2024"], ["04-13-2024"]],
+                source={"a": {"type": "usdate"}},
+                destination={"a": {"type": "date"}},
+            )
         run.process()
         assert [str(v)[:10] for v in run.data["a"].tolist()] == ["2024-04-13", "2024-04-13"]
 
