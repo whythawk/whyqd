@@ -2,8 +2,9 @@
 from __future__ import annotations
 import warnings
 from pathlib import Path
+from typing import ClassVar
 
-from whyqd.dtypes import ChecksumContent, FindingKind, MimeType
+from whyqd.dtypes import ChecksumContent, FieldType, FindingKind, MimeType
 from whyqd.models import ActionScriptModel, DataSourceModel, CrosswalkModel, FieldModel, ReportModel, TransformModel
 from whyqd.models.utc import UtcParser
 from whyqd.core import CrosswalkDefinition
@@ -40,6 +41,17 @@ class TransformDefinition(BaseDefinition):
       transform.save(directory=DIRECTORY)
       ```
     """
+
+    # The actions that read their sources as a type, whatever the source schema declares
+    READS_AS: ClassVar[dict[str, str]] = {
+        "CALCULATE": FieldType.NUMBER.value,
+        "SELECT_NEWEST": FieldType.DATE.value,
+        "SELECT_OLDEST": FieldType.DATE.value,
+    }
+    # The actions that take each value with the date beside it
+    DATED: ClassVar[frozenset[str]] = frozenset({"SELECT_NEWEST", "SELECT_OLDEST"})
+    # The actions whose destination takes a source's value as it is, so the two types must agree
+    MAPS_DIRECTLY: ClassVar[frozenset[str]] = frozenset({"RENAME", "SELECT", "SELECT_NEWEST", "SELECT_OLDEST"})
 
     def __init__(
         self,
@@ -198,7 +210,6 @@ class TransformDefinition(BaseDefinition):
                     "know. Move its `format` and `rules` to the source field or the action. [whyqd:policy-on-destination]"
                 )
         policies, inputs, read_fields = {}, {}, set()
-        as_type = {"CALCULATE": "number", "SELECT_NEWEST": "date", "SELECT_OLDEST": "date"}
         for script in self.crosswalk.crud.get_all():
             parsed = self.crosswalk.crud.parse(script=script)
             name = parsed["action"].name
@@ -206,11 +217,10 @@ class TransformDefinition(BaseDefinition):
             destinations = destinations if isinstance(destinations, list) else [destinations]
             sources = [term for term in self.flatten(parsed.get("source")) if isinstance(term, FieldModel)]
             read_fields |= {field.name for field in sources}
-            # `SELECT_NEWEST` and `SELECT_OLDEST` take each value with the date beside it
-            dated = name in ("SELECT_NEWEST", "SELECT_OLDEST")
-            if name in as_type:
-                inputs |= {field.name: as_type[name] for field in (sources[1::2] if dated else sources)}
-            if name in conformance.MAPS_DIRECTLY:
+            dated = name in self.DATED
+            if name in self.READS_AS:
+                inputs |= {field.name: self.READS_AS[name] for field in (sources[1::2] if dated else sources)}
+            if name in self.MAPS_DIRECTLY:
                 for target in destinations:
                     for field in sources[::2] if dated else sources:
                         if target.name in by_name:
@@ -386,4 +396,6 @@ class TransformDefinition(BaseDefinition):
             )
         self.model.dataDestination = self.reader.get_source_data_model(df=self.data, source=source, mimetype=mimetype)
         self.reader.set(df=self.data, source=source, mimetype=mimetype)
-        super().save(filename=filename, directory=directory, created_by=created_by, hide_uuid=hide_uuid, format=format)
+        return super().save(
+            filename=filename, directory=directory, created_by=created_by, hide_uuid=hide_uuid, format=format
+        )

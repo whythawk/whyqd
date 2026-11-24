@@ -52,7 +52,6 @@ class ConformanceParser:
     TEXT: ClassVar[str] = FieldType.STRING.value
     # A boolean maps to a number and back, each read with a warning, as numbers map to each other
     NUMBERS_OR_BOOLEAN: ClassVar[frozenset[str]] = FieldFamilies.NUMBERS | {FieldType.BOOLEAN.value}
-    MAPS_DIRECTLY: ClassVar[frozenset[str]] = frozenset({"RENAME", "SELECT", "SELECT_NEWEST", "SELECT_OLDEST"})
     WARNINGS: ClassVar[dict[str, str]] = {
         ConformanceFinding.STORED_AS_OTHER_TYPE.value: "a workbook stores these as another type, which Excel may have "
         "converted on opening; check them against the file's owner",

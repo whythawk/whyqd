@@ -107,21 +107,6 @@ class CRUDBase(Generic[ModelType]):
         """Reset a list of ModelType terms to an empty list."""
         self.multi = []
 
-    def reorder(self, *, order: list[UUID]) -> None:
-        """Reorder a list of terms.
-
-        Parameters:
-          order: list of UUID in the desired order. Use `.get_all()` to view the current list.
-
-        Raises:
-          ValueError: If the list of `UUIDs` doesn't conform to that in the list of terms.
-        """
-        order = [self.get_hex(name=o) for o in order]
-        if {m.uuid.hex for m in self.multi}.difference(set(order)):
-            raise ValueError("List of reordered term ids isn't the same as that in the provided list of Models.")
-        if self.multi:
-            self.multi = sorted(self.multi, key=lambda term: order.index(term.uuid.hex))
-
     def get_hex(self, *, name: str | UUID) -> str:
         if isinstance(name, UUID):
             return name.hex

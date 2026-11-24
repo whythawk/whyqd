@@ -171,9 +171,7 @@ class CRUDAction(CRUDBase[ActionScriptModel]):
         if isinstance(script, ActionScriptModel):
             script = script.script
         action = self.get_action(script=script)
-        action_parser = self.get_action_parser(script=script, action=action)()
-        action_parser.set_schema(schema_source=self.schema_source, schema_destination=self.schema_destination)
-        return action_parser.parse(script=script, action=action)
+        return self.get_action_parser(script=script, action=action).parse(script=script, action=action)
 
     def validate(self, *, required: bool = False) -> list[FieldModel]:
         """Return the list of destination schema fields which are still to be crosswalked.
@@ -206,10 +204,11 @@ class CRUDAction(CRUDBase[ActionScriptModel]):
         Returns:
           Transformed dataframe.
         """
-        parsed = self.parse(script=script)
-        action_parser = self.get_action_parser(script=script, action=parsed["action"])()
-        action_parser.set_schema(schema_source=self.schema_source, schema_destination=self.schema_destination)
-        return action_parser.transform(df=df, **parsed)
+        if isinstance(script, ActionScriptModel):
+            script = script.script
+        action = self.get_action(script=script)
+        action_parser = self.get_action_parser(script=script, action=action)
+        return action_parser.transform(df=df, **action_parser.parse(script=script, action=action))
 
     def rows(self) -> list[int]:
         """Every row a row-level action names, in script order."""
@@ -263,9 +262,9 @@ class CRUDAction(CRUDBase[ActionScriptModel]):
         return self.parser.get_action_class(actn=action)()
 
     def get_action_parser(
-        self, *, script: str, action: BaseSchemaAction | BaseMorphAction | BaseCategoryAction = None
+        self, *, script: str, action: BaseSchemaAction | BaseMorphAction | BaseCategoryAction | None = None
     ) -> ActionParser | MorphParser | CategoryParser:
-        """Return the ACTION parser for a script.
+        """Return the parser for a script's kind of action, its schemas set.
 
         Parameters:
           script: A string term conforming to the script structure for a specific action.
@@ -279,15 +278,13 @@ class CRUDAction(CRUDBase[ActionScriptModel]):
         """
         if not action:
             action = self.get_action(script=script)
-        # Test for each of BaseSchemaAction | BaseMorphAction | BaseCategoryAction
-        if isinstance(action, BaseSchemaAction):
-            return ActionParser
-        if isinstance(action, BaseMorphAction):
-            return MorphParser
-        if isinstance(action, BaseCategoryAction):
-            return CategoryParser
-        # Action unknown
-        raise ValueError(f"Script cannot be parsed ({script}).")
+        parsers = {BaseSchemaAction: ActionParser, BaseMorphAction: MorphParser, BaseCategoryAction: CategoryParser}
+        kind = next((parser for base, parser in parsers.items() if isinstance(action, base)), None)
+        if kind is None:
+            raise ValueError(f"Script cannot be parsed ({script}).")
+        parser = kind()
+        parser.set_schema(schema_source=self.schema_source, schema_destination=self.schema_destination)
+        return parser
 
     def reconcile_crosswalk(self, *, fields: FieldModel | list[FieldModel], remove: bool = False) -> None:
         if fields is None:

@@ -136,3 +136,4 @@ class CrosswalkDefinition(BaseDefinition):
             raise ValueError(
                 f"Validation error. Required destination fields are not present in the crosswalk: {required}"
             )
+        return True

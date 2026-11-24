@@ -48,6 +48,10 @@ class TestDataSource:
         datasource = qd.DataSourceDefinition(source=MODEL["SINGLE"])
         datasource.validate()
 
+    def test_derive_returns_what_it_derived(self):
+        datasource = qd.DataSourceDefinition()
+        assert datasource.derive_model(source=DATA["CSV"], mimetype=CSVTYPE) is datasource.get
+
     def test_multi(self):
         # Create
         datasource = qd.DataSourceDefinition()

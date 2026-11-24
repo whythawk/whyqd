@@ -127,13 +127,14 @@ class DataSourceDefinition(BaseDefinition):
           settings: Refused, naming the dialect: `header` and pandas' keywords are no longer read.
 
         Returns:
-          List of DataSourceModel, or DataSourceModel
+          The data source, or one a sheet of a workbook.
         """
         self.model, table = self.reader.derive_data_model(
             source=source, mimetype=mimetype, dialect=dialect, names=names, **settings
         )
         # Held so the first `get_data` need not read the file again
         self.data = None if isinstance(self.model, list) else table.to_pandas()
+        return self.model
 
     def diagnose(
         self,
@@ -215,14 +216,14 @@ class DataSourceDefinition(BaseDefinition):
     # MANAGE CITATION
     #########################################################################################
 
-    def get_citation(self) -> dict[str, str | dict[str, str]]:
-        """Get the citation as a dictionary.
+    def get_citation(self) -> dict[str, str | dict[str, str]] | list[dict[str, str | dict[str, str]]]:
+        """Get the citation as a dictionary, or one a cited sheet of a workbook.
 
         Raises:
           ValueError: If no citation has been declared or the build is incomplete.
 
         Returns:
-          A dictionary conforming to the CitationModel.
+          A dictionary conforming to the CitationModel, or a list of them.
         """
         if not isinstance(self.model, list):
             return super().get_citation()

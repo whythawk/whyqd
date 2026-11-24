@@ -7,3 +7,13 @@ from whyqd.core.crosswalk import CrosswalkDefinition
 from whyqd.core.transform import ConformanceError, TransformDefinition
 
 __version__ = (Path(__file__).resolve().parent / "VERSION").read_text(encoding="utf-8")
+del Path
+
+__all__ = [
+    "ConformanceError",
+    "CrosswalkDefinition",
+    "DataSourceDefinition",
+    "SchemaDefinition",
+    "TransformDefinition",
+    "__version__",
+]
