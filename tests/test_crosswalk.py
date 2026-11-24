@@ -46,6 +46,13 @@ class TestCrosswalk:
         c["schemaDestination"].pop("version", None)
         assert c == CROSSWALK
 
+    def test_exclude_uuid_keeps_a_current_format(self):
+        schema = {"formatVersion": "2.0", "name": "s", "fields": [{"name": "t", "type": "time"}]}
+        source = qd.SchemaDefinition(source=schema)
+        crosswalk = qd.CrosswalkDefinition()
+        crosswalk.set(crosswalk={"name": "c"}, schema_source=source, schema_destination=SCHEMA_DESTINATION)
+        assert crosswalk.exclude_uuid(model=crosswalk.get)["schemaSource"]["fields"][0]["type"] == "time"
+
     def test_add_remove_update(self):
         crosswalk = qd.CrosswalkDefinition()
         crosswalk.set(

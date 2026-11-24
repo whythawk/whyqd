@@ -132,24 +132,16 @@ class BaseDefinition:
         Parameters:
           model: A model, or a saved definition in any format whyqd reads.
         """
-        # https://stackoverflow.com/a/49723101/295606
+        formats = self.definitions.formats
         if isinstance(model, BaseModel):
             model = model.model_dump(by_alias=True, exclude_defaults=True, exclude_none=True)
         else:
-            model = self.definitions.formats.read(source=model)
-        excluded = {}
-        for key, field in model.items():
-            if key == "uuid":
-                continue
-            if isinstance(field, dict):
-                field = self.exclude_uuid(model=field)
-            elif field and isinstance(field, list) and isinstance(field[0], dict):
-                field = [self.exclude_uuid(model=f) for f in field]
-            elif isinstance(field, (datetime, date)):
-                # To make sure json.dumps doesn't run into datetime errors
-                field = field.isoformat()
-            excluded[key] = field
-        return excluded
+            model = formats.read(source=model)
+        # A time as its text, so the result serialises as JSON
+        return formats.walk(
+            model,
+            lambda d: {k: v.isoformat() if isinstance(v, (datetime, date)) else v for k, v in d.items() if k != "uuid"},
+        )
 
     def get_json(self, hide_uuid: bool = False, format: str | None = None) -> Json | None:
         """Get the json model.

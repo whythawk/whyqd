@@ -2,6 +2,7 @@
 from __future__ import annotations
 import hashlib
 import json
+from collections.abc import Callable
 from pathlib import Path
 
 import rfc8785
@@ -132,15 +133,21 @@ class FormatParser:
             return self.downgrade(written)
         return {self.KEY: version} | self.name_schemas(self.drop_empty_attributes(written))
 
+    def walk(self, value, change: Callable[[dict], dict]):
+        """`value` with `change` made to every dictionary in it, innermost first; lists are walked, the rest kept."""
+        if isinstance(value, list):
+            return [self.walk(v, change) for v in value]
+        if not isinstance(value, dict):
+            return value
+        return change({k: self.walk(v, change) for k, v in value.items()})
+
     def upgrade(self, value):
         """1.x to the current format: a data source's bare checksum names what it hashed, and it gains the dialect that
         reads it as 1.x did; a field's `time` is a `duration`; and a string field's `minimum` and `maximum`, which 1.x
         described as lengths, are `minLength` and `maxLength`."""
-        if isinstance(value, list):
-            return [self.upgrade(v) for v in value]
-        if not isinstance(value, dict):
-            return value
-        value = {k: self.upgrade(v) for k, v in value.items()}
+        return self.walk(value, self.upgrade_one)
+
+    def upgrade_one(self, value: dict) -> dict:
         if "mime" in value and isinstance(value.get("checksum"), str):
             value["checksums"] = [self.checksum(value=value.pop("checksum"), content=ChecksumContent.TABLE_1X)]
             if "dialect" not in value and (dialect := self.dialect_1x(value)) is not None:
@@ -161,11 +168,9 @@ class FormatParser:
         dialect that says only what the data source's 1.x settings say. An edit's time is written without its zone, as
         1.x wrote it, being UTC. A part new in 2.0 is refused, naming it.
         """
-        if isinstance(value, list):
-            return [self.downgrade(v) for v in value]
-        if not isinstance(value, dict):
-            return value
-        value = {k: self.downgrade(v) for k, v in value.items()}
+        return self.walk(value, self.downgrade_one)
+
+    def downgrade_one(self, value: dict) -> dict:
         if "mime" in value and "dialect" in value and value["dialect"] == self.dialect_1x(value):
             value.pop("dialect")
         if value.get("type") == FieldType.DATE.value and value.get("policy") == PolicyModel.USDATE:
@@ -230,11 +235,9 @@ class FormatParser:
         The checksum says which copy, not which came first: that is the edit history's latest `updated`. It leaves
         out the edit history, which changes on every save, and `release`, a label for people.
         """
-        if isinstance(value, list):
-            return [self.name_schemas(v) for v in value]
-        if not isinstance(value, dict):
-            return value
-        value = {k: self.name_schemas(v) for k, v in value.items()}
+        return self.walk(value, self.name_schema)
+
+    def name_schema(self, value: dict) -> dict:
         for key in self.SCHEMAS:
             schema = value.get(key)
             if isinstance(schema, dict):
@@ -245,15 +248,8 @@ class FormatParser:
 
     def drop_empty_attributes(self, value):
         """Leave out a data source's empty `attributes`, which 1.x always wrote."""
-        if isinstance(value, list):
-            return [self.drop_empty_attributes(v) for v in value]
-        if not isinstance(value, dict):
-            return value
-        return {k: self.drop_empty_attributes(v) for k, v in value.items() if not (k == "attributes" and v == {})}
+        return self.walk(value, lambda d: {k: v for k, v in d.items() if not (k == "attributes" and v == {})})
 
     def drop_uuid(self, value):
-        if isinstance(value, list):
-            return [self.drop_uuid(v) for v in value]
-        if not isinstance(value, dict):
-            return value
-        return {k: self.drop_uuid(v) for k, v in value.items() if k != "uuid"}
+        """Leave out every `uuid`, for comparing two definitions that differ only by them."""
+        return self.walk(value, lambda d: {k: v for k, v in d.items() if k != "uuid"})
