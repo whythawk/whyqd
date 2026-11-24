@@ -2,10 +2,9 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING
 from pydantic import Json, BaseModel
-from pathlib import Path
 from datetime import date, datetime
 
-from whyqd.parsers.core import CoreParser
+from whyqd.parsers.definition import DefinitionParser
 from whyqd.models import VersionModel, CitationModel
 
 if TYPE_CHECKING:
@@ -16,7 +15,7 @@ class BaseDefinition:
     """Core shared base definition functionality."""
 
     def __init__(self, *, model_name: str) -> None:
-        self.core = CoreParser()
+        self.definitions = DefinitionParser()
         self.model = None
         self.model_name = model_name  # method / schema / transform / etc.
         self._reader = None
@@ -121,9 +120,7 @@ class BaseDefinition:
           ```
         """
         # Create a temporary CitationModel
-        self.model.citation = self.core.create_or_update_model(
-            modelType=CitationModel, source=citation, model=self.model.citation
-        )
+        self.model.citation = self.definitions.build(kind=CitationModel, source=citation, model=self.model.citation)
 
     #########################################################################################
     # SAVE UTILITIES
@@ -139,7 +136,7 @@ class BaseDefinition:
         if isinstance(model, BaseModel):
             model = model.model_dump(by_alias=True, exclude_defaults=True, exclude_none=True)
         else:
-            model = self.core.formats.read(source=model)
+            model = self.definitions.formats.read(source=model)
         excluded = {}
         for key, field in model.items():
             if key == "uuid":
@@ -172,7 +169,8 @@ class BaseDefinition:
         self._refresh_model_terms()
         if not self.model:
             return None
-        return self.core.formats.dumps(self.core.formats.write(model=self.model, format=format, hide_uuid=hide_uuid))
+        formats = self.definitions.formats
+        return formats.dumps(formats.write(model=self.model, format=format, hide_uuid=hide_uuid))
 
     def save(
         self,
@@ -197,20 +195,14 @@ class BaseDefinition:
         self._refresh_model_terms()
         if not self.model:
             raise ValueError(f"{self.model_name.title()} model does not exist.")
-        if not directory:
-            directory = self.core.default_directory
-        else:
-            directory = self.core.check_path(directory=directory)
+        directory = self.definitions.directory(directory)
         if not filename:
             filename = f"{self.model.name}.{self.model_name}"
         if filename.split(".")[-1] != self.model_name:
             filename += f".{self.model_name}"
-        if isinstance(directory, str):
-            directory = Path(directory)
-        path = directory / filename
         if "version" in self.model.model_dump():
             update = VersionModel(**{"description": f"Save {self.model_name}."})
             if created_by:
                 update.name = created_by
             self.model.version.append(update)
-        return self.core.save_file(data=self.get_json(hide_uuid=hide_uuid, format=format), source=path)
+        return self.definitions.save(text=self.get_json(hide_uuid=hide_uuid, format=format), path=directory / filename)

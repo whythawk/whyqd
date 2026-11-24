@@ -5,7 +5,7 @@ import pytest
 from pydantic import AnyUrl
 
 import whyqd as qd
-from whyqd.parsers.core import CoreParser
+from whyqd.parsers.definition import DefinitionParser
 from whyqd.reading.conformance import ConformanceParser
 from whyqd.sources.datasource import DataSourceParser
 
@@ -18,7 +18,7 @@ DATA = {
 }
 MIMETYPE = "XLSX"
 CSVTYPE = "CSV"
-MODEL = {"SINGLE": CoreParser().load_json(source=DIRECTORY / "raw_E06000044_014_0.data")}
+MODEL = {"SINGLE": DefinitionParser().load(source=DIRECTORY / "raw_E06000044_014_0.data")}
 
 
 class TestDataSource:

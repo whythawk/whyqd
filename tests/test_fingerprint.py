@@ -17,7 +17,7 @@ import pytest
 import rfc8785
 
 import whyqd as qd
-from whyqd.parsers.core import CoreParser
+from whyqd.parsers.definition import DefinitionParser
 from whyqd.sources.fingerprint import FingerprintParser
 
 DATA = Path(__file__).resolve().parent / "data"
@@ -215,7 +215,7 @@ class TestVerify:
 
     def test_a_verified_1x_checksum_gains_fp0_and_the_byte_hash(self):
         pytest.importorskip("openpyxl")
-        model = CoreParser().load_json(source=DATA / "raw_E06000044_014_0.data")
+        model = DefinitionParser().load(source=DATA / "raw_E06000044_014_0.data")
         datasource = qd.DataSourceDefinition(source=model)
         assert datasource.get.get_checksum("fp0") is None
         assert datasource.validate()

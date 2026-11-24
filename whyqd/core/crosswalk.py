@@ -80,7 +80,7 @@ class CrosswalkDefinition(BaseDefinition):
           schema_source: Path to a json file containing a saved schema, or a dictionary conforming to one, or a definition.
           schema_destination: Path to a json file containing a saved schema, or a dictionary conforming to one, or a definition.
         """
-        self.model = self.core.create_or_update_model(modelType=CrosswalkModel, source=crosswalk, model=self.model)
+        self.model = self.definitions.build(kind=CrosswalkModel, source=crosswalk, model=self.model)
         # And update the original data
         # https://fastapi.tiangolo.com/tutorial/body-updates/#partial-updates-with-patch
         if self.model.schemaSource and not schema_source:

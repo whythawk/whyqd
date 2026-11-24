@@ -86,7 +86,7 @@ class DataSourceDefinition(BaseDefinition):
           schema: A dictionary conforming to the DataSourceModel.
         """
         if schema:
-            self.model = self.core.create_or_update_model(modelType=DataSourceModel, source=schema, model=self.model)
+            self.model = self.definitions.build(kind=DataSourceModel, source=schema, model=self.model)
 
     def get_data(self, *, refresh: bool = False) -> pd.DataFrame | None:
         """Get the data source's table as a pandas dataframe.
@@ -263,13 +263,13 @@ class DataSourceDefinition(BaseDefinition):
         if not isinstance(self.model, list):
             super().set_citation(citation=citation)
         elif index:
-            self.model[index].citation = self.core.create_or_update_model(
-                modelType=CitationModel, source=citation, model=self.model[index].citation
+            self.model[index].citation = self.definitions.build(
+                kind=CitationModel, source=citation, model=self.model[index].citation
             )
         else:
             for index in range(len(self.model)):
-                self.model[index].citation = self.core.create_or_update_model(
-                    modelType=CitationModel, source=citation, model=self.model[index].citation
+                self.model[index].citation = self.definitions.build(
+                    kind=CitationModel, source=citation, model=self.model[index].citation
                 )
 
     #########################################################################################
@@ -289,7 +289,7 @@ class DataSourceDefinition(BaseDefinition):
         """
         if not isinstance(self.model, list):
             return super().get_json(hide_uuid=hide_uuid, format=format)
-        formats = self.core.formats
+        formats = self.definitions.formats
         return [formats.dumps(formats.write(model=m, format=format, hide_uuid=hide_uuid)) for m in self.model]
 
     def save(
@@ -318,19 +318,13 @@ class DataSourceDefinition(BaseDefinition):
             return super().save(
                 directory=directory, filename=filename, created_by=created_by, hide_uuid=hide_uuid, format=format
             )
-        if not directory:
-            directory = self.core.default_directory
-        else:
-            directory = self.core.check_path(directory=directory)
+        directory = self.definitions.directory(directory)
         if not filename:
             filename = f"{self.model.name}.{self.model_name}"
         if filename.split(".")[-1] != self.model_name:
             filename += f".{self.model_name}"
-        if isinstance(directory, str):
-            directory = Path(directory)
         models = self.get_json(hide_uuid=hide_uuid, format=format)
         for i, model in enumerate(models):
             filename = "".join(self.model[i].name.split(".")[:-1] + [f".{self.model_name}"])
-            path = directory / filename
-            self.core.save_file(data=model, source=path)
+            self.definitions.save(text=model, path=directory / filename)
         return True

@@ -2,13 +2,12 @@
 from pathlib import Path
 
 import whyqd as qd
-from whyqd.parsers.core import CoreParser
+from whyqd.parsers.definition import DefinitionParser
 
-CORE = CoreParser()
 SOURCE_DIRECTORY = Path(__file__).resolve().parent / "data"
 SOURCE_SCHEMA_PATH = SOURCE_DIRECTORY / "test_source_schema.schema"
 CROSSWALK_PATH = SOURCE_DIRECTORY / "test_crosswalk.crosswalk"
-CROSSWALK = CORE.load_json(source=CROSSWALK_PATH)
+CROSSWALK = DefinitionParser().load(source=CROSSWALK_PATH)
 CROSSWALK.pop("version", None)
 CROSSWALK["schemaSource"].pop("version", None)
 CROSSWALK["schemaDestination"].pop("version", None)
@@ -34,7 +33,6 @@ NEW_SCRIPT = "SELECT > 'occupation_state_date' < ['Account Start date', 'Current
 class TestCrosswalk:
     def test_create_validate(self, tmp_path):
         DIRECTORY = tmp_path
-        CORE.check_path(directory=DIRECTORY)
         crosswalk = qd.CrosswalkDefinition()
         crosswalk.set(
             crosswalk={"name": "test_crosswalk"}, schema_source=SCHEMA_SOURCE, schema_destination=SCHEMA_DESTINATION

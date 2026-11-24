@@ -1,5 +1,6 @@
 # SPDX-License-Identifier: BSD-3-Clause
 from __future__ import annotations
+import warnings
 from pathlib import Path
 
 from whyqd.dtypes import ChecksumContent, FindingKind, MimeType
@@ -80,7 +81,7 @@ class TransformDefinition(BaseDefinition):
           crosswalk: A definition, or a dictionary conforming to the CrosswalkModel, or a path to a saved definition.
           data_source: Path to a tabular data source, or a dictionary conforming to a data source model.
         """
-        self.model = self.core.create_or_update_model(modelType=TransformModel, source=transform, model=self.model)
+        self.model = self.definitions.build(kind=TransformModel, source=transform, model=self.model)
         # And update the original data
         # https://fastapi.tiangolo.com/tutorial/body-updates/#partial-updates-with-patch
         if self.model.dataSource and not data_source:
@@ -89,7 +90,7 @@ class TransformDefinition(BaseDefinition):
             if isinstance(data_source, DataSourceModel):
                 self.data_source = data_source
             else:
-                self.data_source = self.core.create_or_update_model(modelType=DataSourceModel, source=data_source)
+                self.data_source = self.definitions.build(kind=DataSourceModel, source=data_source)
             self.model.dataSource = self.data_source
         if self.model.crosswalk and not crosswalk:
             self.crosswalk.set(crosswalk=self.model.crosswalk)
@@ -177,9 +178,11 @@ class TransformDefinition(BaseDefinition):
                 report=self.report,
             )
         if conformance.warnings:
-            self.core.show_warning(
+            warnings.warn(
                 f"`{source.name}` read with {len(conformance.warnings)} things to check. Read `report`. "
-                "[whyqd:transform-warned]"
+                "[whyqd:transform-warned]",
+                UserWarning,
+                stacklevel=2,
             )
         return df[names]
 
@@ -383,14 +386,15 @@ class TransformDefinition(BaseDefinition):
             self.destination_mimetype = mimetype
         else:
             mimetype = self.reader.get_mimetype(mimetype=self.destination_mimetype)
-        if directory and self.core.check_source(source=directory):
-            self.destination_path = Path(directory)
+        if directory:
+            self.destination_path = self.definitions.directory(directory)
+        today = self.utc.now().date().isoformat()
         if filename:
-            source = self.destination_path / f"{self.core.get_now()}-{filename}.{mimetype.name}"
+            source = self.destination_path / f"{today}-{filename}.{mimetype.name}"
         else:
             source = (
                 self.destination_path
-                / f"{self.core.get_now()}-{self.model.crosswalk.schemaDestination.name}-{self.model.uuid}.{mimetype.name}"
+                / f"{today}-{self.model.crosswalk.schemaDestination.name}-{self.model.uuid}.{mimetype.name}"
             )
         self.model.dataDestination = self.reader.get_source_data_model(df=self.data, source=source, mimetype=mimetype)
         self.reader.set(df=self.data, source=source, mimetype=mimetype)

@@ -3,14 +3,15 @@ from pathlib import Path
 import json
 
 import whyqd as qd
-from whyqd.parsers.core import CoreParser
+from whyqd.parsers.definition import DefinitionParser
 
+DEFINITIONS = DefinitionParser()
 DIRECTORY = Path(__file__).resolve().parent / "data"
-DATA_MODEL = {"SINGLE": CoreParser().load_json(source=DIRECTORY / "raw_E06000044_014_0.data")}
+DATA_MODEL = {"SINGLE": DEFINITIONS.load(source=DIRECTORY / "raw_E06000044_014_0.data")}
 SCHEMA_SOURCE = DIRECTORY / "test_schema.schema"
 SCHEMA_DATA = {
-    "SOURCE": CoreParser().load_json(source=SCHEMA_SOURCE),
-    "DERIVED": CoreParser().load_json(source=DIRECTORY / "test_derived_schema.schema"),
+    "SOURCE": DEFINITIONS.load(source=SCHEMA_SOURCE),
+    "DERIVED": DEFINITIONS.load(source=DIRECTORY / "test_derived_schema.schema"),
 }
 
 

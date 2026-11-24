@@ -8,9 +8,7 @@ import pandas as pd
 import whyqd as qd
 from whyqd.crosswalk.actions.pivot_longer import Action as PivotLonger
 from whyqd.models import FieldModel
-from whyqd.parsers.core import CoreParser
 
-CORE = CoreParser()
 SOURCE_DIRECTORY = Path(__file__).resolve(strict=True).parent / "data"
 # CTHULHU
 # World Bank Human Development Report 2007 - 2008 in Cthulhu format. Demonstrate define a schema,

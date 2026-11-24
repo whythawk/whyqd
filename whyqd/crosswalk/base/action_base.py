@@ -1,5 +1,6 @@
 # SPDX-License-Identifier: BSD-3-Clause
 from __future__ import annotations
+from collections.abc import Iterator
 from typing import List, Union, Optional, TYPE_CHECKING
 
 
@@ -29,10 +30,7 @@ class BaseSchemaAction:
     """
 
     def __init__(self) -> None:
-        from whyqd.parsers.core import CoreParser
-
         self._frame = None
-        self.core = CoreParser()
         self.name = ""
         self.title = ""
         self.description = ""
@@ -77,6 +75,11 @@ class BaseSchemaAction:
             ModifierModel representation of the modifiers.
         """
         return None
+
+    def chunks(self, *, lst: list, n: int) -> Iterator[list]:
+        """Successive `n`-sized parts of `lst`, as the structure groups a script's source terms."""
+        for i in range(0, len(lst), n):
+            yield lst[i : i + n]
 
     @property
     def modifier_terms(self) -> list[str]:
@@ -131,7 +134,7 @@ class BaseSchemaAction:
         """
         if not isinstance(source, list):
             raise ValueError(f"Action source script does not conform to required structure. ({source})")
-        for chunk in self.core.chunks(lst=source, n=len(self.structure)):
+        for chunk in self.chunks(lst=source, n=len(self.structure)):
             # Loops through the phrasing of the structure, and checks that each term is as expected
             # e.g. [ModifierModel, FieldModel] for [modifier1, field1, modifier2, field2]
             # does not check that the actual terms match, though

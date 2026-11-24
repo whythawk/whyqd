@@ -51,7 +51,7 @@ class Action(BaseSchemaAction):
         base_date = None
         # Requires sets of 3 terms: field, +, date_field
         term_set = len(self.structure)
-        for data, modifier, date in self.core.chunks(lst=source, n=term_set):
+        for data, modifier, date in self.chunks(lst=source, n=term_set):
             if modifier.name != "+":
                 raise ValueError(f"Field `{source}` has invalid SELECT_BY_OLD script. Please review.")
             if not base_date:

@@ -1,12 +1,13 @@
 # SPDX-License-Identifier: BSD-3-Clause
 from __future__ import annotations
+import warnings
 from pathlib import Path
 from typing import TYPE_CHECKING, ClassVar
 
 import pandas as pd
 import polars as pl
 
-from whyqd.parsers.core import CoreParser
+from whyqd.parsers.format import FormatParser
 from whyqd.reading.conformance import ConformanceParser
 from whyqd.sources.arrow import ArrowParser
 from whyqd.sources.csv import CsvParser
@@ -42,7 +43,7 @@ class DataSourceParser:
     PANDAS_NUMBERS: ClassVar[frozenset[str]] = frozenset({"float64", "int64", "Float64", "Int64"})
 
     def __init__(self):
-        self.core = CoreParser()
+        self.definition_formats = FormatParser()
         self.diagnoses = DiagnosisParser()
         self.fingerprints = FingerprintParser()
         self.location = LocationParser()
@@ -95,9 +96,11 @@ class DataSourceParser:
                 and source.index is not None
                 and table.height != source.index
             ):
-                self.core.show_warning(
+                warnings.warn(
                     f"`{source.name}` reads as {table.height} rows where 1.x read {source.index}, so its rows are "
-                    "numbered differently. Check any stored action that names rows. [whyqd:rows-renumbered]"
+                    "numbered differently. Check any stored action that names rows. [whyqd:rows-renumbered]",
+                    UserWarning,
+                    stacklevel=2,
                 )
             return table.to_pandas()
         path = self.location.locate(source=source, directory=directory)
@@ -158,7 +161,7 @@ class DataSourceParser:
                 f"`{source.name}` was read in 1.x with pandas' `{'`, `'.join(source.attributes.terms)}`, which whyqd "
                 "no longer reads. Derive it again with a `dialect`. [whyqd:attributes-1x]"
             )
-        return DialectModel(**self.core.formats.dialect_1x(settings))
+        return DialectModel(**self.definition_formats.dialect_1x(settings))
 
     def reader(self, *, mime: MimeType) -> Reader:
         """The reader of a format; every `MimeType` has one."""
@@ -260,11 +263,10 @@ class DataSourceParser:
             grid=grid, lines=lines, dialect=dialect, source=path.name, place=reader.PLACE, names=names, beside=beside
         )
         formats = formats[0] if formats else None
-        checksums = [
-            self.core.formats.checksum(value=self.fingerprints.byte_hash(source=path), content=ChecksumContent.BYTES)
-        ]
+        checksum = self.definition_formats.checksum
+        checksums = [checksum(value=self.fingerprints.byte_hash(source=path), content=ChecksumContent.BYTES)]
         if fp0 is not None:
-            checksums.append(self.core.formats.checksum(value=fp0, content=ChecksumContent.FP0))
+            checksums.append(checksum(value=fp0, content=ChecksumContent.FP0))
         model = DataSourceModel(
             path=str(source),
             mime=mime,
@@ -318,9 +320,11 @@ class DataSourceParser:
                 f"`{source.name}` has changed: its cells are not those its data source was derived from. Find the file "
                 "it was derived from, or derive it again from this one. [whyqd:source-changed]"
             )
-        self.core.show_warning(
+        warnings.warn(
             f"`{source.name}` was saved again: the file's bytes differ, but its cells (`fp0`) do not. "
-            "[whyqd:source-saved-again]"
+            "[whyqd:source-saved-again]",
+            UserWarning,
+            stacklevel=2,
         )
 
     def derive_sheets(
@@ -492,7 +496,7 @@ class DataSourceParser:
             mime=self.get_mimetype(mimetype=mimetype),
             columns=columns,
             preserve=[c.name for c in columns if c.dtype == "string"],
-            checksums=[self.core.formats.checksum(value=self.v1.table(df=df), content=ChecksumContent.TABLE_1X)],
+            checksums=[self.definition_formats.checksum(value=self.v1.table(df=df), content=ChecksumContent.TABLE_1X)],
             index=df.shape[0],
             attributes=DataSourceAttributeModel({}),
         )

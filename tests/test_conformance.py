@@ -95,6 +95,14 @@ class TestHalting:
         with pytest.raises(ValueError, match="No destination data"):
             run.save(directory=tmp_path)
 
+    def test_a_save_makes_its_directory(self, tmp_path, monkeypatch):
+        monkeypatch.chdir(tmp_path)
+        run = build(tmp_path, [["a"], ["5"]], destination={"a": {"type": "number"}})
+        run.process()
+        run.save(directory=tmp_path / "new")
+        saved = sorted(p.name for p in (tmp_path / "new").iterdir())
+        assert len(saved) == 2 and saved[-1].endswith(".transform")
+
     def test_each_run_reports_everything_it_can(self, tmp_path):
         run = build(
             tmp_path,

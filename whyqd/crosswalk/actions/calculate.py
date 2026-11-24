@@ -58,13 +58,9 @@ class Action(BaseSchemaAction):
         import numpy as np
 
         term_set = len(self.structure)
-        add_fields = [
-            field.name for modifier, field in self.core.chunks(lst=source, n=term_set) if modifier.name == "+"
-        ]
-        sub_fields = [
-            field.name for modifier, field in self.core.chunks(lst=source, n=term_set) if modifier.name == "-"
-        ]
-        policies = {field.name: field.policy for modifier, field in self.core.chunks(lst=source, n=term_set)}
+        add_fields = [field.name for modifier, field in self.chunks(lst=source, n=term_set) if modifier.name == "+"]
+        sub_fields = [field.name for modifier, field in self.chunks(lst=source, n=term_set) if modifier.name == "-"]
+        policies = {field.name: field.policy for modifier, field in self.chunks(lst=source, n=term_set)}
         for field in add_fields + sub_fields:
             df[field] = self.frame.values(column=df[field], dtype="number", policy=policies.get(field))
         # Need to maintain NaNs ... default is to treat NaNs as zeros, so even a sum of two NaNs is zero

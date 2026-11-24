@@ -2,7 +2,6 @@
 from pathlib import Path
 
 import whyqd as qd
-from whyqd.parsers.core import CoreParser
 
 SOURCE_DIRECTORY = Path(__file__).resolve().parent / "data"
 SOURCE_DATA = SOURCE_DIRECTORY / "raw-e07000066-tutorial-4.xlsx"
@@ -32,7 +31,6 @@ class TestTutorialVariations:
 
         Demonstrating create method, date and number coersions, array collations, and explode."""
         DIRECTORY = tmp_path
-        CoreParser().check_path(directory=DIRECTORY)
         # 1. Import a data source and derive a source schema
         datasource = qd.DataSourceDefinition()
         datasource.derive_model(source=SOURCE_DATA, mimetype=MIMETYPE)

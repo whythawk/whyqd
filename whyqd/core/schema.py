@@ -74,7 +74,7 @@ class SchemaDefinition(BaseDefinition):
         Parameters:
           schema: A dictionary, or path to a dictionary or json file, conforming to the SchemaModel.
         """
-        self.model = self.core.create_or_update_model(modelType=SchemaModel, source=schema, model=self.model)
+        self.model = self.definitions.build(kind=SchemaModel, source=schema, model=self.model)
         self._refresh_model_fields()
 
     @property
@@ -97,7 +97,7 @@ class SchemaDefinition(BaseDefinition):
             data: A model defining a single data source
         """
         if isinstance(data, dict):
-            data = DataSourceModel(**self.core.formats.read(source=data))
+            data = DataSourceModel(**self.definitions.formats.read(source=data))
         if not self.model:
             self.set()
         for dc in data.columns:
