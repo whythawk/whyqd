@@ -53,23 +53,23 @@ class ActionParser(SchemaPairParser):
         """
         if not self.schemas:
             raise ValueError("Schema has not been provided.")
-        hexed_script = self.get_hexed_script(script=script)
-        root = self.parser.get_split_terms(script=hexed_script, by="<")
-        split_terms = self.parser.get_split_terms(script=root[0], by=">")
+        hexed_script = self.hexed_with_modifiers(script=script)
+        root = self.parser.get_split_terms(script=hexed_script, by=self.parser.SOURCE)
+        split_terms = self.parser.get_split_terms(script=root[0], by=self.parser.DESTINATION)
         # Get destination term
         destination = None
         if len(split_terms) == 2:
             destination = self.parser.get_literal(text=split_terms[1])
             if isinstance(destination, list):
-                destination = [self.get_schema_field(term=d) for d in destination]
+                destination = [self.parser.get_schema_field(term=d, schema=self.schemas) for d in destination]
                 assert all(isinstance(d, FieldModel) for d in destination)
             else:
-                destination = self.get_schema_field(term=destination)
+                destination = self.parser.get_schema_field(term=destination, schema=self.schemas)
                 assert isinstance(destination, FieldModel)
         # Get source term
         source = None
         if len(root) > 1:
-            source = "<".join(root[1:])
+            source = self.parser.SOURCE.join(root[1:])
         # Process initial response
         if action.settings.name == "NEW":
             # Special case where value is assigned as default to 'destination' field
@@ -110,10 +110,10 @@ class ActionParser(SchemaPairParser):
                 parsed_stack = stack
                 for txt, _, hx in parsed:
                     # replace the txt with hx
-                    parsed_stack = parsed_stack.replace(f"[{txt}]", hx)
+                    parsed_stack = parsed_stack.replace(f"{self.parser.OPEN}{txt}{self.parser.CLOSE}", hx)
                 i_prsed = []
                 for s in self.parser.get_split_terms(script=parsed_stack, by=",", maxsplit=-1):
-                    splt = self.parser.get_split_terms(script=s, by="<")
+                    splt = self.parser.get_split_terms(script=s, by=self.parser.SOURCE)
                     if len(splt) == 1:
                         i_prsed.extend(self.parser.get_listed_literal(text=s))
                     else:
@@ -190,33 +190,11 @@ class ActionParser(SchemaPairParser):
     ### SUPPORT UTILITIES
     ###################################################################################################
 
-    def get_schema_field(self, *, term: str) -> FieldModel:
-        """Recover a field model from a string.
-
-        Raises
-        ------
-        ValueError if the field term is not recognised.
-
-        Returns
-        -------
-        FieldModel
-        """
-        field = None
-        for s in self.schemas:
-            field = s.fields.get(name=term)
-            if field:
-                break
-        if not field:
-            e = f"Field name is not recognised from either of the source or destination schema fields ({term})."
-            if len(self.schemas) == 1:
-                e = f"Field name is not recognised from the schema fields ({term})."
-            raise ValueError(e)
-        return field
-
-    def get_hexed_script(self, *, script: str) -> str:
+    def hexed_with_modifiers(self, *, script: str) -> str:
+        """The script with each field name as its field's hex, as `ScriptParser.get_hexed_script` gives it, and each of
+        its actions' modifiers set apart by commas, so the source splits into terms."""
         from whyqd.crosswalk.actions import default_actions
 
-        # Changes fields to uuid hexes
         all_fields = [field for s in self.schemas for field in s.get.fields]
         script = self.parser.get_hexed_script(script=script, fields=all_fields)
         modifier_names = set()
@@ -268,14 +246,14 @@ class ActionParser(SchemaPairParser):
             if isinstance(term, str) and term in modifier_names:
                 recovered = action.get_modifier(term=term)
             elif isinstance(term, str):
-                recovered = self.get_schema_field(term=term)
+                recovered = self.parser.get_schema_field(term=term, schema=self.schemas)
             elif isinstance(term, list):
                 recovered = self.recover_fields_from_hexed_script(parsed=term, action=action)
             elif isinstance(term, dict):
                 # Check if 'destination' is a column or schema field
                 destination = term.get("destination")
                 if destination:
-                    destination = self.get_schema_field(term=destination)
+                    destination = self.parser.get_schema_field(term=destination, schema=self.schemas)
                 recovered = {
                     "action": term.get("action"),
                     "destination": destination,

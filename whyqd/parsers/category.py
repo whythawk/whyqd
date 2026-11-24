@@ -63,13 +63,13 @@ class CategoryParser(SchemaPairParser):
         if not self.schema_source or not self.schema_destination:
             raise ValueError("Schema for both source and destination has not been provided.")
         # New, revised, hopefully handles the edge cases
-        script = self.get_hexed_script(script=script)
+        script = self.hexed_by_part(script=script)
         parsed = action.parse(script=script)
         # Validate the category script and get the required compone
         destination, category, source, assigned, unassigned = None, None, None, None, None
         # Get source and source category terms
         source = self.parser.get_literal(text=parsed["source"])
-        source = self.get_schema_field(term=source, is_source=True)
+        source = self.get_category_field(term=source, is_source=True)
         # Get category terms from the field if the action.structure requires it
         if action.structure and (not source.constraints or not source.constraints.category):
             raise ValueError(f"Source field ({source.name}) is invalid since it has no assigned category constraints.")
@@ -200,7 +200,7 @@ class CategoryParser(SchemaPairParser):
                         break
         return category
 
-    def get_schema_field(self, *, term: str, is_source: bool = True) -> FieldModel:
+    def get_category_field(self, *, term: str, is_source: bool = True) -> FieldModel:
         """
         Recover a field model from a string. It is possible that source and destination schema share a common name,
         so we need to check both, but the categorical terms must come from the correct field. Raise an error if we
@@ -236,16 +236,18 @@ class CategoryParser(SchemaPairParser):
             raise ValueError(f"Field name is not recognised from the {s} schema fields ({term}).")
         return field
 
-    def get_hexed_script(self, *, script: str) -> str:
-        # Changes fields to uuid hexes
-        root_split = self.parser.get_split_terms(script=script, by=">", maxsplit=1)
+    def hexed_by_part(self, *, script: str) -> str:
+        """The script with each part's names as hexes, as `ScriptParser.get_hexed_script` gives them: the destination
+        field and its categories from the destination schema, the source field and its categories from the source."""
+        d, s, p = self.parser.DESTINATION, self.parser.SOURCE, self.parser.PARAMETER
+        root_split = self.parser.get_split_terms(script=script, by=d, maxsplit=1)
         # ['ACTION', "DESTINATION < SOURCE"] => ["DESTINATION", "SOURCE"]
-        hexing_script = self.parser.get_split_terms(script=root_split[-1], by="<", maxsplit=1)
+        hexing_script = self.parser.get_split_terms(script=root_split[-1], by=s, maxsplit=1)
         # ["DESTINATION", "SOURCE"] => ["DESTINATION_FIELD", "DESTINATION_CATEGORY"], ["SOURCE_FIELD", "SOURCE_CATEGORIES"]
         if not len(hexing_script) == 2:
             raise ValueError(f'Script is not well formed: "{script}"')
-        source_script = self.parser.get_split_terms(script=hexing_script[1], by="::", maxsplit=1)
-        hexing_script = self.parser.get_split_terms(script=hexing_script[0], by="::", maxsplit=1)
+        source_script = self.parser.get_split_terms(script=hexing_script[1], by=p, maxsplit=1)
+        hexing_script = self.parser.get_split_terms(script=hexing_script[0], by=p, maxsplit=1)
         # Prepare hexer
         field_name = lambda x: x.strip()[1:-1]  # noqa: E731
         hexing_categories = lambda x: x.constraints.category if x and x.constraints and x.constraints.category else []  # noqa: E731
@@ -264,8 +266,8 @@ class CategoryParser(SchemaPairParser):
         for x, f in zip(hexing_script, hexing_terms, strict=False):
             hexed.append(self.parser.get_hexed_script(script=x, fields=f))
         if len(hexed) == 3:
-            return f"{root_split[0]} > {hexed[0]} < {hexed[1]}::{hexed[2]}"
-        return f"{root_split[0]} > {hexed[0]}::{hexed[1]} < {hexed[2]}::{hexed[3]}"
+            return f"{root_split[0]} {d} {hexed[0]} {s} {hexed[1]}{p}{hexed[2]}"
+        return f"{root_split[0]} {d} {hexed[0]}{p}{hexed[1]} {s} {hexed[2]}{p}{hexed[3]}"
 
     def get_assigned_uniques(self, *, text: str) -> list[str]:
         terms = list(self.parser.generate_contents(text=text))

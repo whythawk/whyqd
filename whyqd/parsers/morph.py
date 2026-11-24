@@ -53,10 +53,10 @@ class MorphParser(SchemaPairParser):
         """
         source, destination, rows, source_param, destination_param = None, None, None, None, None
         # Parse source terms
-        root = self.parser.get_split_terms(script=script, by="<")
+        root = self.parser.get_split_terms(script=script, by=self.parser.SOURCE)
         if len(root) == 2:
             # Parsing "> 'param'::[terms]" - this is an attribute some morphs can request
-            optional = self.parser.get_split_terms(script=root[1], by="::")
+            optional = self.parser.get_split_terms(script=root[1], by=self.parser.PARAMETER)
             if len(optional) == 2:
                 # Must be a string
                 source_param = self.parser.get_literal(text=optional[0])
@@ -72,10 +72,10 @@ class MorphParser(SchemaPairParser):
                 source = [self.parser.get_literal(text=f) for f in source]
                 source = [self.parser.get_schema_field(term=f, schema=self.schemas) for f in source]
         # Parse destination terms
-        root = self.parser.get_split_terms(script=root[0], by=">")
+        root = self.parser.get_split_terms(script=root[0], by=self.parser.DESTINATION)
         if len(root) == 2:
             # Parsing "> 'param'::[fields]" - this is a term some morphs can request
-            optional = self.parser.get_split_terms(script=root[1], by="::")
+            optional = self.parser.get_split_terms(script=root[1], by=self.parser.PARAMETER)
             if len(optional) == 2:
                 # Must be a string
                 destination_param = self.parser.get_literal(text=optional[0])
@@ -156,12 +156,6 @@ class MorphParser(SchemaPairParser):
     ###################################################################################################
     ### SUPPORT UTILITIES
     ###################################################################################################
-
-    def get_hexed_script(self, *, script: str) -> str:
-        # Changes fields to uuid hexes
-        all_fields = [field for s in self.schemas for field in s.get.fields]
-        script = self.parser.get_hexed_script(script=script, fields=all_fields)
-        return ",".join([s.strip() for s in script.split(",") if s.strip()])
 
     def get_morph_struts(self, *, term: str) -> list[str]:
         terms = list(self.parser.generate_contents(text=term))

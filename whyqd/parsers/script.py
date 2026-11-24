@@ -1,12 +1,10 @@
 # SPDX-License-Identifier: BSD-3-Clause
 from __future__ import annotations
-from typing import Type, TYPE_CHECKING
+from typing import ClassVar, Type, TYPE_CHECKING
 import ast
 
-from whyqd.models import SchemaActionModel, MorphActionModel, CategoryActionModel
-
 if TYPE_CHECKING:
-    from whyqd.models import CategoryModel, FieldModel
+    from whyqd.models import CategoryActionModel, CategoryModel, FieldModel, MorphActionModel, SchemaActionModel
     from whyqd.crosswalk.base import BaseSchemaAction, BaseMorphAction, BaseCategoryAction
     from whyqd.core import SchemaDefinition
 
@@ -20,6 +18,12 @@ class ScriptParser:
 
     Where term fields are optional. Has no opinion on what the terms are, or whether they are nested.
     """
+
+    DESTINATION: ClassVar[str] = ">"
+    SOURCE: ClassVar[str] = "<"
+    PARAMETER: ClassVar[str] = "::"
+    OPEN: ClassVar[str] = "["
+    CLOSE: ClassVar[str] = "]"
 
     ###################################################################################################
     ### ACTION UTILITIES
@@ -60,14 +64,16 @@ class ScriptParser:
         -------
         SchemaActionModel, MorphActionModel, or CategoryActionModel.
         """
-        # Get the action, where any of the `<` or `>` referenced terms may be absent.
-        root = self.get_split_terms(script=script, by="<")
-        # There must always be a first term and it must *always* be an ACTION. Everything else is optional.
-        root = self.get_split_terms(script=root[0], by=">")
-        action = self.get_action_model(action=root[0])
+        name = self.get_action_name(script=script)
+        action = self.get_action_model(action=name)
         if not action:
-            raise ValueError(f"Term '{root[0]} is not a recognised ACTION.")
+            raise ValueError(f"Term '{name} is not a recognised ACTION.")
         return action
+
+    def get_action_name(self, *, script: str) -> str:
+        """The action a script names: its first term, which is always there, before any destination or source."""
+        root = self.get_split_terms(script=script, by=self.SOURCE)
+        return self.get_split_terms(script=root[0], by=self.DESTINATION)[0]
 
     def get_action_class(
         self, *, actn: SchemaActionModel | MorphActionModel | CategoryActionModel
@@ -141,9 +147,9 @@ class ScriptParser:
         """
         stack = []
         for i, c in enumerate(text):
-            if c == "[":
+            if c == self.OPEN:
                 stack.append(i)
-            elif c == "]" and stack:
+            elif c == self.CLOSE and stack:
                 start = stack.pop()
                 yield (len(stack), text[start + 1 : i])
 
