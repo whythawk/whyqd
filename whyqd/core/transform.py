@@ -228,8 +228,11 @@ class TransformDefinition(BaseDefinition):
             policy = script.policy if isinstance(script, ActionScriptModel) else None
             if policy is not None:
                 outputs = policy if isinstance(policy, dict) else {target.name: policy for target in destinations}
+                # A copy is read, so the step keeps its policy as written
+                outputs = {target: held.model_copy(deep=True) for target, held in outputs.items()}
                 for target, held in outputs.items():
                     if target in by_name:
+                        held.standardise(dtype=by_name[target].dtype)
                         held.check(name=target, dtype=by_name[target].dtype)
                 policies |= outputs
         return policies, inputs, read_fields

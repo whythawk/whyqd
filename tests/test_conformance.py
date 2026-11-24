@@ -590,6 +590,14 @@ class TestUsdate:
         assert [str(v)[:10] for v in run.data["a"].tolist()] == ["2024-04-13", "2024-04-13"]
 
 
+def test_a_run_leaves_an_action_policy_as_written(tmp_path):
+    step = {"script": "NEW > 'a' < ['01/02/2024 3:30']", "policy": {"format": "dd/MM/yyyy h:mm"}}
+    run = build(tmp_path, [["x"], ["1"]], destination={"a": {"type": "datetime"}}, scripts=[step])
+    run.process()
+    assert str(run.data["a"].iloc[0]) == "2024-02-01 03:30:00"
+    assert run.crosswalk.actions.get_all()[0].policy.format == "dd/MM/yyyy h:mm"
+
+
 def test_an_action_script_model_holds_its_policy():
     held = ActionScriptModel(script="NEW > 'a' < ['1']", policy={"format": "dd/MM/yyyy"})
     assert held.policy.format == "dd/MM/yyyy"

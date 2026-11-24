@@ -35,6 +35,7 @@ class FieldModel(BaseModel):
     @model_validator(mode="after")
     def policy_fits(self) -> FieldModel:
         if self.policy:
+            self.policy.standardise(dtype=self.dtype)
             self.policy.check(name=self.name, dtype=self.dtype)
         return self
 

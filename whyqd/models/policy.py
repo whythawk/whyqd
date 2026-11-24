@@ -215,9 +215,15 @@ class PolicyModel(BaseModel):
         """A date's patterns or a boolean's pairs: `format`, then `rules.alternateFormats`."""
         return [self.format] * isinstance(self.format, str) + self.declared_rules().alternateFormats
 
+    def is_temporal(self, dtype: str) -> bool:
+        """Whether a field of type `dtype` reads by a date or time pattern."""
+        return not (
+            dtype in FieldFamilies.NUMBERS or dtype == FieldType.BOOLEAN.value or dtype in FieldFamilies.NO_POLICY
+        )
+
     def check(self, *, name: str, dtype: str) -> None:
-        """Save a date pattern in UAX 35's form, and refuse a policy that cannot read a field `name` of type `dtype`,
-        when it is declared rather than at a read.
+        """Refuse a policy that cannot read a field `name` of type `dtype`, when it is declared rather than at a read.
+        Its date patterns are checked as `standardise` writes them, so that runs first. It changes nothing.
 
         Raises:
           ValueError: Naming what does not fit, with its code.
@@ -225,9 +231,7 @@ class PolicyModel(BaseModel):
         rules = self.declared_rules()
         declared = rules.model_fields_set
         number, boolean = dtype in FieldFamilies.NUMBERS, dtype == FieldType.BOOLEAN.value
-        temporal = not (number or boolean or dtype in FieldFamilies.NO_POLICY)
-        if temporal:
-            self.standardise(dtype=dtype, rules=rules)
+        temporal = self.is_temporal(dtype)
         exact = number and self.base == self.EXACT and dtype == FieldType.NUMBER.value
         unfit = [f"`base` {self.base}"] if self.base not in (None, dtype) and not exact else []
         if dtype in FieldFamilies.NO_POLICY and (self.format is not None or declared):
@@ -259,9 +263,12 @@ class PolicyModel(BaseModel):
         if temporal:
             self.check_patterns(name=name, dtype=dtype, patterns=patterns, rules=rules)
 
-    def standardise(self, *, dtype: str, rules: RulesModel) -> None:
-        """Write each date pattern as UAX 35 does, however it was typed."""
-        pattern = self.PATTERN
+    def standardise(self, *, dtype: str) -> None:
+        """Write each date pattern as UAX 35 does, however it was typed, for a field of type `dtype` that reads by
+        one."""
+        if not self.is_temporal(dtype):
+            return
+        pattern, rules = self.PATTERN, self.declared_rules()
         if isinstance(self.format, str):
             self.format = pattern.standard_pattern(self.format, dtype)
         if rules.alternateFormats:
