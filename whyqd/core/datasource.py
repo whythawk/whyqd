@@ -224,7 +224,7 @@ class DataSourceDefinition(BaseDefinition):
             if m.citation
         ]
 
-    def set_citation(self, *, citation: CitationModel, index: int = None) -> None:
+    def set_citation(self, *, citation: CitationModel, index: int | None = None) -> None:
         """Update or create the citation.
 
         Parameters:
@@ -234,7 +234,7 @@ class DataSourceDefinition(BaseDefinition):
         # Create a temporary CitationModel
         if not isinstance(self.model, list):
             super().set_citation(citation=citation)
-        elif index:
+        elif index is not None:
             self.model[index].citation = self.definitions.build(
                 kind=CitationModel, source=citation, model=self.model[index].citation
             )

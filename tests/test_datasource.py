@@ -52,6 +52,12 @@ class TestDataSource:
         datasource = qd.DataSourceDefinition()
         assert datasource.derive_model(source=DATA["CSV"], mimetype=CSVTYPE) is datasource.get
 
+    def test_a_citation_at_index_0_cites_the_first_sheet_alone(self):
+        datasource = qd.DataSourceDefinition()
+        datasource.derive_model(source=DATA["MULTI"], mimetype=MIMETYPE)
+        datasource.set_citation(citation={"author": "A. N. Author", "title": "First"}, index=0)
+        assert [m.citation.title if m.citation else None for m in datasource.get] == ["First", None, None]
+
     def test_multi(self):
         # Create
         datasource = qd.DataSourceDefinition()
