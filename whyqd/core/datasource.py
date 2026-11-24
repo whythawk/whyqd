@@ -204,7 +204,9 @@ class DataSourceDefinition(BaseDefinition):
           True if every data source verifies.
         """
         if not self.model:
-            raise ValueError(f"{self.model_name.title()} model does not exist.")
+            raise ValueError(
+                "This data source is empty, so there is nothing to verify. Derive it first. [whyqd:definition-empty]"
+            )
         models = self.model if isinstance(self.model, list) else [self.model]
         for m in models:
             self.reader.verify(source=m)

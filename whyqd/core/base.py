@@ -76,7 +76,9 @@ class BaseDefinition:
           A dictionary conforming to the CitationModel.
         """
         if not self.model.citation:
-            raise ValueError("No citation has been declared yet.")
+            raise ValueError(
+                f"`{self.model.name}` has no citation yet. Set one with `set_citation`. [whyqd:citation-none]"
+            )
         return self.model.citation.model_dump(by_alias=True, exclude_defaults=True, exclude_none=True)
 
     def set_citation(self, *, citation: CitationModel) -> None:
@@ -186,7 +188,10 @@ class BaseDefinition:
         """
         self._refresh_model_terms()
         if not self.model:
-            raise ValueError(f"{self.model_name.title()} model does not exist.")
+            raise ValueError(
+                f"This {self.model_name} definition is empty, so there is nothing to save. Set or derive it first. "
+                "[whyqd:definition-empty]"
+            )
         directory = self.definitions.directory(directory)
         if not filename:
             filename = f"{self.model.name}.{self.model_name}"

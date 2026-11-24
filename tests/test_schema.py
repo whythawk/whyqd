@@ -2,6 +2,8 @@
 from pathlib import Path
 import json
 
+import pytest
+
 import whyqd as qd
 from whyqd.parsers.definition import DefinitionParser
 
@@ -87,3 +89,8 @@ class TestSchema:
         # The stored schema is 1.x's, with its file's row count; a derived one has none, its data source holding it
         D.pop("index")
         assert json.loads(d) == {"formatVersion": "2.0"} | D
+
+    def test_a_field_without_categories_says_so(self):
+        schema = qd.SchemaDefinition(source={"name": "s", "fields": [{"name": "a", "type": "string"}]})
+        with pytest.raises(ValueError, match=r"\[whyqd:field-no-categories\]"):
+            schema.fields.get_category(name="a", category="x")

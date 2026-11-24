@@ -54,7 +54,9 @@ class CRUDBase(Generic[ModelType]):
         if isinstance(term, dict):
             term = self.model(**term)
         if self.get(name=term.name):
-            raise ValueError(f"ModelType {term.name} already exists.")
+            raise ValueError(
+                f"`{term.name}` is already here. Update it, or give this one another name. [whyqd:term-repeated]"
+            )
         self.multi.append(term)
 
     def add_multi(self, *, terms: list[ModelType | dict]) -> None:
@@ -85,7 +87,7 @@ class CRUDBase(Generic[ModelType]):
         # Create a temporary FieldModel
         old_term = self.get(name=term.name)
         if not old_term:
-            raise ValueError(f"ModelType {term.name} does not exist.")
+            raise ValueError(f"`{term.name}` is not here to update. Add it first. [whyqd:term-missing]")
         # And update the original data
         old_name = old_term.name
         # https://fastapi.tiangolo.com/tutorial/body-updates/#partial-updates-with-patch

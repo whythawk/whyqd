@@ -108,7 +108,10 @@ class CRUDAction(CRUDBase[ActionScriptModel]):
         # Create a temporary FieldModel
         old_term = self.get(name=term.uuid.hex)
         if not old_term:
-            raise ValueError(f"ActionScriptModel {term.script} does not exist.")
+            raise ValueError(
+                f"No step `{term.uuid}` is in the crosswalk to update (`{term.script}`). Add it first. "
+                "[whyqd:term-missing]"
+            )
         # And update the original data
         parsed = self.parse(script=term)
         # It parses, ensure reconciliation

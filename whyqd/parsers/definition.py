@@ -62,7 +62,8 @@ class DefinitionParser:
             built = source
         else:
             raise ValueError(
-                "`source` must either be a path to a source file, or a dictionary conforming to the model type."
+                f"A {kind.__name__} cannot be built from `{type(source).__name__}`. Give a saved definition's path, "
+                "a dictionary, or the model. [whyqd:definition-source]"
             )
         if model:
             # Merged as dictionaries, so the result is validated anew
@@ -77,13 +78,16 @@ class DefinitionParser:
 
         Raises:
           FileNotFoundError: If there is no file at `source`.
-          JSONDecodeError: If the file is not JSON.
+          ValueError: If the file is not JSON.
         """
         with open(source, "r", encoding="utf-8") as f:
             try:
                 return json.load(f)
             except json.decoder.JSONDecodeError as e:
-                raise json.decoder.JSONDecodeError(f"File at `{source}` not valid json. {e.msg}", e.doc, e.pos) from e
+                raise ValueError(
+                    f"`{source}` is not JSON ({e.msg}, line {e.lineno}, column {e.colno}), so holds no definition. "
+                    "Open the saved definition. [whyqd:definition-not-json]"
+                ) from e
 
     def directory(self, directory: Path | str | None = None) -> Path:
         """The directory to save into, `settings.WHYQD_DIRECTORY` by default, made if it does not exist."""

@@ -115,7 +115,10 @@ class CrosswalkDefinition(BaseDefinition):
           For all Action CRUD behaviours.
         """
         if not self.model.schemaSource or not self.model.schemaDestination:
-            raise ValueError("First set source and destination schemas before performing defining a crosswalk.")
+            raise ValueError(
+                f"Crosswalk `{self.model.name}` has no source and destination schemas yet. Set both before its steps. "
+                "[whyqd:crosswalk-schemas]"
+            )
         return self.crud
 
     #########################################################################################
@@ -133,7 +136,9 @@ class CrosswalkDefinition(BaseDefinition):
         """
         required = self.crud.validate(required=True)
         if required:
+            names = "`, `".join(f.name for f in required)
             raise ValueError(
-                f"Validation error. Required destination fields are not present in the crosswalk: {required}"
+                f"Crosswalk `{self.model.name}` has no step building required destination fields `{names}`. Add a step "
+                "for each. [whyqd:crosswalk-required]"
             )
         return True

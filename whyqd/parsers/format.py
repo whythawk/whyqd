@@ -65,6 +65,7 @@ class FormatParser:
     JSON_SCHEMAS = Path(__file__).resolve().parents[1] / "formats"
     JSON_SCHEMA_DIALECT = "https://json-schema.org/draft/2020-12/schema"
     JSON_SCHEMA_ROOT = "https://w3id.org/whyqd/formats"
+    REFUSED_1X = "[whyqd:format-1x-refused]"
 
     def json_schema(self, *, kind: str, format: str | None = None) -> dict:
         """The JSON Schema a saved definition of `kind` follows in `format`, by default the current one.
@@ -76,7 +77,9 @@ class FormatParser:
         version = format or settings.FORMAT_CURRENT
         self.check(version=version)
         if kind not in self.KINDS:
-            raise ValueError(f"`{kind}` is not a kind of definition. Kinds are {', '.join(self.KINDS)}.")
+            raise ValueError(
+                f"`{kind}` is not a kind of definition. Name one of {', '.join(self.KINDS)}. [whyqd:definition-kind]"
+            )
         return json.loads((self.JSON_SCHEMAS / version / f"{kind}.json").read_text(encoding="utf-8"))
 
     def generate_json_schema(self, *, kind: str) -> dict:
@@ -102,8 +105,8 @@ class FormatParser:
     def check(self, *, version: str) -> None:
         if version not in settings.FORMAT_VERSIONS:
             raise ValueError(
-                f"Definition format `{version}` is not one this whyqd reads or writes. "
-                f"It knows {', '.join(settings.FORMAT_VERSIONS)}."
+                f"Definition format `{version}` is not one this whyqd knows ({', '.join(settings.FORMAT_VERSIONS)}); "
+                "a newer one needs a newer whyqd. [whyqd:format-version]"
             )
 
     def dumps(self, written: dict) -> str:
@@ -180,7 +183,7 @@ class FormatParser:
             if key in value:
                 raise ValueError(
                     f"`{key}` on `{value.get('name') or value.get('path') or 'a field’s constraints'}` is new in 2.0, so "
-                    "1.x cannot hold it."
+                    f"1.x cannot hold it. Save in format 2.0. {self.REFUSED_1X}"
                 )
         if isinstance(value.get("updated"), str):
             value["updated"] = value["updated"].removesuffix("Z")
@@ -193,7 +196,8 @@ class FormatParser:
             table = [c for c in value.pop("checksums") if c["content"] == ChecksumContent.TABLE_1X.value]
             if not table:
                 raise ValueError(
-                    f"`{value.get('path')}` has no `table-1x` checksum among its `checksums`, so 1.x cannot hold it."
+                    f"`{value.get('path')}` has no `table-1x` checksum among its `checksums`, so 1.x cannot hold it. "
+                    f"Save in format 2.0. {self.REFUSED_1X}"
                 )
             value["checksum"] = table[0]["checksumValue"]
         return value
@@ -217,16 +221,25 @@ class FormatParser:
         length on anything but a string."""
         name, kind = field.get("name"), field.get("type")
         if kind == FieldType.TIME.value:
-            raise ValueError(f"Field `{name}` is a time of day, which 1.x cannot hold: its `time` is a length of time.")
+            raise ValueError(
+                f"Field `{name}` is a time of day, which 1.x cannot hold: its `time` is a length of time. Save in format "
+                f"2.0. {self.REFUSED_1X}"
+            )
         if kind == FieldType.DURATION.value:
             field["type"] = FieldType.TIME.value
         constraints = field.get("constraints") or {}
         if not any(k in constraints for k in self.VALUES):
             return
         if kind != FieldType.STRING.value:
-            raise ValueError(f"Field `{name}` bounds the length of a `{kind}`, which 1.x cannot hold.")
+            raise ValueError(
+                f"Field `{name}` bounds the length of a `{kind}`, which 1.x cannot hold. Save in format 2.0. "
+                f"{self.REFUSED_1X}"
+            )
         if any(k in constraints for k in self.LENGTHS):
-            raise ValueError(f"String field `{name}` bounds both its value and its length, which 1.x cannot hold.")
+            raise ValueError(
+                f"String field `{name}` bounds both its value and its length, which 1.x cannot hold. Save in format "
+                f"2.0. {self.REFUSED_1X}"
+            )
         field["constraints"] = {self.VALUES.get(k, k): v for k, v in constraints.items()}
 
     def name_schemas(self, value):
