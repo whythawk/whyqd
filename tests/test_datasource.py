@@ -5,6 +5,7 @@ import pytest
 from pydantic import AnyUrl
 
 import whyqd as qd
+from whyqd.models import CitationModel
 from whyqd.parsers.definition import DefinitionParser
 from whyqd.reading.conformance import ConformanceParser
 from whyqd.sources.datasource import DataSourceParser
@@ -51,6 +52,10 @@ class TestDataSource:
     def test_derive_returns_what_it_derived(self):
         datasource = qd.DataSourceDefinition()
         assert datasource.derive_model(source=DATA["CSV"], mimetype=CSVTYPE) is datasource.get
+
+    def test_a_citation_may_say_no_month_or_year(self):
+        citation = CitationModel(author="A. N. Author", title="Undated", month=None, year=None)
+        assert (citation.month, citation.year) == (None, None)
 
     def test_a_citation_at_index_0_cites_the_first_sheet_alone(self):
         datasource = qd.DataSourceDefinition()
