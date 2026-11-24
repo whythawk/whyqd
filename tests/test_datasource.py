@@ -58,6 +58,17 @@ class TestDataSource:
         datasource.set_citation(citation={"author": "A. N. Author", "title": "First"}, index=0)
         assert [m.citation.title if m.citation else None for m in datasource.get] == ["First", None, None]
 
+    def test_a_workbook_saves_a_file_a_sheet(self, tmp_path):
+        datasource = qd.DataSourceDefinition()
+        datasource.derive_model(source=DATA["MULTI"], mimetype=MIMETYPE)
+        datasource.save(directory=tmp_path / "default")
+        datasource.save(directory=tmp_path / "named", filename="chosen")
+        sheets = ["Report1", "Report2", "Report3"]
+        assert sorted(p.name for p in (tmp_path / "default").iterdir()) == [
+            f"raw_multi_E06000044_014-{sheet}.data" for sheet in sheets
+        ]
+        assert sorted(p.name for p in (tmp_path / "named").iterdir()) == [f"chosen-{sheet}.data" for sheet in sheets]
+
     def test_multi(self):
         # Create
         datasource = qd.DataSourceDefinition()

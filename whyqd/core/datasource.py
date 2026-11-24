@@ -289,12 +289,9 @@ class DataSourceDefinition(BaseDefinition):
                 directory=directory, filename=filename, created_by=created_by, hide_uuid=hide_uuid, format=format
             )
         directory = self.definitions.directory(directory)
-        if not filename:
-            filename = f"{self.model.name}.{self.model_name}"
-        if filename.split(".")[-1] != self.model_name:
-            filename += f".{self.model_name}"
-        models = self.get_json(hide_uuid=hide_uuid, format=format)
-        for i, model in enumerate(models):
-            filename = "".join(self.model[i].name.split(".")[:-1] + [f".{self.model_name}"])
-            self.definitions.save(text=model, path=directory / filename)
+        stem = filename.removesuffix(f".{self.model_name}") if filename else None
+        for model, text in zip(self.model, self.get_json(hide_uuid=hide_uuid, format=format), strict=True):
+            root, _, sheet = model.name.partition(DataSourceModel.SHEET_JOIN)
+            name = f"{stem or root.rsplit('.', 1)[0]}-{sheet}.{self.model_name}"
+            self.definitions.save(text=text, path=directory / name)
         return True

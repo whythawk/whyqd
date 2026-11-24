@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: BSD-3-Clause
 from __future__ import annotations
-from typing import Annotated, Optional, List, Dict, Any
+from typing import Annotated, Any, ClassVar, Dict, List, Optional
 from pydantic import StringConstraints, field_validator, ConfigDict, BaseModel, Field, ValidationInfo, RootModel
 import string
 
@@ -26,6 +26,8 @@ class DataSourceAttributeModel(RootModel):
 class DataSourceModel(BaseModel):
     """A source file as whyqd reads it: where it is, its format and how it is written, its columns as read, and the
     checksums that prove it is the file."""
+
+    SHEET_JOIN: ClassVar[str] = "::"
 
     uuid: Identifier = Field(description="Automatically generated unique identity for the data source.")
     title: Optional[str] = Field(None, description="A descriptive name for the data source.")
@@ -98,5 +100,5 @@ class DataSourceModel(BaseModel):
         root = "".join(c for c in self.path.split("/")[-1] if c in f"-_. {string.ascii_letters}{string.digits}")
         sheet = self.sheet_name or (self.dialect.sheet if self.dialect else None)
         if sheet:
-            return f"{root}::{sheet}"
+            return f"{root}{self.SHEET_JOIN}{sheet}"
         return root
