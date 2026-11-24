@@ -29,7 +29,7 @@ class BaseSchemaAction:
     """
 
     def __init__(self) -> None:
-        from whyqd.parsers import CoreParser
+        from whyqd.parsers.core import CoreParser
 
         self._frame = None
         self.core = CoreParser()

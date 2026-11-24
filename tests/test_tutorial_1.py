@@ -3,7 +3,7 @@ from pathlib import Path
 import pandas as pd
 
 import whyqd as qd
-from whyqd.parsers import CoreParser
+from whyqd.parsers.core import CoreParser
 from whyqd.sources.datasource import DataSourceParser
 
 reader = DataSourceParser()

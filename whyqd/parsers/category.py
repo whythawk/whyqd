@@ -2,17 +2,16 @@
 from __future__ import annotations
 from typing import Type, TYPE_CHECKING
 
-from whyqd.parsers import CoreParser, ScriptParser
+from whyqd.parsers.script import SchemaPairParser
 from whyqd.models import CategoryModel
 
 if TYPE_CHECKING:
     import pandas as pd
     from whyqd.models import FieldModel, CategoryActionModel
-    from whyqd.core import SchemaDefinition
     from whyqd.crosswalk.base import BaseCategoryAction
 
 
-class CategoryParser:
+class CategoryParser(SchemaPairParser):
     """Parsing functions for category implementations of action scripts. These are support actions which must be run
     before `CATEGORISE`.
 
@@ -36,20 +35,6 @@ class CategoryParser:
       `::CategoryModel`.
     * For `ASSIGN_CATEGORY_BOOLEANS` values from the FieldModel are treated as boolean `True` or `False`, defined by `::bool`.
     """
-
-    def __init__(self, *, schema_source: SchemaDefinition = None, schema_destination: SchemaDefinition = None) -> None:
-        """
-        Parameters
-        ----------
-        schema_source: SchemaDefinition, optional
-        schema_destination: SchemaDefinition, optional
-        """
-        self.core = CoreParser()
-        self.parser = ScriptParser()
-        self.schema_source = None
-        self.schema_destination = None
-        if schema_source and schema_destination:
-            self.set_schema(schema_source=schema_source, schema_destination=schema_destination)
 
     def parse(
         self,
@@ -169,21 +154,6 @@ class CategoryParser:
     ###################################################################################################
     ### SUPPORT UTILITIES
     ###################################################################################################
-
-    def set_schema(
-        self, *, schema_source: SchemaDefinition = None, schema_destination: SchemaDefinition = None
-    ) -> None:
-        """Set SchemaDefinitions for the parser.
-
-        Parameters
-        ----------
-        schema_source: SchemaDefinition
-        schema_destination: SchemaDefinition
-        """
-        if not schema_source or not schema_destination:
-            raise ValueError("Schema for both source and destination has not been provided.")
-        self.schema_source = schema_source
-        self.schema_destination = schema_destination
 
     def get_schema_field_category(
         self, *, field: FieldModel, term: str, is_source: bool = True

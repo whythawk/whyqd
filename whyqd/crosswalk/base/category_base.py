@@ -2,7 +2,7 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING
 
-from whyqd.parsers import ScriptParser
+from whyqd.parsers.script import ScriptParser
 
 if TYPE_CHECKING:
     import pandas as pd

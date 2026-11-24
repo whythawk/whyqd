@@ -2,7 +2,7 @@
 from pathlib import Path
 
 import whyqd as qd
-from whyqd.parsers import CoreParser
+from whyqd.parsers.core import CoreParser
 
 SOURCE_DIRECTORY = Path(__file__).resolve().parent / "data"
 SOURCE_DATA = SOURCE_DIRECTORY / "working_test_world_bank_data.xlsx"

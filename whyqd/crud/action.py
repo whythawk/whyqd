@@ -5,7 +5,10 @@ from uuid import UUID
 
 from whyqd.crud.base import CRUDBase
 from whyqd.models import ActionScriptModel
-from whyqd.parsers import ScriptParser, ActionParser, MorphParser, CategoryParser
+from whyqd.parsers.action import ActionParser
+from whyqd.parsers.category import CategoryParser
+from whyqd.parsers.morph import MorphParser
+from whyqd.parsers.script import ScriptParser
 from whyqd.crosswalk.base import BaseSchemaAction, BaseMorphAction, BaseCategoryAction
 
 if TYPE_CHECKING:

@@ -10,7 +10,7 @@ import pytest
 import whyqd as qd
 from whyqd.models import CategoryModel, VersionModel
 from whyqd.models.identifier import IdentifierParser
-from whyqd.parsers import CoreParser
+from whyqd.parsers.core import CoreParser
 
 DIRECTORY = Path(__file__).resolve().parent / "data"
 SCHEMA = DIRECTORY / "test_schema.schema"

@@ -5,7 +5,7 @@ import pytest
 from pydantic import AnyUrl
 
 import whyqd as qd
-from whyqd.parsers import CoreParser
+from whyqd.parsers.core import CoreParser
 from whyqd.reading.conformance import ConformanceParser
 from whyqd.sources.datasource import DataSourceParser
 

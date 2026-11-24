@@ -4,7 +4,7 @@ from typing import List, TYPE_CHECKING
 
 from uuid import uuid4
 
-from whyqd.parsers import CoreParser
+from whyqd.parsers.core import CoreParser
 from whyqd.models import MorphActionModel
 
 if TYPE_CHECKING:

@@ -165,14 +165,7 @@ class ScriptParser:
         return literal
 
     def get_listed_literal(self, *, text: str) -> list[str]:
-        listed_literal = []
-        for t in text.split(","):
-            try:
-                listed_literal.append(self.get_literal(text=t))
-            except SyntaxError:
-                if t:
-                    listed_literal.append(t)
-        return listed_literal
+        return [self.get_literal(text=t) for t in text.split(",")]
 
     def get_hexed_script(self, *, script: str, fields: list[CategoryModel | FieldModel]) -> str:
         """Replace field names with its hex. Ensures that any fruity characters literals don't cause havoc during
@@ -194,3 +187,34 @@ class ScriptParser:
             if f"'{f.name}'" in script:
                 script = script.replace(f"'{f.name}'", f"'{f.uuid.hex}'")
         return script
+
+
+class SchemaPairParser:
+    """What every action script's parser shares: the source and destination schemas its terms are found in."""
+
+    def __init__(self) -> None:
+        self.parser = ScriptParser()
+        self.schema_source = None
+        self.schema_destination = None
+
+    @property
+    def schemas(self) -> list[SchemaDefinition]:
+        """The schemas set, source first."""
+        return [s for s in (self.schema_source, self.schema_destination) if s]
+
+    def set_schema(
+        self, *, schema_source: SchemaDefinition | None = None, schema_destination: SchemaDefinition | None = None
+    ) -> None:
+        """Set the schemas a script's terms are found in.
+
+        Parameters:
+          schema_source: The source schema.
+          schema_destination: The destination schema.
+
+        Raises:
+          ValueError: If either is missing.
+        """
+        if not schema_source or not schema_destination:
+            raise ValueError("Schema for both source and destination has not been provided.")
+        self.schema_source = schema_source
+        self.schema_destination = schema_destination

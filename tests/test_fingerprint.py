@@ -17,7 +17,7 @@ import pytest
 import rfc8785
 
 import whyqd as qd
-from whyqd.parsers import CoreParser
+from whyqd.parsers.core import CoreParser
 from whyqd.sources.fingerprint import FingerprintParser
 
 DATA = Path(__file__).resolve().parent / "data"

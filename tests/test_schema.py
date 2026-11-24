@@ -3,7 +3,7 @@ from pathlib import Path
 import json
 
 import whyqd as qd
-from whyqd.parsers import CoreParser
+from whyqd.parsers.core import CoreParser
 
 DIRECTORY = Path(__file__).resolve().parent / "data"
 DATA_MODEL = {"SINGLE": CoreParser().load_json(source=DIRECTORY / "raw_E06000044_014_0.data")}

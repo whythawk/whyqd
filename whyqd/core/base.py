@@ -5,7 +5,7 @@ from pydantic import Json, BaseModel
 from pathlib import Path
 from datetime import date, datetime
 
-from whyqd.parsers import CoreParser
+from whyqd.parsers.core import CoreParser
 from whyqd.models import VersionModel, CitationModel
 
 if TYPE_CHECKING:

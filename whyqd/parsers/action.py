@@ -3,18 +3,17 @@ from __future__ import annotations
 from typing import Union, Optional, Type, TYPE_CHECKING
 from uuid import uuid4
 
-from whyqd.parsers import CoreParser, ScriptParser
+from whyqd.parsers.script import SchemaPairParser
 
 from whyqd.models import ConstraintsModel, FieldModel
 from whyqd.crosswalk.base import BaseSchemaAction
 
 if TYPE_CHECKING:
     from whyqd.models import SchemaActionModel, ModifierModel
-    from whyqd.core import SchemaDefinition
     import pandas as pd
 
 
-class ActionParser:
+class ActionParser(SchemaPairParser):
     """Parsing functions for action scripts.
 
     Can process and validate any action script. Scripts may be recursive and are of the form:
@@ -23,21 +22,6 @@ class ActionParser:
 
     Modifiers are dependent on the specific Action. Fields must be found in provided SchemaDefinitions.
     """
-
-    def __init__(self, *, schema_source: SchemaDefinition = None, schema_destination: SchemaDefinition = None) -> None:
-        """
-        Parameters
-        ----------
-        schema_source: SchemaDefinition, optional
-        schema_destination: SchemaDefinition, optional
-        """
-        self.core = CoreParser()
-        self.parser = ScriptParser()
-        self.schema = []
-        if schema_source and schema_destination:
-            self.set_schema(schema_source=schema_source, schema_destination=schema_destination)
-        self.source_modifiers = {}
-        self.modifier_names = set()
 
     ###################################################################################################
     ### PARSE TRANSFORM SCRIPT
@@ -67,7 +51,7 @@ class ActionParser:
                 'source': list[ModifierModel | FieldModel]
             }
         """
-        if not self.schema:
+        if not self.schemas:
             raise ValueError("Schema has not been provided.")
         hexed_script = self.get_hexed_script(script=script)
         root = self.parser.get_split_terms(script=hexed_script, by="<")
@@ -206,20 +190,6 @@ class ActionParser:
     ### SUPPORT UTILITIES
     ###################################################################################################
 
-    def set_schema(
-        self, *, schema_source: SchemaDefinition = None, schema_destination: SchemaDefinition = None
-    ) -> None:
-        """Set SchemaDefinitions for the parser.
-
-        Parameters
-        ----------
-        schema_source: SchemaDefinition
-        schema_destination: SchemaDefinition
-        """
-        if not schema_source or not schema_destination:
-            raise ValueError("Schema for both source and destination has not been provided.")
-        self.schema = [schema_source, schema_destination]
-
     def get_schema_field(self, *, term: str) -> FieldModel:
         """Recover a field model from a string.
 
@@ -232,13 +202,13 @@ class ActionParser:
         FieldModel
         """
         field = None
-        for s in self.schema:
+        for s in self.schemas:
             field = s.fields.get(name=term)
             if field:
                 break
         if not field:
             e = f"Field name is not recognised from either of the source or destination schema fields ({term})."
-            if len(self.schema) == 1:
+            if len(self.schemas) == 1:
                 e = f"Field name is not recognised from the schema fields ({term})."
             raise ValueError(e)
         return field
@@ -247,21 +217,18 @@ class ActionParser:
         from whyqd.crosswalk.actions import default_actions
 
         # Changes fields to uuid hexes
-        all_fields = [field for s in self.schema for field in s.get.fields]
+        all_fields = [field for s in self.schemas for field in s.get.fields]
         script = self.parser.get_hexed_script(script=script, fields=all_fields)
-        self.modifier_names = set()
-        self.source_modifiers = {}
+        modifier_names = set()
         for action in default_actions:
             if action.name in script:
-                action_modifiers = {}
+                action_modifiers = set()
                 if action.modifiers:
                     # TODO: this isn't right ... modifiers may share a name but have different functions/descriptions
-                    action_modifiers = {m.name: m for m in action.modifiers}
-                for m in set(action_modifiers.keys()).difference(self.modifier_names):
-                    # Preserve original Modifiers
-                    self.source_modifiers[m] = action_modifiers[m]
+                    action_modifiers = {m.name for m in action.modifiers}
+                for m in action_modifiers.difference(modifier_names):
                     script = script.replace(m, f",{m},")
-                self.modifier_names.update(set(action_modifiers.keys()))
+                modifier_names.update(action_modifiers)
         return ",".join([s.strip() for s in script.split(",") if s.strip()])
 
     def recover_fields_from_hexed_script(

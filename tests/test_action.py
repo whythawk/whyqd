@@ -8,7 +8,7 @@ import pandas as pd
 import whyqd as qd
 from whyqd.crosswalk.actions.pivot_longer import Action as PivotLonger
 from whyqd.models import FieldModel
-from whyqd.parsers import CoreParser
+from whyqd.parsers.core import CoreParser
 
 CORE = CoreParser()
 SOURCE_DIRECTORY = Path(__file__).resolve(strict=True).parent / "data"

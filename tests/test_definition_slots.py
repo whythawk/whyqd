@@ -7,7 +7,7 @@ import pytest
 
 import whyqd as qd
 from whyqd.models import ActionScriptModel
-from whyqd.parsers import FormatParser
+from whyqd.parsers.format import FormatParser
 
 DIRECTORY = Path(__file__).resolve().parent / "data"
 DATA_SOURCE = DIRECTORY / "test_basildon_source.data"

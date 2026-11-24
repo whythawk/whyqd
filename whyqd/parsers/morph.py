@@ -2,16 +2,15 @@
 from __future__ import annotations
 from typing import Type, TYPE_CHECKING
 
-from whyqd.parsers import CoreParser, ScriptParser  # , DataSourceParser
+from whyqd.parsers.script import SchemaPairParser
 
 if TYPE_CHECKING:
     import pandas as pd
-    from whyqd.models import MorphActionModel, FieldModel  # , DataSourceModel
-    from whyqd.core import SchemaDefinition
+    from whyqd.models import MorphActionModel, FieldModel
     from whyqd.crosswalk.base import BaseMorphAction
 
 
-class MorphParser:
+class MorphParser(SchemaPairParser):
     """Parsing functions for morph implementations of action scripts.
 
     Can process and validate any morphs script. Scripts must be 'flat' and are of the form:
@@ -24,19 +23,6 @@ class MorphParser:
     * `fields` are indicated by `>`, and
     * `rows` are indicated by `<`.
     """
-
-    def __init__(self, *, schema_source: SchemaDefinition = None, schema_destination: SchemaDefinition = None) -> None:
-        """
-        Parameters
-        ----------
-        schema_source: SchemaDefinition, optional
-        schema_destination: SchemaDefinition, optional
-        """
-        self.core = CoreParser()
-        self.parser = ScriptParser()
-        self.schema = []
-        if schema_source and schema_destination:
-            self.set_schema(schema_source=schema_source, schema_destination=schema_destination)
 
     ###################################################################################################
     ### PARSE TRANSFORM SCRIPT
@@ -84,7 +70,7 @@ class MorphParser:
                 # Can be either of `schema_source` or `schema_destination`
                 source = self.get_morph_struts(term=root[1])
                 source = [self.parser.get_literal(text=f) for f in source]
-                source = [self.parser.get_schema_field(term=f, schema=self.schema) for f in source]
+                source = [self.parser.get_schema_field(term=f, schema=self.schemas) for f in source]
         # Parse destination terms
         root = self.parser.get_split_terms(script=root[0], by=">")
         if len(root) == 2:
@@ -97,7 +83,7 @@ class MorphParser:
             # Can be either of `schema_source` or `schema_destination`
             destination = self.get_morph_struts(term=root[1])
             destination = [self.parser.get_literal(text=f) for f in destination]
-            destination = [self.parser.get_schema_field(term=f, schema=self.schema) for f in destination]
+            destination = [self.parser.get_schema_field(term=f, schema=self.schemas) for f in destination]
         # Validate structure
         if (source or destination) and "fields" not in action.structure:
             raise ValueError(f"Script error for {action.name} Morph. Fields are not a valid input.")
@@ -171,23 +157,9 @@ class MorphParser:
     ### SUPPORT UTILITIES
     ###################################################################################################
 
-    def set_schema(
-        self, *, schema_source: SchemaDefinition = None, schema_destination: SchemaDefinition = None
-    ) -> None:
-        """Set SchemaDefinitions for the parser.
-
-        Parameters
-        ----------
-        schema_source: SchemaDefinition
-        schema_destination: SchemaDefinition
-        """
-        if not schema_source or not schema_destination:
-            raise ValueError("Schema for both source and destination has not been provided.")
-        self.schema = [schema_source, schema_destination]
-
     def get_hexed_script(self, *, script: str) -> str:
         # Changes fields to uuid hexes
-        all_fields = [field for s in self.schema for field in s.get.fields]
+        all_fields = [field for s in self.schemas for field in s.get.fields]
         script = self.parser.get_hexed_script(script=script, fields=all_fields)
         return ",".join([s.strip() for s in script.split(",") if s.strip()])
 
