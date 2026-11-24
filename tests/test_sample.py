@@ -42,3 +42,17 @@ class TestStoredTransforms:
         model = qd.TransformDefinition(transform=path).get.dataSource
         model = model.model_copy(update={"path": str(source_file(path))})
         assert qd.DataSourceDefinition(source=model).validate()
+
+    def test_validate_takes_a_data_source_as_a_dictionary(self):
+        path = SAMPLE / "stockport" / "stockport.TRANSFORM"
+        stored = json.loads(path.read_text(encoding="utf-8"))
+        data_source = stored["dataSource"] | {"path": str(source_file(path))}
+        # Its own source as the destination, so the source must verify for the run to reach the last comparison
+        stored["dataDestination"] = data_source
+        with pytest.raises(ValueError, match="Checksum provided"):
+            qd.TransformDefinition().validate(
+                transform=stored,
+                data_destination=data_source["path"],
+                mimetype_destination="xlsx",
+                data_source=data_source,
+            )

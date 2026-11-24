@@ -285,17 +285,17 @@ class TransformDefinition(BaseDefinition):
         if isinstance(data_source, DataSourceModel):
             model = data_source
         elif isinstance(data_source, dict):
-            model = DataSourceModel(**data_source)
+            model = self.definitions.build(kind=DataSourceModel, source=data_source)
         elif data_source is not None:
             model = model.model_copy(update={"path": str(data_source)})
         source_checksum = self.model.dataSource.get_checksum(ChecksumContent.TABLE_1X)
         if source_checksum:
-            if data_source is not None:
+            if data_source is None or isinstance(data_source, (dict, DataSourceModel)):
+                source_df = v1.read(source=model)
+            else:
                 source_df = v1.read(
                     source=data_source, mimetype=mimetype_source, preserve=self.model.dataSource.preserve
                 )
-            else:
-                source_df = v1.read(source=self.model.dataSource)
             crosscheck(source_df, source_checksum)
         else:
             try:
