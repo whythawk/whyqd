@@ -35,8 +35,6 @@ class ProposalParser:
     MONTH_FIRST: ClassVar[str] = "MM{0}dd{0}{1}"
     YEAR_FIRST: ClassVar[tuple[str, ...]] = ("yyyy{0}MM{0}dd", "yyyy{0}dd{0}MM")
     RUN: ClassVar[str] = "yyyyMMdd"
-    FULL_YEAR: ClassVar[str] = "yyyy"
-    SHORT_YEAR: ClassVar[str] = "yy"
     # No cell says which century a two-digit year is in, so two are tried, which read differently
     CENTURIES: ClassVar[tuple[int, ...]] = (1900, 2000)
     DAY_NAMES: ClassVar[tuple[str, ...]] = ("d MMM yyyy", "d MMMM yyyy")
@@ -47,6 +45,7 @@ class ProposalParser:
 
     def __init__(self) -> None:
         self.reader = ReadingParser()
+        self.pattern = self.reader.dates.pattern
         self.candidates = {
             FieldType.DATE.value: self.date_candidates,
             FieldType.NUMBER.value: self.number_candidates,
@@ -137,15 +136,16 @@ class ProposalParser:
         ):
             if separator != second:
                 continue
-            if first == len(self.FULL_YEAR):
+            if first == len(self.pattern.FULL_YEAR):
                 patterns += [(pattern.format(separator), ()) for pattern in self.YEAR_FIRST]
-            elif last == len(self.FULL_YEAR):
+            elif last == len(self.pattern.FULL_YEAR):
                 patterns += [
-                    (order.format(separator, self.FULL_YEAR), ()) for order in (self.DAY_FIRST, self.MONTH_FIRST)
+                    (order.format(separator, self.pattern.FULL_YEAR), ())
+                    for order in (self.DAY_FIRST, self.MONTH_FIRST)
                 ]
-            elif last == len(self.SHORT_YEAR):
+            elif last == len(self.pattern.SHORT_YEAR):
                 patterns += [
-                    (order.format(separator, self.SHORT_YEAR), (("yearStart", century),))
+                    (order.format(separator, self.pattern.SHORT_YEAR), (("yearStart", century),))
                     for order in (self.DAY_FIRST, self.MONTH_FIRST)
                     for century in self.CENTURIES
                 ]

@@ -18,7 +18,10 @@ class PatternParser:
       ```
     """
 
-    YEAR_FIELDS: ClassVar[frozenset[str]] = frozenset({"y", "yy", "yyyy"})
+    ANY_YEAR: ClassVar[str] = "y"
+    SHORT_YEAR: ClassVar[str] = "yy"
+    FULL_YEAR: ClassVar[str] = "yyyy"
+    YEAR_FIELDS: ClassVar[frozenset[str]] = frozenset({ANY_YEAR, SHORT_YEAR, FULL_YEAR})
     MONTH_NAMES: ClassVar[frozenset[str]] = frozenset({"MMM", "MMMM"})
     MONTH_FIELDS: ClassVar[frozenset[str]] = frozenset({"M", "MM"}) | MONTH_NAMES
     NAME_FIELDS: ClassVar[frozenset[str]] = MONTH_NAMES | {"E", "EEE", "EEEE"}
@@ -45,9 +48,9 @@ class PatternParser:
     }
     # How many digits or characters a field reads, a number's width saying nothing of its meaning: `dd` reads `1`
     WIDTHS: ClassVar[dict[str, tuple[int, int]]] = {
-        "y": (1, 99),
-        "yyyy": (4, 99),
-        "yy": (2, 2),
+        ANY_YEAR: (1, 99),
+        FULL_YEAR: (4, 99),
+        SHORT_YEAR: (2, 2),
         "Q": (1, 1),
         "M": (1, 2),
         "MM": (1, 2),
@@ -66,8 +69,8 @@ class PatternParser:
         "d": "dd",
         "e": "d",
         "m": "MM",
-        "Y": "yyyy",
-        "y": "yy",
+        "Y": FULL_YEAR,
+        "y": SHORT_YEAR,
         "H": "HH",
         "I": "hh",
         "M": "mm",
@@ -118,7 +121,10 @@ class PatternParser:
         """One field of a pattern as UAX 35 writes it, read beside the fields before and after it."""
         letter, length = field[0], len(field)
         if letter in "yY":
-            return "yy" if length == 2 else "yyyy" if length == 4 else "y"
+            for year in (self.SHORT_YEAR, self.FULL_YEAR):
+                if length == len(year):
+                    return year
+            return self.ANY_YEAR
         if letter in "dD":
             return {3: "EEE", 4: "EEEE"}.get(length, "d" * min(length, 2))
         if letter in "mM":
@@ -167,6 +173,6 @@ class PatternParser:
                 low_other, high_other = self.WIDTHS.get(other, (1, 99))
                 if max(low_one, low_other) > min(high_one, high_other):
                     return False
-                meaning = [field if field == "yy" else field[0] for field in (one, other)]
+                meaning = [field if field == self.SHORT_YEAR else field[0] for field in (one, other)]
                 differs = differs or meaning[0] != meaning[1]
         return differs

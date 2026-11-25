@@ -295,7 +295,7 @@ class PolicyModel(BaseModel):
                     "`string`. [whyqd:policy-pattern]"
                 )
         every = set().union(*fields) if fields else set()
-        if ("yy" in every) != (rules.yearStart is not None):
+        if (PatternParser.SHORT_YEAR in every) != (rules.yearStart is not None):
             raise ValueError(
                 f"Field `{name}` needs `rules.yearStart` with a `yy` pattern, and only then: `yy` does not say which "
                 "century. Declare both, or neither. [whyqd:policy-year-start]"
