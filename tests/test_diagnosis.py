@@ -30,6 +30,7 @@ SYNTHETIC = LAYOUTS.parent / "synthetic"
 FENLAND = LAYOUTS.parent / "sample" / "fenland" / "2026-10-25-Fenland District Council.csv"
 ASTERISK = sorted((LAYOUTS.parent / "sample" / "voa").glob("*.csv"))
 STOCKPORT = LAYOUTS.parent / "sample" / "stockport" / "2026-09-04-stockport-original.XLSX"
+BARKING = LAYOUTS.parent / "sample" / "barking-dagenham" / "source-data.XLSX"
 
 
 def diagnose_source(source: Path, mimetype: str, dialect: dict, propose: bool = False) -> ReportModel:
@@ -85,6 +86,23 @@ def test_fenland_is_proposed_its_records():
 
 def test_a_file_declared_its_records_is_not_proposed_them_again():
     assert diagnose_source(FENLAND, "CSV", {"rowsPerRecord": [47, 1]}, propose=True).proposals == []
+
+
+def test_a_fixed_width_export_is_proposed_trim():
+    report = diagnose_source(BARKING, "XLSX", {}, propose=True)
+    trimmed = [p for p in report.proposals if p.setting == "trim"]
+    assert len(trimmed) == 1 and trimmed[0].value is True
+
+
+def test_a_fixed_width_export_declared_trim_is_not_proposed_it_again():
+    report = diagnose_source(BARKING, "XLSX", {"trim": True}, propose=True)
+    assert not [p for p in report.proposals if p.setting == "trim"]
+
+
+def test_one_padded_name_is_not_a_fixed_width_export(tmp_path):
+    source = tmp_path / "padded.csv"
+    source.write_text("id,name   ,town\n1,Alpha,Leeds\n2,Beta,York\n", encoding="utf-8")
+    assert not [p for p in diagnose_source(source, "CSV", {}, propose=True).proposals if p.setting == "trim"]
 
 
 @pytest.mark.parametrize(
