@@ -36,6 +36,16 @@ def read(cells: list, policy: PolicyModel, dtype: str = "date", types: list | No
     return [None if value is None else str(value) for value in readings["value"].to_list()]
 
 
+NUMBERS = ("amount", "balance", "rate", "count")
+# Locales whose marks are `.` and `,` and whose currency is a symbol, so every number column reads by one declaration
+PLAIN = ("en_GB.csv", "en_US.csv", "ja_JP.csv")
+
+
+def column(name: str, field: str) -> tuple[list, list]:
+    text, types = test_reading.TestLocaleColumns.columns(LOCALES / name, "CSV")
+    return text[field].to_list(), types[field].to_list()
+
+
 class TestForm:
     def test_a_field_s_policy_is_proposed_whole(self):
         policy = PolicyModel(format="dd/MM/yyyy", rules={"serial": "excel-1900"})
@@ -108,8 +118,61 @@ class TestDates:
     def test_a_column_that_reads_silently_needs_nothing(self):
         assert propose(["2024-04-13", "1997-01-04", None]) is None
 
+    def test_month_names_are_shown_with_the_languages_that_read_them(self):
+        cells = ["31 Dec 2024", "4 Jan 1997", "13 Apr 2024"]
+        found = propose(cells)
+        assert isinstance(found, FindingModel) and found.code == "policy-language"
+        assert "`en`" in found.message and "d MMM yyyy" in found.message
+        english = PolicyModel(format="d MMM yyyy", rules={"language": "en"})
+        assert read(cells, english) == ["2024-12-31", "1997-01-04", "2024-04-13"]
+
     def test_proposing_leaves_the_cells_as_they_were(self):
         cells = pl.Series("cell", ["31.12.2024", "04.01.1997"], dtype=pl.String)
         before = cells.clone()
         ProposalParser().propose(field="start", cells=cells, types=None, dtype="date")
         assert cells.equals(before)
+
+
+class TestNumbers:
+    @pytest.mark.parametrize("field", NUMBERS)
+    @pytest.mark.parametrize("name", CSV)
+    def test_every_proposal_reads_as_the_key(self, name, field):
+        cells, types = column(name, field)
+        found = propose(cells, dtype="number", types=types)
+        if isinstance(found, ProposalModel):
+            readings = ReadingParser().column(
+                cells=pl.Series("cell", cells, dtype=pl.String),
+                dtype="number",
+                policy=found.value,
+                types=pl.Series("cell", types, dtype=pl.String),
+            )
+            want = [value[field] for value in KEY["files"][name]["values"]]
+            got = readings["value"].to_list()[: len(want)]
+            assert all(test_reading.same("number", g, w) for g, w in zip(got, want, strict=True)), (found.value, got)
+
+    @pytest.mark.parametrize("field", NUMBERS)
+    @pytest.mark.parametrize("name", PLAIN)
+    def test_a_plain_locale_s_numbers_are_proposed(self, name, field):
+        cells, types = column(name, field)
+        assert isinstance(propose(cells, dtype="number", types=types), ProposalModel)
+
+    def test_a_lone_group_of_three_is_shown_not_proposed(self):
+        found = propose(["1,234"], dtype="number")
+        assert isinstance(found, FindingModel) and found.code == "policy-ambiguous"
+
+    def test_a_word_beside_a_number_is_shown_not_proposed(self):
+        found = propose(["1 234,50 kr", "15,00 kr", "0,00 kr"], dtype="number")
+        assert isinstance(found, FindingModel) and found.code == "policy-ambiguous"
+
+    def test_a_marker_among_numbers_is_mixed(self):
+        found = propose(["N/A", "£1,234.50", "£0.00"], dtype="number")
+        assert isinstance(found, FindingModel) and found.code == "policy-mixed"
+
+
+class TestBooleans:
+    def test_a_word_pair_is_shown_not_proposed(self):
+        found = propose(["Y", "N", "Y", None], dtype="boolean")
+        assert isinstance(found, FindingModel) and found.code == "policy-ambiguous"
+
+    def test_a_pair_the_reader_knows_needs_nothing(self):
+        assert propose(["true", "false", "1", "0"], dtype="boolean") is None
