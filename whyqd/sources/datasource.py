@@ -68,7 +68,7 @@ class DataSourceParser:
         source: str | Path | DataSourceModel,
         mimetype: str | MimeType | None = None,
         directory: str | Path | None = None,
-        **settings,
+        **settings: object,
     ) -> pd.DataFrame:
         """A data source's table, read by its `dialect`, every cell as its text, keyed by `__row__`.
 
@@ -462,7 +462,7 @@ class DataSourceParser:
         mimetype: str | MimeType,
         dialect: DialectModel | dict | list[DialectModel | dict] | None = None,
         names: list[str] | dict[str, list[str]] | None = None,
-        **settings,
+        **settings: object,
     ) -> tuple[DataSourceModel | list[DataSourceModel], pl.DataFrame | list[pl.DataFrame]]:
         """A data source derived from a file, and its table: a workbook's one a sheet, as lists where it has several.
 

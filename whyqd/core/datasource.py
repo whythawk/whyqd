@@ -107,7 +107,7 @@ class DataSourceDefinition(BaseDefinition):
         mimetype: str | MimeType,
         dialect: DialectModel | dict | list[DialectModel | dict] | None = None,
         names: list[str] | dict[str, list[str]] | None = None,
-        **settings,
+        **settings: object,
     ) -> DataSourceModel | list[DataSourceModel]:
         """Derive a data source from a file, or one a sheet from a workbook. Every cell is read as its text.
 
