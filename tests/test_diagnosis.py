@@ -29,6 +29,7 @@ IDS = [f"{name}-{dialect.get('sheet', '')}" for name, _, dialect, _ in CASES]
 SYNTHETIC = LAYOUTS.parent / "synthetic"
 FENLAND = LAYOUTS.parent / "sample" / "fenland" / "2026-10-25-Fenland District Council.csv"
 ASTERISK = sorted((LAYOUTS.parent / "sample" / "voa").glob("*.csv"))
+STOCKPORT = LAYOUTS.parent / "sample" / "stockport" / "2026-09-04-stockport-original.XLSX"
 
 
 def diagnose_source(source: Path, mimetype: str, dialect: dict, propose: bool = False) -> ReportModel:
@@ -285,3 +286,16 @@ def test_a_finding_prints_with_its_code_and_stores_it_apart():
     finding = FindingModel(code="blank-rows", kind="fact", message="Line 5 is blank.", rows=[5])
     assert finding.message == "Line 5 is blank."
     assert str(finding) == "Line 5 is blank. [whyqd:blank-rows]"
+
+
+def test_a_workbook_is_told_where_excel_shows_other_than_whyqd_reads():
+    report = diagnose_source(STOCKPORT, "XLSX", {})
+    shown = [f for f in report.findings if f.code == "shown-differs"]
+    for code in ("`0.00E+00`", "`d-mmm`", "`mm-dd-yy`"):
+        assert any(code in f.message for f in shown), code
+    assert all(f.kind == "fact" and len(f.columns) == 1 for f in shown)
+
+
+def test_a_text_file_has_no_format_to_tell():
+    report = diagnose("semicolon.csv", "CSV", {})
+    assert not [f for f in report.findings if f.code == "shown-differs"]

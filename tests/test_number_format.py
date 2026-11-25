@@ -79,3 +79,36 @@ def test_a_code_the_machine_s_locale_renders_is_named(code):
 
 def test_a_written_date_code_is_not_the_machine_s():
     assert not NumberFormatParser().machine("dd/mm/yyyy")
+
+
+@pytest.mark.parametrize(
+    ("code", "texts"),
+    [
+        ("0.00E+00", ["26620000000000"]),
+        ("0%", ["0.05"]),
+        ("0.0,,", ["12200000"]),
+        ("d-mmm", ["2024-04-01"]),
+        ("mm-dd-yy", ["2024-04-01"]),
+        ("aaa yyyy", ["45383"]),
+        ("General", ["26620000000000"]),
+        ("0.00", ["1234.567"]),
+        ('"Ref "0', ["12"]),
+    ],
+)
+def test_a_screen_that_hides_or_changes_the_value_is_told(code, texts):
+    assert NumberFormatParser().differs(code, texts)
+
+
+@pytest.mark.parametrize(
+    ("code", "texts"),
+    [
+        ("General", ["12", "345.6"]),
+        ("0.00", ["1234.5", "7"]),
+        ("dd/mm/yyyy", ["2024-04-01"]),
+        ("yyyy-mm-dd", ["2024-04-01"]),
+        ("[$£-809]#,##0.00", ["1234.5"]),
+        ("[h]:mm", ["PT25H30M"]),
+    ],
+)
+def test_a_screen_that_shows_the_whole_value_is_not_told(code, texts):
+    assert NumberFormatParser().differs(code, texts) is None

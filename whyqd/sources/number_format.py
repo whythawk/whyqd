@@ -68,6 +68,25 @@ class NumberFormatParser:
     # The codes that show by the machine's own settings: id 14, its short date, and the system long date and time
     MACHINE_ID: ClassVar[int] = 14
     MACHINE_LOCALES: ClassVar[tuple[str, ...]] = ("$-F800", "$-F400")
+    YEAR_LETTER: ClassVar[str] = "y"
+    EXPONENT_LETTER: ClassVar[str] = "e"
+    # Past this many characters, General shows a number exponentially
+    GENERAL_WIDTH: ClassVar[int] = 11
+    # The classes whose screen always hides or changes the value; a date, a rounding, and General only sometimes
+    ALWAYS_DIFFERS: ClassVar[frozenset[FormatClass]] = frozenset(
+        {
+            FormatClass.SCALED,
+            FormatClass.PERCENT,
+            FormatClass.SCIENTIFIC,
+            FormatClass.FRACTION,
+            FormatClass.ZERO_PADDED,
+            FormatClass.LITERAL,
+            FormatClass.CONDITIONAL,
+            FormatClass.HIDDEN,
+            FormatClass.TEXT,
+            FormatClass.LOCALE,
+        }
+    )
 
     def tokens(self, code: str) -> list[Token]:
         """A code's parts in order: `quoted`, `escaped`, `bracket`, or `char`."""
@@ -157,6 +176,51 @@ class NumberFormatParser:
         brackets = [token.text for token in self.tokens(code) if token.kind == self.BRACKET]
         return code == ExcelParser.BUILT_IN[self.MACHINE_ID] or any(
             text.upper().startswith(self.MACHINE_LOCALES) for text in brackets
+        )
+
+    def differs(self, code: str, texts: list[str]) -> str | None:
+        """What Excel shows of these cells under `code` that whyqd's reading of them does not, in a sentence, or `None`
+        where the screen shows the whole value: a date in another order, a currency's symbol, or an elapsed time.
+
+        Parameters:
+          code: The cells' number format code.
+          texts: Each cell's text as whyqd read it.
+        """
+        shown = self.shows(code)
+        if self.machine(code):
+            return "Excel shows it by the machine's own date and time settings, which no file records."
+        if shown == FormatClass.DATE:
+            if self.reads(code) == FieldType.NUMBER.value:
+                return "Excel shows a date, and whyqd reads the number stored."
+            return None if self.shows_year(code) else "Excel shows the date without its year."
+        if shown == FormatClass.GENERAL:
+            return self.said(shown) if any(len(text) > self.GENERAL_WIDTH for text in texts) else None
+        if shown == FormatClass.ROUNDED:
+            shows = self.decimals(code)
+            return self.said(shown) if any(self.stored_decimals(text) > shows for text in texts) else None
+        return self.said(shown) if shown in self.ALWAYS_DIFFERS else None
+
+    def said(self, shown: FormatClass) -> str:
+        """A class's description as what Excel shows."""
+        return f"Excel shows {shown.describe[0].lower()}{shown.describe[1:]}"
+
+    def decimals(self, code: str) -> int:
+        """How many decimal places the first section shows."""
+        written = "".join(token.text for token in self.tokens(self.sections(code)[0]) if token.kind == self.CHAR)
+        after = written.partition(self.POINT)[2]
+        return sum(letter in self.PLACEHOLDERS for letter in after)
+
+    def stored_decimals(self, text: str) -> int:
+        """How many decimal places a number's text holds; none for one written with an exponent."""
+        if self.EXPONENT_LETTER in text.lower():
+            return 0
+        return len(text.partition(self.POINT)[2])
+
+    def shows_year(self, code: str) -> bool:
+        """Whether the first section shows a year."""
+        return any(
+            token.kind == self.CHAR and token.text.lower() == self.YEAR_LETTER
+            for token in self.tokens(self.sections(code)[0])
         )
 
     def elapsed(self, text: str) -> bool:

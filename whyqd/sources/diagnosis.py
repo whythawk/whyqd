@@ -9,6 +9,8 @@ from whyqd.config.patterns import PythonPatterns
 from whyqd.config.settings import settings
 from whyqd.dtypes import EncodingStep, FindingKind, MimeType, Place, SettingSource
 from whyqd.models import DialectModel, FindingModel, ProposalModel, ReportModel, SettingModel
+from whyqd.sources.number_format import NumberFormatParser
+from whyqd.sources.profile import ProfileParser
 from whyqd.sources.reader import Reader
 from whyqd.sources.table import TableParser
 
@@ -26,10 +28,14 @@ class DiagnosisParser:
     TABLE: ClassVar[tuple[str, ...]] = ("skipRows", "headerRowCount", "skipBlankRows", "trim", "rowsPerRecord")
     # Those a read can settle from the file where they are not declared
     SETTLED: ClassVar[tuple[str, ...]] = ("encoding", "encodingStep", "cells", "sheet")
+    # A column's cells by their number format: each cell's code and text
+    CODE: ClassVar[str] = "code"
+    TEXT: ClassVar[str] = "text"
 
     def __init__(self) -> None:
         self.tables = TableParser()
         self.patterns = PythonPatterns()
+        self.number_formats = NumberFormatParser()
 
     def report(
         self,
@@ -76,6 +82,7 @@ class DiagnosisParser:
         widths = self.widths(grid=grid)
         findings += self.facts(
             source=source,
+            mime=mime,
             reader=reader,
             sheet=read.sheet,
             grid=grid,
@@ -197,6 +204,7 @@ class DiagnosisParser:
         self,
         *,
         source: Path,
+        mime: MimeType,
         reader: Reader,
         sheet: str | None,
         grid: pl.DataFrame,
@@ -205,7 +213,8 @@ class DiagnosisParser:
         widths: pl.Series,
         hidden: bool,
     ) -> list[FindingModel]:
-        """What the file holds: its blank rows and columns from the grid, and what only its reader can show."""
+        """What the file holds: its blank rows and columns from the grid, what only its reader can show, and where a
+        workbook's formats make Excel show other than whyqd reads."""
         findings = []
         blank = [lines[i] for i in widths.eq(0).arg_true().to_list()]
         if blank:
@@ -252,7 +261,39 @@ class DiagnosisParser:
                     cells=errors[: settings.REPORT_PLACES],
                 )
             )
-        return findings
+        return findings + self.shown(source=source, mime=mime, reader=reader, sheet=sheet, grid=grid, types=types)
+
+    def shown(
+        self,
+        *,
+        source: Path,
+        mime: MimeType,
+        reader: Reader,
+        sheet: str | None,
+        grid: pl.DataFrame,
+        types: pl.DataFrame,
+    ) -> list[FindingModel]:
+        """Each column whose number format makes Excel show its cells other than whyqd reads them, one fact a code,
+        with the first cell as whyqd read it. Only stored numbers and dates have a format that counts."""
+        codes = reader.formats(source=source, mime=mime, sheet=sheet, height=grid.height, width=grid.width)
+        if codes is None:
+            return []
+        found = []
+        for index, column in enumerate(grid.columns):
+            cells = pl.DataFrame({self.CODE: codes[column], self.TEXT: grid[column]}).filter(
+                types[column].is_in(ProfileParser.FORMATTED)
+            )
+            for code, texts in cells.group_by(self.CODE, maintain_order=True).agg(pl.col(self.TEXT)).iter_rows():
+                if code is None or (says := self.number_formats.differs(code, texts)) is None:
+                    continue
+                found.append(
+                    self.fact(
+                        code="shown-differs",
+                        message=f"Column {index}: under `{code}`, {len(texts)} cells, first `{texts[0]}`. {says}",
+                        columns=[index],
+                    )
+                )
+        return found
 
     def fact(self, *, code: str, message: str, **where) -> FindingModel:
         """A fact, with where in the file it is: its `rows`, `columns`, or `cells`."""

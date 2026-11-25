@@ -46,7 +46,7 @@ class FormatClass(str, Enum):
 
     DESCRIPTIONS = nonmember(
         {
-            "general": "The value, shown exponentially past 11 characters, so a long reference can look rounded.",
+            "general": "The value, exponentially once it passes 11 characters, so a long reference can look rounded.",
             "date": "A date or time in the format's order, a year or a time perhaps hidden, against the ISO value.",
             "elapsed": "Hours, minutes, or seconds past a day, against a fraction of a day.",
             "rounded": "Fewer decimal places than the value holds, against the whole value.",
