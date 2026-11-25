@@ -152,7 +152,9 @@ class Cold:
             return True
         if len(set(marks)) == 2:
             decimal = marks[-1]
-            return marks.count(decimal) == 1 and self.grouped(cell.rpartition(decimal)[0], ({".", ","} - {decimal}).pop())
+            return marks.count(decimal) == 1 and self.grouped(
+                cell.rpartition(decimal)[0], ({".", ","} - {decimal}).pop()
+            )
         if len(marks) > 1:
             return self.grouped(cell, marks[0])
         before, _, after = cell.partition(marks[0])
@@ -172,7 +174,9 @@ class Cold:
             return bool(valid(year, month, day))
         if match := self.ORDER.fullmatch(cell):
             first, _, second, year = match.groups()
-            readings = {d for d in (valid(int(year), int(second), int(first)), valid(int(year), int(first), int(second))) if d}
+            readings = {
+                d for d in (valid(int(year), int(second), int(first)), valid(int(year), int(first), int(second))) if d
+            }
             return len(readings) == 1
         if self.SERIAL.fullmatch(cell):
             return 1 <= float(cell) <= self.LAST_SERIAL and int(float(cell)) != self.PHANTOM
@@ -214,10 +218,10 @@ class Publisher:
         text = f"{abs(value):.{places}f}" if places is not None else format(abs(value).normalize(), "f")
         whole, _, fraction = text.partition(".")
         parts = [whole[-primary:]] if len(whole) > primary else [whole]
-        rest = whole[: -primary] if len(whole) > primary else ""
+        rest = whole[:-primary] if len(whole) > primary else ""
         while rest:
             parts.insert(0, rest[-secondary:])
-            rest = rest[: -secondary]
+            rest = rest[:-secondary]
         written = self.c["group"].join(parts)
         return self.script(written + (self.c["decimal"] + fraction if fraction else ""))
 
@@ -240,7 +244,9 @@ class Publisher:
         )
 
     def rate(self, value: str) -> str:
-        return self.patterned(Decimal(value) * 100, pattern=self.c["percentPattern"], mark="%", symbol=self.c["percent"])
+        return self.patterned(
+            Decimal(value) * 100, pattern=self.c["percentPattern"], mark="%", symbol=self.c["percent"]
+        )
 
     def count(self, value: str) -> str:
         return self.patterned(Decimal(value), pattern=self.c["decimalPattern"], mark="¤", symbol="", places=0)
@@ -307,7 +313,9 @@ class Publisher:
 def canonical(text: str) -> str:
     """A cell as the reader's fixed steps leave it, apart from any declaration, computed here without whyqd."""
     text = unicodedata.normalize("NFKC", text).translate({ord(mark): None for mark in BIDI}).strip()
-    return "".join(str(unicodedata.decimal(c)) if unicodedata.category(c) == "Nd" else c for c in text).replace("−", "-")
+    return "".join(str(unicodedata.decimal(c)) if unicodedata.category(c) == "Nd" else c for c in text).replace(
+        "−", "-"
+    )
 
 
 def halts(rows: list[dict]) -> dict:

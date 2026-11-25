@@ -34,9 +34,7 @@ SOURCES = DATA / "synthetic-locales"
 TYPES = ("number", "integer", "boolean", "date", "month", "quarter", "year", "time", "datetime", "duration", "string")
 READ = TYPES
 GROUPS = [(dtype, name) for dtype in TYPES for name in TYPING[dtype]]
-CASES = [
-    (dtype, name, index) for dtype, name in GROUPS for index in range(len(TYPING[dtype][name]["cases"]))
-]
+CASES = [(dtype, name, index) for dtype, name in GROUPS for index in range(len(TYPING[dtype][name]["cases"]))]
 DESTINATION = {f["name"]: f["type"] for f in LOCALES["destination"]["fields"]}
 
 
@@ -70,7 +68,9 @@ def readings(
 ) -> list[dict]:
     """Each cell's reading as a row of `ReadingParser.column`'s."""
     types = None if cell_types is None else pl.Series("cell", cell_types, dtype=pl.String)
-    read = ReadingParser().column(cells=pl.Series("cell", cells, dtype=pl.String), dtype=dtype, policy=policy, types=types)
+    read = ReadingParser().column(
+        cells=pl.Series("cell", cells, dtype=pl.String), dtype=dtype, policy=policy, types=types
+    )
     return list(read.iter_rows(named=True))
 
 
@@ -120,7 +120,10 @@ class TestReader:
 
     def test_a_stored_boolean_and_number_read_across_with_a_warning(self):
         numbers = readings(cells=["TRUE", "FALSE"], cell_types=["b", "b"], dtype="number")
-        assert [(r["value"], r["warnings"]) for r in numbers] == [(1.0, ["boolean-as-number"]), (0.0, ["boolean-as-number"])]
+        assert [(r["value"], r["warnings"]) for r in numbers] == [
+            (1.0, ["boolean-as-number"]),
+            (0.0, ["boolean-as-number"]),
+        ]
         booleans = readings(cells=["1", "0", "2"], cell_types=["n", "n", "n"], dtype="boolean")
         assert [(r["value"], r["reason"]) for r in booleans] == [(True, None), (False, None), (None, "not-in-format")]
         assert booleans[0]["warnings"] == ["number-as-boolean"]
@@ -132,7 +135,9 @@ class TestReader:
         zoned = readings(cells=cells, dtype="datetime", policy=PolicyModel(rules={"zone": "UTC"}))
         assert [r["kind"] for r in zoned] == ["value", "value"]
 
-    @pytest.mark.parametrize("cell", ["1st April 2024", "c. 1850", "<5", "Mon–Fri", "12E4", "٣4", "½", "#N/A", "anything"])
+    @pytest.mark.parametrize(
+        "cell", ["1st April 2024", "c. 1850", "<5", "Mon–Fri", "12E4", "٣4", "½", "#N/A", "anything"]
+    )
     def test_text_is_always_the_way_out(self, cell):
         reading = readings(cells=[cell], dtype="string")[0]
         assert (reading["kind"], reading["value"]) == ("value", cell)
@@ -157,7 +162,10 @@ class TestReader:
                 reader.BLANK: [False] * count + [True, False],
                 reader.TYPE: [CellType.STRING.value] * (count + 2),
                 reader.REASON: [None] * count + [None, RefusalReason.NO_NUMBER.value],
-                **{code: [combination[i] for combination in combinations] + [True, True] for i, code in enumerate(codes)},
+                **{
+                    code: [combination[i] for combination in combinations] + [True, True]
+                    for i, code in enumerate(codes)
+                },
             }
         )
         warnings = reader.outcome(read, pl.Series([1.0] * (count + 2)))[reader.WARNINGS].to_list()
@@ -268,7 +276,9 @@ class TestLocaleColumns:
         """A file's table and each cell's stored type, by whyqd's own read."""
         reader = DataSourceParser()
         kind = MimeType[mime]
-        grid, types, lines, dialect = reader.reader(mime=kind).grid(source=source, mime=kind, dialect=reader.declare(dialect=None))
+        grid, types, lines, dialect = reader.reader(mime=kind).grid(
+            source=source, mime=kind, dialect=reader.declare(dialect=None)
+        )
         table, (text, types) = reader.tables.table(
             grid=grid,
             lines=lines,
@@ -298,7 +308,7 @@ class TestLocaleColumns:
         for field, dtype in self.READ_FIELDS.items():
             read = readings[field]
             assert read["reason"].drop_nulls().to_list() == [], (field, read)
-            for got, want in zip(read["value"].to_list(), entry["values"]):
+            for got, want in zip(read["value"].to_list(), entry["values"], strict=True):
                 assert same(dtype, got, want[field]), (field, got, want[field])
 
     @pytest.mark.parametrize("name", MIXED)
@@ -306,7 +316,10 @@ class TestLocaleColumns:
         round_ = LOCALES["files"][name]["rounds"][1]
         readings = self.readings(name, round_["declare"]["fields"])
         for field in self.READ_FIELDS:
-            assert readings[field]["reason"].drop_nulls().len() == round_["halts"].get(field, 0), (field, readings[field])
+            assert readings[field]["reason"].drop_nulls().len() == round_["halts"].get(field, 0), (
+                field,
+                readings[field],
+            )
 
     def test_excels_swapped_dates_read_wrongly_only_until_declared(self):
         round_ = LOCALES["files"]["excel-en_GB.xlsx"]["rounds"]
@@ -354,6 +367,6 @@ class TestConversion:
                 continue
         rows = run.data.astype(object).where(run.data.notna(), None).to_dict("records")
         assert len(rows) == len(entry["values"])
-        for got, want in zip(rows, entry["values"]):
+        for got, want in zip(rows, entry["values"], strict=True):
             for field, dtype in DESTINATION.items():
                 assert same(dtype, got[field], want[field]), (field, got[field], want[field])

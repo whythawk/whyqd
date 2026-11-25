@@ -63,7 +63,9 @@ def warned(transform) -> list[tuple]:
 
 class TestHalting:
     def test_a_conforming_file_builds_and_reports_nothing(self, tmp_path):
-        run = build(tmp_path, [["a", "b"], ["1", "2024-04-13"]], destination={"a": {"type": "number"}, "b": {"type": "date"}})
+        run = build(
+            tmp_path, [["a", "b"], ["1", "2024-04-13"]], destination={"a": {"type": "number"}, "b": {"type": "date"}}
+        )
         run.process()
         assert run.data["a"].tolist() == [1.0]
         assert str(run.data["b"].tolist()[0]).startswith("2024-04-13")
@@ -149,7 +151,13 @@ class TestHalting:
         assert [f[:2] for f in faults(run)] == [("a", "undeclared-character")]
 
     def test_a_missing_value_is_not_a_refusal(self, tmp_path):
-        run = build(tmp_path, [["a"], ["N/A"], ["5"]], source={"a": {"type": "number"}}, destination={"a": {"type": "number"}}, missing=["N/A"])
+        run = build(
+            tmp_path,
+            [["a"], ["N/A"], ["5"]],
+            source={"a": {"type": "number"}},
+            destination={"a": {"type": "number"}},
+            missing=["N/A"],
+        )
         run.process()
         assert run.data["a"].isna().tolist() == [True, False]
 
@@ -157,14 +165,19 @@ class TestHalting:
 class TestTypes:
     def test_a_number_written_as_text_reads_as_a_cell_would(self, tmp_path):
         run = build(
-            tmp_path, [["a"], ["1"], ["1.5"], ["1e20"]], source={"a": {"type": "number"}}, destination={"a": {"type": "string"}}
+            tmp_path,
+            [["a"], ["1"], ["1.5"], ["1e20"]],
+            source={"a": {"type": "number"}},
+            destination={"a": {"type": "string"}},
         )
         run.process()
         assert run.data["a"].tolist() == ["1", "1.5", "100000000000000000000"]
 
     def test_a_built_value_has_one_text_whichever_path_it_takes(self):
         cells, tags = FrameParser().as_cells(
-            pd.Series([timedelta(hours=25, minutes=30), pd.Timestamp("2024-04-01 09:30"), pd.Timestamp("2024-04-01"), ""])
+            pd.Series(
+                [timedelta(hours=25, minutes=30), pd.Timestamp("2024-04-01 09:30"), pd.Timestamp("2024-04-01"), ""]
+            )
         )
         assert cells.to_list() == ["PT25H30M", "2024-04-01T09:30:00", "2024-04-01", ""]
         assert tags.to_list() == ["d", "d", "d", "s"]
@@ -179,7 +192,10 @@ class TestTypes:
 
     def test_a_boolean_reads_as_a_number_and_says_so(self, tmp_path):
         run = build(
-            tmp_path, [["a"], ["true"], ["false"]], source={"a": {"type": "boolean"}}, destination={"a": {"type": "number"}}
+            tmp_path,
+            [["a"], ["true"], ["false"]],
+            source={"a": {"type": "boolean"}},
+            destination={"a": {"type": "number"}},
         )
         run.process()
         assert run.data["a"].tolist() == [1.0, 0.0]
@@ -214,7 +230,10 @@ class TestTypes:
         assert warned(run) == [("a", "time-dropped")]
 
     def test_several_written_dates_become_one_date(self, tmp_path):
-        policy = {"format": "dd/mm/yyyy", "rules": {"alternateFormats": ["yyyy-mm-dd", "d mmmm yyyy"], "language": "en"}}
+        policy = {
+            "format": "dd/mm/yyyy",
+            "rules": {"alternateFormats": ["yyyy-mm-dd", "d mmmm yyyy"], "language": "en"},
+        }
         run = build(
             tmp_path,
             [["a"], ["13/04/2024"], ["2024-04-14"], ["15 April 2024"]],
@@ -286,7 +305,9 @@ class TestTypes:
         assert faults(run) == [("a", "constraint-required", 1)]
 
     def test_a_date_reads_as_its_period(self, tmp_path):
-        run = build(tmp_path, [["a"], ["2024-04-13"]], source={"a": {"type": "date"}}, destination={"a": {"type": "month"}})
+        run = build(
+            tmp_path, [["a"], ["2024-04-13"]], source={"a": {"type": "date"}}, destination={"a": {"type": "month"}}
+        )
         run.process()
         assert str(run.data["a"].tolist()[0]).startswith("2024-04-30")
 
@@ -340,7 +361,13 @@ class TestConstraints:
 class TestWarnings:
     @pytest.mark.parametrize(
         "cell, code",
-        [("£5", "currency-read"), ("(5)", "sign-read"), ("5%", "percent-read"), ("1.234.567", "marks-read"), ("1e3", "exponent-read")],
+        [
+            ("£5", "currency-read"),
+            ("(5)", "sign-read"),
+            ("5%", "percent-read"),
+            ("1.234.567", "marks-read"),
+            ("1e3", "exponent-read"),
+        ],
     )
     def test_a_declared_type_reads_what_has_one_reading_and_warns(self, tmp_path, cell, code):
         run = build(tmp_path, [["a"], [cell]], destination={"a": {"type": "number"}})
@@ -447,7 +474,10 @@ class TestActions:
         run = build(
             tmp_path,
             [["old", "old_date", "new", "new_date"], ["a", "01/02/2020", "b", "01/02/2024"]],
-            source={"old_date": {"type": "date", "policy": {"format": "dd/mm/yyyy"}}, "new_date": {"type": "date", "policy": {"format": "dd/mm/yyyy"}}},
+            source={
+                "old_date": {"type": "date", "policy": {"format": "dd/mm/yyyy"}},
+                "new_date": {"type": "date", "policy": {"format": "dd/mm/yyyy"}},
+            },
             destination={"latest": {"type": "string"}},
             scripts=["SELECT_NEWEST > 'latest' < ['old' + 'old_date', 'new' + 'new_date']"],
         )
@@ -486,7 +516,10 @@ class TestPresence:
     @staticmethod
     def field(group: dict) -> dict:
         constraints = {"category": [{"name": True}, {"name": False}]}
-        return {"type": group["type"], "constraints": constraints | ({"zeroAsTrue": True} if group["zeroAsTrue"] else {})}
+        return {
+            "type": group["type"],
+            "constraints": constraints | ({"zeroAsTrue": True} if group["zeroAsTrue"] else {}),
+        }
 
     @pytest.mark.parametrize("name", list(PRESENCE["groups"]))
     def test_a_cell_is_present_as_the_key_says(self, tmp_path, name):
@@ -500,7 +533,13 @@ class TestPresence:
     @pytest.mark.parametrize("name, text", HALTS)
     def test_a_cell_that_cannot_be_its_type_halts(self, tmp_path, name, text):
         group = PRESENCE["groups"][name]
-        run = build(tmp_path, [["k", "a"], ["0", text]], source={"a": self.field(group)}, destination=self.RELIEF, scripts=self.SCRIPTS)
+        run = build(
+            tmp_path,
+            [["k", "a"], ["0", text]],
+            source={"a": self.field(group)},
+            destination=self.RELIEF,
+            scripts=self.SCRIPTS,
+        )
         with pytest.raises(ValueError):
             run.process()
 
@@ -542,7 +581,9 @@ class TestBarkingAndDagenham:
 
     def cells(self, name: str) -> list[str]:
         """A column's cells as the workbook holds them, read apart from whyqd."""
-        rows = list(openpyxl.load_workbook(self.HERE / "source-data.XLSX", read_only=True).active.iter_rows(values_only=True))
+        rows = list(
+            openpyxl.load_workbook(self.HERE / "source-data.XLSX", read_only=True).active.iter_rows(values_only=True)
+        )
         column = [str(h).strip() for h in rows[0]].index(name)
         return ["" if row[column] is None else str(row[column]).strip() for row in rows[1:]]
 

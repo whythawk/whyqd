@@ -150,7 +150,7 @@ class TestAction:
     def test_pivot_longer(self):
         # A pivot's values hold labels beside numbers until later actions, so they are kept as text
         destination = _declared(DESTINATION_SCHEMA_CTHULHU, values={"type": "string"})
-        script ="PIVOT_LONGER > ['indicator_name', 'values'] < ['HDI rank', 'HDI Category', 'Human poverty index (HPI-1) - Rank;;2008', 'Human poverty index (HPI-1) - Value (%);;2008', 'Probability at birth of not surviving to age 40 (% of cohort);;2000-05', 'Adult illiteracy rate (% aged 15 and older);;1995-2005', 'Population not using an improved water source (%);;2004', 'Children under weight for age (% under age 5);;1996-2005', 'Population below income poverty line (%) - $1 a day;;1990-2005', 'Population below income poverty line (%) - $2 a day;;1990-2005', 'Population below income poverty line (%) - National poverty line;;1990-2004', 'HPI-1 rank minus income poverty rank;;2008']"
+        script = "PIVOT_LONGER > ['indicator_name', 'values'] < ['HDI rank', 'HDI Category', 'Human poverty index (HPI-1) - Rank;;2008', 'Human poverty index (HPI-1) - Value (%);;2008', 'Probability at birth of not surviving to age 40 (% of cohort);;2000-05', 'Adult illiteracy rate (% aged 15 and older);;1995-2005', 'Population not using an improved water source (%);;2004', 'Children under weight for age (% under age 5);;1996-2005', 'Population below income poverty line (%) - $1 a day;;1990-2005', 'Population below income poverty line (%) - $2 a day;;1990-2005', 'Population below income poverty line (%) - National poverty line;;1990-2004', 'HPI-1 rank minus income poverty rank;;2008']"
         assert _test_script_action(script, INTERIM_SCHEMA_CTHULHU, destination, INTERIM_DATA_CTHULHU)
 
     def test_pivot_longer_follows_source_column_order(self):
@@ -192,7 +192,12 @@ class TestAction:
             "PIVOT_LONGER > ['indicator_name', 'values'] < ['HDI rank', 'HDI Category', 'Human poverty index (HPI-1) - Rank;;2008', 'Human poverty index (HPI-1) - Value (%);;2008', 'Probability at birth of not surviving to age 40 (% of cohort);;2000-05', 'Adult illiteracy rate (% aged 15 and older);;1995-2005', 'Population not using an improved water source (%);;2004', 'Children under weight for age (% under age 5);;1996-2005', 'Population below income poverty line (%) - $1 a day;;1990-2005', 'Population below income poverty line (%) - $2 a day;;1990-2005', 'Population below income poverty line (%) - National poverty line;;1990-2004', 'HPI-1 rank minus income poverty rank;;2008']",
             "SEPARATE > ['indicator_name', 'year'] < ';;'::['indicator_name']",
         ]
-        assert _test_script_action(script, INTERIM_SCHEMA_CTHULHU, _declared(DESTINATION_SCHEMA_CTHULHU, values={"type": "string"}), INTERIM_DATA_CTHULHU)
+        assert _test_script_action(
+            script,
+            INTERIM_SCHEMA_CTHULHU,
+            _declared(DESTINATION_SCHEMA_CTHULHU, values={"type": "string"}),
+            INTERIM_DATA_CTHULHU,
+        )
 
     def test_unite(self):
         script = "UNITE > 'reference' < ['Reference 1', 'Reference 2', 'Reference 3', 'Reference 4', 'Reference 5', 'Reference 6', 'Reference 7', 'Reference 8']"

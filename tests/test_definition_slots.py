@@ -204,7 +204,9 @@ class TestFieldPolicy:
     @pytest.mark.parametrize("dtype, typed, saved", TYPED, ids=str)
     def test_a_pattern_saves_as_the_standard_writes_it(self, dtype, typed, saved):
         rules = {"language": "pt"} if "MMM" in typed else None
-        written = round_trip(qd.SchemaDefinition, schema({"format": typed} | ({"rules": rules} if rules else {}), dtype))
+        written = round_trip(
+            qd.SchemaDefinition, schema({"format": typed} | ({"rules": rules} if rules else {}), dtype)
+        )
         assert written["fields"][0]["policy"]["format"] == saved
 
     @pytest.mark.parametrize("dtype, policy, code", MISFITS, ids=lambda p: p if isinstance(p, str) else "")
