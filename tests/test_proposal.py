@@ -6,12 +6,15 @@ shown and not proposed where several do or none does.
 """
 
 import json
+import warnings
 from pathlib import Path
 
 import polars as pl
 import pytest
 
+import whyqd as qd
 from tests import test_reading
+from whyqd import ConformanceError
 from whyqd.dtypes import FindingKind
 from whyqd.models import FindingModel, PolicyModel, ProposalModel, ReportModel
 from whyqd.reading.proposal import ProposalParser
@@ -167,6 +170,66 @@ class TestNumbers:
     def test_a_marker_among_numbers_is_mixed(self):
         found = propose(["N/A", "£1,234.50", "£0.00"], dtype="number")
         assert isinstance(found, FindingModel) and found.code == "policy-mixed"
+
+
+class TestTransform:
+    """A transform is asked what to declare: each column read as the type its source field or destination gives it."""
+
+    BARKING = Path(__file__).resolve().parent / "data" / "sample" / "barking-dagenham"
+    BARKING_DATES = ("empty_from", "mand_from", "disc_from", "sbrr_from", "rtl_from", "liable_from")
+
+    @staticmethod
+    def faults(transform) -> set[str]:
+        """The fields a run refuses cells in."""
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            try:
+                transform.process()
+            except ConformanceError:
+                pass
+        return {found.field for found in transform.report.findings if found.kind == FindingKind.FAULT}
+
+    @pytest.mark.parametrize("name", test_reading.TestLocaleColumns.CLEAN)
+    def test_declaring_what_is_proposed_leaves_those_fields_without_a_fault(self, name):
+        report = test_reading.transform(name, {}).diagnose(propose=True)
+        proposed = {found.field: json.loads(found.model_dump_json())["value"] for found in report.proposals}
+        assert proposed, name
+        assert not proposed.keys() & self.faults(test_reading.transform(name, {"fields": proposed}))
+
+    def test_a_plain_locale_is_proposed_each_typed_column_and_shown_its_words(self):
+        report = test_reading.transform("en_GB.csv", {}).diagnose(propose=True)
+        assert {found.field for found in report.proposals} >= {"amount", "balance", "rate", "count", "start"}
+        assert not {found.field for found in report.proposals} & {"id", "name"}
+        shown = {found.field: found.code for found in report.findings if found.kind == FindingKind.FACT}
+        assert shown.get("active") == "policy-ambiguous"
+
+    def test_without_propose_a_report_has_findings_and_no_proposal(self):
+        report = test_reading.transform("en_GB.csv", {}).diagnose()
+        assert report.proposals == [] and report.findings
+
+    def test_diagnosing_changes_nothing(self):
+        transform = test_reading.transform("en_GB.csv", {})
+        before = transform.get.model_dump_json()
+        transform.diagnose(propose=True)
+        assert transform.get.model_dump_json() == before
+        assert transform.report is None and transform.data is None
+
+    def test_a_stored_transform_s_halting_dates_are_proposed(self):
+        stored = qd.TransformDefinition(transform=self.BARKING / "barking-dagenham.TRANSFORM")
+        source = stored.get.dataSource.model_copy(update={"path": str(self.BARKING / "source-data.XLSX")})
+        crosswalk = stored.get.crosswalk
+        for field in crosswalk.schemaSource.fields:
+            if field.name.strip() in self.BARKING_DATES:
+                field.dtype, field.policy = "date", None
+        report = qd.TransformDefinition(crosswalk=crosswalk, data_source=source).diagnose(propose=True)
+        formats = {found.field.strip(): found.value.format for found in report.proposals}
+        assert {name for name, written in formats.items() if written == "dd.MM.yyyy"} >= {
+            "empty_from",
+            "mand_from",
+            "disc_from",
+            "sbrr_from",
+            "liable_from",
+        }
 
 
 class TestBooleans:

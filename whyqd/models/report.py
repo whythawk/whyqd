@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: BSD-3-Clause
 from __future__ import annotations
 from typing import Optional, Union
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_serializer
 
 from whyqd.dtypes import FindingKind, MimeType, Place, SettingSource
 from whyqd.models.policy import PolicyModel
@@ -61,6 +61,13 @@ class ProposalModel(BaseModel):
     )
     evidence: str = Field(..., description="What in the file supports it.")
     model_config = ConfigDict(use_enum_values=True, validate_assignment=True)
+
+    @field_serializer("value")
+    def as_declared(self, value: SettingValue | PolicyModel):
+        """A policy written as a definition saves one, its defaults left out, so it can be declared as it stands."""
+        if isinstance(value, PolicyModel):
+            return value.model_dump(mode="json", by_alias=True, exclude_defaults=True)
+        return value
 
 
 class CrosswalkReportModel(BaseModel):

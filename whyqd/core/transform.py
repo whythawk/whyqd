@@ -5,7 +5,15 @@ from pathlib import Path
 from typing import ClassVar
 
 from whyqd.dtypes import ChecksumContent, FieldType, FindingKind, MimeType
-from whyqd.models import ActionScriptModel, DataSourceModel, CrosswalkModel, FieldModel, ReportModel, TransformModel
+from whyqd.models import (
+    ActionScriptModel,
+    CrosswalkModel,
+    DataSourceModel,
+    FieldModel,
+    FindingModel,
+    ReportModel,
+    TransformModel,
+)
 from whyqd.models.utc import UtcParser
 from whyqd.core import CrosswalkDefinition
 from whyqd.core.base import BaseDefinition
@@ -52,6 +60,7 @@ class TransformDefinition(BaseDefinition):
     DATED: ClassVar[frozenset[str]] = frozenset({"SELECT_NEWEST", "SELECT_OLDEST"})
     # The actions whose destination takes a source's value as it is, so the two types must agree
     MAPS_DIRECTLY: ClassVar[frozenset[str]] = frozenset({"RENAME", "SELECT", "SELECT_NEWEST", "SELECT_OLDEST"})
+    UNREADY: ClassVar[str] = "Before performing data transform provide both a data source and a crosswalk."
 
     def __init__(
         self,
@@ -127,7 +136,7 @@ class TransformDefinition(BaseDefinition):
           ValueError: If there are missing required destination fields in the crosswalk.
         """
         if not self.model.dataSource or not self.model.crosswalk:
-            raise ValueError("Before performing data transform provide both a data source and a crosswalk.")
+            raise ValueError(self.UNREADY)
         # The package imports this module, so its version is read here, once it has loaded
         import whyqd
 
@@ -140,6 +149,77 @@ class TransformDefinition(BaseDefinition):
         self.data = None
         self.data = self.conform(source=self.model.dataSource, strict=strict)
         self.model.ended = self.utc.now()
+
+    def diagnose(self, *, propose: bool = False) -> ReportModel:
+        """What a run would find, building nothing and changing nothing here: the report `process` would leave, each
+        refused cell and warning among its findings. With `propose`, for each column read as a type, the policy to
+        declare on its source field where one reading reads every cell, and otherwise a fact saying why none can be.
+        Nothing is applied: declare what you decide on the source schema's field.
+
+        A column is read as the type its source field declares, or an action reads it as, or the destination field an
+        action maps it to. A source field already declaring a policy is left as it is.
+
+        Parameters:
+          propose: Also propose a policy for each typed column.
+
+        Returns:
+          The report.
+
+        Raises:
+          ValueError: Without both a data source and a crosswalk, or where a required destination field is never built.
+
+        Examples:
+          ```python
+          import whyqd as qd
+
+          transform = qd.TransformDefinition(crosswalk=CROSSWALK, data_source=DATASOURCE)
+          report = transform.diagnose(propose=True)
+          for proposal in report.proposals:
+              print(proposal.field, proposal.value, proposal.evidence)
+          ```
+        """
+        from whyqd.reading.proposal import ProposalParser
+
+        if not self.model.dataSource or not self.model.crosswalk:
+            raise ValueError(self.UNREADY)
+        held = self.report
+        self.crosswalk.validate()
+        self.bound(source=self.model.dataSource)
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            try:
+                self.conform(source=self.model.dataSource)
+            except ConformanceError:
+                pass
+        report, self.report = self.report, held
+        if propose:
+            proposer = ProposalParser()
+            table, types = self.reader.typed_table(source=self.model.dataSource)
+            for name, dtype in self.typed().items():
+                if name not in table.columns:
+                    continue
+                found = proposer.propose(field=name, cells=table[name], types=types[name], dtype=dtype)
+                if isinstance(found, FindingModel):
+                    report.findings.append(found)
+                elif found is not None:
+                    report.proposals.append(found)
+        return report
+
+    def typed(self) -> dict[str, str]:
+        """Each source field read as a type, and that type: the destination's where an action maps the field directly,
+        an action's where it reads the field as one, and the field's own where it declares one. A field already
+        declaring a policy is left out, its reading being the wrangler's."""
+        from whyqd.reading.conformance import ConformanceParser
+
+        destination_fields = self.crosswalk.schema_destination.fields.get_all()
+        _, inputs, _, mapped = self.reads(conformance=ConformanceParser(), destination_fields=destination_fields)
+        found = {**mapped, **inputs}
+        for field in self.crosswalk.schema_source.fields.get_all():
+            if field.policy is not None:
+                found.pop(field.name, None)
+            elif field.dtype != FieldType.STRING.value:
+                found[field.name] = field.dtype
+        return found
 
     def conform(self, *, source: DataSourceModel, strict: bool = False):
         """The table the crosswalk builds from `source`, conforming to the destination schema, or a halt that leaves its
@@ -154,7 +234,7 @@ class TransformDefinition(BaseDefinition):
         conformance = ConformanceParser()
         origin, destination = self.crosswalk.schema_source, self.crosswalk.schema_destination
         destination_fields = destination.fields.get_all()
-        policies, inputs, read_fields = self.reads(conformance=conformance, destination_fields=destination_fields)
+        policies, inputs, read_fields, _ = self.reads(conformance=conformance, destination_fields=destination_fields)
         table, types = self.reader.typed_table(source=source)
         df = conformance.source(
             table=table, types=types, fields=origin.fields.get_all(), missing=origin.get.missingValues, inputs=inputs
@@ -194,10 +274,11 @@ class TransformDefinition(BaseDefinition):
             )
         return df[names]
 
-    def reads(self, *, conformance, destination_fields: list) -> tuple[dict, dict, set]:
+    def reads(self, *, conformance, destination_fields: list) -> tuple[dict, dict, set, dict]:
         """What the crosswalk's actions read: the policy each destination field's text is built under, the undeclared
-        source fields an action reads as a type, and every source field read. Each policy is checked against its field,
-        and a source field against the destination it maps to."""
+        source fields an action reads as a type, every source field read, and the destination type of each source field
+        an action maps directly. Each policy is checked against its field, and a source field against the destination it
+        maps to."""
         by_name = {field.name: field for field in destination_fields}
         for field in destination_fields:
             if field.policy and (field.policy.format is not None or field.policy.rules is not None):
@@ -206,7 +287,7 @@ class TransformDefinition(BaseDefinition):
                     "know. Move its `format` and `rules` to the source field or the action. "
                     "[whyqd:policy-on-destination]"
                 )
-        policies, inputs, read_fields = {}, {}, set()
+        policies, inputs, read_fields, mapped = {}, {}, set(), {}
         for script in self.crosswalk.crud.get_all():
             parsed = self.crosswalk.crud.parse(script=script)
             name = parsed["action"].name
@@ -222,6 +303,7 @@ class TransformDefinition(BaseDefinition):
                     for field in sources[::2] if dated else sources:
                         if target.name in by_name:
                             conformance.conflict(source=field, destination=by_name[target.name])
+                            mapped[field.name] = by_name[target.name].dtype
             policy = script.policy if isinstance(script, ActionScriptModel) else None
             if policy is not None:
                 outputs = policy if isinstance(policy, dict) else {target.name: policy for target in destinations}
@@ -232,7 +314,7 @@ class TransformDefinition(BaseDefinition):
                         held.standardise(dtype=by_name[target].dtype)
                         held.check(name=target, dtype=by_name[target].dtype)
                 policies |= outputs
-        return policies, inputs, read_fields
+        return policies, inputs, read_fields, mapped
 
     def flatten(self, terms) -> list:
         """A parsed script's source terms, however deep an action nested them."""
