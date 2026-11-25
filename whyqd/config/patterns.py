@@ -54,6 +54,9 @@ class PolarsPatterns:
     DATE_RUN: ClassVar[str] = r"^([0-9]{4})([0-9]{2})([0-9]{2})$"
     DAY_NAME: ClassVar[str] = r"^([0-9]+)\s+(\S+)\s+([0-9]{4})$"
     NAME_DAY: ClassVar[str] = r"^(\S+)\s+([0-9]+)\s+([0-9]{4})$"
+    # A date of three numbers, each part and separator captured, whatever their order or the year's length, for the
+    # declarations a proposal tries
+    DATE_PARTS: ClassVar[str] = r"^([0-9]+)([/.-])([0-9]+)([/.-])([0-9]+)$"
     COMMA: ClassVar[str] = ","
     MONTH: ClassVar[str] = (
         r"(?i)^[0-9\s/.,-]*\b(jan(uary)?|feb(ruary)?|mar(ch)?|apr(il)?|may|june?|july?|aug(ust)?|sep(t|tember)?"
