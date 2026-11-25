@@ -7,6 +7,8 @@ from whyqd.models.utc import UtcParser, UtcTime
 
 
 class VersionModel(BaseModel):
+    """One entry in a definition's history: who changed it, what they did, and when."""
+
     name: Optional[str] = Field(None, description="Name of the person who modified the schema or method.")
     description: Optional[str] = Field(None, description="Description of what was done in this version.")
     updated: Optional[UtcTime] = Field(

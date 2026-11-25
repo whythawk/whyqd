@@ -23,7 +23,7 @@ class ExtensionParser:
     [version specifier standard](https://packaging.python.org/en/latest/specifications/version-specifiers/#handling-of-pre-releases)
     has it.
 
-    Example:
+    Examples:
       ```python
       from whyqd.parsers.extension import ExtensionParser
 
@@ -49,11 +49,14 @@ class ExtensionParser:
             e for e in entry_points(group=kind.group, name=name) if not distribution or e.dist.name == distribution
         ]
         if not found:
-            raise ValueError(f"No installed package provides the {kind.value} `{name}` in `{kind.group}`.")
+            raise ValueError(
+                f"No installed package provides the {kind.value} `{name}` in `{kind.group}`. Install the one that "
+                "does. [whyqd:extension-not-provided]"
+            )
         if len(found) > 1:
             raise ValueError(
                 f"Several packages provide the {kind.value} `{name}`: {', '.join(e.dist.name for e in found)}. "
-                "Name the one to use as `distribution`."
+                "Name the one to use as `distribution`. [whyqd:extension-ambiguous]"
             )
         installed = Version(found[0].dist.version)
         return ExtensionModel(
@@ -69,25 +72,33 @@ class ExtensionParser:
         names = Counter((e.kind, e.name) for e in declared)
         for (kind, name), count in names.items():
             if count > 1:
-                raise ValueError(f"The {kind} `{name}` is declared {count} times; a definition names each once.")
+                raise ValueError(
+                    f"The {kind} `{name}` is declared {count} times. Declare it once. [whyqd:extension-repeated]"
+                )
             if name in self.builtins(kind=ExtensionKind(kind)):
-                raise ValueError(f"The {kind} `{name}` is one of whyqd's own, so no extension may take its name.")
+                raise ValueError(
+                    f"The {kind} `{name}` is one of whyqd's own, so no extension may take its name. Remove its "
+                    "declaration. [whyqd:extension-builtin]"
+                )
         for extension in declared:
             try:
                 installed = version(extension.distribution)
             except PackageNotFoundError:
                 raise ValueError(
-                    f"The {extension.kind} `{extension.name}` needs `{extension.distribution}`, which is not installed."
+                    f"The {extension.kind} `{extension.name}` needs `{extension.distribution}`, which is not "
+                    "installed. Install it. [whyqd:extension-missing]"
                 ) from None
             if not SpecifierSet(extension.version).contains(installed, prereleases=True):
                 raise ValueError(
                     f"The {extension.kind} `{extension.name}` needs `{extension.distribution}` "
-                    f"{extension.version}, and {installed} is installed."
+                    f"{extension.version}, and {installed} is installed. Install a version in that range. "
+                    "[whyqd:extension-version]"
                 )
             group = ExtensionKind(extension.kind).group
             if not any(e.dist.name == extension.distribution for e in entry_points(group=group, name=extension.name)):
                 raise ValueError(
-                    f"`{extension.distribution}` does not provide the {extension.kind} `{extension.name}` in `{group}`."
+                    f"`{extension.distribution}` does not provide the {extension.kind} `{extension.name}` in "
+                    f"`{group}`. Correct the declaration's `distribution`. [whyqd:extension-not-provided]"
                 )
 
     def declared(self, model: BaseModel) -> list[ExtensionModel]:

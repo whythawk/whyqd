@@ -2,9 +2,11 @@
 import codecs
 import warnings
 from collections import Counter
+from typing import ClassVar
 
 from whyqd.config.settings import settings
 from whyqd.dtypes import EncodingStep
+from whyqd.sources.grid import ReadWarning
 
 
 class EncodingParser:
@@ -16,33 +18,35 @@ class EncodingParser:
     loads with every byte kept, and reads as its text once the wrangler declares its encoding.
     """
 
-    BOMS = ((b"\xef\xbb\xbf", "utf-8"), (b"\xfe\xff", "utf-16be"), (b"\xff\xfe", "utf-16le"))
+    BOMS: ClassVar[tuple[tuple[bytes, str], ...]] = (
+        (b"\xef\xbb\xbf", "utf-8"),
+        (b"\xfe\xff", "utf-16be"),
+        (b"\xff\xfe", "utf-16le"),
+    )
     # Python's `cp1252` leaves five bytes undefined, which the standard decodes to the code point of their value
-    WINDOWS_1252 = "".join(
+    WINDOWS_1252: ClassVar[str] = "".join(
         chr(b) if b in (0x81, 0x8D, 0x8F, 0x90, 0x9D) else bytes([b]).decode("cp1252") for b in range(256)
     )
+    REPLACED_CODE: ClassVar[str] = "encoding-replaced"
 
     def name(self, *, label: str) -> str:
         """The standard's name, in lower case, for an encoding's label.
 
-        Raises
-        ------
-        ValueError
-            For a label of an encoding this whyqd does not decode, naming those it does.
+        Raises:
+          ValueError: For a label of an encoding whyqd does not decode, naming those it does.
 
-        Example
-        -------
-        ```python
-        EncodingParser().name(label="Latin1")   # "windows-1252"
-        ```
+        Examples:
+          ```python
+          EncodingParser().name(label="Latin1")   # "windows-1252"
+          ```
         """
         label = label.strip().lower()
         for name, encoding in settings.ENCODINGS.items():
             if label in encoding["labels"]:
                 return name
         raise ValueError(
-            f"whyqd does not decode `{label}`. Declare one of {', '.join(settings.ENCODINGS)}, or no encoding. "
-            "[whyqd:encoding-unknown]"
+            f"The dialect's `encoding` `{label}` is not one whyqd decodes. Declare one of "
+            f"{', '.join(settings.ENCODINGS)}, or none. [whyqd:encoding-unknown]"
         )
 
     def decode(
@@ -53,19 +57,13 @@ class EncodingParser:
         A declared encoding that cannot decode some bytes still loads: each such byte reads as U+FFFD, as the standard's
         replacement mode reads it, and one warning says how many, and what to declare instead.
 
-        Parameters
-        ----------
-        data: bytes
-            The file.
-        declared: str | None, default None
-            The encoding the wrangler declared, by any of its labels.
-        source: str, default "The file"
-            The file's name, for the warning.
+        Parameters:
+          data: The file.
+          declared: The encoding the wrangler declared, by any of its labels.
+          source: The file's name, for the warning.
 
-        Returns
-        -------
-        tuple[str, str, EncodingStep]
-            The text, the encoding's name, and the step.
+        Returns:
+          The text, the encoding's name, and the step.
         """
         for mark, name in self.BOMS:
             if data.startswith(mark):
@@ -73,24 +71,21 @@ class EncodingParser:
         if declared is not None:
             name = self.name(label=declared)
             return self.read(data=data, name=name, source=source), name, EncodingStep.DECLARED
+        default, fallback = settings.ENCODING_DEFAULT, settings.ENCODING_FALLBACK
         try:
-            return data.decode("utf-8"), "utf-8", EncodingStep.UTF8
+            return data.decode(default), default, EncodingStep.UTF8
         except UnicodeDecodeError:
-            return self.read(data=data, name="windows-1252"), "windows-1252", EncodingStep.WINDOWS_1252
+            return self.read(data=data, name=fallback), fallback, EncodingStep.WINDOWS_1252
 
     def detect(self, *, data: bytes) -> tuple[str, str] | None:
         """The encoding a file's bytes most likely are, among those whyqd shortlists, and the evidence. A guess, so only
         ever a proposal, and it never runs in a load. Read through charset-normalizer, the `diagnose` extra.
 
-        Raises
-        ------
-        ImportError
-            Without the `diagnose` extra.
+        Returns:
+          The encoding's name and the evidence, or `None` where none of the shortlist decodes the bytes.
 
-        Returns
-        -------
-        tuple[str, str] | None
-            The encoding's name and the evidence, or `None` where none of the shortlist decodes the bytes.
+        Raises:
+          ImportError: Without the `diagnose` extra.
         """
         try:
             import charset_normalizer
@@ -108,6 +103,7 @@ class EncodingParser:
         )
 
     def read(self, *, data: bytes, name: str, source: str = "The file") -> str:
+        """The bytes decoded as the named encoding, each byte it cannot decode read as U+FFFD, with one warning."""
         if name == "windows-1252":
             return codecs.charmap_decode(data, "strict", self.WINDOWS_1252)[0]
         codec = settings.ENCODINGS[name]["codec"]
@@ -126,6 +122,8 @@ class EncodingParser:
         return "".join(text)
 
     def warn(self, *, data: bytes, name: str, replaced: list[tuple[int, bytes]], source: str) -> None:
+        """Warn that some bytes were replaced: how many, the commonest three with the line each is first on, and the
+        encoding to declare instead."""
         line = {}
         for position, value in replaced:
             if value not in line:
@@ -135,8 +133,10 @@ class EncodingParser:
             for value, count in Counter(v for _, v in replaced).most_common(3)
         )
         warnings.warn(
-            f"{source} is declared `{name}`, but {len(replaced)} of its bytes are not, and read as � (commonest: "
-            f"{commonest}). Declare its own encoding, most often `windows-1252`. [whyqd:encoding-replaced]",
-            UserWarning,
+            ReadWarning(
+                f"{source} is declared `{name}`, but {len(replaced)} of its bytes are not, and read as � (commonest: "
+                f"{commonest}). Declare its own encoding, most often `windows-1252`. [whyqd:{self.REPLACED_CODE}]",
+                setting="encoding",
+            ),
             stacklevel=2,
         )

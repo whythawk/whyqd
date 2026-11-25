@@ -148,6 +148,8 @@ what was read, and the warning goes:
 | `year-below-1000` | `01/04/24` under `dd/MM/y` is the year 24, which may be a shortened year | `yy` and `rules.yearStart` |
 | `time-dropped` | A `date` field's cell also held a time other than midnight | A `datetime` field keeps it |
 | `repeated-hour` | The clocks went back, so this time happened twice, and it read as the earlier | |
+| `boolean-as-number` | A boolean mapped to a number, or stored in a number field, read `true` as 1 and `false` as 0 | |
+| `number-as-boolean` | A number mapped to a boolean, or stored in a boolean field, read 1 as `true` and 0 as `false`; any other number halts | |
 
 A cell may carry several: `£1,234.50` warns of its currency and its marks.
 

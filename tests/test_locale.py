@@ -3,9 +3,10 @@ from pathlib import Path
 import locale
 import subprocess
 import sys
+import polars as pl
 import pytest
 
-from whyqd.parsers import ReadingParser
+from whyqd.reading.reading import ReadingParser
 
 LOCALES = ["C.UTF-8", "en_US.UTF-8", "de_DE.UTF-8"]
 
@@ -23,9 +24,10 @@ def machine_locale(request):
 
 class TestLocale:
     def test_numbers_ignore_machine_locale(self, machine_locale):
-        read = ReadingParser().read(cells=["1234.50", "1,234", "-7"], dtype="number")
-        assert [r.value for r in read] == [1234.5, None, -7.0]
-        assert read[1].reason == "undeclared-character"
+        cells = pl.Series("cell", ["1234.50", "1,234", "-7"], dtype=pl.String)
+        read = ReadingParser().column(cells=cells, dtype="number")
+        assert read["value"].to_list() == [1234.5, None, -7.0]
+        assert read["reason"][1] == "undeclared-character"
 
     @pytest.mark.parametrize("name", LOCALES)
     def test_import_leaves_locale_unchanged(self, name):

@@ -10,13 +10,18 @@ its own data source, with its own dialect and names.
 import json
 from datetime import date, datetime, time, timedelta
 from pathlib import Path
+import zipfile
 
 import openpyxl
 import pandas as pd
 import pytest
 
 import whyqd as qd
-from whyqd.parsers import CellParser, DataSourceParser, RowKeyParser
+from whyqd.dtypes import MimeType
+from whyqd.sources.datasource import DataSourceParser
+from whyqd.sources.cell import CellParser
+from whyqd.sources.excel import ExcelParser
+from whyqd.sources.row_key import RowKeyParser
 
 DATA = Path(__file__).resolve().parent / "data"
 FIXTURE = DATA / "synthetic" / "fixture.xlsx"
@@ -197,3 +202,72 @@ class TestReferences:
         profile = {c.name: c.profile for c in model.columns}
         assert profile["Reference"].cellTypes == {"n": 4, "s": 1}
         assert (profile["UPRN"].cellTypes, profile["UPRN"].blank) == ({"n": 3}, 2)
+
+
+MAIN = "http://schemas.openxmlformats.org/spreadsheetml/2006/main"
+RELATIONSHIPS = "http://schemas.openxmlformats.org/officeDocument/2006/relationships"
+PACKAGE = "http://schemas.openxmlformats.org/package/2006/relationships"
+
+
+def handmade(path: Path, prefix: str) -> Path:
+    """A workbook's parts as a writer may store them, which openpyxl never does: a row and cells with no reference,
+    a gap left by a reference, and the spreadsheet namespace as the default or under a prefix. Only the parts whyqd
+    reads from the XML are written; no reader opens it."""
+    tag = f"{prefix}:" if prefix else ""
+    space = f'xmlns{":" + prefix if prefix else ""}="{MAIN}"'
+    rows = (
+        f'<{tag}row r="1"><{tag}c r="A1" s="1"><{tag}v>1</{tag}v></{tag}c>'
+        f'<{tag}c r="C1" s="2"><{tag}v>2</{tag}v></{tag}c></{tag}row>'
+        f'<{tag}row><{tag}c s="2"><{tag}v>3</{tag}v></{tag}c><{tag}c><{tag}v>4</{tag}v></{tag}c>'
+        f'<{tag}c s="1"><{tag}v>-0.25</{tag}v></{tag}c></{tag}row>'
+        f'<{tag}row r="4"><{tag}c s="1"><{tag}v>0.999999999</{tag}v></{tag}c></{tag}row>'
+    )
+    with zipfile.ZipFile(path, "w") as book:
+        book.writestr(
+            "_rels/.rels",
+            f'<Relationships xmlns="{PACKAGE}"><Relationship Id="rId1" Target="xl/workbook.xml" '
+            f'Type="{RELATIONSHIPS}/officeDocument"/></Relationships>',
+        )
+        book.writestr(
+            "xl/_rels/workbook.xml.rels",
+            f'<Relationships xmlns="{PACKAGE}">'
+            f'<Relationship Id="rId1" Target="worksheets/sheet1.xml" Type="{RELATIONSHIPS}/worksheet"/>'
+            f'<Relationship Id="rId2" Target="styles.xml" Type="{RELATIONSHIPS}/styles"/></Relationships>',
+        )
+        book.writestr(
+            "xl/workbook.xml",
+            f'<{tag}workbook {space} xmlns:r="{RELATIONSHIPS}"><{tag}sheets>'
+            f'<{tag}sheet name="Data" sheetId="1" r:id="rId1"/></{tag}sheets></{tag}workbook>',
+        )
+        book.writestr(
+            "xl/styles.xml",
+            f'<{tag}styleSheet {space}><{tag}numFmts><{tag}numFmt numFmtId="164" formatCode="0.000"/></{tag}numFmts>'
+            f'<{tag}cellXfs><{tag}xf numFmtId="0"/><{tag}xf numFmtId="14"/><{tag}xf numFmtId="164"/></{tag}cellXfs>'
+            f"</{tag}styleSheet>",
+        )
+        book.writestr(
+            "xl/worksheets/sheet1.xml",
+            f"<{tag}worksheet {space}><{tag}sheetData>{rows}</{tag}sheetData></{tag}worksheet>",
+        )
+    return path
+
+
+@pytest.mark.parametrize("prefix", ["", "x"], ids=["default", "prefixed"])
+class TestSheetXml:
+    """A sheet's XML read by its cells' places: a row with no reference follows the last, a cell with none follows the
+    last in its row, and a reference may leave a gap."""
+
+    def test_each_cells_format_is_read_by_its_place(self, tmp_path, prefix):
+        source = handmade(tmp_path / "handmade.xlsx", prefix)
+        codes = ExcelParser().formats(source=source, mime=MimeType.XLSX, sheet="Data", height=4, width=3)
+        assert codes.to_dict(as_series=False) == {
+            "column_0": ["mm-dd-yy", "0.000", None, "mm-dd-yy"],
+            "column_1": [None, "General", None, None],
+            "column_2": ["0.000", "mm-dd-yy", None, None],
+        }
+
+    def test_each_lost_value_is_read_back_by_its_place(self, tmp_path, prefix):
+        source = handmade(tmp_path / "handmade.xlsx", prefix)
+        rows = [[1, None, 2], [3, 4, time(0)], [None, None, None], [time(0), None, None]]
+        lost = ExcelParser().below_one(source=source, sheet="Data", rows=rows)
+        assert lost == {(1, 2): -0.25, (3, 0): date(1900, 1, 1)}

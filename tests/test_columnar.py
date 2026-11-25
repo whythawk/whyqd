@@ -13,7 +13,8 @@ import pandas as pd
 import pytest
 
 import whyqd as qd
-from whyqd.parsers import DataSourceParser, RowKeyParser
+from whyqd.sources.datasource import DataSourceParser
+from whyqd.sources.row_key import RowKeyParser
 
 ROW = RowKeyParser.ROW
 NAMES = ["Reference", "UPRN", "Amount", "Paid", "Start Date", "Updated", "Code"]

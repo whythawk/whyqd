@@ -4,6 +4,8 @@ from pydantic import field_validator, ConfigDict, BaseModel, Field
 
 
 class ModifierModel(BaseModel):
+    """A one-character mark an action's script may put before a source field, defined by the action."""
+
     name: str = Field(..., description="Single-character modifier.")
     title: str = Field(..., description="Human-readable title for the name. Acts as a description.")
     model_config = ConfigDict(validate_assignment=True, use_enum_values=True)

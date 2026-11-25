@@ -10,7 +10,7 @@ import pytest
 import whyqd as qd
 from whyqd.models import CategoryModel, VersionModel
 from whyqd.models.identifier import IdentifierParser
-from whyqd.parsers import CoreParser
+from whyqd.models.utc import UtcParser
 
 DIRECTORY = Path(__file__).resolve().parent / "data"
 SCHEMA = DIRECTORY / "test_schema.schema"
@@ -83,7 +83,7 @@ class TestTimes:
         monkeypatch.setenv("TZ", zone)
         time.tzset()
         try:
-            assert CoreParser().get_now() == datetime.now(timezone.utc).date().isoformat()
+            assert UtcParser().now().date().isoformat() == datetime.now(timezone.utc).date().isoformat()
         finally:
             monkeypatch.undo()
             time.tzset()

@@ -1,14 +1,17 @@
 # SPDX-License-Identifier: BSD-3-Clause
 from pathlib import Path
 
-import whyqd as qd
-from whyqd.parsers import CoreParser
+import pandas as pd
+import pytest
 
-CORE = CoreParser()
+import whyqd as qd
+from whyqd.models import ActionScriptModel, FieldModel, PolicyModel, ReasonModel, ReferenceModel
+from whyqd.parsers.definition import DefinitionParser
+
 SOURCE_DIRECTORY = Path(__file__).resolve().parent / "data"
 SOURCE_SCHEMA_PATH = SOURCE_DIRECTORY / "test_source_schema.schema"
 CROSSWALK_PATH = SOURCE_DIRECTORY / "test_crosswalk.crosswalk"
-CROSSWALK = CORE.load_json(source=CROSSWALK_PATH)
+CROSSWALK = DefinitionParser().load(source=CROSSWALK_PATH)
 CROSSWALK.pop("version", None)
 CROSSWALK["schemaSource"].pop("version", None)
 CROSSWALK["schemaDestination"].pop("version", None)
@@ -34,7 +37,6 @@ NEW_SCRIPT = "SELECT > 'occupation_state_date' < ['Account Start date', 'Current
 class TestCrosswalk:
     def test_create_validate(self, tmp_path):
         DIRECTORY = tmp_path
-        CORE.check_path(directory=DIRECTORY)
         crosswalk = qd.CrosswalkDefinition()
         crosswalk.set(
             crosswalk={"name": "test_crosswalk"}, schema_source=SCHEMA_SOURCE, schema_destination=SCHEMA_DESTINATION
@@ -47,6 +49,13 @@ class TestCrosswalk:
         c["schemaSource"].pop("version", None)
         c["schemaDestination"].pop("version", None)
         assert c == CROSSWALK
+
+    def test_exclude_uuid_keeps_a_current_format(self):
+        schema = {"formatVersion": "2.0", "name": "s", "fields": [{"name": "t", "type": "time"}]}
+        source = qd.SchemaDefinition(source=schema)
+        crosswalk = qd.CrosswalkDefinition()
+        crosswalk.set(crosswalk={"name": "c"}, schema_source=source, schema_destination=SCHEMA_DESTINATION)
+        assert crosswalk.exclude_uuid(model=crosswalk.get)["schemaSource"]["fields"][0]["type"] == "time"
 
     def test_add_remove_update(self):
         crosswalk = qd.CrosswalkDefinition()
@@ -68,3 +77,134 @@ class TestCrosswalk:
         CW = set(SCHEMA_SCRIPTS)
         assert cw - CW == {NEW_SCRIPT}
         assert CW - cw == set([SCHEMA_SCRIPTS[0], SCHEMA_SCRIPTS[-1]])
+
+
+GOOD = "CATEGORISE > 'group'::'g1' < 'kind'::['t1']"
+UNKNOWN = "CATEGORISE > 'group'::'nowhere' < 'kind'::['t2']"
+
+
+def categories() -> tuple[qd.SchemaDefinition, qd.SchemaDefinition]:
+    terms = lambda *names: {"category": [{"name": n} for n in names]}  # noqa: E731
+    source = qd.SchemaDefinition(
+        source={"name": "source", "fields": [{"name": "kind", "type": "string", "constraints": terms("t1", "t2")}]}
+    )
+    destination = qd.SchemaDefinition(
+        source={
+            "name": "destination",
+            "fields": [{"name": "group", "type": "string", "constraints": terms("g1", "g2")}],
+        }
+    )
+    return source, destination
+
+
+class TestUnknownCategory:
+    def test_refused_when_written(self):
+        source, destination = categories()
+        crosswalk = qd.CrosswalkDefinition()
+        crosswalk.set(crosswalk={"name": "c"}, schema_source=source, schema_destination=destination)
+        with pytest.raises(ValueError, match=r"`nowhere`.*`g1`, `g2`.*\[whyqd:category-unknown\]"):
+            crosswalk.actions.add(term=UNKNOWN)
+
+    def test_diagnose_finds_it_and_proposes_dropping_it(self):
+        source, destination = categories()
+        stored = {"name": "c", "actions": [{"script": GOOD}, {"script": UNKNOWN}]}
+        report = qd.CrosswalkDefinition().diagnose(
+            crosswalk=stored, schema_source=source, schema_destination=destination, propose=True
+        )
+        (finding,) = report.findings
+        assert finding.code == "category-unknown" and "`nowhere`" in finding.message
+        (proposal,) = report.proposals
+        assert (proposal.setting, proposal.value) == ("drop", finding.step)
+
+    def test_diagnose_reports_an_uncoded_refusal_as_its_step(self):
+        source, destination = categories()
+        stored = {"name": "c", "actions": [{"script": GOOD}, {"script": "RENAME > 'group' < ['nowhere']"}]}
+        report = qd.CrosswalkDefinition().diagnose(
+            crosswalk=stored, schema_source=source, schema_destination=destination
+        )
+        assert [(f.code, f.step) for f in report.findings] == [("step-refused", 1)]
+
+    def test_set_drops_the_steps_named(self):
+        source, destination = categories()
+        stored = {"name": "c", "actions": [{"script": GOOD}, {"script": UNKNOWN}]}
+        report = qd.CrosswalkDefinition().diagnose(
+            crosswalk=stored, schema_source=source, schema_destination=destination
+        )
+        crosswalk = qd.CrosswalkDefinition()
+        crosswalk.set(
+            crosswalk=stored, schema_source=source, schema_destination=destination, drop=[report.findings[0].step]
+        )
+        assert [step.script for step in crosswalk.actions.get_all()] == [GOOD]
+
+
+NESTED = "CALCULATE > 'x' < [+ 'a', + [CALCULATE < [+ 'b', + 'c']]]"
+
+
+def numbers() -> qd.CrosswalkDefinition:
+    source = qd.SchemaDefinition(source={"name": "source", "fields": [{"name": n, "type": "number"} for n in "abc"]})
+    destination = qd.SchemaDefinition(source={"name": "destination", "fields": [{"name": "x", "type": "number"}]})
+    crosswalk = qd.CrosswalkDefinition()
+    crosswalk.set(crosswalk={"name": "nested"}, schema_source=source, schema_destination=destination)
+    return crosswalk
+
+
+class TestMapped:
+    def test_removing_one_of_two_steps_keeps_the_field_mapped(self):
+        crosswalk = numbers()
+        crosswalk.actions.add_multi(terms=["RENAME > 'x' < ['a']", "RENAME > 'x' < ['b']"])
+        first, second = crosswalk.actions.get_all()
+        crosswalk.actions.remove(name=first.uuid)
+        assert [field.name for field in crosswalk.actions.validate()] == []
+        crosswalk.actions.remove(name=second.uuid)
+        assert [field.name for field in crosswalk.actions.validate()] == ["x"]
+
+
+class TestUpdate:
+    def dated(self) -> qd.CrosswalkDefinition:
+        source = qd.SchemaDefinition(
+            source={"name": "source", "fields": [{"name": n, "type": "string"} for n in ("day", "year")]}
+        )
+        destination = qd.SchemaDefinition(source={"name": "destination", "fields": [{"name": "d", "type": "date"}]})
+        crosswalk = qd.CrosswalkDefinition()
+        crosswalk.set(crosswalk={"name": "dated"}, schema_source=source, schema_destination=destination)
+        crosswalk.actions.add(term="UNITE > 'd' < '-'::['day', 'year']")
+        return crosswalk
+
+    def updated(self, crosswalk: qd.CrosswalkDefinition, **slots) -> ActionScriptModel:
+        (step,) = crosswalk.actions.get_all()
+        crosswalk.actions.update(term=step.model_copy(update=slots))
+        (step,) = crosswalk.actions.get_all()
+        return step
+
+    def test_an_update_keeps_a_new_policy(self):
+        step = self.updated(self.dated(), policy=PolicyModel(format="dd/MM-yyyy"))
+        assert step.policy.format == "dd/MM-yyyy"
+
+    def test_an_update_keeps_a_new_reason(self):
+        step = self.updated(self.dated(), reason=ReasonModel(comment="Day and year joined"))
+        assert step.reason.comment == "Day and year joined"
+
+    def test_an_update_keeps_a_new_correspondence(self):
+        source, destination = categories()
+        crosswalk = qd.CrosswalkDefinition()
+        crosswalk.set(crosswalk={"name": "c"}, schema_source=source, schema_destination=destination)
+        crosswalk.actions.add(term=GOOD)
+        step = self.updated(crosswalk, correspondence=ReferenceModel(source="https://example.org/kinds", version="1"))
+        assert step.correspondence.version == "1"
+        with pytest.raises(ValueError, match=r"\[whyqd:correspondence-not-categorise\]"):
+            self.updated(crosswalk, script="RENAME > 'group' < ['kind']")
+
+
+class TestNestedScripts:
+    @pytest.mark.xfail(strict=True, raises=NameError, reason="a nested script is not yet parsed")
+    def test_a_nested_script_parses(self):
+        parsed = numbers().actions.parse(script=NESTED)
+        (nested,) = [term for term in parsed["source"] if isinstance(term, dict)]
+        assert [term.name for term in parsed["source"] if isinstance(term, FieldModel)] == ["a"]
+        assert nested["action"].name == "CALCULATE"
+        assert [term.name for term in nested["source"] if isinstance(term, FieldModel)] == ["b", "c"]
+
+    @pytest.mark.xfail(strict=True, raises=NameError, reason="a nested script is not yet parsed, so not run")
+    def test_a_nested_script_runs(self):
+        data = pd.DataFrame({"a": ["1"], "b": ["2"], "c": ["3"]})
+        assert numbers().actions.transform(df=data, script=NESTED)["x"].tolist() == [6]

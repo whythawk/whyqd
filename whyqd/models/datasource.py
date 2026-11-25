@@ -1,27 +1,22 @@
 # SPDX-License-Identifier: BSD-3-Clause
 from __future__ import annotations
-from typing import Annotated, Optional, List, Dict, Any
+from typing import Annotated, Any, ClassVar, Dict, List, Optional
 from pydantic import StringConstraints, field_validator, ConfigDict, BaseModel, Field, ValidationInfo, RootModel
 import string
 
 from whyqd.dtypes import MimeType
-from whyqd.models import ChecksumModel, CitationModel, ColumnModel
+from whyqd.models.checksum import ChecksumModel
+from whyqd.models.citation import CitationModel
+from whyqd.models.column import ColumnModel
 from whyqd.models.dialect import DialectModel
 from whyqd.models.identifier import Identifier
 
 
 class DataSourceAttributeModel(RootModel):
+    """1.x's pandas reading keywords, kept so a 1.x data source loads and is refused by name: 2.0 reads by `dialect`."""
+
     # https://docs.pydantic.dev/latest/concepts/models/#rootmodel-and-custom-root-types
     root: Dict[str, Any]
-
-    def __iter__(self):
-        return iter(self.root)
-
-    def __getitem__(self, item):
-        return self.root[item]
-
-    def __setitem__(self, item, term):
-        self.root[item] = term
 
     @property
     def terms(self):
@@ -29,6 +24,11 @@ class DataSourceAttributeModel(RootModel):
 
 
 class DataSourceModel(BaseModel):
+    """A source file as whyqd reads it: where it is, its format and how it is written, its columns as read, and the
+    checksums that prove it is the file."""
+
+    SHEET_JOIN: ClassVar[str] = "::"
+
     uuid: Identifier = Field(description="Automatically generated unique identity for the data source.")
     title: Optional[str] = Field(None, description="A descriptive name for the data source.")
     description: Optional[str] = Field(
@@ -78,21 +78,16 @@ class DataSourceModel(BaseModel):
     citation: Optional[CitationModel] = Field(None, description="Optional full citation for the source data.")
     model_config = ConfigDict(use_enum_values=True, validate_assignment=True)
 
-    @field_validator("preserve")
+    @field_validator("preserve", "key")
     @classmethod
-    def preserve_check(cls, v: Optional[List[str]], info: ValidationInfo):
-        if not info.data["columns"] or set(v).difference([c.name for c in info.data["columns"]]):
+    def in_columns(cls, v: Optional[List[str]], info: ValidationInfo):
+        columns = info.data["columns"]
+        absent = set(v).difference(c.name for c in columns or [])
+        if not columns or absent:
+            named = ", ".join(f"`{name}`" for name in sorted(absent or v))
             raise ValueError(
-                f"Columns ({set(v).difference([c.name for c in info.data['columns']])}) not in source data columns."
-            )
-        return v
-
-    @field_validator("key")
-    @classmethod
-    def key_check(cls, v: Optional[List[str]], info: ValidationInfo):
-        if not info.data["columns"] or set(v).difference([c.name for c in info.data["columns"]]):
-            raise ValueError(
-                f"Key columns ({set(v).difference([c.name for c in info.data['columns']])}) not in source data columns."
+                f"Data source `{info.data.get('path')}`: `{info.field_name}` names {named}, not among its columns. "
+                f"Correct `{info.field_name}`. [whyqd:columns-unknown]"
             )
         return v
 
@@ -105,5 +100,5 @@ class DataSourceModel(BaseModel):
         root = "".join(c for c in self.path.split("/")[-1] if c in f"-_. {string.ascii_letters}{string.digits}")
         sheet = self.sheet_name or (self.dialect.sheet if self.dialect else None)
         if sheet:
-            return f"{root}::{sheet}"
+            return f"{root}{self.SHEET_JOIN}{sheet}"
         return root

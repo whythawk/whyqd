@@ -216,7 +216,14 @@ NUMBER = {
     "percent": group(
         "number",
         {"rules": {"percent": "%", "perMille": "‰"}},
-        [v("5%", "0.05"), v("5.5%", "0.055"), v("5‰", "0.005"), v("-5%", "-0.05"), v("5", "5"), r("5٪", "undeclared-character")],
+        [
+            v("5%", "0.05"),
+            v("5.5%", "0.055"),
+            v("5‰", "0.005"),
+            v("-5%", "-0.05"),
+            v("5", "5"),
+            r("5٪", "undeclared-character"),
+        ],
     ),
     "exponent": group(
         "number",
@@ -376,7 +383,11 @@ DATE = {
     "four_digit_year": group(
         "date",
         {"format": "dd/MM/yyyy"},
-        [v("01/04/2024", "2024-04-01"), w("01/04/0800", "0800-04-01", "year-below-1000"), r("01/04/24", "not-in-format")],
+        [
+            v("01/04/2024", "2024-04-01"),
+            w("01/04/0800", "0800-04-01", "year-below-1000"),
+            r("01/04/24", "not-in-format"),
+        ],
     ),
     "serial": group(
         "date",
@@ -458,7 +469,11 @@ DATE = {
     "quoted": group(
         "date",
         {"format": "d 'de' MMM 'de' y", "rules": {"language": "pt"}},
-        [v("1 de abr. de 2024", "2024-04-01"), v("1 de abril de 2024", "2024-04-01"), r("1 abr. 2024", "not-in-format")],
+        [
+            v("1 de abr. de 2024", "2024-04-01"),
+            v("1 de abril de 2024", "2024-04-01"),
+            r("1 abr. 2024", "not-in-format"),
+        ],
     ),
     "Arabic": group(
         "date",
@@ -580,9 +595,7 @@ DATETIME = {
         ],
         note="An offset is unambiguous, so a cell reads its own, and a column of them reads as UTC.",
     ),
-    "declared": group(
-        "datetime", {"format": "dd/MM/yyyy HH:mm"}, [v("13/04/2024 12:45", "2024-04-13T12:45:00")]
-    ),
+    "declared": group("datetime", {"format": "dd/MM/yyyy HH:mm"}, [v("13/04/2024 12:45", "2024-04-13T12:45:00")]),
     "serial": group(
         "datetime",
         {"rules": {"serial": "excel-1900"}},
@@ -669,7 +682,13 @@ STRING = {
         None,
         [
             {"cell_type": "d", "text": "2024-09-02", "outcome": "value", "value": "2024-09-02", "warns": "SEPT2"},
-            {"cell_type": "n", "text": "23100090000000000000", "outcome": "value", "value": "23100090000000000000", "warns": "2310009E13"},
+            {
+                "cell_type": "n",
+                "text": "23100090000000000000",
+                "outcome": "value",
+                "value": "23100090000000000000",
+                "warns": "2310009E13",
+            },
             {"cell_type": "d", "text": "2024-09-01", "outcome": "value", "value": "2024-09-01", "warns": "1-Sep"},
             {"cell_type": "s", "text": "SEPT2", "outcome": "value", "value": "SEPT2"},
         ],
@@ -677,6 +696,8 @@ STRING = {
         "stored type and never reverses it.",
     ),
 }
+
+
 def p(text, outcome):
     return {"text": text, "outcome": outcome}
 
@@ -697,7 +718,14 @@ CATEGORISE = {
         ),
         "number": presence(
             "number",
-            [p("5", "present"), p("£5", "present"), p("-1.50", "present"), p("0", "absent"), p("0.00", "absent"), p("N/A", "halts")],
+            [
+                p("5", "present"),
+                p("£5", "present"),
+                p("-1.50", "present"),
+                p("0", "absent"),
+                p("0.00", "absent"),
+                p("N/A", "halts"),
+            ],
         ),
         "number_zero_as_true": presence(
             "number", [p("5", "present"), p("0", "present"), p("0.00", "present")], zero_as_true=True

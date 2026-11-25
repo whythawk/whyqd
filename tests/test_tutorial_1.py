@@ -3,7 +3,7 @@ from pathlib import Path
 import pandas as pd
 
 import whyqd as qd
-from whyqd.parsers import CoreParser, DataSourceParser
+from whyqd.sources.datasource import DataSourceParser
 
 reader = DataSourceParser()
 
@@ -57,7 +57,6 @@ class TestTutorialRates:
         """Portsmouth ratepayer data in multiple sheets. Demonstrating create method, add date,
         actions and perform a merge, plus filter the final result."""
         DIRECTORY = tmp_path
-        CoreParser().check_path(directory=DIRECTORY)
         # 1. Import a destination schema
         schema_destination = qd.SchemaDefinition()
         schema_destination.set(schema=SCHEMA_DESTINATION)

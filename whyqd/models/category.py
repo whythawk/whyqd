@@ -7,6 +7,9 @@ from whyqd.models.identifier import Identifier
 
 
 class CategoryModel(BaseModel):
+    """One of a field's categories: a term, or `true` or `false` where the field's categories are booleans, with its
+    code where it comes from a term list."""
+
     uuid: Identifier = Field(description="Unique identity for the category. Automatically generated.")
     # Little gotcha ... if bool is 2nd, then any bools are automatically coerced to string ... order is priority.
     # Second gotcha, Pydantic is quite liberal with what it classifies as bool https://docs.pydantic.dev/latest/usage/types/booleans/

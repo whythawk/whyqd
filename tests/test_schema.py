@@ -2,15 +2,18 @@
 from pathlib import Path
 import json
 
-import whyqd as qd
-from whyqd.parsers import CoreParser
+import pytest
 
+import whyqd as qd
+from whyqd.parsers.definition import DefinitionParser
+
+DEFINITIONS = DefinitionParser()
 DIRECTORY = Path(__file__).resolve().parent / "data"
-DATA_MODEL = {"SINGLE": CoreParser().load_json(source=DIRECTORY / "raw_E06000044_014_0.data")}
+DATA_MODEL = {"SINGLE": DEFINITIONS.load(source=DIRECTORY / "raw_E06000044_014_0.data")}
 SCHEMA_SOURCE = DIRECTORY / "test_schema.schema"
 SCHEMA_DATA = {
-    "SOURCE": CoreParser().load_json(source=SCHEMA_SOURCE),
-    "DERIVED": CoreParser().load_json(source=DIRECTORY / "test_derived_schema.schema"),
+    "SOURCE": DEFINITIONS.load(source=SCHEMA_SOURCE),
+    "DERIVED": DEFINITIONS.load(source=DIRECTORY / "test_derived_schema.schema"),
 }
 
 
@@ -86,3 +89,8 @@ class TestSchema:
         # The stored schema is 1.x's, with its file's row count; a derived one has none, its data source holding it
         D.pop("index")
         assert json.loads(d) == {"formatVersion": "2.0"} | D
+
+    def test_a_field_without_categories_says_so(self):
+        schema = qd.SchemaDefinition(source={"name": "s", "fields": [{"name": "a", "type": "string"}]})
+        with pytest.raises(ValueError, match=r"\[whyqd:field-no-categories\]"):
+            schema.fields.get_category(name="a", category="x")

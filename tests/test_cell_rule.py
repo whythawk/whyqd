@@ -15,7 +15,7 @@ import pytest
 import whyqd as qd
 from whyqd.dtypes import MimeType
 from whyqd.models import DialectModel
-from whyqd.parsers.excel_reader import ExcelParser
+from whyqd.sources.excel import ExcelParser
 
 CELLS = Path(__file__).resolve().parent / "data" / "synthetic-cells"
 KEY = json.loads((CELLS / "answer-key.json").read_text(encoding="utf-8"))
@@ -97,7 +97,7 @@ class TestResave:
         for model in models:
             definition = qd.DataSourceDefinition(source=model)
             if model.dialect.sheet in changed:
-                with pytest.raises(AssertionError, match="source-changed"):
+                with pytest.raises(ValueError, match="source-changed"):
                     definition.validate()
             else:
                 with pytest.warns(UserWarning, match="source-saved-again"):
@@ -109,7 +109,7 @@ class TestBelowOne:
         def refuse(*args, **kwargs):
             raise AssertionError("The sheet's XML was opened.")
 
-        monkeypatch.setattr("whyqd.parsers.excel_reader.zipfile.ZipFile", refuse)
+        monkeypatch.setattr("whyqd.sources.excel.zipfile.ZipFile", refuse)
         assert read("cells-1900.xlsx", "Cells")
 
     def test_a_tiny_value_rounding_down_stays_a_time(self):

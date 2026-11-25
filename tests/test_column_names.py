@@ -11,7 +11,8 @@ from pathlib import Path
 import pytest
 
 import whyqd as qd
-from whyqd.parsers import DataSourceParser, RowKeyParser
+from whyqd.sources.datasource import DataSourceParser
+from whyqd.sources.row_key import RowKeyParser
 
 LAYOUTS = Path(__file__).resolve().parent / "data" / "synthetic-layouts"
 HOSTILE = json.loads((LAYOUTS / "answer-key.json").read_text(encoding="utf-8"))["csv"]["hostile-headers.csv"]

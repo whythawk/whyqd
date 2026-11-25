@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: BSD-3-Clause
 from __future__ import annotations
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, ClassVar
 import hashlib
 import json
 
@@ -24,31 +24,30 @@ class FingerprintParser:
     [RFC 8785](https://www.rfc-editor.org/rfc/rfc8785), holding each cell as `[type, text]` (`CellType`, `CellParser`),
     or `null` where empty. The sheet's name is not in them: it finds the sheet, and renaming one changes no value.
 
-    Example
-    -------
-    A grid of `Code` above the number 12 hashes the bytes `fp0\\n[["s","Code"]]\\n[["n","12"]]`.
+    Examples:
+      A grid of `Code` above the number 12 hashes the bytes `fp0\\n[["s","Code"]]\\n[["n","12"]]`.
     """
 
-    VERSION = "fp0"
+    VERSION: ClassVar[str] = "fp0"
+    CHUNK_BYTES: ClassVar[int] = 1 << 16
 
     def byte_hash(self, *, source: str | Path) -> str:
         """The file's bytes, hashed."""
         checksum = hashlib.blake2b()
         with open(source, "rb") as f:
-            for chunk in iter(lambda: f.read(65536), b""):
+            for chunk in iter(lambda: f.read(self.CHUNK_BYTES), b""):
                 checksum.update(chunk)
         return checksum.hexdigest()
 
     def fp0(self, *, grid: pl.DataFrame, types: pl.DataFrame) -> str:
         """The `fp0` of one sheet, or of a file without sheets, from its grid and types.
 
-        Example
-        -------
-        ```python
-        grid = pl.DataFrame({"column_0": ["Code", "12"]})
-        types = pl.DataFrame({"column_0": ["s", "n"]})
-        FingerprintParser().fp0(grid=grid, types=types)
-        ```
+        Examples:
+          ```python
+          grid = pl.DataFrame({"column_0": ["Code", "12"]})
+          types = pl.DataFrame({"column_0": ["s", "n"]})
+          FingerprintParser().fp0(grid=grid, types=types)
+          ```
         """
         checksum = hashlib.blake2b()
         checksum.update(self.VERSION.encode())

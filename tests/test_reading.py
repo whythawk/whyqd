@@ -9,6 +9,7 @@ in `tests/data/builders/`. A reading does not depend on the machine's locale, so
 The tests of the reader and of the conversion fail until those are built, each pinned as a strict expected failure.
 """
 
+import itertools
 import json
 import math
 from decimal import Decimal
@@ -20,9 +21,11 @@ import pytest
 
 import whyqd as qd
 from tests.test_locale import machine_locale  # noqa: F401
-from whyqd import parsers
-from whyqd.dtypes import MimeType, RefusalReason
-from whyqd.models import FieldModel, PolicyModel
+from whyqd.dtypes import CellType, MimeType, RefusalReason
+from whyqd.config.names import NameTables
+from whyqd.models import FieldModel, PolicyModel, RulesModel
+from whyqd.reading.reading import ReadingParser
+from whyqd.sources.datasource import DataSourceParser
 
 DATA = Path(__file__).resolve().parent / "data"
 TYPING = json.loads((DATA / "synthetic-typing" / "typing-key.json").read_text(encoding="utf-8"))
@@ -31,9 +34,7 @@ SOURCES = DATA / "synthetic-locales"
 TYPES = ("number", "integer", "boolean", "date", "month", "quarter", "year", "time", "datetime", "duration", "string")
 READ = TYPES
 GROUPS = [(dtype, name) for dtype in TYPES for name in TYPING[dtype]]
-CASES = [
-    (dtype, name, index) for dtype, name in GROUPS for index in range(len(TYPING[dtype][name]["cases"]))
-]
+CASES = [(dtype, name, index) for dtype, name in GROUPS for index in range(len(TYPING[dtype][name]["cases"]))]
 DESTINATION = {f["name"]: f["type"] for f in LOCALES["destination"]["fields"]}
 
 
@@ -62,19 +63,30 @@ class TestKeys:
                 FieldModel(name=field, type=DESTINATION[field], policy=policy)
 
 
+def readings(
+    *, cells: list[str | None], dtype: str, policy: PolicyModel | None = None, cell_types: list[str] | None = None
+) -> list[dict]:
+    """Each cell's reading as a row of `ReadingParser.column`'s."""
+    types = None if cell_types is None else pl.Series("cell", cell_types, dtype=pl.String)
+    read = ReadingParser().column(
+        cells=pl.Series("cell", cells, dtype=pl.String), dtype=dtype, policy=policy, types=types
+    )
+    return list(read.iter_rows(named=True))
+
+
 def check_reading(dtype: str, name: str, index: int) -> None:
     group = TYPING[dtype][name]
     case = group["cases"][index]
     policy = PolicyModel(**group["policy"]) if group["policy"] else None
-    reading = parsers.ReadingParser().read(
+    reading = readings(
         cells=[case["text"]], cell_types=[case.get("cell_type", "s")], dtype=group["type"], policy=policy
     )[0]
-    assert reading.kind == {"refuse": "refused"}.get(case["outcome"], case["outcome"]), (case, reading)
+    assert reading["kind"] == {"refuse": "refused"}.get(case["outcome"], case["outcome"]), (case, reading)
     if case["outcome"] == "refuse":
-        assert reading.reason == case["reason"], (case, reading)
+        assert reading["reason"] == case["reason"], (case, reading)
     if case["outcome"] == "value":
-        assert same(group["type"], reading.value, case["value"]), (case, reading)
-    assert sorted(reading.warnings) == sorted(case.get("warnings", [])), (case, reading)
+        assert same(group["type"], reading["value"], case["value"]), (case, reading)
+    assert sorted(reading["warnings"]) == sorted(case.get("warnings", [])), (case, reading)
 
 
 class TestReader:
@@ -84,62 +96,120 @@ class TestReader:
 
     def test_a_column_reads_each_cell_by_the_one_declaration(self):
         policy = PolicyModel(format={"decimalChar": ",", "groupChar": "."}, rules={"currency": ["€"]})
-        read = parsers.ReadingParser().read(cells=["1.234,50 €", "1,234.50", "", "٣٤"], dtype="number", policy=policy)
-        assert [r.kind for r in read] == ["value", "refused", "blank", "value"]
-        assert read[0].value == 1234.5 and read[3].value == 34
+        read = readings(cells=["1.234,50 €", "1,234.50", "", "٣٤"], dtype="number", policy=policy)
+        assert [r["kind"] for r in read] == ["value", "refused", "blank", "value"]
+        assert read[0]["value"] == 1234.5 and read[3]["value"] == 34
 
     def test_a_decimal_column_takes_its_scale_from_its_cells(self):
-        read = parsers.ReadingParser().read(cells=["1.5", "0.125", "2"], dtype="number", policy=PolicyModel(base="decimal"))
-        assert [r.value for r in read] == [Decimal("1.5"), Decimal("0.125"), Decimal("2")]
+        read = readings(cells=["1.5", "0.125", "2"], dtype="number", policy=PolicyModel(base="decimal"))
+        assert [r["value"] for r in read] == [Decimal("1.5"), Decimal("0.125"), Decimal("2")]
 
     def test_a_stored_number_is_already_a_value(self):
         policy = PolicyModel(format={"decimalChar": ",", "groupChar": "."})
-        read = parsers.ReadingParser().read(
+        read = readings(
             cells=["1234.5", "2.5e-05", "2024-01-01"], cell_types=["n", "n", "d"], dtype="number", policy=policy
         )
-        assert read[0].value == 1234.5 and read[1].value == 2.5e-05
-        assert read[2].reason == "not-in-format"
+        assert read[0]["value"] == 1234.5 and read[1]["value"] == 2.5e-05
+        assert read[2]["reason"] == "not-in-format"
+
+    def test_a_declared_name_keeps_all_but_one_closing_dot(self):
+        months = ["Jan..", *"Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec".split()]
+        policy = PolicyModel(format="d MMM yyyy", rules={"monthNames": months})
+        read = readings(cells=["1 Jan.. 2024", "1 Jan. 2024"], dtype="date", policy=policy)
+        assert [str(r["value"]) for r in read] == ["2024-01-01", "None"]
+
+    def test_a_stored_boolean_and_number_read_across_with_a_warning(self):
+        numbers = readings(cells=["TRUE", "FALSE"], cell_types=["b", "b"], dtype="number")
+        assert [(r["value"], r["warnings"]) for r in numbers] == [
+            (1.0, ["boolean-as-number"]),
+            (0.0, ["boolean-as-number"]),
+        ]
+        booleans = readings(cells=["1", "0", "2"], cell_types=["n", "n", "n"], dtype="boolean")
+        assert [(r["value"], r["reason"]) for r in booleans] == [(True, None), (False, None), (None, "not-in-format")]
+        assert booleans[0]["warnings"] == ["number-as-boolean"]
 
     def test_a_cell_with_no_offset_beside_those_with_one_needs_a_zone(self):
         cells = ["2024-04-13T12:45:00Z", "2024-04-13T12:45:00"]
-        read = parsers.ReadingParser().read(cells=cells, dtype="datetime")
-        assert read[1].reason == "no-zone"
-        zoned = parsers.ReadingParser().read(cells=cells, dtype="datetime", policy=PolicyModel(rules={"zone": "UTC"}))
-        assert [r.kind for r in zoned] == ["value", "value"]
+        read = readings(cells=cells, dtype="datetime")
+        assert read[1]["reason"] == "no-zone"
+        zoned = readings(cells=cells, dtype="datetime", policy=PolicyModel(rules={"zone": "UTC"}))
+        assert [r["kind"] for r in zoned] == ["value", "value"]
 
-    @pytest.mark.parametrize("cell", ["1st April 2024", "c. 1850", "<5", "Mon–Fri", "12E4", "٣4", "½", "#N/A", "anything"])
+    @pytest.mark.parametrize(
+        "cell", ["1st April 2024", "c. 1850", "<5", "Mon–Fri", "12E4", "٣4", "½", "#N/A", "anything"]
+    )
     def test_text_is_always_the_way_out(self, cell):
-        reading = parsers.ReadingParser().read(cells=[cell], dtype="string")[0]
-        assert (reading.kind, reading.value) == ("value", cell)
+        reading = readings(cells=[cell], dtype="string")[0]
+        assert (reading["kind"], reading["value"]) == ("value", cell)
 
     def test_a_negative_is_never_read_twice_into_a_positive(self):
-        read = parsers.ReadingParser().read(cells=["(-5)"], dtype="number", policy=PolicyModel(rules={"negative": ["(x)"]}))
-        assert read[0].reason == "undeclared-sign"
+        read = readings(cells=["(-5)"], dtype="number", policy=PolicyModel(rules={"negative": ["(x)"]}))
+        assert read[0]["reason"] == "undeclared-sign"
 
     @pytest.mark.parametrize("name", ["count", "^a$", "*", "cell"])
     def test_a_columns_name_never_changes_its_reading(self, name):
         cells = pl.Series(name, ["1", "x"], dtype=pl.String)
-        read = parsers.ReadingParser().column(cells=cells, dtype="number")
+        read = ReadingParser().column(cells=cells, dtype="number")
         assert read["kind"].to_list() == ["value", "refused"]
+
+    def test_each_combination_of_warnings_lists_in_order(self):
+        reader = ReadingParser()
+        codes = reader.WARNING_CODES[:4]
+        combinations = list(itertools.product([False, True], repeat=len(codes)))
+        count = len(combinations)
+        read = pl.DataFrame(
+            {
+                reader.BLANK: [False] * count + [True, False],
+                reader.TYPE: [CellType.STRING.value] * (count + 2),
+                reader.REASON: [None] * count + [None, RefusalReason.NO_NUMBER.value],
+                **{
+                    code: [combination[i] for combination in combinations] + [True, True]
+                    for i, code in enumerate(codes)
+                },
+            }
+        )
+        warnings = reader.outcome(read, pl.Series([1.0] * (count + 2)))[reader.WARNINGS].to_list()
+        written = [[code for i, code in enumerate(codes) if combination[i]] for combination in combinations]
+        assert warnings == [*written, [], []]
 
     def test_a_text_fields_stored_types_are_counted(self):
         types = pl.Series("id", ["s", "d", "n", "d", None], dtype=pl.String)
-        assert parsers.ReadingParser().stored_types(types) == {"d": 2, "n": 1}
+        assert ReadingParser().stored_types(types) == {"d": 2, "n": 1}
 
     def test_more_than_one_currency_is_counted(self):
-        reader = parsers.ReadingParser()
-        cells = pl.Series("amount", ["£5", "£6", "€7", "¬£8", "9"], dtype=pl.String)
-        policy = PolicyModel(rules={"currency": ["£", "€", "¬£"]})
-        assert reader.currencies(cells=cells, policy=policy) == {"£": 2, "€": 1, "¬£": 1}
-        assert reader.currencies(cells=cells, policy=PolicyModel(rules={"currency": ["£"]})) == {}
+        reader = ReadingParser()
+        cells = pl.Series("amount", ["£5", "£6", "€7", "¬£8", "9", "‎£ 1"], dtype=pl.String)
+        counted = {"£": 3, "€": 1, "¬£": 1}
+        for policy, counts in (
+            (PolicyModel(rules={"currency": ["£", "€", "¬£"]}), counted),
+            (PolicyModel(), counted),
+            (PolicyModel(rules={"currency": ["£"]}), {}),
+        ):
+            readings = reader.column(cells=cells, dtype="number", policy=policy)
+            assert reader.numbers.currencies(readings=readings, policy=policy) == counts
 
     def test_commonly_typed_patterns_read(self):
         for typed in ("dd/mm/yyyy", "DD/MM/YYYY", "%d/%m/%Y", "dd/MM/yyyy"):
-            read = parsers.ReadingParser().read(cells=["1/4/2024"], dtype="date", policy=PolicyModel(format=typed))
-            assert str(read[0].value) == "2024-04-01", typed
+            read = readings(cells=["1/4/2024"], dtype="date", policy=PolicyModel(format=typed))
+            assert str(read[0]["value"]) == "2024-04-01", typed
+
+    def test_a_cells_name_keys_as_a_declared_one_does(self):
+        dates = ReadingParser().dates
+        names, periods = set(), set()
+        for table in NameTables.languages().values():
+            for entry in [*table["months"], *table["weekdays"]]:
+                names |= set(RulesModel.spellings(entry))
+            periods |= {*table["morning"], *table["afternoon"]}
+        for spelled, one, many in (
+            (names, RulesModel.name_key, dates.name_keys),
+            (periods, dates.period_key, dates.period_keys),
+        ):
+            written = sorted(spelled)
+            cells = dates.steps(pl.Series("cell", written, dtype=pl.String))
+            assert many(cells).to_list() == [one(name) for name in written]
 
     def test_refusals_group_by_shape(self):
-        reader = parsers.ReadingParser()
+        reader = ReadingParser()
         cells = pl.Series("amount", ["#-1.50", "#-99.99", "5", "N/A"], dtype=pl.String)
         findings = reader.findings(field="amount", cells=cells, readings=reader.column(cells=cells, dtype="number"))
         shapes = {f.shape: (f.code, f.count, f.rows) for f in findings}
@@ -204,18 +274,25 @@ class TestLocaleColumns:
     @staticmethod
     def columns(source: Path, mime: str) -> tuple[pl.DataFrame, pl.DataFrame]:
         """A file's table and each cell's stored type, by whyqd's own read."""
-        reader = parsers.DataSourceParser()
+        reader = DataSourceParser()
         kind = MimeType[mime]
-        grid, types, lines, dialect = reader.reader(mime=kind).grid(source=source, mime=kind, dialect=reader.declare(dialect=None))
+        grid, types, lines, dialect = reader.reader(mime=kind).grid(
+            source=source, mime=kind, dialect=reader.declare(dialect=None)
+        )
         table, (text, types) = reader.tables.table(
-            grid=grid, lines=lines, dialect=dialect, names=None, place=reader.reader(mime=kind).PLACE, beside=[grid, types]
+            grid=grid,
+            lines=lines,
+            dialect=dialect,
+            source=source.name,
+            place=reader.reader(mime=kind).PLACE,
+            beside=[grid, types],
         )
         return text, types
 
     def readings(self, name: str, declare: dict) -> dict[str, pl.DataFrame]:
         text, types = self.columns(SOURCES / name, LOCALES["files"][name]["mime"])
         return {
-            field: parsers.ReadingParser().column(
+            field: ReadingParser().column(
                 cells=text[field],
                 types=types[field],
                 dtype=dtype,
@@ -231,7 +308,7 @@ class TestLocaleColumns:
         for field, dtype in self.READ_FIELDS.items():
             read = readings[field]
             assert read["reason"].drop_nulls().to_list() == [], (field, read)
-            for got, want in zip(read["value"].to_list(), entry["values"]):
+            for got, want in zip(read["value"].to_list(), entry["values"], strict=True):
                 assert same(dtype, got, want[field]), (field, got, want[field])
 
     @pytest.mark.parametrize("name", MIXED)
@@ -239,7 +316,10 @@ class TestLocaleColumns:
         round_ = LOCALES["files"][name]["rounds"][1]
         readings = self.readings(name, round_["declare"]["fields"])
         for field in self.READ_FIELDS:
-            assert readings[field]["reason"].drop_nulls().len() == round_["halts"].get(field, 0), (field, readings[field])
+            assert readings[field]["reason"].drop_nulls().len() == round_["halts"].get(field, 0), (
+                field,
+                readings[field],
+            )
 
     def test_excels_swapped_dates_read_wrongly_only_until_declared(self):
         round_ = LOCALES["files"]["excel-en_GB.xlsx"]["rounds"]
@@ -250,7 +330,7 @@ class TestLocaleColumns:
 
     def test_excels_conversions_of_text_are_counted(self):
         _, types = self.columns(SOURCES / "excel-en_GB.xlsx", "XLSX")
-        assert parsers.ReadingParser().stored_types(types["id"]) == {"d": 1, "n": 1}
+        assert ReadingParser().stored_types(types["id"]) == {"d": 1, "n": 1}
 
 
 class TestStockport:
@@ -263,7 +343,7 @@ class TestStockport:
         text, types = TestLocaleColumns.columns(self.SOURCE, "XLSX")
         column, tags = text["LiabStart"], types["LiabStart"]
         assert (tags == "d").sum() == 4232 and (tags == "s").sum() == 2382
-        read = parsers.ReadingParser().column(cells=column, types=tags, dtype="date", policy=self.POLICY)
+        read = ReadingParser().column(cells=column, types=tags, dtype="date", policy=self.POLICY)
         assert (read["kind"] == "value").sum() == 4232 + 2382
 
 
@@ -287,6 +367,6 @@ class TestConversion:
                 continue
         rows = run.data.astype(object).where(run.data.notna(), None).to_dict("records")
         assert len(rows) == len(entry["values"])
-        for got, want in zip(rows, entry["values"]):
+        for got, want in zip(rows, entry["values"], strict=True):
             for field, dtype in DESTINATION.items():
                 assert same(dtype, got[field], want[field]), (field, got[field], want[field])

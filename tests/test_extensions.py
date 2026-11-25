@@ -57,7 +57,7 @@ class TestDeclare:
         )
 
     def test_missing_refused(self, installed):
-        with pytest.raises(ValueError, match="No installed package provides the action `TRANSLATE`"):
+        with pytest.raises(ValueError, match=r"`TRANSLATE`.*\[whyqd:extension-not-provided\]"):
             installed.declare(name="TRANSLATE", kind="action")
 
 
@@ -77,13 +77,16 @@ class TestCheck:
     @pytest.mark.parametrize(
         "extensions, refusal",
         [
-            ([declaration(distribution="whyqd-absent")], "needs `whyqd-absent`, which is not installed"),
-            ([declaration(version=">=2,<3")], r"needs `whyqd-postal` >=2,<3, and 1\.4\.0 is installed"),
-            ([declaration(), declaration(distribution="whyqd-geo", version=">=2.0.0rc1")], "declared 2 times"),
-            ([declaration(name="RENAME")], "one of whyqd's own"),
-            ([declaration(name="string", kind="type")], "one of whyqd's own"),
-            ([declaration(name="GEOCODE")], "does not provide the action `GEOCODE`"),
-            ([declaration(version="1.4")], "not a version specifier"),
+            ([declaration(distribution="whyqd-absent")], r"`whyqd-absent`.*\[whyqd:extension-missing\]"),
+            ([declaration(version=">=2,<3")], r"`whyqd-postal` >=2,<3, and 1\.4\.0.*\[whyqd:extension-version\]"),
+            (
+                [declaration(), declaration(distribution="whyqd-geo", version=">=2.0.0rc1")],
+                r"declared 2 times.*\[whyqd:extension-repeated\]",
+            ),
+            ([declaration(name="RENAME")], r"`RENAME`.*\[whyqd:extension-builtin\]"),
+            ([declaration(name="string", kind="type")], r"`string`.*\[whyqd:extension-builtin\]"),
+            ([declaration(name="GEOCODE")], r"`GEOCODE`.*\[whyqd:extension-not-provided\]"),
+            ([declaration(version="1.4")], r"\[whyqd:extension-specifier\]"),
         ],
         ids=["missing", "outside range", "twice", "built-in action", "built-in type", "not provided", "bad range"],
     )

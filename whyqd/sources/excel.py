@@ -2,22 +2,26 @@
 from collections.abc import Iterator
 from datetime import date, time
 import posixpath
+import string
 import zipfile
 from pathlib import Path
+from typing import ClassVar
 from xml.etree import ElementTree
+from xml.parsers import expat
 
 import fastexcel
 import polars as pl
 import python_calamine
 
 from whyqd.config.patterns import PythonPatterns
-from whyqd.dtypes import CellType, MimeType
+from whyqd.dtypes import CellType, MimeType, Place
 from whyqd.models import DialectModel
-from whyqd.parsers.cell import CellParser
-from whyqd.parsers.grid import GridParser
+from whyqd.sources.cell import CellParser
+from whyqd.sources.grid import GridParser, ReadFault
+from whyqd.sources.reader import Reader
 
 
-class ExcelParser:
+class ExcelParser(Reader):
     """A workbook's sheet as the grid: each cell its stored value in whyqd's text, never as displayed.
 
     Every sheet is read, a hidden one included, since it is the publisher's data; each is its own table. A cell is read
@@ -44,10 +48,11 @@ class ExcelParser:
     in another form, and is not, so there they read as python-calamine gives them.
     """
 
-    PLACE = "row"
-    DIALECT = ("sheet",)
+    PLACE: ClassVar[Place] = Place.ROW
+    DIALECT: ClassVar[tuple[str, ...]] = ("sheet",)
+    WORKBOOK: ClassVar[bool] = True
     # Each error's code, as Excel shows it: calamine's `CellErrorType` (https://github.com/tafia/calamine, `lib.rs`)
-    ERRORS = {
+    ERRORS: ClassVar[dict[str, str]] = {
         "Div0": "#DIV/0!",
         "NA": "#N/A",
         "Name": "#NAME?",
@@ -59,7 +64,7 @@ class ExcelParser:
     }
     # Each built-in format's code, stored as an id alone, for the ids every language shares: ECMA-376 Part 1,
     # section 18.8.30 (https://ecma-international.org/publications-and-standards/standards/ecma-376/)
-    BUILT_IN = {
+    BUILT_IN: ClassVar[dict[int, str]] = {
         0: "General",
         1: "0",
         2: "0.00",
@@ -91,7 +96,10 @@ class ExcelParser:
     }
 
     # The date of serial 1, by whether the workbook is in the 1904 date system
-    SERIAL_ONE = {False: date(1900, 1, 1), True: date(1904, 1, 2)}
+    SERIAL_ONE: ClassVar[dict[bool, date]] = {False: date(1900, 1, 1), True: date(1904, 1, 2)}
+    CHUNK_BYTES: ClassVar[int] = 1 << 16
+    # A column's letters count in base 26, `A` as 1 and `Z` as 26, with no zero
+    LETTERS: ClassVar[str] = string.ascii_uppercase
 
     def __init__(self) -> None:
         self.cell = CellParser()
@@ -101,18 +109,20 @@ class ExcelParser:
     def sheets(self, *, source: Path) -> list[tuple[str, bool]]:
         """Each worksheet's name, in workbook order, and whether its publisher hid it.
 
-        Raises
-        ------
-        ValueError
-            For a file that is not a sound workbook.
+        Raises:
+          ValueError: For a file that is not a sound workbook.
         """
+        return self.listed(workbook=self.opened(source=source))
+
+    def opened(self, *, source: Path) -> python_calamine.CalamineWorkbook:
+        """The workbook, open for reading, refused where the file is not a sound one."""
         try:
-            workbook = python_calamine.CalamineWorkbook.from_path(str(source))
+            return python_calamine.CalamineWorkbook.from_path(str(source))
         except python_calamine.CalamineError as e:
-            raise ValueError(
-                f"`{source.name}` cannot be opened as a workbook. Check its format, or ask its owner for a sound copy. "
-                "[whyqd:file-unreadable]"
-            ) from e
+            raise self.unreadable(source=source, kind="a workbook") from e
+
+    def listed(self, *, workbook: python_calamine.CalamineWorkbook) -> list[tuple[str, bool]]:
+        """An open workbook's worksheets, in order, each with whether its publisher hid it."""
         return [
             (m.name, m.visible != python_calamine.SheetVisibleEnum.Visible)
             for m in workbook.sheets_metadata
@@ -125,61 +135,55 @@ class ExcelParser:
         """A sheet's grid and each cell's type, the spreadsheet's number for each grid row, and the dialect naming the
         sheet.
 
-        Parameters
-        ----------
-        source: Path
-        mime: MimeType
-            Whether the workbook has XML to read a lost value back from.
-        dialect: DialectModel
-            Its `sheet` names the sheet; a workbook of one sheet needs none.
+        Parameters:
+          source: The workbook.
+          mime: Whether the workbook has XML to read a lost value back from.
+          dialect: Its `sheet` names the sheet; a workbook of one sheet needs none.
 
-        Raises
-        ------
-        ValueError
-            For a sheet the workbook does not have, naming those it has, or a duration too large to read.
+        Raises:
+          ValueError: For a sheet the workbook does not have, naming those it has, or a duration too large to read.
         """
-        names = [name for name, _ in self.sheets(source=source)]
+        workbook = self.opened(source=source)
+        names = [name for name, _ in self.listed(workbook=workbook)]
         sheet = dialect.sheet
         if sheet is None and len(names) == 1:
             sheet = names[0]
         if sheet not in names:
-            raise ValueError(
+            raise ReadFault(
                 f"`{source.name}` has no sheet `{sheet}`. Name one of `{'`, `'.join(names)}` in the dialect's `sheet`. "
-                "[whyqd:sheet-unknown]"
+                "[whyqd:sheet-unknown]",
+                setting="sheet",
             )
-        read = python_calamine.CalamineWorkbook.from_path(str(source)).get_sheet_by_name(sheet)
+        worksheet = workbook.get_sheet_by_name(sheet)
         try:
-            rows = read.to_python(skip_empty_area=False)
+            rows = worksheet.to_python(skip_empty_area=False)
         except OverflowError as e:
             raise ValueError(
-                f"`{source.name}` sheet `{sheet}` row {self.overflow_row(read=read)} holds a duration too large to "
-                "read. Change that cell's format to a number and derive from that copy. [whyqd:duration-range]"
+                f"`{source.name}` sheet `{sheet}` row {self.overflow_row(worksheet=worksheet)} holds a duration too "
+                "large to read. Change that cell's format to a number and derive from that copy. "
+                "[whyqd:duration-range]"
             ) from e
-        errors = self.errors(source=source, sheet=sheet, start=read.start)
+        errors = self.errors(source=source, sheet=sheet, start=worksheet.start)
         lost = {}
         if mime == MimeType.XLSX and any(isinstance(value, time) for row in rows for value in row):
             lost = self.below_one(source=source, sheet=sheet, rows=rows)
         width = max((len(r) for r in rows), default=0)
-        columns = {f"column_{j}": [] for j in range(width)}
-        types = {f"column_{j}": [] for j in range(width)}
+        columns, types = [[] for _ in range(width)], [[] for _ in range(width)]
         for i, row in enumerate(rows):
             for j in range(width):
                 value = lost.get((i, j), row[j] if j < len(row) else None)
                 code = errors.get((i, j))
                 rendered = self.cell.render(value=code, error=True) if code else self.cell.render(value=value)
-                columns[f"column_{j}"].append(None if rendered is None else rendered[1])
-                types[f"column_{j}"].append(None if rendered is None else rendered[0].value)
-        schema = {c: pl.String for c in columns}
-        grid, types = self.grids.trim(
-            grid=pl.DataFrame(columns, schema=schema), types=pl.DataFrame(types, schema=schema)
-        )
-        return grid, types, list(range(1, grid.height + 1)), dialect.model_copy(update={"sheet": sheet})
+                columns[j].append(None if rendered is None else rendered[1])
+                types[j].append(None if rendered is None else rendered[0].value)
+        grid, types = self.grids.build(columns=columns, types=types)
+        return grid, types, self.grids.numbers(grid=grid), dialect.model_copy(update={"sheet": sheet})
 
-    def facts(self, *, source: Path, sheet: str, types: pl.DataFrame) -> dict[str, list[str]]:
+    def facts(self, *, source: Path, sheet: str | None, types: pl.DataFrame) -> dict[str, list[str]]:
         """What a sheet holds that its grid's text does not show: its `merged` ranges and its `errors`, each cell named
         as a workbook names it, in reading order."""
-        read = python_calamine.CalamineWorkbook.from_path(str(source)).get_sheet_by_name(sheet)
-        merged = sorted(read.merged_cell_ranges or [])
+        worksheet = self.opened(source=source).get_sheet_by_name(sheet)
+        merged = sorted(worksheet.merged_cell_ranges or [])
         errors = sorted(
             (i, j) for j, c in enumerate(types.columns) for i in types[c].eq(CellType.ERROR.value).arg_true().to_list()
         )
@@ -193,25 +197,31 @@ class ExcelParser:
         """A cell's reference from its row and column, each counted from 0: `B3` is row 2, column 1."""
         letters, column = "", column + 1
         while column:
-            column, remainder = divmod(column - 1, 26)
-            letters = chr(65 + remainder) + letters
+            column, remainder = divmod(column - 1, len(self.LETTERS))
+            letters = self.LETTERS[remainder] + letters
         return f"{letters}{row + 1}"
 
-    def formats(self, *, source: Path, sheet: str, height: int, width: int) -> pl.DataFrame:
+    def formats(
+        self, *, source: Path, mime: MimeType, sheet: str | None, height: int, width: int
+    ) -> pl.DataFrame | None:
         """Each cell's number format code in a sheet of an `.xlsx`, in the shape of its grid.
 
         No engine whyqd reads a workbook with gives a cell's format, so it is read from the workbook's XML: the code
         the workbook stores, a built-in id's from ECMA-376, or `id 5` for an id the standard leaves to the application.
-        An `.xls` stores its formats in another form, and is not read for them.
+        An `.xls` stores its formats in another form, and is not read for them: `None`.
         """
-        codes = {f"column_{j}": [None] * height for j in range(width)}
+        if mime != MimeType.XLSX:
+            return None
+        codes = {self.grids.COLUMN.format(j): [None] * height for j in range(width)}
         with zipfile.ZipFile(source) as book:
-            _, parts, path = self.locate(book=book, sheet=sheet)
+            _, parts, path = self.sheet_part(book=book, sheet=sheet)
             styles = self.styles(book=book, path=parts["styles"][0][0]) if "styles" in parts else []
-            for row, column, element in self.walk(book=book, path=path):
-                style = int(element.get("s", 0))
+            for row, column, attributes, _ in self.walk(book=book, path=path):
+                style = int(attributes.get("s", 0))
                 if row < height and column < width:
-                    codes[f"column_{column}"][row] = styles[style] if style < len(styles) else self.BUILT_IN[0]
+                    codes[self.grids.COLUMN.format(column)][row] = (
+                        styles[style] if style < len(styles) else self.BUILT_IN[0]
+                    )
         return pl.DataFrame(codes, schema={c: pl.String for c in codes})
 
     def below_one(self, *, source: Path, sheet: str, rows: list[list]) -> dict[tuple[int, int], float | date]:
@@ -222,33 +232,33 @@ class ExcelParser:
         """
         lost = {}
         with zipfile.ZipFile(source) as book:
-            workbook, _, path = self.locate(book=book, sheet=sheet)
+            workbook, _, path = self.sheet_part(book=book, sheet=sheet)
             date1904 = any(
                 self.local(e.tag) == "workbookPr" and e.get("date1904", "0") in ("1", "true") for e in workbook.iter()
             )
-            for row, column, element in self.walk(book=book, path=path):
+            for row, column, attributes, text in self.walk(book=book, path=path, values=True):
                 value = rows[row][column] if row < len(rows) and column < len(rows[row]) else None
-                if not isinstance(value, time) or element.get("t", "n") != "n":
+                if not isinstance(value, time) or attributes.get("t", "n") != "n":
                     continue
-                stored = float(next(e.text for e in element if self.local(e.tag) == "v"))
+                stored = float(text)
                 if stored < 0:
                     lost[(row, column)] = stored
                 elif stored >= 0.5 and value == time(0):
                     lost[(row, column)] = self.SERIAL_ONE[date1904]
         return lost
 
-    def overflow_row(self, *, read: python_calamine.CalamineSheet) -> int:
+    def overflow_row(self, *, worksheet: python_calamine.CalamineSheet) -> int:
         """The spreadsheet's number for the row holding a duration too large to read, where the reader, counting
         from A1, stops."""
         count = 0
         try:
-            for _ in read.iter_rows():
+            for _ in worksheet.iter_rows():
                 count += 1
         except OverflowError:
             pass
         return count + 1
 
-    def locate(self, *, book: zipfile.ZipFile, sheet: str) -> tuple[ElementTree.Element, dict, str]:
+    def sheet_part(self, *, book: zipfile.ZipFile, sheet: str) -> tuple[ElementTree.Element, dict, str]:
         """A workbook's root, its parts by their type's last word, and the path of this sheet's XML."""
         workbook = self.parts(book=book, path="_rels/.rels", where="")["officeDocument"][0][0]
         folder, name = posixpath.split(workbook)
@@ -261,22 +271,56 @@ class ExcelParser:
         }
         return root, parts, next(target for target, i in parts["worksheet"] if i == ids[sheet])
 
-    def walk(self, *, book: zipfile.ZipFile, path: str) -> Iterator[tuple[int, int, ElementTree.Element]]:
-        """Each cell in a sheet's XML, by its row and column from A1, cleared once it has been read."""
+    def walk(
+        self, *, book: zipfile.ZipFile, path: str, values: bool = False
+    ) -> Iterator[tuple[int, int, dict[str, str], str | None]]:
+        """Each cell in a sheet's XML by its row and column from A1, with its attributes and, where `values` asks, its
+        stored value, streamed.
+
+        Only a cell's start is handled unless its value is asked for, since building every element, or handling every
+        run of text, is most of the time a large sheet takes. A cell is held back until the next one starts, so its value
+        is whole when it is given.
+        """
+        cells: list[list] = []
         row = column = -1
+        stored: list[str] | None = None
+
+        def start(name: str, attributes: dict[str, str]) -> None:
+            nonlocal row, column, stored
+            tag = self.local(name)
+            if tag == "row":
+                row, column = (int(attributes["r"]) - 1 if "r" in attributes else row + 1), -1
+            elif tag == "c":
+                if reference := attributes.get("r"):
+                    letters, number = self.patterns.CELL_REFERENCE.fullmatch(reference).groups()
+                    row, column = int(number) - 1, self.column_index(letters=letters)
+                else:
+                    column += 1
+                cells.append([row, column, attributes, None])
+            elif tag == "v" and values:
+                stored = []
+
+        def text(data: str) -> None:
+            if stored is not None:
+                stored.append(data)
+
+        def end(name: str) -> None:
+            nonlocal stored
+            if stored is not None and self.local(name) == "v":
+                cells[-1][3], stored = "".join(stored), None
+
+        parser = expat.ParserCreate(namespace_separator="}")
+        parser.StartElementHandler = start
+        if values:
+            parser.buffer_text = True
+            parser.CharacterDataHandler, parser.EndElementHandler = text, end
         with book.open(path) as xml:
-            for event, element in ElementTree.iterparse(xml, events=("start", "end")):
-                tag = self.local(element.tag)
-                if event == "start" and tag == "row":
-                    row, column = (int(element.get("r")) - 1 if element.get("r") else row + 1), -1
-                elif event == "end" and tag == "c":
-                    if reference := element.get("r"):
-                        letters, number = self.patterns.CELL_REFERENCE.fullmatch(reference).groups()
-                        row, column = int(number) - 1, self.column(letters=letters)
-                    else:
-                        column += 1
-                    yield row, column, element
-                    element.clear()
+            while chunk := xml.read(self.CHUNK_BYTES):
+                parser.Parse(chunk, False)
+                yield from (tuple(cell) for cell in cells[:-1])
+                del cells[:-1]
+            parser.Parse(b"", True)
+            yield from (tuple(cell) for cell in cells)
 
     def parts(self, *, book: zipfile.ZipFile, path: str, where: str) -> dict[str, list[tuple[str, str]]]:
         """A relationships part's targets by their type's last word (`worksheet`, `styles`), each with its id."""
@@ -301,11 +345,11 @@ class ExcelParser:
             codes.append(custom.get(number, self.BUILT_IN.get(number, f"id {number}")))
         return codes
 
-    def column(self, *, letters: str) -> int:
+    def column_index(self, *, letters: str) -> int:
         """A column's index from 0, by its letters: `A` is 0, `AA` 26."""
         index = 0
         for letter in letters:
-            index = index * 26 + ord(letter) - 64
+            index = index * len(self.LETTERS) + self.LETTERS.index(letter) + 1
         return index - 1
 
     def local(self, tag: str) -> str:
@@ -316,8 +360,8 @@ class ExcelParser:
         """Each error cell's code, by its row and column from A1."""
         if start is None:
             return {}
-        read = fastexcel.read_excel(str(source)).load_sheet(sheet, header_row=None, dtypes="string")
-        _, found = read.to_arrow_with_errors()
+        loaded = fastexcel.read_excel(str(source)).load_sheet(sheet, header_row=None, dtypes="string")
+        _, found = loaded.to_arrow_with_errors()
         codes = {}
         for error in found.errors if found else []:
             if kind := self.patterns.EXCEL_ERROR.search(error.detail):

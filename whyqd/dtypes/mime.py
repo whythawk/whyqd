@@ -3,7 +3,9 @@ from enum import Enum
 
 
 class MimeType(str, Enum):
-    # Note that neither `feather` nor `parquet` yet have official mime types.
+    """A source's format, by its media type. Neither Feather nor Parquet has an official one, so each takes the type its
+    project uses; `PRQ` and `FTR` are names for the same two, so `MimeType.value_of("prq")` finds Parquet."""
+
     CSV = "text/csv"
     XLS = "application/vnd.ms-excel"
     XLSX = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"

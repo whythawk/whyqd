@@ -15,20 +15,24 @@ class NameTables:
     meanings: ClassVar[dict[str, set[int]] | None] = None
 
     @classmethod
-    def language(cls, tag: str) -> dict | None:
-        """A language's names, by its tag (`de`, `pt`), or `None` where whyqd holds none."""
+    def languages(cls) -> dict:
+        """Every language's names, by tag, read from `names.json` once."""
         if cls.held is None:
             cls.held = json.loads(cls.SOURCE.read_text(encoding="utf-8"))["languages"]
-        return cls.held.get(tag)
+        return cls.held
+
+    @classmethod
+    def language(cls, tag: str) -> dict | None:
+        """A language's names, by its tag (`de`, `pt`), or `None` where whyqd holds none."""
+        return cls.languages().get(tag)
 
     @classmethod
     def months(cls) -> dict[str, set[int]]:
         """Every month name in every language, lower case and without a closing `.`, with each month it means:
         `listopad` is October in Croatian and November in Czech."""
         if cls.meanings is None:
-            cls.language("")
             cls.meanings = {}
-            for entry in cls.held.values():
+            for entry in cls.languages().values():
                 for month, names in enumerate(entry["months"], 1):
                     for name in names:
                         key = unicodedata.normalize("NFKC", name).lower().rstrip(".")

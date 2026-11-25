@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: BSD-3-Clause
-from typing import Callable, Iterable
+from collections.abc import Callable, Iterable
 
 
 class ColumnParser:
@@ -13,24 +13,19 @@ class ColumnParser:
         so whyqd can add a column of that name without replacing source data. The source and its data are unchanged,
         and the new name is the column's only name.
 
-        Parameters
-        ----------
-        columns: Iterable[str]
-            Column names as read from the source.
-        reserved: Callable[[str], bool] | None, default None
-            Whether a name is kept for whyqd's own use.
+        Parameters:
+          columns: Column names as read from the source.
+          reserved: Whether a name is kept for whyqd's own use.
 
-        Returns
-        -------
-        list[str]
+        Returns:
+          The names, each unique, in the source's order.
 
-        Example
-        -------
-        ```python
-        column = ColumnParser()
-        column.deconflict(columns=["a", "a", "a.1"])                                   # ["a", "a.2", "a.1"]
-        column.deconflict(columns=["__row__", "a"], reserved=lambda c: c == "__row__")  # ["__row__.1", "a"]
-        ```
+        Examples:
+          ```python
+          column = ColumnParser()
+          column.deconflict(columns=["a", "a", "a.1"])                                   # ["a", "a.2", "a.1"]
+          column.deconflict(columns=["__row__", "a"], reserved=lambda c: c == "__row__")  # ["__row__.1", "a"]
+          ```
         """
         columns = list(columns)
         taken = set(columns)

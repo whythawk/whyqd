@@ -45,8 +45,7 @@ class CRUDBase(Generic[ModelType]):
         will raise a `ValueError`.
 
         Parameters:
-          term: A dictionary conforming to the ModelType. Model names must be unique, so a valid `name` in the model list
-                will have no collisions.
+          term: A model, or a dictionary conforming to it, its `name` unique among those here.
 
         Raises:
           ValueError: If the term already exists.
@@ -54,7 +53,9 @@ class CRUDBase(Generic[ModelType]):
         if isinstance(term, dict):
             term = self.model(**term)
         if self.get(name=term.name):
-            raise ValueError(f"ModelType {term.name} already exists.")
+            raise ValueError(
+                f"`{term.name}` is already here. Update it, or give this one another name. [whyqd:term-repeated]"
+            )
         self.multi.append(term)
 
     def add_multi(self, *, terms: list[ModelType | dict]) -> None:
@@ -85,7 +86,7 @@ class CRUDBase(Generic[ModelType]):
         # Create a temporary FieldModel
         old_term = self.get(name=term.name)
         if not old_term:
-            raise ValueError(f"ModelType {term.name} does not exist.")
+            raise ValueError(f"`{term.name}` is not here to update. Add it first. [whyqd:term-missing]")
         # And update the original data
         old_name = old_term.name
         # https://fastapi.tiangolo.com/tutorial/body-updates/#partial-updates-with-patch
@@ -106,21 +107,6 @@ class CRUDBase(Generic[ModelType]):
     def reset(self) -> None:
         """Reset a list of ModelType terms to an empty list."""
         self.multi = []
-
-    def reorder(self, *, order: list[UUID]) -> None:
-        """Reorder a list of terms.
-
-        Parameters:
-          order: list of UUID in the desired order. Use `.get_all()` to view the current list.
-
-        Raises:
-          ValueError: If the list of `UUIDs` doesn't conform to that in the list of terms.
-        """
-        order = [self.get_hex(name=o) for o in order]
-        if {m.uuid.hex for m in self.multi}.difference(set(order)):
-            raise ValueError("List of reordered term ids isn't the same as that in the provided list of Models.")
-        if self.multi:
-            self.multi = sorted(self.multi, key=lambda term: order.index(term.uuid.hex))
 
     def get_hex(self, *, name: str | UUID) -> str:
         if isinstance(name, UUID):

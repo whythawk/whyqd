@@ -2,6 +2,7 @@
 from __future__ import annotations
 import hashlib
 import json
+from collections.abc import Callable
 from pathlib import Path
 
 import rfc8785
@@ -23,7 +24,7 @@ class FormatParser:
     it. They are kept in `whyqd/formats/<version>/<kind>.json`: 1.x's generated once from whyqd 1.2.8's own models
     and never changed, the current format's generated from today's models.
 
-    Example:
+    Examples:
       ```python
       from whyqd.parsers.format import FormatParser
 
@@ -64,6 +65,7 @@ class FormatParser:
     JSON_SCHEMAS = Path(__file__).resolve().parents[1] / "formats"
     JSON_SCHEMA_DIALECT = "https://json-schema.org/draft/2020-12/schema"
     JSON_SCHEMA_ROOT = "https://w3id.org/whyqd/formats"
+    REFUSED_1X = "[whyqd:format-1x-refused]"
 
     def json_schema(self, *, kind: str, format: str | None = None) -> dict:
         """The JSON Schema a saved definition of `kind` follows in `format`, by default the current one.
@@ -75,7 +77,9 @@ class FormatParser:
         version = format or settings.FORMAT_CURRENT
         self.check(version=version)
         if kind not in self.KINDS:
-            raise ValueError(f"`{kind}` is not a kind of definition. Kinds are {', '.join(self.KINDS)}.")
+            raise ValueError(
+                f"`{kind}` is not a kind of definition. Name one of {', '.join(self.KINDS)}. [whyqd:definition-kind]"
+            )
         return json.loads((self.JSON_SCHEMAS / version / f"{kind}.json").read_text(encoding="utf-8"))
 
     def generate_json_schema(self, *, kind: str) -> dict:
@@ -101,8 +105,8 @@ class FormatParser:
     def check(self, *, version: str) -> None:
         if version not in settings.FORMAT_VERSIONS:
             raise ValueError(
-                f"Definition format `{version}` is not one this whyqd reads or writes. "
-                f"It knows {', '.join(settings.FORMAT_VERSIONS)}."
+                f"Definition format `{version}` is not one this whyqd knows ({', '.join(settings.FORMAT_VERSIONS)}); "
+                "a newer one needs a newer whyqd. [whyqd:format-version]"
             )
 
     def dumps(self, written: dict) -> str:
@@ -132,15 +136,21 @@ class FormatParser:
             return self.downgrade(written)
         return {self.KEY: version} | self.name_schemas(self.drop_empty_attributes(written))
 
+    def walk(self, value, change: Callable[[dict], dict]):
+        """`value` with `change` made to every dictionary in it, innermost first; lists are walked, the rest kept."""
+        if isinstance(value, list):
+            return [self.walk(v, change) for v in value]
+        if not isinstance(value, dict):
+            return value
+        return change({k: self.walk(v, change) for k, v in value.items()})
+
     def upgrade(self, value):
         """1.x to the current format: a data source's bare checksum names what it hashed, and it gains the dialect that
         reads it as 1.x did; a field's `time` is a `duration`; and a string field's `minimum` and `maximum`, which 1.x
         described as lengths, are `minLength` and `maxLength`."""
-        if isinstance(value, list):
-            return [self.upgrade(v) for v in value]
-        if not isinstance(value, dict):
-            return value
-        value = {k: self.upgrade(v) for k, v in value.items()}
+        return self.walk(value, self.upgrade_one)
+
+    def upgrade_one(self, value: dict) -> dict:
         if "mime" in value and isinstance(value.get("checksum"), str):
             value["checksums"] = [self.checksum(value=value.pop("checksum"), content=ChecksumContent.TABLE_1X)]
             if "dialect" not in value and (dialect := self.dialect_1x(value)) is not None:
@@ -161,11 +171,9 @@ class FormatParser:
         dialect that says only what the data source's 1.x settings say. An edit's time is written without its zone, as
         1.x wrote it, being UTC. A part new in 2.0 is refused, naming it.
         """
-        if isinstance(value, list):
-            return [self.downgrade(v) for v in value]
-        if not isinstance(value, dict):
-            return value
-        value = {k: self.downgrade(v) for k, v in value.items()}
+        return self.walk(value, self.downgrade_one)
+
+    def downgrade_one(self, value: dict) -> dict:
         if "mime" in value and "dialect" in value and value["dialect"] == self.dialect_1x(value):
             value.pop("dialect")
         if value.get("type") == FieldType.DATE.value and value.get("policy") == PolicyModel.USDATE:
@@ -173,9 +181,9 @@ class FormatParser:
             value["type"] = FieldType.USDATE.value
         for key in self.NEW:
             if key in value:
+                where = value.get("name") or value.get("path") or "a field’s constraints"
                 raise ValueError(
-                    f"`{key}` on `{value.get('name') or value.get('path') or 'a field’s constraints'}` is new in 2.0, so "
-                    "1.x cannot hold it."
+                    f"`{key}` on `{where}` is new in 2.0, so 1.x cannot hold it. Save in format 2.0. {self.REFUSED_1X}"
                 )
         if isinstance(value.get("updated"), str):
             value["updated"] = value["updated"].removesuffix("Z")
@@ -188,7 +196,8 @@ class FormatParser:
             table = [c for c in value.pop("checksums") if c["content"] == ChecksumContent.TABLE_1X.value]
             if not table:
                 raise ValueError(
-                    f"`{value.get('path')}` has no `table-1x` checksum among its `checksums`, so 1.x cannot hold it."
+                    f"`{value.get('path')}` has no `table-1x` checksum among its `checksums`, so 1.x cannot hold it. "
+                    f"Save in format 2.0. {self.REFUSED_1X}"
                 )
             value["checksum"] = table[0]["checksumValue"]
         return value
@@ -212,16 +221,25 @@ class FormatParser:
         length on anything but a string."""
         name, kind = field.get("name"), field.get("type")
         if kind == FieldType.TIME.value:
-            raise ValueError(f"Field `{name}` is a time of day, which 1.x cannot hold: its `time` is a length of time.")
+            raise ValueError(
+                f"Field `{name}` is a time of day, which 1.x cannot hold: its `time` is a length of time. Save in "
+                f"format 2.0. {self.REFUSED_1X}"
+            )
         if kind == FieldType.DURATION.value:
             field["type"] = FieldType.TIME.value
         constraints = field.get("constraints") or {}
         if not any(k in constraints for k in self.VALUES):
             return
         if kind != FieldType.STRING.value:
-            raise ValueError(f"Field `{name}` bounds the length of a `{kind}`, which 1.x cannot hold.")
+            raise ValueError(
+                f"Field `{name}` bounds the length of a `{kind}`, which 1.x cannot hold. Save in format 2.0. "
+                f"{self.REFUSED_1X}"
+            )
         if any(k in constraints for k in self.LENGTHS):
-            raise ValueError(f"String field `{name}` bounds both its value and its length, which 1.x cannot hold.")
+            raise ValueError(
+                f"String field `{name}` bounds both its value and its length, which 1.x cannot hold. Save in format "
+                f"2.0. {self.REFUSED_1X}"
+            )
         field["constraints"] = {self.VALUES.get(k, k): v for k, v in constraints.items()}
 
     def name_schemas(self, value):
@@ -230,11 +248,9 @@ class FormatParser:
         The checksum says which copy, not which came first: that is the edit history's latest `updated`. It leaves
         out the edit history, which changes on every save, and `release`, a label for people.
         """
-        if isinstance(value, list):
-            return [self.name_schemas(v) for v in value]
-        if not isinstance(value, dict):
-            return value
-        value = {k: self.name_schemas(v) for k, v in value.items()}
+        return self.walk(value, self.name_schema)
+
+    def name_schema(self, value: dict) -> dict:
         for key in self.SCHEMAS:
             schema = value.get(key)
             if isinstance(schema, dict):
@@ -245,15 +261,8 @@ class FormatParser:
 
     def drop_empty_attributes(self, value):
         """Leave out a data source's empty `attributes`, which 1.x always wrote."""
-        if isinstance(value, list):
-            return [self.drop_empty_attributes(v) for v in value]
-        if not isinstance(value, dict):
-            return value
-        return {k: self.drop_empty_attributes(v) for k, v in value.items() if not (k == "attributes" and v == {})}
+        return self.walk(value, lambda d: {k: v for k, v in d.items() if not (k == "attributes" and v == {})})
 
     def drop_uuid(self, value):
-        if isinstance(value, list):
-            return [self.drop_uuid(v) for v in value]
-        if not isinstance(value, dict):
-            return value
-        return {k: self.drop_uuid(v) for k, v in value.items() if k != "uuid"}
+        """Leave out every `uuid`, for comparing two definitions that differ only by them."""
+        return self.walk(value, lambda d: {k: v for k, v in d.items() if k != "uuid"})

@@ -1,14 +1,16 @@
 # SPDX-License-Identifier: BSD-3-Clause
 from pathlib import Path
+from typing import ClassVar
 import warnings
 
 import polars as pl
 
 from whyqd.config.patterns import PythonPatterns
 from whyqd.config.settings import settings
-from whyqd.dtypes import FindingKind, MimeType, SettingSource
+from whyqd.dtypes import EncodingStep, FindingKind, MimeType, Place, SettingSource
 from whyqd.models import DialectModel, FindingModel, ProposalModel, ReportModel, SettingModel
-from whyqd.parsers.table import TableParser
+from whyqd.sources.reader import Reader
+from whyqd.sources.table import TableParser
 
 
 class DiagnosisParser:
@@ -21,18 +23,9 @@ class DiagnosisParser:
     """
 
     # The dialect's settings the table reads, whatever the file's format
-    TABLE = ("skipRows", "headerRowCount", "skipBlankRows", "trim", "rowsPerRecord")
+    TABLE: ClassVar[tuple[str, ...]] = ("skipRows", "headerRowCount", "skipBlankRows", "trim", "rowsPerRecord")
     # Those a read can settle from the file where they are not declared
-    SETTLED = ("encoding", "encodingStep", "cells", "sheet")
-    ADDRESSED_BY = {
-        "csv-character": "delimiter",
-        "encoding-replaced": "encoding",
-        "header-past-end": "skipRows",
-        "pdf-pages": "pages",
-        "record-overflow": "rowsPerRecord",
-        "record-short": "rowsPerRecord",
-        "sheet-unknown": "sheet",
-    }
+    SETTLED: ClassVar[tuple[str, ...]] = ("encoding", "encodingStep", "cells", "sheet")
 
     def __init__(self) -> None:
         self.tables = TableParser()
@@ -43,7 +36,7 @@ class DiagnosisParser:
         *,
         source: Path,
         mime: MimeType,
-        reader,
+        reader: Reader,
         given: DialectModel,
         sheet: str | None = None,
         hidden: bool = False,
@@ -51,20 +44,14 @@ class DiagnosisParser:
     ) -> ReportModel:
         """The report on a file, or one sheet of a workbook.
 
-        Parameters
-        ----------
-        source: Path
-        mime: MimeType
-        reader
-            The reader of its format.
-        given: DialectModel
-            The dialect as the wrangler declared it.
-        sheet: str | None, default None
-            The sheet to read, where the wrangler did not name it.
-        hidden: bool, default False
-            Whether the workbook's publisher hid the sheet.
-        propose: bool, default False
-            Also propose settings that would read past a fault. Never applied.
+        Parameters:
+          source: The file.
+          mime: Its format.
+          reader: The reader of its format.
+          given: The dialect as the wrangler declared it.
+          sheet: The sheet to read, where the wrangler did not name it.
+          hidden: Whether the workbook's publisher hid the sheet.
+          propose: Also propose settings that would read past a fault. Never applied.
         """
         dialect = given.model_copy(update={"sheet": sheet}) if sheet else given
         with warnings.catch_warnings(record=True) as caught:
@@ -78,12 +65,12 @@ class DiagnosisParser:
                     if propose
                     else report
                 )
-        findings = [f for w in caught if (f := self.finding(error=str(w.message))) is not None]
+        findings = [f for w in caught if (f := self.finding(error=w.message)) is not None]
         for w in caught:
             if not self.patterns.MESSAGE.match(str(w.message)):
                 warnings.warn_explicit(w.message, w.category, w.filename, w.lineno)
         try:
-            self.tables.table(grid=grid, lines=lines, dialect=read, place=reader.PLACE)
+            self.tables.table(grid=grid, lines=lines, dialect=read, source=source.name, place=reader.PLACE)
         except ValueError as e:
             findings.append(self.finding(error=e))
         widths = self.widths(grid=grid)
@@ -119,22 +106,20 @@ class DiagnosisParser:
         report: ReportModel,
         source: Path,
         mime: MimeType,
-        reader,
+        reader: Reader,
         dialect: DialectModel,
         widths: pl.Series | None = None,
     ) -> ReportModel:
         """A report with the settings that would read past the file's faults added. Without the extra that one needs, a
         finding says so, in place of that proposal."""
         faults = report.findings
-        proposals = []
-        if hasattr(reader, "proposals"):
-            proposals += reader.proposals(source=source, mime=mime, dialect=dialect, faults=faults)
-            try:
-                if encoding := reader.encoding_proposal(source=source, dialect=dialect, faults=faults):
-                    proposals.append(encoding)
-            except ImportError as e:
-                message = self.patterns.MESSAGE.match(str(e))
-                report.findings.append(self.fact(code=message.group(2), message=message.group(1)))
+        proposals = reader.proposals(source=source, mime=mime, dialect=dialect, faults=faults)
+        try:
+            if encoding := reader.encoding_proposal(source=source, dialect=dialect, faults=faults):
+                proposals.append(encoding)
+        except ImportError as e:
+            message = self.patterns.MESSAGE.match(str(e))
+            report.findings.append(self.fact(code=message.group(2), message=message.group(1)))
         if widths is not None and (records := self.records(widths=widths, dialect=dialect)):
             proposals.append(records)
         report.proposals = proposals
@@ -159,29 +144,29 @@ class DiagnosisParser:
         )
 
     def refused(
-        self, *, source: Path, mime: MimeType, reader, error: ValueError, sheet: str | None = None
+        self, *, source: Path, mime: MimeType, reader: Reader, error: ValueError, sheet: str | None = None
     ) -> ReportModel:
         """The report on a file that could not be read: what failed and where, since no grid exists."""
         return ReportModel(
             path=str(source), mime=mime, sheet=sheet, place=reader.PLACE, findings=[self.finding(error=error)]
         )
 
-    def finding(self, *, error: ValueError | str) -> FindingModel | None:
-        """A refusal or warning as a fault. A message with no code is whyqd's own, not the file's: `None` for a warning,
-        and an error is raised again, so a fault in the code is not reported as one in the file.
+    def finding(self, *, error: ValueError | Warning) -> FindingModel | None:
+        """A refusal or warning as a fault, with the setting that addresses it where it names one. A message with no
+        code is whyqd's own, not the file's: `None` for a warning, and an error is raised again, so a fault in the code
+        is not reported as one in the file.
         """
         message = self.patterns.MESSAGE.match(str(error))
         if message is None:
-            if isinstance(error, str):
+            if isinstance(error, Warning):
                 return None
             raise error
-        code = message.group(2)
         return FindingModel(
-            code=code,
+            code=message.group(2),
             kind=FindingKind.FAULT,
             message=message.group(1),
             rows=getattr(error, "rows", []),
-            setting=getattr(error, "setting", None) or self.ADDRESSED_BY.get(code),
+            setting=getattr(error, "setting", None),
         )
 
     def settings(self, *, given: DialectModel, read: DialectModel, names: tuple[str, ...]) -> list[SettingModel]:
@@ -191,7 +176,7 @@ class DiagnosisParser:
         for name in names:
             declared = name in given.model_fields_set
             if name == "encoding":
-                declared = read.encodingStep == "declared"
+                declared = read.encodingStep == EncodingStep.DECLARED
             if declared:
                 source = SettingSource.DECLARED
             elif name in self.SETTLED and getattr(read, name) is not None:
@@ -212,7 +197,7 @@ class DiagnosisParser:
         self,
         *,
         source: Path,
-        reader,
+        reader: Reader,
         sheet: str | None,
         grid: pl.DataFrame,
         types: pl.DataFrame,
@@ -248,29 +233,29 @@ class DiagnosisParser:
                     code="hidden-sheet", message=f"Sheet `{sheet}` is hidden by its publisher, and read like any other."
                 )
             )
-        if hasattr(reader, "facts"):
-            cells = reader.facts(source=source, sheet=sheet, types=types)
-            if merged := cells["merged"]:
-                findings.append(
-                    self.fact(
-                        code="merged-range",
-                        message=f"Cells {self.listed(merged)} are merged; the first of each holds its value, and the "
-                        "rest read as empty.",
-                        cells=merged[: settings.REPORT_PLACES],
-                    )
+        cells = reader.facts(source=source, sheet=sheet, types=types)
+        if merged := cells["merged"]:
+            findings.append(
+                self.fact(
+                    code="merged-range",
+                    message=f"Cells {self.listed(merged)} are merged; the first of each holds its value, and the "
+                    "rest read as empty.",
+                    cells=merged[: settings.REPORT_PLACES],
                 )
-            if errors := cells["errors"]:
-                findings.append(
-                    self.fact(
-                        code="error-cells",
-                        message=f"Cell{'s' if len(errors) > 1 else ''} {self.listed(errors)} {self.are(errors)} error "
-                        "cells, each read as its code.",
-                        cells=errors[: settings.REPORT_PLACES],
-                    )
+            )
+        if errors := cells["errors"]:
+            findings.append(
+                self.fact(
+                    code="error-cells",
+                    message=f"Cell{'s' if len(errors) > 1 else ''} {self.listed(errors)} {self.are(errors)} error "
+                    "cells, each read as its code.",
+                    cells=errors[: settings.REPORT_PLACES],
                 )
+            )
         return findings
 
     def fact(self, *, code: str, message: str, **where) -> FindingModel:
+        """A fact, with where in the file it is: its `rows`, `columns`, or `cells`."""
         return FindingModel(code=code, kind=FindingKind.FACT, message=message, **where)
 
     def listed(self, items: list) -> str:
@@ -284,9 +269,10 @@ class DiagnosisParser:
         return f"{', '.join(shown[:-1])}, and {shown[-1]}"
 
     def are(self, items: list) -> str:
+        """The verb for so many items: `is` for one, `are` for more."""
         return "are" if len(items) > 1 else "is"
 
-    def preview(self, *, grid: pl.DataFrame, lines: list[int], place: str) -> str:
+    def preview(self, *, grid: pl.DataFrame, lines: list[int], place: Place) -> str:
         """A short text of the grid as read, from its top and its end, each row numbered as the wrangler would look for
         it, so the rows above a header can be seen, which leave the table. A row's trailing empty cells are left out, a
         line break in a cell shows as `\\n`, and each cell and line is cut to the length a report shows."""
@@ -308,5 +294,6 @@ class DiagnosisParser:
         return "\n".join(text)
 
     def shortened(self, *, value: str | None, width: int) -> str:
+        """A cell or line on one line, its breaks shown as `\\r` and `\\n`, cut to `width` with `…` where longer."""
         value = (value or "").replace("\r", "\\r").replace("\n", "\\n")
         return value if len(value) <= width else f"{value[: width - 1]}…"

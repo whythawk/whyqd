@@ -1,14 +1,16 @@
 # SPDX-License-Identifier: BSD-3-Clause
 from pathlib import Path
+from typing import ClassVar
 
 import polars as pl
 
-from whyqd.dtypes import MimeType
+from whyqd.dtypes import MimeType, Place
 from whyqd.models import DialectModel
-from whyqd.parsers.grid import GridParser
+from whyqd.sources.grid import GridParser, ReadFault
+from whyqd.sources.reader import Reader
 
 
-class PdfParser:
+class PdfParser(Reader):
     """A PDF's table as the grid, at best effort: a PDF holds a printed page, not a table.
 
     What the file shows is read: whether it holds text, and whether its ruling gives a table, which sets how cells are
@@ -17,10 +19,11 @@ class PdfParser:
     repeated atop a later page, and is left out. Read through pdfplumber, the `pdf` extra.
     """
 
-    PLACE = "row"
-    DIALECT = ("cells", "pages", "columns")
+    PLACE: ClassVar[Place] = Place.ROW
+    DIALECT: ClassVar[tuple[str, ...]] = ("cells", "pages", "columns")
+    FINGERPRINTED: ClassVar[bool] = False
     # Points between the tops of two words on one line: pdfplumber's own `y_tolerance`
-    LINE = 3
+    LINE: ClassVar[int] = 3
 
     def __init__(self) -> None:
         self.grids = GridParser()
@@ -32,12 +35,9 @@ class PdfParser:
         with `cells` recorded. It has no `fp0`, since the grid depends on how the PDF is read: its `cells`, `columns`,
         and `pages`.
 
-        Raises
-        ------
-        ImportError
-            Without the `pdf` extra.
-        ValueError
-            For a file that is not a PDF, a PDF with no text, such as a scan, or pages it does not have.
+        Raises:
+          ImportError: Without the `pdf` extra.
+          ValueError: For a file that is not a PDF, a PDF with no text, such as a scan, or pages it does not have.
         """
         try:
             import pdfplumber
@@ -47,10 +47,7 @@ class PdfParser:
         try:
             opened = pdfplumber.open(source)
         except PdfminerException as e:
-            raise ValueError(
-                f"`{source.name}` cannot be opened as a PDF file. Check its format, or ask its owner for a sound copy. "
-                "[whyqd:file-unreadable]"
-            ) from e
+            raise self.unreadable(source=source, kind="a PDF file") from e
         with opened as pdf:
             pages = self.pages(pages=pdf.pages, declared=dialect.pages, source=source)
             if not any(page.chars for page in pages):
@@ -61,21 +58,15 @@ class PdfParser:
                 )
             if dialect.columns:
                 cells = "text"
-                rows = [row for page in pages for row in self.lines(page=page, columns=dialect.columns)]
+                rows = [row for page in pages for row in self.by_columns(page=page, columns=dialect.columns)]
             else:
                 cells = dialect.cells or ("lines" if any(page.find_tables() for page in pages) else "text")
                 rows = []
                 for page in pages:
                     for table in page.extract_tables(self.settings(cells=cells)):
                         rows.extend(table)
-        rows = self.unrepeated(rows=rows, dialect=dialect)
-        width = max((len(r) for r in rows), default=0)
-        grid = pl.DataFrame(
-            {f"column_{i}": [r[i] if i < len(r) and r[i] else None for r in rows] for i in range(width)},
-            schema={f"column_{i}": pl.String for i in range(width)},
-        )
-        grid, types = self.grids.trim(grid=grid)
-        return grid, types, list(range(1, grid.height + 1)), dialect.model_copy(update={"cells": cells})
+        grid, types = self.grids.from_rows(rows=self.unrepeated(rows=rows, dialect=dialect))
+        return grid, types, self.grids.numbers(grid=grid), dialect.model_copy(update={"cells": cells})
 
     def pages(self, *, pages: list, declared: str | None, source: Path) -> list:
         """The pages a dialect's `pages` names, counted from 1, or every page."""
@@ -87,13 +78,16 @@ class PdfParser:
             try:
                 numbers = range(int(first), int(last or first) + 1)
             except ValueError as e:
-                raise ValueError(
-                    f"`pages` `{declared}` names pages by number from 1: `5-7`, or `1,3,5-7`. [whyqd:pdf-pages]"
+                raise ReadFault(
+                    f"`{source.name}`'s `pages` `{declared}` cannot be read. Name pages by number from 1: `5-7`, or "
+                    "`1,3,5-7`. [whyqd:pdf-pages]",
+                    setting="pages",
                 ) from e
             if not numbers or numbers.start < 1 or numbers.stop - 1 > len(pages):
-                raise ValueError(
+                raise ReadFault(
                     f"`pages` `{declared}` names a page `{source.name}` does not have: it has {len(pages)}. "
-                    "[whyqd:pdf-pages]"
+                    "[whyqd:pdf-pages]",
+                    setting="pages",
                 )
             chosen.extend(pages[n - 1] for n in numbers)
         return chosen
@@ -104,7 +98,7 @@ class PdfParser:
             return {}
         return {"vertical_strategy": "text", "horizontal_strategy": "text"}
 
-    def lines(self, *, page, columns: list[float]) -> list[list[str | None]]:
+    def by_columns(self, *, page, columns: list[float]) -> list[list[str | None]]:
         """A page's rows under declared columns: each line of text a row, each word in the column it starts in.
 
         A word belongs to the last column whose left edge it starts at or after, one left of the first edge to the
@@ -130,6 +124,7 @@ class PdfParser:
         return rows[:end] + [r for r in rows[end:] if self.row(r) not in header]
 
     def row(self, row: list[str | None]) -> tuple[str, ...]:
+        """A row's cells as text, without its trailing empty ones, so a header repeated narrower still matches."""
         cells = [c or "" for c in row]
         while cells and not cells[-1]:
             cells.pop()

@@ -1,17 +1,23 @@
 # SPDX-License-Identifier: BSD-3-Clause
 from __future__ import annotations
-from pydantic import field_validator, StringConstraints, ConfigDict, BaseModel, Field
-from typing import Annotated, List, Optional, Union
+from pydantic import field_validator, ConfigDict, BaseModel, Field, ValidationInfo
+from typing import List, Optional, Union
 
-from whyqd.models import ExtensionModel, FieldModel, VersionModel, CitationModel
-from whyqd.models.identifier import Identifier
+from whyqd.models.citation import CitationModel
+from whyqd.models.extension import ExtensionModel
+from whyqd.models.fields import FieldModel
+from whyqd.models.identifier import DefinitionName, Identifier
+from whyqd.models.version import VersionModel
 
 
 class SchemaModel(BaseModel):
+    """A set of fields that tabular data conforms to, as a source or a destination, with the text a source writes for a
+    missing value."""
+
     uuid: Identifier = Field(description="Automatically generated unique identity for the schema.")
-    name: Annotated[str, StringConstraints(strip_whitespace=True, to_lower=True)] = Field(
+    name: DefinitionName = Field(
         ...,
-        description="Machine-readable term to uniquely address this schema. Cannot have spaces. CamelCase or snake_case for preference.",
+        description="Machine-readable term to address this schema: trimmed, lower case, its spaces underscores.",
     )
     title: Optional[str] = Field(None, description="A human-readable version of the schema name.")
     release: Optional[str] = Field(
@@ -44,19 +50,14 @@ class SchemaModel(BaseModel):
     version: List[VersionModel] = Field(default=[], description="Version and update history for the schema.")
     model_config = ConfigDict(validate_assignment=True)
 
-    @field_validator("name")
-    @classmethod
-    def name_space(cls, v: str):
-        return "_".join(v.split(" ")).lower()
-
     @field_validator("fields")
     @classmethod
-    def are_fields_unique(cls, v: List[FieldModel]):
-        field_names = []
-        for f in v:
-            field_names.append(f.name)
-        if len(field_names) != len(set(field_names)):
+    def are_fields_unique(cls, v: List[FieldModel], info: ValidationInfo):
+        names = [f.name for f in v]
+        repeated = sorted({name for name in names if names.count(name) > 1})
+        if repeated:
             raise ValueError(
-                f"Field names must be unique. There are {len(field_names) - len(set(field_names))} duplications."
+                f"Schema `{info.data.get('name')}` names fields {', '.join(f'`{name}`' for name in repeated)} more than "
+                "once. Rename or remove the repeats. [whyqd:field-repeated]"
             )
         return v

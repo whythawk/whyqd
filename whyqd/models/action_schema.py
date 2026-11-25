@@ -8,7 +8,8 @@ from whyqd.models.modifier import ModifierModel
 
 
 class SchemaActionModel(BaseModel):
-    """Action Model - generated from the Action module."""
+    """An action's definition: its name and purpose, and the structure its script takes, source fields and the
+    modifiers acting on them."""
 
     name: str = Field(..., description="Name of the Action. Uppercase.")
     title: str = Field(..., description="Title of the Action. Regular case.")

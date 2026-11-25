@@ -5,9 +5,8 @@ from pathlib import Path
 from pydantic import Json
 
 from whyqd.dtypes import ChecksumContent, MimeType
-from whyqd.models import ChecksumModel, DataSourceModel, CitationModel, DialectModel, ReportModel
+from whyqd.models import DataSourceModel, CitationModel, DialectModel, ReportModel
 from whyqd.core.base import BaseDefinition
-from whyqd.config.settings import settings
 
 if TYPE_CHECKING:
     import pandas as pd
@@ -44,7 +43,7 @@ class DataSourceDefinition(BaseDefinition):
     Parameters:
       source: A path to a json file containing a saved schema, or a dictionary conforming to the DataSourceModel.
 
-    Example:
+    Examples:
       Create and validate a new `DataSourceDefinition` as follows:
 
       ```python
@@ -71,8 +70,8 @@ class DataSourceDefinition(BaseDefinition):
             produce multiple data models which will be returned as a list. Each model will reflect the metadata for
             each sheet.
 
-            As always *look* at your data and test before implementing in code. You should see an additional `sheet_name`
-            field.
+            As always *look* at your data and test before implementing in code. Each sheet's data source names its
+            sheet in `dialect.sheet`.
 
         Returns:
           Pydantic DataSourceModel as a list, a single, or None
@@ -86,7 +85,7 @@ class DataSourceDefinition(BaseDefinition):
           schema: A dictionary conforming to the DataSourceModel.
         """
         if schema:
-            self.model = self.core.create_or_update_model(modelType=DataSourceModel, source=schema, model=self.model)
+            self.model = self.definitions.build(kind=DataSourceModel, source=schema, model=self.model)
 
     def get_data(self, *, refresh: bool = False) -> pd.DataFrame | None:
         """Get the data source's table as a pandas dataframe.
@@ -101,10 +100,6 @@ class DataSourceDefinition(BaseDefinition):
             self.data = self.reader.get(source=self.model)
         return self.data
 
-    #########################################################################################
-    # DERIVE SCHEMA FROM TABULAR DATA
-    #########################################################################################
-
     def derive_model(
         self,
         *,
@@ -112,7 +107,7 @@ class DataSourceDefinition(BaseDefinition):
         mimetype: str | MimeType,
         dialect: DialectModel | dict | list[DialectModel | dict] | None = None,
         names: list[str] | dict[str, list[str]] | None = None,
-        **settings,
+        **settings: object,
     ) -> DataSourceModel | list[DataSourceModel]:
         """Derive a data source from a file, or one a sheet from a workbook. Every cell is read as its text.
 
@@ -121,20 +116,22 @@ class DataSourceDefinition(BaseDefinition):
           mimetype:  **whyqd** supports `xls`, `xlsx`, `csv`, `parquet` and `feather`.
           dialect: How the file is written, so it can be read: the dialect of CSV on the Web, as `DialectModel`
                    describes it. Undeclared, each setting takes its default; a CSV's encoding, undeclared, is settled by
-                   whyqd's ladder and recorded. For a workbook, a list, each naming its `sheet`, or one a sheet in order.
+                   whyqd's ladder and recorded. For a workbook, a list, each naming its `sheet`, or one a sheet in
+                   order.
           names: One name per column, for a file with no header row or a header over several rows; for a workbook, a
                  mapping of sheet to names. Names past the file's last filled column are added as empty columns;
                  columns past the last name are named by position, with a warning.
           settings: Refused, naming the dialect: `header` and pandas' keywords are no longer read.
 
         Returns:
-          List of DataSourceModel, or DataSourceModel
+          The data source, or one a sheet of a workbook.
         """
         self.model, table = self.reader.derive_data_model(
             source=source, mimetype=mimetype, dialect=dialect, names=names, **settings
         )
         # Held so the first `get_data` need not read the file again
         self.data = None if isinstance(self.model, list) else table.to_pandas()
+        return self.model
 
     def diagnose(
         self,
@@ -166,7 +163,7 @@ class DataSourceDefinition(BaseDefinition):
         Returns:
           One ReportModel, or one a sheet of a workbook.
 
-        Example:
+        Examples:
           ```python
           import whyqd as qd
 
@@ -184,10 +181,6 @@ class DataSourceDefinition(BaseDefinition):
                 )
         return reports
 
-    #########################################################################################
-    # VALIDATION UTILITIES
-    #########################################################################################
-
     def validate(self) -> bool:
         """Verify the source data against the data source's checksum.
 
@@ -198,51 +191,30 @@ class DataSourceDefinition(BaseDefinition):
 
         Raises:
           ImportError: If a 1.x checksum needs verifying and the `verify-1x` extra is not installed.
-          AssertionError: If the source data does not match its checksum.
+          ValueError: If the file is not the one the data source was derived from, or there is no model.
 
         Returns:
           True if every data source verifies.
         """
         if not self.model:
-            raise ValueError(f"{self.model_name.title()} model does not exist.")
-        models = self.model
-        if not isinstance(self.model, list):
-            models = [models]
+            raise ValueError(
+                "This data source is empty, so there is nothing to verify. Derive it first. [whyqd:definition-empty]"
+            )
+        models = self.model if isinstance(self.model, list) else [self.model]
         for m in models:
-            table = m.get_checksum(ChecksumContent.TABLE_1X)
-            if table is None:
-                self.reader.verify(source=m)
-                continue
-            try:
-                from whyqd.parsers.v1 import V1ChecksumParser
-            except ImportError as e:
-                raise ImportError("Verifying a 1.x checksum needs the extra: pip install whyqd[verify-1x]") from e
-            if V1ChecksumParser().checksum(model=m) != table:
-                raise AssertionError(f"{self.model_name.title()} model checksum does not match derived checksum.")
-            path = self.reader.locate(source=m.path)
-            found = {ChecksumContent.BYTES: self.reader.fingerprints.byte_hash(source=path)}
-            # One read with pandas' settings has no dialect to parse its grid by
-            if not (m.attributes and m.attributes.terms):
-                found[ChecksumContent.FP0] = self.reader.fingerprint(source=m, path=path)
-            for content, value in found.items():
-                if m.get_checksum(content) is None and value is not None:
-                    m.checksums.append(
-                        ChecksumModel(algorithm=settings.CHECKSUM_ALGORITHM, checksumValue=value, content=content)
-                    )
+            self.reader.verify(source=m)
+            if m.get_checksum(ChecksumContent.TABLE_1X) is not None:
+                m.checksums += self.reader.checksums_beside_1x(source=m)
         return True
 
-    #########################################################################################
-    # MANAGE CITATION
-    #########################################################################################
-
-    def get_citation(self) -> dict[str, str | dict[str, str]]:
-        """Get the citation as a dictionary.
+    def get_citation(self) -> dict[str, str | dict[str, str]] | list[dict[str, str | dict[str, str]]]:
+        """Get the citation as a dictionary, or one a cited sheet of a workbook.
 
         Raises:
           ValueError: If no citation has been declared or the build is incomplete.
 
         Returns:
-          A dictionary conforming to the CitationModel.
+          A dictionary conforming to the CitationModel, or a list of them.
         """
         if not isinstance(self.model, list):
             return super().get_citation()
@@ -252,29 +224,25 @@ class DataSourceDefinition(BaseDefinition):
             if m.citation
         ]
 
-    def set_citation(self, *, citation: CitationModel, index: int = None) -> None:
+    def set_citation(self, *, citation: CitationModel, index: int | None = None) -> None:
         """Update or create the citation.
 
         Parameters:
           citation: A dictionary conforming to the CitationModel.
-          index: If there are multiple sources from the source data, provide the index (base 0) for the resource citation.
+          index: For a workbook, the sheet to cite, counted from 0; by default, every sheet.
         """
         # Create a temporary CitationModel
         if not isinstance(self.model, list):
             super().set_citation(citation=citation)
-        elif index:
-            self.model[index].citation = self.core.create_or_update_model(
-                modelType=CitationModel, source=citation, model=self.model[index].citation
+        elif index is not None:
+            self.model[index].citation = self.definitions.build(
+                kind=CitationModel, source=citation, model=self.model[index].citation
             )
         else:
             for index in range(len(self.model)):
-                self.model[index].citation = self.core.create_or_update_model(
-                    modelType=CitationModel, source=citation, model=self.model[index].citation
+                self.model[index].citation = self.definitions.build(
+                    kind=CitationModel, source=citation, model=self.model[index].citation
                 )
-
-    #########################################################################################
-    # SAVE UTILITIES FOR LISTS
-    #########################################################################################
 
     def get_json(self, hide_uuid: bool = False, format: str | None = None) -> Json | list[Json] | None:
         """Get the json model, or one per sheet.
@@ -282,14 +250,15 @@ class DataSourceDefinition(BaseDefinition):
         Parameters:
           hide_uuid: Hide all UUIDs in the nested JSON output. Mostly useful for validation assertions where the only
                      differences between sources are the UUIDs.
-          format: The definition format to write, one of `settings.FORMAT_VERSIONS` (`whyqd.config.settings`). Defaults to the current one.
+          format: The definition format to write, one of `settings.FORMAT_VERSIONS` (`whyqd.config.settings`).
+                  Defaults to the current one.
 
         Returns:
           Json-conforming output, a list of them, or None.
         """
         if not isinstance(self.model, list):
             return super().get_json(hide_uuid=hide_uuid, format=format)
-        formats = self.core.formats
+        formats = self.definitions.formats
         return [formats.dumps(formats.write(model=m, format=format, hide_uuid=hide_uuid)) for m in self.model]
 
     def save(
@@ -307,7 +276,8 @@ class DataSourceDefinition(BaseDefinition):
           filename:  Defaults to model name
           created_by:  Declare the model creator/updater
           hide_uuid:  Hide all UUIDs in the nested JSON output.
-          format: The definition format to write, one of `settings.FORMAT_VERSIONS` (`whyqd.config.settings`). Defaults to the current one.
+          format: The definition format to write, one of `settings.FORMAT_VERSIONS` (`whyqd.config.settings`).
+                  Defaults to the current one.
 
         Returns:
           Boolean True if saved.
@@ -318,19 +288,10 @@ class DataSourceDefinition(BaseDefinition):
             return super().save(
                 directory=directory, filename=filename, created_by=created_by, hide_uuid=hide_uuid, format=format
             )
-        if not directory:
-            directory = self.core.default_directory
-        else:
-            directory = self.core.check_path(directory=directory)
-        if not filename:
-            filename = f"{self.model.name}.{self.model_name}"
-        if filename.split(".")[-1] != self.model_name:
-            filename += f".{self.model_name}"
-        if isinstance(directory, str):
-            directory = Path(directory)
-        models = self.get_json(hide_uuid=hide_uuid, format=format)
-        for i, model in enumerate(models):
-            filename = "".join(self.model[i].name.split(".")[:-1] + [f".{self.model_name}"])
-            path = directory / filename
-            self.core.save_file(data=model, source=path)
+        directory = self.definitions.directory(directory)
+        stem = filename.removesuffix(f".{self.model_name}") if filename else None
+        for model, text in zip(self.model, self.get_json(hide_uuid=hide_uuid, format=format), strict=True):
+            root, _, sheet = model.name.partition(DataSourceModel.SHEET_JOIN)
+            name = f"{stem or root.rsplit('.', 1)[0]}-{sheet}.{self.model_name}"
+            self.definitions.save(text=text, path=directory / name)
         return True

@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import Literal, Optional, Union
 from pydantic import BaseModel, ConfigDict, Field
 
+from whyqd.config.settings import settings
 from whyqd.dtypes import EncodingStep
 
 
@@ -16,7 +17,9 @@ class DialectModel(BaseModel):
     a row (`skipBlankRows` false), in both.
     """
 
-    encoding: str = Field("utf-8", description="The file's encoding, as the WHATWG Encoding Standard names it.")
+    encoding: str = Field(
+        settings.ENCODING_DEFAULT, description="The file's encoding, as the WHATWG Encoding Standard names it."
+    )
     encodingStep: Optional[EncodingStep] = Field(None, description="What settled the encoding.")
     delimiter: str = Field(",", description="The character between cells.")
     quoteChar: Optional[str] = Field('"', description="The character quoting a cell; `null` for none.")

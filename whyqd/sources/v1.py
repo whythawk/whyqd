@@ -8,7 +8,7 @@ import pandas as pd
 
 from whyqd.dtypes import MimeType
 from whyqd.models import DataSourceModel
-from whyqd.parsers.core import CoreParser
+from whyqd.sources.location import LocationParser
 
 
 class V1ChecksumParser:
@@ -21,14 +21,14 @@ class V1ChecksumParser:
 
     Example:
       ```python
-      from whyqd.parsers.v1 import V1ChecksumParser
+      from whyqd.sources.v1 import V1ChecksumParser
 
       V1ChecksumParser().checksum(model=datasource.get) == datasource.get.get_checksum("table-1x")
       ```
     """
 
     def __init__(self) -> None:
-        self.core = CoreParser()
+        self.location = LocationParser()
 
     def checksum(self, *, model: DataSourceModel) -> str:
         """Derive a data source again from its file, with its 1.x settings (`header`, `sheet_name`, `attributes`),
@@ -122,10 +122,7 @@ class V1ChecksumParser:
             if source.names:
                 names = source.names
             source = source.path
-        if self.core.check_uri(source=source):
-            source = self.core.download_uri_source(source=source, directory=directory)
-        if not self.core.check_source(source=source):
-            raise FileNotFoundError(f"Source at `{source}` not found.")
+        source = self.location.locate(source=source, directory=directory)
         if not isinstance(mimetype, MimeType):
             try:
                 mimetype = MimeType.value_of(mimetype)

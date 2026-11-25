@@ -4,6 +4,7 @@
   "description": "A whyqd datasource as whyqd saves it in format 2.0, generated from its models.",
   "$defs": {
     "CellType": {
+      "description": "The type a file stores a cell as, written beside its text where the format stores types. How each renders as\ntext, the rule every reader follows: `describe`.",
       "enum": [
         "s",
         "n",
@@ -218,6 +219,7 @@
     },
     "DataSourceAttributeModel": {
       "additionalProperties": true,
+      "description": "1.x's pandas reading keywords, kept so a 1.x data source loads and is refused by name: 2.0 reads by `dialect`.",
       "title": "DataSourceAttributeModel",
       "type": "object"
     },
@@ -384,6 +386,7 @@
       "type": "object"
     },
     "EncodingStep": {
+      "description": "What settled a file's encoding, the steps a read takes in order.",
       "enum": [
         "bom",
         "declared",
@@ -394,6 +397,7 @@
       "type": "string"
     },
     "FieldType": {
+      "description": "A field's type, as a schema declares it. What each holds: `describe`.",
       "enum": [
         "string",
         "number",
@@ -414,6 +418,7 @@
       "type": "string"
     },
     "MimeType": {
+      "description": "A source's format, by its media type. Neither Feather nor Parquet has an official one, so each takes the type its\nproject uses; `PRQ` and `FTR` are names for the same two, so `MimeType.value_of(\"prq\")` finds Parquet.",
       "enum": [
         "text/csv",
         "application/vnd.ms-excel",

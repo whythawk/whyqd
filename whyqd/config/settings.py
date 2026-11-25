@@ -1,12 +1,12 @@
 # SPDX-License-Identifier: BSD-3-Clause
-from pydantic import Field
-from typing import ClassVar, Optional
+from typing import ClassVar
+
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
-    WHYQD_DIRECTORY: Optional[str] = Field(default="")
-    WHYQD_DEFAULT_MIMETYPE: Optional[str] = Field(default="application/vnd.apache.parquet")
+    WHYQD_DIRECTORY: str = ""
+    WHYQD_DEFAULT_MIMETYPE: str = "application/vnd.apache.parquet"
     # Fixed by the code, so no environment variable reaches them: a whyqd told it reads a format it has no code for
     # would drop that format's keys, and a renamed algorithm would stop every stored checksum verifying
     FORMAT_VERSIONS: ClassVar[tuple[str, ...]] = ("1.x", "2.0")
@@ -22,7 +22,10 @@ class Settings(BaseSettings):
     # The lines a proposed delimiter is judged on, and the encodings a proposal chooses among, from `ENCODINGS` below:
     # unconstrained, detection misreads small files, and UTF-16 is read by its byte-order mark alone
     REPORT_SAMPLE_LINES: ClassVar[int] = 1000
-    ENCODING_SHORTLIST: ClassVar[tuple[str, ...]] = ("utf-8", "windows-1252", "macintosh")
+    # The encoding a dialect holds when none is declared, and the one a read falls back to, which decodes any byte
+    ENCODING_DEFAULT: ClassVar[str] = "utf-8"
+    ENCODING_FALLBACK: ClassVar[str] = "windows-1252"
+    ENCODING_SHORTLIST: ClassVar[tuple[str, ...]] = (ENCODING_DEFAULT, ENCODING_FALLBACK, "macintosh")
     # The encodings a dialect may declare, by the WHATWG Encoding Standard's name in lower case, each with its labels
     # (https://encoding.spec.whatwg.org/#names-and-labels) and the Python codec that decodes it as the standard does
     ENCODINGS: ClassVar[dict[str, dict]] = {

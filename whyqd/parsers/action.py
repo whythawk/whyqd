@@ -3,89 +3,54 @@ from __future__ import annotations
 from typing import Union, Optional, Type, TYPE_CHECKING
 from uuid import uuid4
 
-from whyqd.parsers import CoreParser, ScriptParser
+from whyqd.parsers.script import SchemaPairParser
 
 from whyqd.models import ConstraintsModel, FieldModel
 from whyqd.crosswalk.base import BaseSchemaAction
 
 if TYPE_CHECKING:
     from whyqd.models import SchemaActionModel, ModifierModel
-    from whyqd.core import SchemaDefinition
     import pandas as pd
 
 
-class ActionParser:
-    """Parsing functions for action scripts.
+class ActionParser(SchemaPairParser):
+    """The parser of a schema action's script, `ACTION > 'destination' < [modifier 'source', ...]`.
 
-    Can process and validate any action script. Scripts may be recursive and are of the form:
-
-        "ACTION > 'destination field' < [modifier 'source field', {action script}]"
-
-    Modifiers are dependent on the specific Action. Fields must be found in provided SchemaDefinitions.
+    Which modifiers a script may hold is the action's. Every field it names must be in the source or destination
+    schema. A source term may itself be a schema action's script, nested in brackets.
     """
-
-    def __init__(self, *, schema_source: SchemaDefinition = None, schema_destination: SchemaDefinition = None) -> None:
-        """
-        Parameters
-        ----------
-        schema_source: SchemaDefinition, optional
-        schema_destination: SchemaDefinition, optional
-        """
-        self.core = CoreParser()
-        self.parser = ScriptParser()
-        self.schema = []
-        if schema_source and schema_destination:
-            self.set_schema(schema_source=schema_source, schema_destination=schema_destination)
-        self.source_modifiers = {}
-        self.modifier_names = set()
-
-    ###################################################################################################
-    ### PARSE TRANSFORM SCRIPT
-    ###################################################################################################
 
     def parse(
         self, *, script: str, action: BaseSchemaAction
     ) -> dict[str, BaseSchemaAction | FieldModel | list[ModifierModel | FieldModel]]:
-        """Parse a script for a base action and return the corresponding destination field, and source structure for
-        transformation. Can, optionally, also update the existing schema list.
+        """A script's action, destination field, and source terms, checked against the action's structure.
 
-        Parameters
-        ----------
-        script: str
-        action: BaseSchemaAction
+        Returns:
+          `{"action": ..., "destination": ..., "source": [...]}`, the destination one field or a list, the source
+          modifiers and fields in order; for `NEW`, no source, its value set as the destination's default.
 
-        Raises
-        ------
-        ValueError if the script term is not recognised.
-
-        Returns
-        -------
-        dict of the form:
-            {
-                'action': BaseSchemaAction,
-                'destination': FieldModel | list[FieldModel],
-                'source': list[ModifierModel | FieldModel]
-            }
+        Raises:
+          ValueError: If a term names no field or modifier, or the source does not fit the action's structure.
         """
-        if not self.schema:
+        if not self.schemas:
             raise ValueError("Schema has not been provided.")
-        hexed_script = self.get_hexed_script(script=script)
-        root = self.parser.get_split_terms(script=hexed_script, by="<")
-        split_terms = self.parser.get_split_terms(script=root[0], by=">")
+        hexed_script = self.hexed_with_modifiers(script=script)
+        root = self.parser.get_split_terms(script=hexed_script, by=self.parser.SOURCE)
+        split_terms = self.parser.get_split_terms(script=root[0], by=self.parser.DESTINATION)
         # Get destination term
         destination = None
         if len(split_terms) == 2:
             destination = self.parser.get_literal(text=split_terms[1])
             if isinstance(destination, list):
-                destination = [self.get_schema_field(term=d) for d in destination]
+                destination = [self.parser.get_schema_field(term=d, schema=self.schemas) for d in destination]
                 assert all(isinstance(d, FieldModel) for d in destination)
             else:
-                destination = self.get_schema_field(term=destination)
+                destination = self.parser.get_schema_field(term=destination, schema=self.schemas)
                 assert isinstance(destination, FieldModel)
         # Get source term
         source = None
         if len(root) > 1:
-            source = "<".join(root[1:])
+            source = self.parser.SOURCE.join(root[1:])
         # Process initial response
         if action.settings.name == "NEW":
             # Special case where value is assigned as default to 'destination' field
@@ -126,10 +91,10 @@ class ActionParser:
                 parsed_stack = stack
                 for txt, _, hx in parsed:
                     # replace the txt with hx
-                    parsed_stack = parsed_stack.replace(f"[{txt}]", hx)
+                    parsed_stack = parsed_stack.replace(f"{self.parser.OPEN}{txt}{self.parser.CLOSE}", hx)
                 i_prsed = []
                 for s in self.parser.get_split_terms(script=parsed_stack, by=",", maxsplit=-1):
-                    splt = self.parser.get_split_terms(script=s, by="<")
+                    splt = self.parser.get_split_terms(script=s, by=self.parser.SOURCE)
                     if len(splt) == 1:
                         i_prsed.extend(self.parser.get_listed_literal(text=s))
                     else:
@@ -146,10 +111,6 @@ class ActionParser:
         action.validate(destination=destination, source=source)
         return {"action": action, "destination": destination, "source": source}
 
-    ###################################################################################################
-    ### IMPLEMENT VALIDATED SCRIPT
-    ###################################################################################################
-
     def transform(
         self,
         *,
@@ -159,27 +120,13 @@ class ActionParser:
         source: Optional[list[Union[ModifierModel, dict]]] = None,
         **kwargs,
     ) -> pd.DataFrame:
-        """
-        A recursive transformation. A method should be a list fields upon which actions are applied, but
-        each field may have nested sub-fields requiring their own actions. Before the action on the
-        current field can be completed, it is necessary to perform the actions on each sub-field.
+        """The table with the action run on it, each nested source term's action run first into a column of its own.
 
-        Parameters
-        ----------
-        df: DataFrame
-            Working data to be transformed
-        action: SchemaActionModel
-        destination: FieldModel
-        source: list of ModifierModel, and dicts of nested transforms, default None
-        assigned: list of dict
-            Specific to CATEGORISE actions. Each dict has values for: Assignment ACTION, destination schema field,
-            schema category, source data column, and a list of source data column category terms assigned to that
-            schema category.
-
-        Returns
-        -------
-        Dataframe
-            Containing the implementation of all nested transformations
+        Parameters:
+          df: The table.
+          action: The action to run.
+          destination: The field the action builds.
+          source: Modifiers and fields, and nested scripts as parsed, in order.
         """
         if not source:
             return action.transform(df=df, destination=destination)
@@ -202,92 +149,33 @@ class ActionParser:
         # Action transform
         return action.transform(df=df, destination=destination, source=flattened_source)
 
-    ###################################################################################################
-    ### SUPPORT UTILITIES
-    ###################################################################################################
-
-    def set_schema(
-        self, *, schema_source: SchemaDefinition = None, schema_destination: SchemaDefinition = None
-    ) -> None:
-        """Set SchemaDefinitions for the parser.
-
-        Parameters
-        ----------
-        schema_source: SchemaDefinition
-        schema_destination: SchemaDefinition
-        """
-        if not schema_source or not schema_destination:
-            raise ValueError("Schema for both source and destination has not been provided.")
-        self.schema = [schema_source, schema_destination]
-
-    def get_schema_field(self, *, term: str) -> FieldModel:
-        """Recover a field model from a string.
-
-        Raises
-        ------
-        ValueError if the field term is not recognised.
-
-        Returns
-        -------
-        FieldModel
-        """
-        field = None
-        for s in self.schema:
-            field = s.fields.get(name=term)
-            if field:
-                break
-        if not field:
-            e = f"Field name is not recognised from either of the source or destination schema fields ({term})."
-            if len(self.schema) == 1:
-                e = f"Field name is not recognised from the schema fields ({term})."
-            raise ValueError(e)
-        return field
-
-    def get_hexed_script(self, *, script: str) -> str:
+    def hexed_with_modifiers(self, *, script: str) -> str:
+        """The script with each field name as its field's hex, as `ScriptParser.get_hexed_script` gives it, and each of
+        its actions' modifiers set apart by commas, so the source splits into terms."""
         from whyqd.crosswalk.actions import default_actions
 
-        # Changes fields to uuid hexes
-        all_fields = [field for s in self.schema for field in s.get.fields]
+        all_fields = [field for s in self.schemas for field in s.get.fields]
         script = self.parser.get_hexed_script(script=script, fields=all_fields)
-        self.modifier_names = set()
-        self.source_modifiers = {}
+        modifier_names = set()
         for action in default_actions:
             if action.name in script:
-                action_modifiers = {}
+                action_modifiers = set()
                 if action.modifiers:
                     # TODO: this isn't right ... modifiers may share a name but have different functions/descriptions
-                    action_modifiers = {m.name: m for m in action.modifiers}
-                for m in set(action_modifiers.keys()).difference(self.modifier_names):
-                    # Preserve original Modifiers
-                    self.source_modifiers[m] = action_modifiers[m]
+                    action_modifiers = {m.name for m in action.modifiers}
+                for m in action_modifiers.difference(modifier_names):
                     script = script.replace(m, f",{m},")
-                self.modifier_names.update(set(action_modifiers.keys()))
+                modifier_names.update(action_modifiers)
         return ",".join([s.strip() for s in script.split(",") if s.strip()])
 
     def recover_fields_from_hexed_script(
         self, *, parsed: list | dict, action: BaseSchemaAction
     ) -> list[dict[str, BaseSchemaAction | FieldModel | list[ModifierModel | FieldModel]]]:
-        """
-        Recovered fields and modifiers from a hexed script. Doubles up as a validator since any non-recovered
-        term causes a ValueError. Recursive for deeply-nested scripts.
+        """Each term of a hexed script as the modifier or field it names, a nested script's as its parsed form,
+        however deep.
 
-        Parameters
-        ----------
-        parsed: list, dict
-        action: BaseSchemaAction
-
-        Raises
-        ------
-        ValueError if the script term is not recognised.
-
-        Returns
-        -------
-        list of dicts of the form:
-            {
-                'action': BaseSchemaAction,
-                'destination': FieldModel,
-                'source': list[ModifierModel | FieldModel]
-            }
+        Raises:
+          ValueError: If a term names no modifier or field.
         """
         recovered_fields = []
         modifier_names = action.modifier_terms
@@ -301,14 +189,14 @@ class ActionParser:
             if isinstance(term, str) and term in modifier_names:
                 recovered = action.get_modifier(term=term)
             elif isinstance(term, str):
-                recovered = self.get_schema_field(term=term)
+                recovered = self.parser.get_schema_field(term=term, schema=self.schemas)
             elif isinstance(term, list):
                 recovered = self.recover_fields_from_hexed_script(parsed=term, action=action)
             elif isinstance(term, dict):
                 # Check if 'destination' is a column or schema field
                 destination = term.get("destination")
                 if destination:
-                    destination = self.get_schema_field(term=destination)
+                    destination = self.parser.get_schema_field(term=destination, schema=self.schemas)
                 recovered = {
                     "action": term.get("action"),
                     "destination": destination,

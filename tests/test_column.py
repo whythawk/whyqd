@@ -3,7 +3,7 @@ import io
 import pandas as pd
 import pytest
 
-from whyqd.parsers import ColumnParser
+from whyqd.sources.column import ColumnParser
 
 REPEATS = [
     ["name", "value"],

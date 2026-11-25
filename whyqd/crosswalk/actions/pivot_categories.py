@@ -64,11 +64,11 @@ class Action(BaseCategoryAction):
     def parse(self, *, script: str) -> dict[str, str]:
         parsed = {}
         # Get unique assignment terms
-        root = self.parser.get_split_terms(script=script, by="<")
+        root = self.parser.get_split_terms(script=script, by=self.parser.SOURCE)
         if len(root) != 2:
             raise ValueError(f"Category action script has no source terms ({script}).")
         # Extract source terms
-        source_terms = self.parser.get_split_terms(script=root[1], by="::")
+        source_terms = self.parser.get_split_terms(script=root[1], by=self.parser.PARAMETER)
         parsed["source"] = source_terms[0]
         if len(source_terms) != 2:
             raise ValueError(f"Category pivot action script has no source category row term ({script}).")
@@ -76,7 +76,7 @@ class Action(BaseCategoryAction):
         if not all([isinstance(x, int) for x in source_terms]):
             raise ValueError(f"Category pivot row terms are not integers ({script}).")
         parsed["source_category"] = source_terms
-        root = self.parser.get_split_terms(script=root[0], by=">")
+        root = self.parser.get_split_terms(script=root[0], by=self.parser.DESTINATION)
         # Extract destination terms
         if len(root) != 2:
             raise ValueError(f"Category action script has no destination terms ({script}).")

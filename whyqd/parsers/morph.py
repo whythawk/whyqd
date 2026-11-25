@@ -2,45 +2,19 @@
 from __future__ import annotations
 from typing import Type, TYPE_CHECKING
 
-from whyqd.parsers import CoreParser, ScriptParser  # , DataSourceParser
+from whyqd.parsers.script import SchemaPairParser
 
 if TYPE_CHECKING:
     import pandas as pd
-    from whyqd.models import MorphActionModel, FieldModel  # , DataSourceModel
-    from whyqd.core import SchemaDefinition
+    from whyqd.models import MorphActionModel, FieldModel
     from whyqd.crosswalk.base import BaseMorphAction
 
 
-class MorphParser:
-    """Parsing functions for morph implementations of action scripts.
+class MorphParser(SchemaPairParser):
+    """The parser of a morph's script, `ACTION > [fields] < [rows]`, each list flat, never nested.
 
-    Can process and validate any morphs script. Scripts must be 'flat' and are of the form:
-
-        "ACTION > [fields] < [rows]"
-
-    Where:
-
-    * the presence and order of the arrays is set by ACTION `structure`,
-    * `fields` are indicated by `>`, and
-    * `rows` are indicated by `<`.
+    Which lists a morph takes, and in what order, is its `structure`; either may open with a `'parameter'::`.
     """
-
-    def __init__(self, *, schema_source: SchemaDefinition = None, schema_destination: SchemaDefinition = None) -> None:
-        """
-        Parameters
-        ----------
-        schema_source: SchemaDefinition, optional
-        schema_destination: SchemaDefinition, optional
-        """
-        self.core = CoreParser()
-        self.parser = ScriptParser()
-        self.schema = []
-        if schema_source and schema_destination:
-            self.set_schema(schema_source=schema_source, schema_destination=schema_destination)
-
-    ###################################################################################################
-    ### PARSE TRANSFORM SCRIPT
-    ###################################################################################################
 
     def parse(
         self,
@@ -48,29 +22,21 @@ class MorphParser:
         script: str,
         action: BaseMorphAction,
     ) -> dict[str, MorphActionModel | list[FieldModel] | list[int] | str]:
-        """Generate the parsed dictionary of an initialised action script.
+        """A morph script's action, fields, rows, and parameters, checked against the morph's structure.
 
-        Parameters
-        ----------
-        script: str
-            An action script.
-        action: BaseSchemaAction
+        Returns:
+          `{"action", "destination", "source", "rows", "source_param", "destination_param"}`, each `None` where the
+          script has none.
 
-        Raises
-        ------
-        ValueError for any parsing errors.
-
-        Returns
-        -------
-        dict
-            Parsed dictionary of an initialised action script. Of the form::
+        Raises:
+          ValueError: If a list is nested, a field is in neither schema, or a list the structure needs is missing.
         """
         source, destination, rows, source_param, destination_param = None, None, None, None, None
         # Parse source terms
-        root = self.parser.get_split_terms(script=script, by="<")
+        root = self.parser.get_split_terms(script=script, by=self.parser.SOURCE)
         if len(root) == 2:
             # Parsing "> 'param'::[terms]" - this is an attribute some morphs can request
-            optional = self.parser.get_split_terms(script=root[1], by="::")
+            optional = self.parser.get_split_terms(script=root[1], by=self.parser.PARAMETER)
             if len(optional) == 2:
                 # Must be a string
                 source_param = self.parser.get_literal(text=optional[0])
@@ -84,12 +50,12 @@ class MorphParser:
                 # Can be either of `schema_source` or `schema_destination`
                 source = self.get_morph_struts(term=root[1])
                 source = [self.parser.get_literal(text=f) for f in source]
-                source = [self.parser.get_schema_field(term=f, schema=self.schema) for f in source]
+                source = [self.parser.get_schema_field(term=f, schema=self.schemas) for f in source]
         # Parse destination terms
-        root = self.parser.get_split_terms(script=root[0], by=">")
+        root = self.parser.get_split_terms(script=root[0], by=self.parser.DESTINATION)
         if len(root) == 2:
             # Parsing "> 'param'::[fields]" - this is a term some morphs can request
-            optional = self.parser.get_split_terms(script=root[1], by="::")
+            optional = self.parser.get_split_terms(script=root[1], by=self.parser.PARAMETER)
             if len(optional) == 2:
                 # Must be a string
                 destination_param = self.parser.get_literal(text=optional[0])
@@ -97,7 +63,7 @@ class MorphParser:
             # Can be either of `schema_source` or `schema_destination`
             destination = self.get_morph_struts(term=root[1])
             destination = [self.parser.get_literal(text=f) for f in destination]
-            destination = [self.parser.get_schema_field(term=f, schema=self.schema) for f in destination]
+            destination = [self.parser.get_schema_field(term=f, schema=self.schemas) for f in destination]
         # Validate structure
         if (source or destination) and "fields" not in action.structure:
             raise ValueError(f"Script error for {action.name} Morph. Fields are not a valid input.")
@@ -119,10 +85,6 @@ class MorphParser:
             "destination_param": destination_param,
         }
 
-    ###################################################################################################
-    ### IMPLEMENT VALIDATED SCRIPT
-    ###################################################################################################
-
     def transform(
         self,
         *,
@@ -135,28 +97,16 @@ class MorphParser:
         destination_param: str | None = None,
         **kwargs,
     ) -> pd.DataFrame:
-        """Transform a dataframe according to a morph script.
+        """The table with the morph run on it, which may add, remove, or reshape its columns and rows.
 
-        .. warning:: Morphs can change the table columns, effecting referencing. This will be captured into the
-            `DataSourceModel` and will effect Schema ACTION ColumnModel references. User beware.
-
-        Parameters
-        ----------
-        action: MorphActionModel
-        source: list of FieldModel or a FieldModel
-            List of source fields for the action, default None.
-        destination: list of FieldModel
-            List of destination fields for the action, default None.
-        rows: list of int, default None.
-        source_param: str
-            Additional parameters for a specific action, default None.
-        destination_param: str
-            Additional parameters for a specific action, default None.
-
-        Returns
-        -------
-        Dataframe
-            Containing the implementation of all transformations
+        Parameters:
+          df: The table.
+          action: The morph to run.
+          source: The fields it reads.
+          destination: The fields it writes.
+          rows: The rows it names, by row key.
+          source_param: The parameter before its source list.
+          destination_param: The parameter before its destination list.
         """
         return action.transform(
             df=df,
@@ -167,31 +117,12 @@ class MorphParser:
             destination_param=destination_param,
         )
 
-    ###################################################################################################
-    ### SUPPORT UTILITIES
-    ###################################################################################################
-
-    def set_schema(
-        self, *, schema_source: SchemaDefinition = None, schema_destination: SchemaDefinition = None
-    ) -> None:
-        """Set SchemaDefinitions for the parser.
-
-        Parameters
-        ----------
-        schema_source: SchemaDefinition
-        schema_destination: SchemaDefinition
-        """
-        if not schema_source or not schema_destination:
-            raise ValueError("Schema for both source and destination has not been provided.")
-        self.schema = [schema_source, schema_destination]
-
-    def get_hexed_script(self, *, script: str) -> str:
-        # Changes fields to uuid hexes
-        all_fields = [field for s in self.schema for field in s.get.fields]
-        script = self.parser.get_hexed_script(script=script, fields=all_fields)
-        return ",".join([s.strip() for s in script.split(",") if s.strip()])
-
     def get_morph_struts(self, *, term: str) -> list[str]:
+        """A bracketed list's terms, or a lone term as a list of one.
+
+        Raises:
+          ValueError: If the list is nested.
+        """
         terms = list(self.parser.generate_contents(text=term))
         if not terms:
             # It wasn't a list

@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import Optional, Union
 from pydantic import BaseModel, ConfigDict, Field
 
-from whyqd.dtypes import FindingKind, MimeType, SettingSource
+from whyqd.dtypes import FindingKind, MimeType, Place, SettingSource
 
 SettingValue = Union[bool, int, str, list[int], None]
 
@@ -36,6 +36,9 @@ class FindingModel(BaseModel):
     field: Optional[str] = Field(None, description="The schema field concerned, for a typing or constraint finding.")
     shape: Optional[str] = Field(None, description="The form the cells share, such as `#-9999.99`.")
     count: Optional[int] = Field(None, ge=0, description="How many cells have this shape; `rows` holds the first.")
+    step: Optional[int] = Field(
+        None, ge=0, description="The crosswalk step concerned, by its place among the crosswalk's steps, from 0."
+    )
     model_config = ConfigDict(use_enum_values=True, validate_assignment=True)
 
     def __str__(self) -> str:
@@ -45,10 +48,24 @@ class FindingModel(BaseModel):
 class ProposalModel(BaseModel):
     """A setting that would read past a fault. Never applied: it takes effect only when the wrangler declares it."""
 
-    setting: str = Field(..., description="The setting's name in the dialect, or the slot in a field's policy.")
+    setting: str = Field(
+        ...,
+        description="The setting's name in the dialect, the slot in a field's policy, or `drop` for a crosswalk step "
+        "to leave out.",
+    )
     field: Optional[str] = Field(None, description="The schema field the setting is for, if it is not the dialect's.")
     value: SettingValue = Field(None, description="The value proposed.")
     evidence: str = Field(..., description="What in the file supports it.")
+    model_config = ConfigDict(use_enum_values=True, validate_assignment=True)
+
+
+class CrosswalkReportModel(BaseModel):
+    """The steps of a saved crosswalk that loading it would refuse, and, where asked, the steps to leave out so it
+    loads. Computed when asked, never stored on a definition."""
+
+    name: str = Field(..., description="The crosswalk's name.")
+    findings: list[FindingModel] = Field([], description="Each refused step, by its place in `step`.")
+    proposals: list[ProposalModel] = Field([], description="Steps proposed to leave out, where the wrangler asked.")
     model_config = ConfigDict(use_enum_values=True, validate_assignment=True)
 
 
@@ -59,7 +76,7 @@ class ReportModel(BaseModel):
     path: str = Field(..., description="The file read.")
     mime: MimeType = Field(..., description="The file's format.")
     sheet: Optional[str] = Field(None, description="The sheet read, in a workbook.")
-    place: str = Field("line", description="What `rows` counts: a text file's `line`, a sheet's `row`.")
+    place: Place = Field(Place.LINE, description="What `rows` counts: a text file's `line`, a sheet's `row`.")
     settings: list[SettingModel] = Field(
         [], description="Each setting the read used. Empty where the file could not be read."
     )

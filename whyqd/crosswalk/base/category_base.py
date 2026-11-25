@@ -2,12 +2,12 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING
 
-from whyqd.parsers import ScriptParser
+from whyqd.parsers.script import ScriptParser
 
 if TYPE_CHECKING:
     import pandas as pd
     from whyqd.models import CategoryActionModel, CategoryModel, FieldModel
-    from whyqd.parsers.datasource import DataSourceParser
+    from whyqd.reading.frame import FrameParser
 
 
 class BaseCategoryAction:
@@ -29,7 +29,7 @@ class BaseCategoryAction:
     """
 
     def __init__(self) -> None:
-        self._reader = None
+        self._frame = None
         self.parser = ScriptParser()
         self.name = ""
         self.title = ""
@@ -37,13 +37,13 @@ class BaseCategoryAction:
         self.structure = []
 
     @property
-    def reader(self) -> DataSourceParser:
-        # The reader loads the engine, which reading a definition must not
-        if self._reader is None:
-            from whyqd.parsers.datasource import DataSourceParser
+    def frame(self) -> FrameParser:
+        # The bridge loads the engine, which reading a definition must not
+        if self._frame is None:
+            from whyqd.reading.frame import FrameParser
 
-            self._reader = DataSourceParser()
-        return self._reader
+            self._frame = FrameParser()
+        return self._frame
 
     @property
     def settings(self) -> CategoryActionModel:
@@ -99,19 +99,19 @@ class BaseCategoryAction:
         """
         parsed = {}
         # Get unique assignment terms
-        root = self.parser.get_split_terms(script=script, by="<")
+        root = self.parser.get_split_terms(script=script, by=self.parser.SOURCE)
         if len(root) != 2:
             raise ValueError(f"Category action script has no source terms ({script}).")
         # Extract source terms
-        source_terms = self.parser.get_split_terms(script=root[1], by="::")
+        source_terms = self.parser.get_split_terms(script=root[1], by=self.parser.PARAMETER)
         parsed["source"] = source_terms[0]
         if len(source_terms) == 2:
             parsed["source_category"] = source_terms[1]
-        root = self.parser.get_split_terms(script=root[0], by=">")
+        root = self.parser.get_split_terms(script=root[0], by=self.parser.DESTINATION)
         # Extract destination terms
         if len(root) != 2:
             raise ValueError(f"Category action script has no destination terms ({script}).")
-        destination_terms = self.parser.get_split_terms(script=root[1], by="::")
+        destination_terms = self.parser.get_split_terms(script=root[1], by=self.parser.PARAMETER)
         if len(destination_terms) != 2:
             raise ValueError(f"Category action script has no destination category term ({script}).")
         parsed["destination"] = destination_terms[0]
@@ -176,7 +176,7 @@ class BaseCategoryAction:
                 if pd.api.types.is_numeric_dtype(conditions) and not pd.api.types.is_bool_dtype(conditions):
                     conditions = conditions if zero_counts else conditions.replace({0: np.nan})
             else:
-                conditions = self.reader.without_blanks(column=conditions)
+                conditions = self.frame.without_blanks(column=conditions)
             present = [not (pd.isnull(x) or (not x and not zero_counts)) for x in conditions.tolist()]
             conditions = pd.Series(present if assigned[0].name else [not p for p in present])
         else:

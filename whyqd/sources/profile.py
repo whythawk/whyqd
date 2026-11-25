@@ -1,9 +1,12 @@
 # SPDX-License-Identifier: BSD-3-Clause
+from typing import ClassVar
+
 import polars as pl
 
 from whyqd.config.patterns import PolarsPatterns
 from whyqd.dtypes import CellType
 from whyqd.models import ProfileModel
+from whyqd.reading.reader import BaseReadingParser
 
 
 class ProfileParser:
@@ -13,8 +16,8 @@ class ProfileParser:
     cell is zero-padded (`0012`) or date-like. Format codes are counted for number and date cells alone.
     """
 
-    FORMATTED = [CellType.NUMBER.value, CellType.DATE.value]
-    CELL = "cell"
+    FORMATTED: ClassVar[list[str]] = [CellType.NUMBER.value, CellType.DATE.value]
+    CELL: ClassVar[str] = BaseReadingParser.CELL
 
     def __init__(self) -> None:
         self.patterns = PolarsPatterns()
@@ -22,14 +25,10 @@ class ProfileParser:
     def profile(self, *, text: pl.Series, types: pl.Series, formats: pl.Series | None = None) -> ProfileModel:
         """A column's profile from its cells' text, their types, and, for an `.xlsx`, their format codes.
 
-        Parameters
-        ----------
-        text: pl.Series
-            Each cell's text as stored, null where empty.
-        types: pl.Series
-            Each cell's `CellType` tag.
-        formats: pl.Series | None, default None
-            Each cell's number format code; none for a file that stores none.
+        Parameters:
+          text: Each cell's text as stored, null where empty.
+          types: Each cell's `CellType` tag.
+          formats: Each cell's number format code; none for a file that stores none.
         """
         p = self.patterns
         # A Series method runs as `col(series.name)`, so a source's column name would be read as a pattern (`^a$`, `*`)
@@ -39,7 +38,9 @@ class ProfileParser:
         is_text = types == CellType.STRING.value
         counts = {}
         if formats is not None:
-            coded = dict(formats.alias(self.CELL).filter(types.is_in(self.FORMATTED)).drop_nulls().value_counts().iter_rows())
+            coded = dict(
+                formats.alias(self.CELL).filter(types.is_in(self.FORMATTED)).drop_nulls().value_counts().iter_rows()
+            )
             counts = dict(sorted(coded.items(), key=lambda c: (-c[1], c[0])))
         return ProfileModel(
             cellTypes={t.value: found[t.value] for t in CellType if t.value in found},

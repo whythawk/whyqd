@@ -17,8 +17,8 @@ class PolarsPatterns:
     split by `/`, `-`, or `.`, or an English month's name, whole or short, among digits and separators.
     """
 
-    HARD_SPACE: ClassVar[str] = "[   ]"
-    ZERO_WIDTH: ClassVar[str] = "[​-‍⁠﻿]"
+    HARD_SPACE: ClassVar[str] = "[\u00a0\u2007\u202f]"
+    ZERO_WIDTH: ClassVar[str] = "[\u200b-\u200d\u2060\ufeff]"
     CONTROL: ClassVar[str] = r"[\p{Cc}&&[^\t\n\r]]"
     WHITESPACE: ClassVar[str] = r"^\s+$"
     DIGIT: ClassVar[str] = "[0-9]"
@@ -26,7 +26,8 @@ class PolarsPatterns:
     DATE: ClassVar[str] = r"^[0-9]+[/.-][0-9]+[/.-][0-9]+$"
     # What reading a cell removes or changes: the bidirectional marks LRM, RLM, and ALM; minus-like characters NFKC
     # leaves; a digit of another script; a character NFKC would turn into a digit of its number
-    BIDI: ClassVar[str] = "[‎‏؜]"
+    BIDI_MARKS: ClassVar[str] = "\u200e\u200f\u061c"
+    BIDI: ClassVar[str] = f"[{BIDI_MARKS}]"
     MINUS: ClassVar[str] = "[‐‑‒–—−]"
     OTHER_DIGIT: ClassVar[str] = r"[\p{Nd}&&[^0-9]]"
     NUMBER_FORM: ClassVar[str] = r"\p{No}"
@@ -59,7 +60,6 @@ class PolarsPatterns:
         r"|oct(ober)?|nov(ember)?|dec(ember)?)\b\.?[0-9\s/.,-]*$"
     )
 
-
     # An ISO 8601 duration of days, hours, minutes, and seconds, each captured, with no years or months
     DURATION: ClassVar[str] = r"^(-)?P(?:([0-9]+)D)?(?:T(?:([0-9]+)H)?(?:([0-9]+)M)?(?:([0-9]+(?:\.[0-9]+)?)S)?)?$"
 
@@ -67,12 +67,30 @@ class PolarsPatterns:
     TIME_TAIL: ClassVar[str] = r"(?:[ T][0-9]{1,2}:[0-9]{2}(?::[0-9]{2}(?:\.[0-9]+)?)?)?"
     TIME_AT_END: ClassVar[str] = r"[ T]([0-9]{1,2}:[0-9]{2}(?::[0-9]{2}(?:\.[0-9]+)?)?)$"
     NOT_ZERO: ClassVar[str] = "[1-9]"
-    OFFSET: ClassVar[str] = r"^(.*[0-9]:[0-9]{2}(?::[0-9]{2}(?:\.[0-9]+)?)?(?: ?[^0-9 ]+)?)\s*(Z|[+-][0-9]{2}(?::?[0-9]{2})?)$"
+    OFFSET: ClassVar[str] = (
+        r"^(.*[0-9]:[0-9]{2}(?::[0-9]{2}(?:\.[0-9]+)?)?(?: ?[^0-9 ]+)?)\s*(Z|[+-][0-9]{2}(?::?[0-9]{2})?)$"
+    )
     SERIAL: ClassVar[str] = r"^[0-9]{1,7}(?:\.[0-9]+)?$"
     # Seconds since 1970, of any length
     UNIX_SERIAL: ClassVar[str] = r"^[0-9]+(?:\.[0-9]+)?$"
     TRAILING_DOT: ClassVar[str] = r"\.$"
     DOT_OR_SPACE: ClassVar[str] = r"[.\s]"
+    DIGIT_RUN: ClassVar[str] = "[0-9]+"
+
+    @staticmethod
+    def digits(low: int, high: int | None = None) -> str:
+        """Exactly `low` digits, or with `high` from `low` to `high`."""
+        return f"[0-9]{{{low}}}" if high is None else f"[0-9]{{{low},{high}}}"
+
+    @staticmethod
+    def captured(pattern: str) -> str:
+        """`pattern` as a group whose match is kept."""
+        return f"({pattern})"
+
+    @staticmethod
+    def whole_cell(pattern: str) -> str:
+        """`pattern` matching a cell from its start to its end."""
+        return f"^{pattern}$"
 
     @staticmethod
     def names(tokens: list[str]) -> str:

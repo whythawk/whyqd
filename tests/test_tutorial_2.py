@@ -2,7 +2,6 @@
 from pathlib import Path
 
 import whyqd as qd
-from whyqd.parsers import CoreParser
 
 SOURCE_DIRECTORY = Path(__file__).resolve().parent / "data"
 SOURCE_DATA = SOURCE_DIRECTORY / "working_test_world_bank_data.xlsx"
@@ -15,7 +14,6 @@ class TestTutorialPopulation:
         create a method, import data, perform actions and generate a schema-compliant output.
         From https://databank.worldbank.org/reports.aspx?source=2&type=metadata&series=SP.URB.TOTL"""
         DIRECTORY = tmp_path
-        CoreParser().check_path(directory=DIRECTORY)
         # 1. Import a data source and derive a source schema
         datasource = qd.DataSourceDefinition()
         # There are three sheets:

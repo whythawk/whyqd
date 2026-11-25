@@ -4,7 +4,7 @@
   "description": "A whyqd transform as whyqd saves it in format 2.0, generated from its models.",
   "$defs": {
     "ActionScriptModel": {
-      "description": "Action Script Model - only action `script` string required.",
+      "description": "One step of a crosswalk: its action script, why it holds, the correspondence a `CATEGORISE` step cites, and how\nto read the text it builds. Only `script` is required.",
       "properties": {
         "uuid": {
           "description": "Unique identity for the Action. Automatically generated.",
@@ -68,6 +68,7 @@
       "type": "object"
     },
     "CategoryModel": {
+      "description": "One of a field's categories: a term, or `true` or `false` where the field's categories are booleans, with its\ncode where it comes from a term list.",
       "properties": {
         "uuid": {
           "description": "Unique identity for the category. Automatically generated.",
@@ -121,6 +122,7 @@
       "type": "object"
     },
     "CellType": {
+      "description": "The type a file stores a cell as, written beside its text where the format stores types. How each renders as\ntext, the rule every reader follows: `describe`.",
       "enum": [
         "s",
         "n",
@@ -334,6 +336,7 @@
       "type": "object"
     },
     "ConstraintsModel": {
+      "description": "What a field's values must meet beyond their type: present, unique, one of its categories, within bounds on a\nvalue or a string's length; and whether a zero counts as present.",
       "properties": {
         "required": {
           "anyOf": [
@@ -467,6 +470,7 @@
       "type": "object"
     },
     "CrosswalkModel": {
+      "description": "How a source schema maps onto a destination schema: action scripts, run in order, each taking source fields to\ndestination fields.",
       "properties": {
         "uuid": {
           "description": "Automatically generated unique identity for the crosswalk.",
@@ -475,7 +479,7 @@
           "type": "string"
         },
         "name": {
-          "description": "Machine-readable term to uniquely address this crosswalk. Cannot have spaces. CamelCase or snake_case for preference.",
+          "description": "Machine-readable term to address this crosswalk: trimmed, lower case, its spaces underscores.",
           "title": "Name",
           "type": "string"
         },
@@ -531,7 +535,7 @@
         },
         "actions": {
           "default": [],
-          "description": "List of Actions in script format to be performed on these data, in this order. Will be parsed and validated seperately.",
+          "description": "List of Actions in script format to be performed on these data, in this order. Will be parsed and validated separately.",
           "items": {
             "$ref": "#/$defs/ActionScriptModel"
           },
@@ -577,10 +581,12 @@
     },
     "DataSourceAttributeModel": {
       "additionalProperties": true,
+      "description": "1.x's pandas reading keywords, kept so a 1.x data source loads and is refused by name: 2.0 reads by `dialect`.",
       "title": "DataSourceAttributeModel",
       "type": "object"
     },
     "DataSourceModel": {
+      "description": "A source file as whyqd reads it: where it is, its format and how it is written, its columns as read, and the\nchecksums that prove it is the file.",
       "properties": {
         "uuid": {
           "description": "Automatically generated unique identity for the data source.",
@@ -948,6 +954,7 @@
       "type": "object"
     },
     "EncodingStep": {
+      "description": "What settled a file's encoding, the steps a read takes in order.",
       "enum": [
         "bom",
         "declared",
@@ -958,6 +965,7 @@
       "type": "string"
     },
     "ExtensionKind": {
+      "description": "What an installed extension adds to whyqd: an action, or a field type.",
       "enum": [
         "action",
         "type"
@@ -1011,6 +1019,7 @@
       "type": "object"
     },
     "FieldModel": {
+      "description": "One field of a schema: its name and type, what its values must meet, and, for a type read from text, how to read\nit (`policy`).",
       "properties": {
         "uuid": {
           "description": "Unique identity for the field. Automatically generated.",
@@ -1111,6 +1120,7 @@
       "type": "object"
     },
     "FieldType": {
+      "description": "A field's type, as a schema declares it. What each holds: `describe`.",
       "enum": [
         "string",
         "number",
@@ -1131,6 +1141,7 @@
       "type": "string"
     },
     "MimeType": {
+      "description": "A source's format, by its media type. Neither Feather nor Parquet has an official one, so each takes the type its\nproject uses; `PRQ` and `FTR` are names for the same two, so `MimeType.value_of(\"prq\")` finds Parquet.",
       "enum": [
         "text/csv",
         "application/vnd.ms-excel",
@@ -1193,7 +1204,7 @@
     },
     "PolicyModel": {
       "additionalProperties": false,
-      "description": "How to read a field's text as its type: a CSV on the Web derived datatype\n([Metadata Vocabulary for Tabular Data, section 5.11.2](https://www.w3.org/TR/tabular-metadata/#derived-datatypes)),\n`base` and `format`, with whyqd's own `rules` beside it.\n\nA date pattern may be written as Excel, Python's `strptime`, or [UAX 35](\nhttps://www.unicode.org/reports/tr35/tr35-dates.html#Date_Field_Symbol_Table) writes it. It is saved as UAX 35's,\nwhich is what CSV on the Web reads, so `dd/mm/yyyy` is saved as `dd/MM/yyyy`.\n\nA field without a policy is read as text.\n\nExample:\n  ```python\n  {\"format\": {\"decimalChar\": \",\", \"groupChar\": \".\"}, \"rules\": {\"currency\": [\"€\"], \"negative\": [\"x-\"]}}\n  {\"format\": \"dd/mm/yy\", \"rules\": {\"yearStart\": 1950}}\n  {\"format\": \"d MMMM yyyy\", \"rules\": {\"language\": \"de\"}}\n  {\"format\": \"Y|N\", \"rules\": {\"alternateFormats\": [\"Yes|No\"]}}\n  ```",
+      "description": "How to read a field's text as its type: a CSV on the Web derived datatype\n([Metadata Vocabulary for Tabular Data, section 5.11.2](https://www.w3.org/TR/tabular-metadata/#derived-datatypes)),\n`base` and `format`, with whyqd's own `rules` beside it.\n\nA date pattern may be written as Excel, Python's `strptime`, or [UAX 35](\nhttps://www.unicode.org/reports/tr35/tr35-dates.html#Date_Field_Symbol_Table) writes it. It is saved as UAX 35's,\nwhich is what CSV on the Web reads, so `dd/mm/yyyy` is saved as `dd/MM/yyyy`.\n\nA field without a policy is read as text.\n\nExamples:\n  ```python\n  {\"format\": {\"decimalChar\": \",\", \"groupChar\": \".\"}, \"rules\": {\"currency\": [\"€\"], \"negative\": [\"x-\"]}}\n  {\"format\": \"dd/mm/yy\", \"rules\": {\"yearStart\": 1950}}\n  {\"format\": \"d MMMM yyyy\", \"rules\": {\"language\": \"de\"}}\n  {\"format\": \"Y|N\", \"rules\": {\"alternateFormats\": [\"Yes|No\"]}}\n  ```",
       "properties": {
         "base": {
           "anyOf": [
@@ -1604,7 +1615,7 @@
             "type": "string"
           },
           "default": {},
-          "description": "By a workbook's stored cell type, a pattern reading that cell's rendering, where it differs from its text: `{'d': 'yyyy-dd-MM'}` for a column of date cells whose day and month Excel swapped.",
+          "description": "For a date, time, or period field, the pattern a workbook's stored date cells (`d`) are read by, where it differs from their text: `{'d': 'yyyy-dd-MM'}` for a column of date cells whose day and month Excel swapped.",
           "propertyNames": {
             "$ref": "#/$defs/CellType"
           },
@@ -1616,6 +1627,7 @@
       "type": "object"
     },
     "SchemaModel": {
+      "description": "A set of fields that tabular data conforms to, as a source or a destination, with the text a source writes for a\nmissing value.",
       "properties": {
         "uuid": {
           "description": "Automatically generated unique identity for the schema.",
@@ -1624,7 +1636,7 @@
           "type": "string"
         },
         "name": {
-          "description": "Machine-readable term to uniquely address this schema. Cannot have spaces. CamelCase or snake_case for preference.",
+          "description": "Machine-readable term to address this schema: trimmed, lower case, its spaces underscores.",
           "title": "Name",
           "type": "string"
         },
@@ -1755,6 +1767,7 @@
       "type": "object"
     },
     "SerialDate": {
+      "description": "How a bare number counts a date, as a declared `rules.serial` says. What each counts: `describe`.",
       "enum": [
         "excel-1900",
         "excel-1904",
@@ -1794,6 +1807,7 @@
       "type": "object"
     },
     "VersionModel": {
+      "description": "One entry in a definition's history: who changed it, what they did, and when.",
       "properties": {
         "name": {
           "anyOf": [
@@ -1850,7 +1864,7 @@
       "type": "string"
     },
     "name": {
-      "description": "Machine-readable term to uniquely address this method. Cannot have spaces. CamelCase or snake_case.",
+      "description": "Machine-readable term to address this transform: trimmed, lower case, its spaces underscores.",
       "title": "Name",
       "type": "string"
     },

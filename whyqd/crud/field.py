@@ -17,14 +17,14 @@ class CRUDField(CRUDBase[FieldModel]):
 
     [Base CRUD operations](basecrud.md) are common for both `CRUDField` and `CRUDAction`.
 
-    Example:
+    Examples:
       ```python
       import whyqd as qd
 
       schema: qd.models.SchemaModel = {
           "name": "urban_population",
           "title": "Urban population",
-          "description": "Urban population refers to people living in urban areas as defined by national statistical offices.",
+          "description": "People living in urban areas, as national statistical offices define them.",
       }
       fields: list[qd.models.FieldModel] = [
           {
@@ -99,7 +99,7 @@ class CRUDField(CRUDBase[FieldModel]):
         """
         field = self.get(name=name)
         if not field:
-            raise ValueError(f"FieldModel {name} does not exist in the schema.")
+            raise ValueError(f"No field `{name}` is in the schema. Correct the name. [whyqd:term-missing]")
         return field.constraints
 
     def set_constraints(self, *, name: str | UUID, constraints: dict | None) -> None:
@@ -191,9 +191,13 @@ class CRUDField(CRUDBase[FieldModel]):
                 false = CategoryModel(**{"name": False})
                 fld = self.get(name=name)
                 fld.constraints = ConstraintsModel(**{"default": true, "enum": [true, false]})
-            field_categories = self.get_constraints(name=name).category
+            constraints = self.get_constraints(name=name)
+            field_categories = constraints.category if constraints else None
             if not field_categories:
-                raise ValueError(f"Field ({name}) has no `category` constraints.")
+                raise ValueError(
+                    f"Field `{name}` has no categories. Set them with `set_categories` first. "
+                    "[whyqd:field-no-categories]"
+                )
             # https://stackoverflow.com/a/31988734/295606
             return next((f for f in field_categories if f.name == category or f.uuid.hex == category), None)
         return None

@@ -5,7 +5,10 @@ from uuid import UUID
 
 from whyqd.crud.base import CRUDBase
 from whyqd.models import ActionScriptModel
-from whyqd.parsers import ScriptParser, ActionParser, MorphParser, CategoryParser
+from whyqd.parsers.action import ActionParser
+from whyqd.parsers.category import CategoryParser
+from whyqd.parsers.morph import MorphParser
+from whyqd.parsers.script import ScriptParser
 from whyqd.crosswalk.base import BaseSchemaAction, BaseMorphAction, BaseCategoryAction
 
 if TYPE_CHECKING:
@@ -15,12 +18,12 @@ if TYPE_CHECKING:
 
 
 class CRUDAction(CRUDBase[ActionScriptModel]):
-    """Create, Read, Update and Delete Field Models. Usually instantiated as part of a
+    """Create, read, update, and delete a crosswalk's steps. Usually instantiated as part of a
     [CrosswalkDefinition](crosswalk.md) and accessed as `.actions`.
 
     [Base CRUD operations](basecrud.md) are common for both `CRUDField` and `CRUDAction`.
 
-    Example:
+    Examples:
       ```python
       import whyqd as qd
 
@@ -31,7 +34,7 @@ class CRUDAction(CRUDBase[ActionScriptModel]):
           "DEBLANK",
           "DEDUPE",
           "DELETE_ROWS < [0, 1, 2, 3]",
-          f"PIVOT_LONGER > ['year', 'values'] < {datasource.model[0].names[4:]}",
+          "PIVOT_LONGER > ['year', 'values'] < ['1960', '1961', '1962']",
           "RENAME > 'indicator_code' < ['Indicator Code']",
           "RENAME > 'indicator_name' < ['Indicator Name']",
           "RENAME > 'country_code' < ['Country Code']",
@@ -42,15 +45,17 @@ class CRUDAction(CRUDBase[ActionScriptModel]):
 
     Parameters:
       schema_source: A [SchemaDefinition](schema.md) for access to source schema definitions and operations.
-      schema_destination: A [SchemaDefinition](schema.md) for access to destination schema definitions and operations.
+      schema_destination: A [SchemaDefinition](schema.md) for access to destination schema definitions.
     """
 
-    def __init__(self, *, schema_source: SchemaDefinition = None, schema_destination: SchemaDefinition = None):
+    def __init__(
+        self, *, schema_source: SchemaDefinition | None = None, schema_destination: SchemaDefinition | None = None
+    ):
         super().__init__(ActionScriptModel)
         self.parser = ScriptParser()
         self.schema_source = None
         self.schema_destination = None
-        self.uncrossed = []
+        self.uncrossed = set()
         if schema_source and schema_destination:
             self.set_schema(schema_source=schema_source, schema_destination=schema_destination)
 
@@ -91,28 +96,26 @@ class CRUDAction(CRUDBase[ActionScriptModel]):
         self.reconcile_crosswalk(fields=parsed.get("destination", []))
 
     def update(self, *, term: ActionScriptModel | dict) -> None:
-        """Update the parameters for a specific term, called by a unique `UUID`. If the `UUID` does not exist, then this
-        will raise a `ValueError`.
+        """Replace a step, found by its `uuid`, with the one given, whole: its script, policy, reason, and
+        correspondence.
 
         Parameters:
-          term: A dictionary conforming to the ActionScriptModel.
+          term: The step, or a dictionary conforming to the ActionScriptModel, with the `uuid` of the one it replaces.
 
         Raises:
-          ValueError: If the term does not exist.
+          ValueError: If no step has its `uuid`, or the step does not parse or fails its own checks.
         """
-        if isinstance(term, dict):
-            term = self.model(**term)
-        # Create a temporary FieldModel
+        # Validated whole, so a slot set without validation, as `model_copy` sets one, meets the step's checks
+        term = self.model.model_validate(term if isinstance(term, dict) else term.model_dump(by_alias=True))
         old_term = self.get(name=term.uuid.hex)
         if not old_term:
-            raise ValueError(f"ActionScriptModel {term.script} does not exist.")
-        # And update the original data
-        parsed = self.parse(script=term)
-        # It parses, ensure reconciliation
-        old_parsed = self.parse(script=old_term)
-        self.reconcile_crosswalk(fields=old_parsed.get("destination", []), remove=True)
-        old_term.script = term.script
-        self.reconcile_crosswalk(fields=parsed.get("destination", []))
+            raise ValueError(
+                f"No step `{term.uuid}` is in the crosswalk to update (`{term.script}`). Add it first. "
+                "[whyqd:term-missing]"
+            )
+        self.parse(script=term)
+        self.multi[:] = [term if step is old_term else step for step in self.multi]
+        self.recount()
 
     def remove(self, *, name: str | UUID) -> None:
         """Remove a specific term, called by a unique `UUID`.
@@ -122,10 +125,8 @@ class CRUDAction(CRUDBase[ActionScriptModel]):
         """
         script = self.get(name=name)
         if script:
-            parsed = self.parse(script=script)
-            # https://stackoverflow.com/a/1235631/295606
             self.multi[:] = [m for m in self.multi if m.uuid.hex != script.uuid.hex]
-            self.reconcile_crosswalk(fields=parsed.get("destination", []), remove=True)
+            self.recount()
 
     def parse(self, *, script: str | ActionScriptModel) -> dict:
         """Parse a script for any action, of any type, and return the corresponding transformation dictionary structure.
@@ -168,9 +169,7 @@ class CRUDAction(CRUDBase[ActionScriptModel]):
         if isinstance(script, ActionScriptModel):
             script = script.script
         action = self.get_action(script=script)
-        action_parser = self.get_action_parser(script=script, action=action)()
-        action_parser.set_schema(schema_source=self.schema_source, schema_destination=self.schema_destination)
-        return action_parser.parse(script=script, action=action)
+        return self.get_action_parser(script=script, action=action).parse(script=script, action=action)
 
     def validate(self, *, required: bool = False) -> list[FieldModel]:
         """Return the list of destination schema fields which are still to be crosswalked.
@@ -189,10 +188,6 @@ class CRUDAction(CRUDBase[ActionScriptModel]):
             ]
         return [f for f in self.schema_destination.get.fields if f.uuid in self.uncrossed]
 
-    ###################################################################################################
-    ### TABULAR DATA TRANSFORMATION UTILITIES
-    ###################################################################################################
-
     def transform(self, *, df: pd.DataFrame, script: str | ActionScriptModel) -> pd.DataFrame:
         """Return a transformed dataframe according to a single script.
 
@@ -203,10 +198,11 @@ class CRUDAction(CRUDBase[ActionScriptModel]):
         Returns:
           Transformed dataframe.
         """
-        parsed = self.parse(script=script)
-        action_parser = self.get_action_parser(script=script, action=parsed["action"])()
-        action_parser.set_schema(schema_source=self.schema_source, schema_destination=self.schema_destination)
-        return action_parser.transform(df=df, **parsed)
+        if isinstance(script, ActionScriptModel):
+            script = script.script
+        action = self.get_action(script=script)
+        action_parser = self.get_action_parser(script=script, action=action)
+        return action_parser.transform(df=df, **action_parser.parse(script=script, action=action))
 
     def rows(self) -> list[int]:
         """Every row a row-level action names, in script order."""
@@ -225,18 +221,14 @@ class CRUDAction(CRUDBase[ActionScriptModel]):
             df = self.transform(df=df, script=script)
         return df
 
-    ###################################################################################################
-    ### ACTION SUPPORT UTILITIES
-    ###################################################################################################
-
     def set_schema(
-        self, *, schema_source: SchemaDefinition = None, schema_destination: SchemaDefinition = None
+        self, *, schema_source: SchemaDefinition | None = None, schema_destination: SchemaDefinition | None = None
     ) -> None:
-        """Set SchemaDefinitions.
+        """Set the schemas the steps map between, every destination field unmapped until a step builds it.
 
         Parameters:
-          schema_source: A [SchemaDefinition](schema.md) for access to source schema definitions and operations.
-          schema_destination: A [SchemaDefinition](schema.md) for access to destination schema definitions and operations.
+          schema_source: The source [SchemaDefinition](schema.md).
+          schema_destination: The destination [SchemaDefinition](schema.md).
         """
         if not schema_source or not schema_destination:
             raise ValueError("Schema for both source and destination has not been provided.")
@@ -260,9 +252,9 @@ class CRUDAction(CRUDBase[ActionScriptModel]):
         return self.parser.get_action_class(actn=action)()
 
     def get_action_parser(
-        self, *, script: str, action: BaseSchemaAction | BaseMorphAction | BaseCategoryAction = None
+        self, *, script: str, action: BaseSchemaAction | BaseMorphAction | BaseCategoryAction | None = None
     ) -> ActionParser | MorphParser | CategoryParser:
-        """Return the ACTION parser for a script.
+        """Return the parser for a script's kind of action, its schemas set.
 
         Parameters:
           script: A string term conforming to the script structure for a specific action.
@@ -272,21 +264,21 @@ class CRUDAction(CRUDBase[ActionScriptModel]):
           ValueError: If the script can't be parsed.
 
         Returns:
-          Parser for Action type, and used in [TransformDefinition](transform.md) and [CrosswalkDefinition](crosswalk.md).
+          An `ActionParser`, `MorphParser`, or `CategoryParser`, as [TransformDefinition](transform.md) and
+          [CrosswalkDefinition](crosswalk.md) use it.
         """
         if not action:
             action = self.get_action(script=script)
-        # Test for each of BaseSchemaAction | BaseMorphAction | BaseCategoryAction
-        if isinstance(action, BaseSchemaAction):
-            return ActionParser
-        if isinstance(action, BaseMorphAction):
-            return MorphParser
-        if isinstance(action, BaseCategoryAction):
-            return CategoryParser
-        # Action unknown
-        raise ValueError(f"Script cannot be parsed ({script}).")
+        parsers = {BaseSchemaAction: ActionParser, BaseMorphAction: MorphParser, BaseCategoryAction: CategoryParser}
+        kind = next((parser for base, parser in parsers.items() if isinstance(action, base)), None)
+        if kind is None:
+            raise ValueError(f"Script cannot be parsed ({script}).")
+        parser = kind()
+        parser.set_schema(schema_source=self.schema_source, schema_destination=self.schema_destination)
+        return parser
 
-    def reconcile_crosswalk(self, *, fields: FieldModel | list[FieldModel], remove: bool = False) -> None:
+    def reconcile_crosswalk(self, *, fields: FieldModel | list[FieldModel] | None) -> None:
+        """Mark the destination fields a step builds as mapped."""
         if fields is None:
             return
         if not isinstance(fields, list):
@@ -294,7 +286,11 @@ class CRUDAction(CRUDBase[ActionScriptModel]):
         for f in fields:
             # A script's name finds the source field first, where both schemas have one of that name
             target = self.schema_destination.fields.get(name=f.name) or f
-            if remove:
-                self.uncrossed = self.uncrossed ^ {target.uuid}
-            else:
-                self.uncrossed = self.uncrossed - {target.uuid}
+            self.uncrossed = self.uncrossed - {target.uuid}
+
+    def recount(self) -> None:
+        """Count again, from every step, the destination fields none builds, as a removal or change needs: a field
+        two steps build stays mapped while either remains."""
+        self.uncrossed = {field.uuid for field in self.schema_destination.get.fields}
+        for step in self.multi:
+            self.reconcile_crosswalk(fields=self.parse(script=step).get("destination", []))

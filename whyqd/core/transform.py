@@ -1,8 +1,10 @@
 # SPDX-License-Identifier: BSD-3-Clause
 from __future__ import annotations
+import warnings
 from pathlib import Path
+from typing import ClassVar
 
-from whyqd.dtypes import ChecksumContent, FindingKind, MimeType
+from whyqd.dtypes import ChecksumContent, FieldType, FindingKind, MimeType
 from whyqd.models import ActionScriptModel, DataSourceModel, CrosswalkModel, FieldModel, ReportModel, TransformModel
 from whyqd.models.utc import UtcParser
 from whyqd.core import CrosswalkDefinition
@@ -27,7 +29,7 @@ class TransformDefinition(BaseDefinition):
       crosswalk: A definition, or a dictionary conforming to the CrosswalkModel, or a path to a saved definition.
       data_source: Path to a tabular data source, or a dictionary conforming to a data source model.
 
-    Example:
+    Examples:
       Create a new `TransformDefinition`, and perform a crosswalk, then save the definition and transformed data
       as follows:
 
@@ -39,6 +41,17 @@ class TransformDefinition(BaseDefinition):
       transform.save(directory=DIRECTORY)
       ```
     """
+
+    # The actions that read their sources as a type, whatever the source schema declares
+    READS_AS: ClassVar[dict[str, str]] = {
+        "CALCULATE": FieldType.NUMBER.value,
+        "SELECT_NEWEST": FieldType.DATE.value,
+        "SELECT_OLDEST": FieldType.DATE.value,
+    }
+    # The actions that take each value with the date beside it
+    DATED: ClassVar[frozenset[str]] = frozenset({"SELECT_NEWEST", "SELECT_OLDEST"})
+    # The actions whose destination takes a source's value as it is, so the two types must agree
+    MAPS_DIRECTLY: ClassVar[frozenset[str]] = frozenset({"RENAME", "SELECT", "SELECT_NEWEST", "SELECT_OLDEST"})
 
     def __init__(
         self,
@@ -80,7 +93,7 @@ class TransformDefinition(BaseDefinition):
           crosswalk: A definition, or a dictionary conforming to the CrosswalkModel, or a path to a saved definition.
           data_source: Path to a tabular data source, or a dictionary conforming to a data source model.
         """
-        self.model = self.core.create_or_update_model(modelType=TransformModel, source=transform, model=self.model)
+        self.model = self.definitions.build(kind=TransformModel, source=transform, model=self.model)
         # And update the original data
         # https://fastapi.tiangolo.com/tutorial/body-updates/#partial-updates-with-patch
         if self.model.dataSource and not data_source:
@@ -89,7 +102,7 @@ class TransformDefinition(BaseDefinition):
             if isinstance(data_source, DataSourceModel):
                 self.data_source = data_source
             else:
-                self.data_source = self.core.create_or_update_model(modelType=DataSourceModel, source=data_source)
+                self.data_source = self.definitions.build(kind=DataSourceModel, source=data_source)
             self.model.dataSource = self.data_source
         if self.model.crosswalk and not crosswalk:
             self.crosswalk.set(crosswalk=self.model.crosswalk)
@@ -99,10 +112,6 @@ class TransformDefinition(BaseDefinition):
             else:
                 self.crosswalk.set(crosswalk=crosswalk)
             self.model.crosswalk = self.crosswalk.get
-
-    #########################################################################################
-    # PERFORM TRANSFORMATION PROCESS
-    #########################################################################################
 
     def process(self, *, strict: bool = False) -> None:
         """Perform a crosswalk. You can access the dataframe after completion at `.data`, if it exists, and what the run
@@ -140,7 +149,7 @@ class TransformDefinition(BaseDefinition):
           ConformanceError: If the table cannot conform.
           ValueError: If a required destination field is never built.
         """
-        from whyqd.parsers.conformance import ConformanceParser
+        from whyqd.reading.conformance import ConformanceParser
 
         conformance = ConformanceParser()
         origin, destination = self.crosswalk.schema_source, self.crosswalk.schema_destination
@@ -177,9 +186,11 @@ class TransformDefinition(BaseDefinition):
                 report=self.report,
             )
         if conformance.warnings:
-            self.core.show_warning(
+            warnings.warn(
                 f"`{source.name}` read with {len(conformance.warnings)} things to check. Read `report`. "
-                "[whyqd:transform-warned]"
+                "[whyqd:transform-warned]",
+                UserWarning,
+                stacklevel=2,
             )
         return df[names]
 
@@ -192,10 +203,10 @@ class TransformDefinition(BaseDefinition):
             if field.policy and (field.policy.format is not None or field.policy.rules is not None):
                 raise ValueError(
                     f"Destination field `{field.name}` declares how a publisher wrote it, which a shared schema cannot "
-                    "know. Move its `format` and `rules` to the source field or the action. [whyqd:policy-on-destination]"
+                    "know. Move its `format` and `rules` to the source field or the action. "
+                    "[whyqd:policy-on-destination]"
                 )
         policies, inputs, read_fields = {}, {}, set()
-        as_type = {"CALCULATE": "number", "SELECT_NEWEST": "date", "SELECT_OLDEST": "date"}
         for script in self.crosswalk.crud.get_all():
             parsed = self.crosswalk.crud.parse(script=script)
             name = parsed["action"].name
@@ -203,11 +214,10 @@ class TransformDefinition(BaseDefinition):
             destinations = destinations if isinstance(destinations, list) else [destinations]
             sources = [term for term in self.flatten(parsed.get("source")) if isinstance(term, FieldModel)]
             read_fields |= {field.name for field in sources}
-            # `SELECT_NEWEST` and `SELECT_OLDEST` take each value with the date beside it
-            dated = name in ("SELECT_NEWEST", "SELECT_OLDEST")
-            if name in as_type:
-                inputs |= {field.name: as_type[name] for field in (sources[1::2] if dated else sources)}
-            if name in conformance.MAPS_DIRECTLY:
+            dated = name in self.DATED
+            if name in self.READS_AS:
+                inputs |= {field.name: self.READS_AS[name] for field in (sources[1::2] if dated else sources)}
+            if name in self.MAPS_DIRECTLY:
                 for target in destinations:
                     for field in sources[::2] if dated else sources:
                         if target.name in by_name:
@@ -215,8 +225,11 @@ class TransformDefinition(BaseDefinition):
             policy = script.policy if isinstance(script, ActionScriptModel) else None
             if policy is not None:
                 outputs = policy if isinstance(policy, dict) else {target.name: policy for target in destinations}
+                # A copy is read, so the step keeps its policy as written
+                outputs = {target: held.model_copy(deep=True) for target, held in outputs.items()}
                 for target, held in outputs.items():
                     if target in by_name:
+                        held.standardise(dtype=by_name[target].dtype)
                         held.check(name=target, dtype=by_name[target].dtype)
                 policies |= outputs
         return policies, inputs, read_fields
@@ -231,10 +244,6 @@ class TransformDefinition(BaseDefinition):
             return [found for term in terms for found in self.flatten(term)]
         return [terms]
 
-    #########################################################################################
-    # VALIDATION UTILITIES
-    #########################################################################################
-
     def validate(
         self,
         *,
@@ -244,35 +253,32 @@ class TransformDefinition(BaseDefinition):
         data_source: DataSourceModel | dict | Path | str | None = None,
         mimetype_source: str | MimeType | None = None,
     ) -> bool:
-        """Validate the transformation process and all data checksums. Will perform all actions on each interim
-        data source.
+        """Verify a transform: its source is the file it was built from, its output is the file given, and running its
+        crosswalk again on the source builds that output.
 
         Parameters:
           transform: Path to a transform definition, or a dictionary conforming to a transform model.
-          data_destination: Path to a tabular data source, or a dictionary conforming to a data source model. Destination
-                            data for crosswalk validation.
-          mimetype_destination: **whyqd** supports reading from CSV, XLS, XLSX, Feather and Parquet files. Required if
-                                `data_destination` is not of `DataSourceModel`.
-          data_source: Path to a tabular data source, or a dictionary conforming to a data source model. Should be defined
-                      in `transform`, but you may have a different version from a different location.
-          mimetype_source: **whyqd** supports reading from CSV, XLS, XLSX, Feather and Parquet files. Required if
-                          `data_source` is provided (i.e. not from the `transform`) and not of `DataSourceModel`.
+          data_destination: The output file to check, by path.
+          mimetype_destination: The output file's format: CSV, XLS, XLSX, Feather, or Parquet.
+          data_source: The source, where it is not the one the transform names: a data source, a dictionary of one,
+            or the path of the same file elsewhere.
+          mimetype_source: For a source given by path, its format, where it differs from the stored one.
 
         Raises:
+          ImportError: If the `verify-1x` extra is not installed.
           ValueError: If any steps fail to validate.
 
         Returns:
           A boolean `True` on successful validation.
         """
-        # The checksums are 1.x's, so the files are read as 1.x read them
-        from whyqd.parsers.v1 import V1ChecksumParser
-
-        v1 = V1ChecksumParser()
+        # An output's checksums are 1.x's, so the files are read as 1.x read them
+        v1 = self.reader.v1
 
         def crosscheck(df, checksum: str) -> None:
             if (generated := v1.table(df=df)) != checksum:
                 raise ValueError(
-                    f"Checksum provided ({checksum}) is not equal to the generated checksum ({generated}). Check your data source."
+                    f"Checksum provided ({checksum}) is not equal to the generated checksum ({generated}). Check your "
+                    "data source."
                 )
 
         # Prepare
@@ -282,24 +288,13 @@ class TransformDefinition(BaseDefinition):
         if isinstance(data_source, DataSourceModel):
             model = data_source
         elif isinstance(data_source, dict):
-            model = DataSourceModel(**data_source)
+            model = self.definitions.build(kind=DataSourceModel, source=data_source)
         elif data_source is not None:
-            model = model.model_copy(update={"path": str(data_source)})
-        source_checksum = self.model.dataSource.get_checksum(ChecksumContent.TABLE_1X)
-        if source_checksum:
-            if data_source is not None:
-                source_df = v1.read(
-                    source=data_source, mimetype=mimetype_source, preserve=self.model.dataSource.preserve
-                )
-            else:
-                source_df = v1.read(source=self.model.dataSource)
-            crosscheck(source_df, source_checksum)
-        else:
-            try:
-                self.reader.verify(source=model)
-            except AssertionError as e:
-                raise ValueError(f"Validation failed. {e}") from e
-            source_df = self.reader.get(source=model)
+            moved = {"path": str(data_source)}
+            if mimetype_source:
+                moved["mime"] = self.reader.get_mimetype(mimetype=mimetype_source)
+            model = model.model_copy(update=moved)
+        self.reader.verify(source=model)
         # Validate destination
         destination_df = v1.read(
             source=data_destination, mimetype=mimetype_destination, preserve=self.model.dataDestination.preserve
@@ -339,10 +334,6 @@ class TransformDefinition(BaseDefinition):
                 "Check the rows each action names. [whyqd:row-past-end]"
             )
 
-    #########################################################################################
-    # SAVE UTILITIES
-    #########################################################################################
-
     def save(
         self,
         *,
@@ -371,7 +362,8 @@ class TransformDefinition(BaseDefinition):
           mimetype: **whyqd** supports saving to CSV, XLS, XLSX, Feather and Parquet files. Defaults to Parquet.
           created_by:  Declare the model creator/updater
           hide_uuid:  Hide all UUIDs in the nested JSON output.
-          format: The definition format to write, one of `settings.FORMAT_VERSIONS` (`whyqd.config.settings`). Defaults to the current one.
+          format: The definition format to write, one of `settings.FORMAT_VERSIONS` (`whyqd.config.settings`).
+                  Defaults to the current one.
 
         Returns:
           Boolean True if saved.
@@ -383,15 +375,18 @@ class TransformDefinition(BaseDefinition):
             self.destination_mimetype = mimetype
         else:
             mimetype = self.reader.get_mimetype(mimetype=self.destination_mimetype)
-        if directory and self.core.check_source(source=directory):
-            self.destination_path = Path(directory)
+        if directory:
+            self.destination_path = self.definitions.directory(directory)
+        today = self.utc.now().date().isoformat()
         if filename:
-            source = self.destination_path / f"{self.core.get_now()}-{filename}.{mimetype.name}"
+            source = self.destination_path / f"{today}-{filename}.{mimetype.name}"
         else:
             source = (
                 self.destination_path
-                / f"{self.core.get_now()}-{self.model.crosswalk.schemaDestination.name}-{self.model.uuid}.{mimetype.name}"
+                / f"{today}-{self.model.crosswalk.schemaDestination.name}-{self.model.uuid}.{mimetype.name}"
             )
         self.model.dataDestination = self.reader.get_source_data_model(df=self.data, source=source, mimetype=mimetype)
         self.reader.set(df=self.data, source=source, mimetype=mimetype)
-        super().save(filename=filename, directory=directory, created_by=created_by, hide_uuid=hide_uuid, format=format)
+        return super().save(
+            filename=filename, directory=directory, created_by=created_by, hide_uuid=hide_uuid, format=format
+        )

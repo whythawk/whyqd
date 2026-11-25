@@ -2,7 +2,6 @@
 from pathlib import Path
 
 import whyqd as qd
-from whyqd.parsers import CoreParser
 
 SOURCE_DIRECTORY = Path(__file__).resolve().parent / "data"
 SOURCE_DATA = SOURCE_DIRECTORY / "HDR-2007-2008-Table-03.xlsx"
@@ -15,7 +14,6 @@ class TestTutorialCthulhu:
         create a method, import data, perform actions and generate a schema-compliant output.
         Copies at: https://github.com/whythawk/data-wrangling-and-validation/tree/master/data/lesson-spreadsheet"""
         DIRECTORY = tmp_path
-        CoreParser().check_path(directory=DIRECTORY)
         ##################################### FIRST CROSSWALK #####################################
         # 1. Import a data source and derive a source schema
         datasource = qd.DataSourceDefinition()

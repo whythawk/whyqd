@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: BSD-3-Clause
 from __future__ import annotations
 from pydantic import field_validator, StringConstraints, ConfigDict, BaseModel, Field, AnyUrl
-from typing import Annotated, Optional
+from typing import Annotated, ClassVar, Optional
 import math
 
 
@@ -12,6 +12,8 @@ class CitationModel(BaseModel):
 
     Includes some non-standard fields.
     """
+
+    MONTHS: ClassVar[tuple[str, ...]] = tuple("jan feb mar apr may jun jul aug sep oct nov dec".split())
 
     author: str = Field(
         ..., description="The name(s) of the author(s) (in the case of more than one author, separated by `and`)."
@@ -43,15 +45,23 @@ class CitationModel(BaseModel):
     @field_validator("month")
     @classmethod
     def month_abbreviation(cls, v: Optional[str]):
-        if v.lower() not in ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"]:
-            raise ValueError("Month must conform to the BibTeX three-letter code definition.")
+        if v is None:
+            return v
+        if v.lower() not in cls.MONTHS:
+            raise ValueError(
+                f"The citation's month `{v}` is not one of BibTeX's three-letter months. Write it as one, `jan` to `dec`. "
+                "[whyqd:citation-month]"
+            )
         return v.lower()
 
     @field_validator("year")
     @classmethod
     def year_is_four(cls, v: Optional[int]):
+        if v is None:
+            return v
         if v < 1000 or int(math.log10(v)) + 1 != 4:
             raise ValueError(
-                "Year must be in the period 1000 to 9999. There may be a year 9999 problem, but if you're still using this software by then, I'll be impressed."
+                f"The citation's year `{v}` is not four digits. Write the year in full, such as `2024`. "
+                "[whyqd:citation-year]"
             )
         return v

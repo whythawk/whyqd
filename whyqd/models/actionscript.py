@@ -7,13 +7,16 @@ from whyqd.models.identifier import Identifier
 from whyqd.models.policy import PolicyModel
 from whyqd.models.reason import ReasonModel
 from whyqd.models.reference import ReferenceModel
+from whyqd.parsers.script import ScriptParser
 
 
 class ActionScriptModel(BaseModel):
-    """Action Script Model - only action `script` string required."""
+    """One step of a crosswalk: its action script, why it holds, the correspondence a `CATEGORISE` step cites, and how
+    to read the text it builds. Only `script` is required."""
 
     ONE_OUTPUT: ClassVar[frozenset[str]] = frozenset({"UNITE", "NEW"})
     OUTPUTS: ClassVar[frozenset[str]] = frozenset({"SEPARATE"})
+    SCRIPT: ClassVar[ScriptParser] = ScriptParser()
 
     uuid: Identifier = Field(description="Unique identity for the Action. Automatically generated.")
     script: str = Field(..., description="An action script.")
@@ -32,7 +35,7 @@ class ActionScriptModel(BaseModel):
     def policy_builds_text(self) -> ActionScriptModel:
         if self.policy is None:
             return self
-        action = self.script.split(">")[0].strip()
+        action = self.SCRIPT.get_action_name(script=self.script)
         if action not in self.ONE_OUTPUT | self.OUTPUTS:
             raise ValueError(
                 f"`{action}` builds no text, so a format goes on the source field it reads. Move the `policy` there. "
@@ -47,6 +50,9 @@ class ActionScriptModel(BaseModel):
 
     @model_validator(mode="after")
     def correspondence_categorises(self) -> ActionScriptModel:
-        if self.correspondence and self.script.split(">")[0].strip() != "CATEGORISE":
-            raise ValueError(f"Only a `CATEGORISE` step cites a correspondence, not `{self.script}`.")
+        if self.correspondence and self.SCRIPT.get_action_name(script=self.script) != "CATEGORISE":
+            raise ValueError(
+                f"Step `{self.script}` cites a correspondence, which only a `CATEGORISE` step maps by. Remove its "
+                "`correspondence`. [whyqd:correspondence-not-categorise]"
+            )
         return self

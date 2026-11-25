@@ -3,10 +3,13 @@ from __future__ import annotations
 from typing import List, Optional, Union
 from pydantic import field_validator, ConfigDict, BaseModel, Field, ValidationInfo
 
-from whyqd.models import CategoryModel
+from whyqd.models.category import CategoryModel
 
 
 class ConstraintsModel(BaseModel):
+    """What a field's values must meet beyond their type: present, unique, one of its categories, within bounds on a
+    value or a string's length; and whether a zero counts as present."""
+
     required: Optional[bool] = Field(
         default=False, description="Indicates whether a field must have a value for each instance."
     )
@@ -36,19 +39,23 @@ class ConstraintsModel(BaseModel):
     @field_validator("maximum", "maxLength")
     @classmethod
     def is_maximum(cls, v: Optional[Union[int, float]], info: ValidationInfo):
-        least = info.data.get({"maximum": "minimum", "maxLength": "minLength"}[info.field_name])
+        bound = {"maximum": "minimum", "maxLength": "minLength"}[info.field_name]
+        least = info.data.get(bound)
         if least is not None and v is not None and v < least:
-            raise ValueError(f"`{info.field_name}` ({v}) must not be less than its minimum ({least}).")
+            raise ValueError(
+                f"`{info.field_name}` {v} is below `{bound}` {least}. Change one, so the maximum is not below the "
+                "minimum. [whyqd:constraint-bounds]"
+            )
         return v
 
     @field_validator("category")
     @classmethod
     def check_categories_unique(cls, v: Optional[List[CategoryModel]]):
-        category_names = []
-        for c in v:
-            category_names.append(c.name)
-        if len(category_names) != len(set(category_names)):
+        names = [c.name for c in v]
+        repeated = sorted({name for name in names if names.count(name) > 1})
+        if repeated:
             raise ValueError(
-                f"Categories must be unique. There are {len(category_names) - len(set(category_names))} duplications."
+                f"Categories {', '.join(f'`{name}`' for name in repeated)} appear more than once. Remove the repeats. "
+                "[whyqd:category-repeated]"
             )
         return v

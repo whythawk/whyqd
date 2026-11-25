@@ -5,7 +5,10 @@ import pytest
 from pydantic import AnyUrl
 
 import whyqd as qd
-from whyqd.parsers import ConformanceParser, CoreParser, DataSourceParser
+from whyqd.models import CitationModel
+from whyqd.parsers.definition import DefinitionParser
+from whyqd.reading.conformance import ConformanceParser
+from whyqd.sources.datasource import DataSourceParser
 
 DIRECTORY = Path(__file__).resolve().parent / "data"
 DATA = {
@@ -16,7 +19,7 @@ DATA = {
 }
 MIMETYPE = "XLSX"
 CSVTYPE = "CSV"
-MODEL = {"SINGLE": CoreParser().load_json(source=DIRECTORY / "raw_E06000044_014_0.data")}
+MODEL = {"SINGLE": DefinitionParser().load(source=DIRECTORY / "raw_E06000044_014_0.data")}
 
 
 class TestDataSource:
@@ -45,6 +48,31 @@ class TestDataSource:
     def test_load_single(self):
         datasource = qd.DataSourceDefinition(source=MODEL["SINGLE"])
         datasource.validate()
+
+    def test_derive_returns_what_it_derived(self):
+        datasource = qd.DataSourceDefinition()
+        assert datasource.derive_model(source=DATA["CSV"], mimetype=CSVTYPE) is datasource.get
+
+    def test_a_citation_may_say_no_month_or_year(self):
+        citation = CitationModel(author="A. N. Author", title="Undated", month=None, year=None)
+        assert (citation.month, citation.year) == (None, None)
+
+    def test_a_citation_at_index_0_cites_the_first_sheet_alone(self):
+        datasource = qd.DataSourceDefinition()
+        datasource.derive_model(source=DATA["MULTI"], mimetype=MIMETYPE)
+        datasource.set_citation(citation={"author": "A. N. Author", "title": "First"}, index=0)
+        assert [m.citation.title if m.citation else None for m in datasource.get] == ["First", None, None]
+
+    def test_a_workbook_saves_a_file_a_sheet(self, tmp_path):
+        datasource = qd.DataSourceDefinition()
+        datasource.derive_model(source=DATA["MULTI"], mimetype=MIMETYPE)
+        datasource.save(directory=tmp_path / "default")
+        datasource.save(directory=tmp_path / "named", filename="chosen")
+        sheets = ["Report1", "Report2", "Report3"]
+        assert sorted(p.name for p in (tmp_path / "default").iterdir()) == [
+            f"raw_multi_E06000044_014-{sheet}.data" for sheet in sheets
+        ]
+        assert sorted(p.name for p in (tmp_path / "named").iterdir()) == [f"chosen-{sheet}.data" for sheet in sheets]
 
     def test_multi(self):
         # Create
@@ -82,7 +110,7 @@ class TestDataSource:
         changed = tmp_path / "changed.csv"
         changed.write_bytes(DATA["CSV"].read_bytes() + b"x\n")
         datasource.get.path = str(changed)
-        with pytest.raises(AssertionError):
+        with pytest.raises(ValueError, match="source-changed"):
             datasource.validate()
 
     def test_get_data_is_the_table_the_derive_read(self, tmp_path):

@@ -6,8 +6,8 @@ from pathlib import Path
 import pytest
 
 import whyqd as qd
-from whyqd.models import ActionScriptModel, CellReadingModel
-from whyqd.parsers import FormatParser
+from whyqd.models import ActionScriptModel
+from whyqd.parsers.format import FormatParser
 
 DIRECTORY = Path(__file__).resolve().parent / "data"
 DATA_SOURCE = DIRECTORY / "test_basildon_source.data"
@@ -67,6 +67,7 @@ MISFITS = [
     ("date", {"format": "d MMM yyyy", "rules": {"language": "klingon"}}, "policy-names"),
     ("date", {"format": "d MMM yyyy", "rules": {"monthNames": MONTHS[:11]}}, "policy-names"),
     ("date", {"format": "d MMM yyyy", "rules": {"monthNames": [*MONTHS[:11], "Jan"]}}, "policy-names"),
+    ("date", {"format": "d MMM yyyy", "rules": {"monthNames": ["Jan", "Ｊａｎ", *MONTHS[2:]]}}, "policy-names"),
     ("time", {"format": "h:mm a", "rules": {"dayPeriods": ["AM"]}}, "policy-names"),
     ("date", {"format": "dd/MM/yyyy HH:mm"}, "policy-pattern"),
     ("date", {"format": "MM/yyyy"}, "policy-pattern"),
@@ -76,6 +77,9 @@ MISFITS = [
     ("time", {"rules": {"zone": "UTC"}}, "policy-conflict"),
     ("time", {"rules": {"serial": "excel-1900"}}, "policy-conflict"),
     ("number", {"rules": {"serial": "excel-1900"}}, "policy-conflict"),
+    ("number", {"rules": {"cellFormats": {"n": "#,##0"}}}, "policy-conflict"),
+    ("date", {"format": "dd/MM/yyyy", "rules": {"cellFormats": {"n": "yyyy-MM-dd"}}}, "policy-conflict"),
+    ("duration", {"format": "H:mm", "rules": {"cellFormats": {"d": "H:mm"}}}, "policy-conflict"),
     ("month", {"format": "yyyy"}, "policy-pattern"),
     ("year", {"format": "MM/yyyy"}, "policy-pattern"),
     ("quarter", {"format": "'Q'Q"}, "policy-pattern"),
@@ -200,7 +204,9 @@ class TestFieldPolicy:
     @pytest.mark.parametrize("dtype, typed, saved", TYPED, ids=str)
     def test_a_pattern_saves_as_the_standard_writes_it(self, dtype, typed, saved):
         rules = {"language": "pt"} if "MMM" in typed else None
-        written = round_trip(qd.SchemaDefinition, schema({"format": typed} | ({"rules": rules} if rules else {}), dtype))
+        written = round_trip(
+            qd.SchemaDefinition, schema({"format": typed} | ({"rules": rules} if rules else {}), dtype)
+        )
         assert written["fields"][0]["policy"]["format"] == saved
 
     @pytest.mark.parametrize("dtype, policy, code", MISFITS, ids=lambda p: p if isinstance(p, str) else "")
@@ -246,25 +252,6 @@ class TestActionPolicy:
     def test_refused_elsewhere(self, script, policy):
         with pytest.raises(ValueError, match=r"\[whyqd:policy-on-action\]"):
             ActionScriptModel(script=script, policy=policy)
-
-
-class TestCellReading:
-    @pytest.mark.parametrize(
-        "reading",
-        [{"kind": "value", "value": 43.4}, {"kind": "blank"}, {"kind": "refused", "reason": "two-numbers"}],
-        ids=lambda r: r["kind"],
-    )
-    def test_three_kinds(self, reading):
-        assert CellReadingModel(**reading).kind == reading["kind"]
-
-    @pytest.mark.parametrize(
-        "reading",
-        [{"kind": "refused"}, {"kind": "value", "reason": "two-numbers"}, {"kind": "blank", "value": 1}],
-        ids=str,
-    )
-    def test_inconsistent_refused(self, reading):
-        with pytest.raises(ValueError):
-            CellReadingModel(**reading)
 
 
 CROSSWALK = DIRECTORY / "test_crosswalk.crosswalk"
@@ -318,7 +305,7 @@ class TestReasonsAndReferences:
         assert written["actions"][CATEGORISE]["correspondence"] == REFERENCE
 
     def test_correspondence_only_categorises(self):
-        with pytest.raises(ValueError, match="Only a `CATEGORISE` step"):
+        with pytest.raises(ValueError, match="whyqd:correspondence-not-categorise"):
             qd.CrosswalkDefinition(crosswalk=crosswalk(steps={RENAME: {"correspondence": REFERENCE}}))
 
     def test_reference_needs_its_version(self):

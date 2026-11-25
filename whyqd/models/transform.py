@@ -1,25 +1,26 @@
 # SPDX-License-Identifier: BSD-3-Clause
 from __future__ import annotations
-from pydantic import field_validator, StringConstraints, ConfigDict, BaseModel, Field
-from typing import Annotated, Optional
+from pydantic import ConfigDict, BaseModel, Field
+from typing import Optional
 
-from whyqd.models import (
-    CitationModel,
-    CrosswalkModel,
-    DataSourceModel,
-    ExtensionModel,
-    UsedReferenceModel,
-    VersionModel,
-)
-from whyqd.models.identifier import Identifier
+from whyqd.models.citation import CitationModel
+from whyqd.models.crosswalk import CrosswalkModel
+from whyqd.models.datasource import DataSourceModel
+from whyqd.models.extension import ExtensionModel
+from whyqd.models.identifier import DefinitionName, Identifier
+from whyqd.models.reference import UsedReferenceModel
 from whyqd.models.utc import UtcTime
+from whyqd.models.version import VersionModel
 
 
 class TransformModel(BaseModel):
+    """A crosswalk applied to a data source: the source, the crosswalk, the destination it built, and when, and with
+    which whyqd, references, and extensions, it ran."""
+
     uuid: Identifier = Field(description="Automatically generated unique identity for the method.")
-    name: Annotated[str, StringConstraints(strip_whitespace=True, to_lower=True)] = Field(
+    name: DefinitionName = Field(
         ...,
-        description="Machine-readable term to uniquely address this method. Cannot have spaces. CamelCase or snake_case.",
+        description="Machine-readable term to address this transform: trimmed, lower case, its spaces underscores.",
     )
     title: Optional[str] = Field(None, description="A human-readable version of the method name.")
     description: Optional[str] = Field(
@@ -50,8 +51,3 @@ class TransformModel(BaseModel):
     )
     version: list[VersionModel] = Field(default=[], description="Version and update history for the method.")
     model_config = ConfigDict(use_enum_values=True, validate_assignment=True)
-
-    @field_validator("name")
-    @classmethod
-    def name_space(cls, v: str):
-        return "_".join(v.split(" ")).lower()
