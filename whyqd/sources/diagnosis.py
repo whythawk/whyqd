@@ -7,8 +7,10 @@ import polars as pl
 
 from whyqd.config.patterns import PythonPatterns
 from whyqd.config.settings import settings
-from whyqd.dtypes import EncodingStep, FindingKind, MimeType, Place, SettingSource
+from whyqd.dtypes import CellType, EncodingStep, FindingKind, MimeType, Place, SettingSource
 from whyqd.models import DialectModel, FindingModel, ProposalModel, ReportModel, SettingModel
+from whyqd.sources.number_format import NumberFormatParser
+from whyqd.sources.profile import ProfileParser
 from whyqd.sources.reader import Reader
 from whyqd.sources.table import TableParser
 
@@ -23,13 +25,20 @@ class DiagnosisParser:
     """
 
     # The dialect's settings the table reads, whatever the file's format
-    TABLE: ClassVar[tuple[str, ...]] = ("skipRows", "headerRowCount", "skipBlankRows", "trim", "rowsPerRecord")
+    TRIM: ClassVar[str] = "trim"
+    TABLE: ClassVar[tuple[str, ...]] = ("skipRows", "headerRowCount", "skipBlankRows", TRIM, "rowsPerRecord")
     # Those a read can settle from the file where they are not declared
     SETTLED: ClassVar[tuple[str, ...]] = ("encoding", "encodingStep", "cells", "sheet")
+    # How many columns of padded names, each at one width, make a fixed-width export rather than a stray space
+    PADDED: ClassVar[int] = 2
+    # A column's cells by their number format: each cell's code and text
+    CODE: ClassVar[str] = "code"
+    TEXT: ClassVar[str] = "text"
 
     def __init__(self) -> None:
         self.tables = TableParser()
         self.patterns = PythonPatterns()
+        self.number_formats = NumberFormatParser()
 
     def report(
         self,
@@ -76,6 +85,7 @@ class DiagnosisParser:
         widths = self.widths(grid=grid)
         findings += self.facts(
             source=source,
+            mime=mime,
             reader=reader,
             sheet=read.sheet,
             grid=grid,
@@ -97,7 +107,16 @@ class DiagnosisParser:
             preview=self.preview(grid=grid, lines=lines, place=reader.PLACE),
         )
         if propose:
-            return self.propose(report=report, source=source, mime=mime, reader=reader, dialect=dialect, widths=widths)
+            return self.propose(
+                report=report,
+                source=source,
+                mime=mime,
+                reader=reader,
+                dialect=dialect,
+                widths=widths,
+                grid=grid,
+                types=types,
+            )
         return report
 
     def propose(
@@ -109,9 +128,11 @@ class DiagnosisParser:
         reader: Reader,
         dialect: DialectModel,
         widths: pl.Series | None = None,
+        grid: pl.DataFrame | None = None,
+        types: pl.DataFrame | None = None,
     ) -> ReportModel:
-        """A report with the settings that would read past the file's faults added. Without the extra that one needs, a
-        finding says so, in place of that proposal."""
+        """A report with the settings that would read past the file's faults added, and `trim` for a fixed-width
+        export. Without the extra one needs, a finding says so, in place of that proposal."""
         faults = report.findings
         proposals = reader.proposals(source=source, mime=mime, dialect=dialect, faults=faults)
         try:
@@ -122,8 +143,33 @@ class DiagnosisParser:
             report.findings.append(self.fact(code=message.group(2), message=message.group(1)))
         if widths is not None and (records := self.records(widths=widths, dialect=dialect)):
             proposals.append(records)
+        if grid is not None and (trimmed := self.padding(grid=grid, types=types, dialect=dialect)):
+            proposals.append(trimmed)
         report.proposals = proposals
         return report
+
+    def padding(self, *, grid: pl.DataFrame, types: pl.DataFrame, dialect: DialectModel) -> ProposalModel | None:
+        """`trim`, where a fixed-width export was split into a workbook: in at least `PADDED` columns the name is
+        padded, and every text cell of each such column has one width. A stray space in a name or two is not that.
+        Declaring it renames each column to its trimmed name, so a crosswalk naming them padded keeps it unset."""
+        if dialect.trim or grid.height <= dialect.skipRows:
+            return None
+        padded = []
+        for column, name in zip(grid.columns, grid.row(dialect.skipRows), strict=True):
+            if not isinstance(name, str) or name == name.strip():
+                continue
+            text = grid[column].filter(types[column] == CellType.STRING.value).drop_nulls()
+            if text.str.len_chars().n_unique() != 1:
+                return None
+            padded.append(name.strip())
+        if len(padded) < self.PADDED:
+            return None
+        return ProposalModel(
+            setting=self.TRIM,
+            value=True,
+            evidence=f"{len(padded)} columns hold every text cell at one width, each name padded to it, as a "
+            f"fixed-width export leaves them: `{padded[0]}` among them.",
+        )
 
     def records(self, *, widths: pl.Series, dialect: DialectModel) -> ProposalModel | None:
         """`rowsPerRecord`, where rows alternate through the whole file, past any declared `skipRows`: every first row
@@ -197,6 +243,7 @@ class DiagnosisParser:
         self,
         *,
         source: Path,
+        mime: MimeType,
         reader: Reader,
         sheet: str | None,
         grid: pl.DataFrame,
@@ -205,7 +252,8 @@ class DiagnosisParser:
         widths: pl.Series,
         hidden: bool,
     ) -> list[FindingModel]:
-        """What the file holds: its blank rows and columns from the grid, and what only its reader can show."""
+        """What the file holds: its blank rows and columns from the grid, what only its reader can show, and where a
+        workbook's formats make Excel show other than whyqd reads."""
         findings = []
         blank = [lines[i] for i in widths.eq(0).arg_true().to_list()]
         if blank:
@@ -252,7 +300,39 @@ class DiagnosisParser:
                     cells=errors[: settings.REPORT_PLACES],
                 )
             )
-        return findings
+        return findings + self.shown(source=source, mime=mime, reader=reader, sheet=sheet, grid=grid, types=types)
+
+    def shown(
+        self,
+        *,
+        source: Path,
+        mime: MimeType,
+        reader: Reader,
+        sheet: str | None,
+        grid: pl.DataFrame,
+        types: pl.DataFrame,
+    ) -> list[FindingModel]:
+        """Each column whose number format makes Excel show its cells other than whyqd reads them, one fact a code,
+        with the first cell as whyqd read it. Only stored numbers and dates have a format that counts."""
+        codes = reader.formats(source=source, mime=mime, sheet=sheet, height=grid.height, width=grid.width)
+        if codes is None:
+            return []
+        found = []
+        for index, column in enumerate(grid.columns):
+            cells = pl.DataFrame({self.CODE: codes[column], self.TEXT: grid[column]}).filter(
+                types[column].is_in(ProfileParser.FORMATTED)
+            )
+            for code, texts in cells.group_by(self.CODE, maintain_order=True).agg(pl.col(self.TEXT)).iter_rows():
+                if code is None or (says := self.number_formats.differs(code, texts)) is None:
+                    continue
+                found.append(
+                    self.fact(
+                        code="shown-differs",
+                        message=f"Column {index}: under `{code}`, {len(texts)} cells, first `{texts[0]}`. {says}",
+                        columns=[index],
+                    )
+                )
+        return found
 
     def fact(self, *, code: str, message: str, **where) -> FindingModel:
         """A fact, with where in the file it is: its `rows`, `columns`, or `cells`."""

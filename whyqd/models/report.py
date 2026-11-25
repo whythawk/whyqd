@@ -1,9 +1,10 @@
 # SPDX-License-Identifier: BSD-3-Clause
 from __future__ import annotations
 from typing import Optional, Union
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_serializer
 
 from whyqd.dtypes import FindingKind, MimeType, Place, SettingSource
+from whyqd.models.policy import PolicyModel
 
 SettingValue = Union[bool, int, str, list[int], None]
 
@@ -46,17 +47,27 @@ class FindingModel(BaseModel):
 
 
 class ProposalModel(BaseModel):
-    """A setting that would read past a fault. Never applied: it takes effect only when the wrangler declares it."""
+    """A setting, or a field's whole policy, with what supports it. Never applied: it takes effect only when the
+    wrangler declares it."""
 
     setting: str = Field(
         ...,
-        description="The setting's name in the dialect, the slot in a field's policy, or `drop` for a crosswalk step "
-        "to leave out.",
+        description="The setting's name in the dialect, `policy` for a field's whole policy, or `drop` for a crosswalk "
+        "step to leave out.",
     )
     field: Optional[str] = Field(None, description="The schema field the setting is for, if it is not the dialect's.")
-    value: SettingValue = Field(None, description="The value proposed.")
+    value: SettingValue | PolicyModel = Field(
+        None, description="The value proposed: a setting's value, or the policy the field was read under."
+    )
     evidence: str = Field(..., description="What in the file supports it.")
     model_config = ConfigDict(use_enum_values=True, validate_assignment=True)
+
+    @field_serializer("value")
+    def as_declared(self, value: SettingValue | PolicyModel):
+        """A policy written as a definition saves one, its defaults left out, so it can be declared as it stands."""
+        if isinstance(value, PolicyModel):
+            return value.model_dump(mode="json", by_alias=True, exclude_defaults=True)
+        return value
 
 
 class CrosswalkReportModel(BaseModel):

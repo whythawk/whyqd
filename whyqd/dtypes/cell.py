@@ -24,6 +24,52 @@ class SerialDate(str, Enum):
         return self.DESCRIPTIONS[self.value]
 
 
+class FormatClass(str, Enum):
+    """What a workbook's number format code makes Excel show, against the stored value whyqd reads, by ECMA-376's
+    grammar. What each shows: `describe`."""
+
+    GENERAL = "general"
+    DATE = "date"
+    ELAPSED = "elapsed"
+    ROUNDED = "rounded"
+    SCALED = "scaled"
+    PERCENT = "percent"
+    SCIENTIFIC = "scientific"
+    FRACTION = "fraction"
+    ZERO_PADDED = "zero-padded"
+    CURRENCY = "currency"
+    LITERAL = "literal"
+    CONDITIONAL = "conditional"
+    HIDDEN = "hidden"
+    TEXT = "text"
+    LOCALE = "locale"
+
+    DESCRIPTIONS = nonmember(
+        {
+            "general": "The value, exponentially once it passes 11 characters, so a long reference can look rounded.",
+            "date": "A date or time in the format's order, a year or a time perhaps hidden, against the ISO value.",
+            "elapsed": "Hours, minutes, or seconds past a day, against a fraction of a day.",
+            "rounded": "Fewer decimal places than the value holds, against the whole value.",
+            "scaled": "The value divided by a thousand for each comma after the digits.",
+            "percent": "The value times 100, with `%`, against the value.",
+            "scientific": "Exponential notation, against the whole value, whose digits may have been lost when typed.",
+            "fraction": "A fraction, against the decimal value.",
+            "zero-padded": "Leading zeros the value does not hold.",
+            "currency": "A currency symbol, and perhaps brackets for a negative or `-` for zero, around the value.",
+            "literal": "Text around the value, written into the format.",
+            "conditional": "A colour, or another section's display by a condition, or `#` where none is met.",
+            "hidden": "Nothing, against a stored value.",
+            "text": "The cell as text; a number under it was typed before the format.",
+            "locale": "A locale's or calendar's display, which only a declared locale could render.",
+        }
+    )
+
+    @property
+    def describe(self) -> str:
+        """What Excel shows under this class."""
+        return self.DESCRIPTIONS[self.value]
+
+
 class CellType(str, Enum):
     """The type a file stores a cell as, written beside its text where the format stores types. How each renders as
     text, the rule every reader follows: `describe`."""

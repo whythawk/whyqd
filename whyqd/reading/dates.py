@@ -39,7 +39,7 @@ class DateParser(BaseReadingParser):
         ],
         "month": ["yyyy-MM"],
         "quarter": ["yyyy-MM"],
-        "year": ["yyyy"],
+        "year": [PatternParser.FULL_YEAR],
     }
     # A period names no day, and a year no month, so its date is first read at the period's start
     DEFAULTS: ClassVar[dict[str, str]] = {"M": "1", "d": "1"}
@@ -162,7 +162,7 @@ class DateParser(BaseReadingParser):
             if field in self.pattern.MONTH_NAMES:
                 keys = self.name_keys(column)
                 column = keys.replace_strict(self.month_names(rules), default=None, return_dtype=pl.String)
-            if field == "yy":
+            if field == self.pattern.SHORT_YEAR:
                 column = (rules.yearStart + ((column.cast(pl.Int64) - rules.yearStart) % self.CENTURY)).cast(pl.String)
             parts[field[0]] = column
         if "Q" in parts:

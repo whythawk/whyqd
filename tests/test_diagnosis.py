@@ -29,6 +29,8 @@ IDS = [f"{name}-{dialect.get('sheet', '')}" for name, _, dialect, _ in CASES]
 SYNTHETIC = LAYOUTS.parent / "synthetic"
 FENLAND = LAYOUTS.parent / "sample" / "fenland" / "2026-10-25-Fenland District Council.csv"
 ASTERISK = sorted((LAYOUTS.parent / "sample" / "voa").glob("*.csv"))
+STOCKPORT = LAYOUTS.parent / "sample" / "stockport" / "2026-09-04-stockport-original.XLSX"
+BARKING = LAYOUTS.parent / "sample" / "barking-dagenham" / "source-data.XLSX"
 
 
 def diagnose_source(source: Path, mimetype: str, dialect: dict, propose: bool = False) -> ReportModel:
@@ -84,6 +86,23 @@ def test_fenland_is_proposed_its_records():
 
 def test_a_file_declared_its_records_is_not_proposed_them_again():
     assert diagnose_source(FENLAND, "CSV", {"rowsPerRecord": [47, 1]}, propose=True).proposals == []
+
+
+def test_a_fixed_width_export_is_proposed_trim():
+    report = diagnose_source(BARKING, "XLSX", {}, propose=True)
+    trimmed = [p for p in report.proposals if p.setting == "trim"]
+    assert len(trimmed) == 1 and trimmed[0].value is True
+
+
+def test_a_fixed_width_export_declared_trim_is_not_proposed_it_again():
+    report = diagnose_source(BARKING, "XLSX", {"trim": True}, propose=True)
+    assert not [p for p in report.proposals if p.setting == "trim"]
+
+
+def test_one_padded_name_is_not_a_fixed_width_export(tmp_path):
+    source = tmp_path / "padded.csv"
+    source.write_text("id,name   ,town\n1,Alpha,Leeds\n2,Beta,York\n", encoding="utf-8")
+    assert not [p for p in diagnose_source(source, "CSV", {}, propose=True).proposals if p.setting == "trim"]
 
 
 @pytest.mark.parametrize(
@@ -285,3 +304,16 @@ def test_a_finding_prints_with_its_code_and_stores_it_apart():
     finding = FindingModel(code="blank-rows", kind="fact", message="Line 5 is blank.", rows=[5])
     assert finding.message == "Line 5 is blank."
     assert str(finding) == "Line 5 is blank. [whyqd:blank-rows]"
+
+
+def test_a_workbook_is_told_where_excel_shows_other_than_whyqd_reads():
+    report = diagnose_source(STOCKPORT, "XLSX", {})
+    shown = [f for f in report.findings if f.code == "shown-differs"]
+    for code in ("`0.00E+00`", "`d-mmm`", "`mm-dd-yy`"):
+        assert any(code in f.message for f in shown), code
+    assert all(f.kind == "fact" and len(f.columns) == 1 for f in shown)
+
+
+def test_a_text_file_has_no_format_to_tell():
+    report = diagnose("semicolon.csv", "CSV", {})
+    assert not [f for f in report.findings if f.code == "shown-differs"]
